@@ -3,161 +3,74 @@
 ## 概要
 
 Winning Post などのプレイデータをもとに、仲間内で仮想の競馬・馬券を楽しむためのWebアプリです。
-設計には Feature-Sliced Design (FSD) を採用し、Next.js で構築しています。
 
 ## 技術スタック
 
-- Framework: Next.js 16+ (App Router)
-- Database: PostgreSQL
-- ORM: Drizzle ORM
-- Session: Redis
+- Framework: Next.js (App Router)
+- Database: PostgreSQL + Drizzle ORM
+- Session / Cache: Redis
 - Styling: Tailwind CSS v4
 - Auth: Auth.js (Discord OAuth)
 - Testing: Vitest
-- UI: Radix UI, Lucide React, dnd-kit, sonner
-- Infrastructure: Docker Compose
+- Infrastructure: Docker Compose + Cloudflare Tunnel
 
 ## 開発環境セットアップ
 
-### 前提条件
+前提: Docker と [Task](https://taskfile.dev/) がインストールされていること。
 
-- Docker と Docker Compose
-- Node.js（ホスト側で実行する場合）
-
-### 起動手順 (Docker)
-
-本番で Ubuntu を使用して運用する場合、以下のコマンドで Taskfile をインストールしてください。
-
-```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
-```
-
-```bash
-apt install task
-```
-
-1. 環境変数の設定
-   `.env.sample` をコピーして `.env` を作成し、必要な値を設定してください。
-
-2. 開発環境の起動
+1. `.env.sample` をコピーして `.env` を作成し、必要な値を設定します。
+2. コンテナを起動します。Next.js アプリ、PostgreSQL、Redis が立ち上がります。
 
    ```bash
    task docker:up
    ```
 
-   コンテナが起動し、Next.js アプリ、PostgreSQL、Redisが立ち上がります。
+3. 初回起動時やリセット時はデータベースをセットアップします。
 
-3. データベースのセットアップ
-   初回起動時やリセット時は以下を実行します。
    ```bash
    task db:setup
    ```
 
-### 開発環境でのCloudflare Tunnel利用 (外部公開)
+利用可能なコマンドの一覧は `task --list` で確認できます。コンテナ内で任意の pnpm コマンドを実行したい場合は `task run -- <コマンド>` を使います。
 
-家サーバーでの運用・スマートフォン実機での確認用に、開発環境でもCloudflare Tunnelを利用できます。
-事前にCloudflare Zero Trustでトンネルを作成し、トークンを取得してください。
+### Cloudflare Tunnel（外部公開・実機確認）
 
-1. 環境変数の設定
-   `.env` ファイルに `TUNNEL_TOKEN` を設定してください。
-
-2. 開発用プロファイルで起動
-
-   ```bash
-   task docker:up
-   ```
-
-   これにより、通常のサービス（app, db, redis）に加えて `tunnel-dev` コンテナが起動します。
-
-3. 発行されたURLの確認
-   自身で設定したドメイン（例: `https://dev-tipstar.klbq.cc`）にアクセスしてください。
-   トンネルが正常に稼働しているかログを確認する場合は以下を実行します。
-
-   ```bash
-   task docker:logs:tunnel
-   ```
-
-- [AI向け開発コンテキスト](.github/copilot-instructions.md): プロジェクトに参加するAIエージェント/開発者向けの必読ドキュメント。
-
-### 便利なコマンド
-
-利用可能なコマンドは以下で確認できます。
-
-```bash
-task --list
-```
+Cloudflare Zero Trust でトンネルを作成し、`.env` に `TUNNEL_TOKEN` を設定すると、`task docker:up` で `tunnel-dev` コンテナも起動して外部からアクセスできます。トンネルの稼働状況は `task docker:logs:tunnel` で確認します。
 
 ## シードデータ
 
-マスタデータ（競馬場、レース定義、馬マスタ）は以下のJSONファイルで管理されています。
-データを追加・変更した後は `task db:seed` を実行することで反映されます。
+マスタデータは以下のJSONで管理しています。変更後は `task db:seed` で反映します。
 
 - `src/shared/db/seeds/venues.json`: 競馬場マスタ
 - `src/shared/db/seeds/races.json`: レース定義マスタ
-- `src/shared/db/seeds/horses.json`: 馬マスタ（実在・架空・勝ち鞍データ）
+- `src/shared/db/seeds/horses.json`: 馬マスタ
+
+ユーザーロールの変更は `task db:role -- --user=<username>` で行います。
 
 ## 本番環境での実行
 
-本番環境は Proxmox VM 上の Docker で運用し、Cloudflare Tunnel 経由で公開します。
-
-1. 環境変数の設定
-   `.env` ファイルに `TUNNEL_TOKEN` を設定してください。
-
-2. 起動
-
-   ```bash
-   task prod:up
-   ```
-
-3. DBマイグレーション（スキーマ変更時のみ）
-
-   ```bash
-   task prod:migrate
-   ```
-
-4. 停止
-
-   ```bash
-   task prod:down
-   ```
-
-### アーキテクチャメモ: Cloudflare環境下でのSSE (Server-Sent Events)
-
-Cloudflareを経由する通信（Tunnel含む）において、HTTP接続で100秒間無通信が続くと強制切断（HTTP 524）される仕様があります。
-本アプリケーションではリアルタイム通信にSSEを利用していますが、この制限を回避するため以下の対策を実装済みです。
-
-1. Keep-Alive Ping: サーバー側（`src/app/api/events/race-status/route.ts`など）から約30秒間隔で `data: : ping` を送信。
-2. 自動再接続: クライアントフック（`use-sse.ts`）にて40秒以上Pingがない場合はソケットを破棄し、自動的に再接続を実行。
-
-本番および開発のTunnel環境下において、SSE接続のタイムアウトが問題になる場合は、該当ファイルのパラメータ調整を検討してください。
-
-## データベース操作関連
-
-### ユーザーロール変更
-
-ユーザーロールを変更する場合は、次のコマンドを使います。
+本番は Proxmox VM 上の Docker で運用し、Cloudflare Tunnel 経由で公開します。`.env` に `TUNNEL_TOKEN` を設定した上で、VM上で以下を実行します。
 
 ```bash
-task db:role
+task prod:up       # 起動・更新
+task prod:migrate  # DBマイグレーション（スキーマ変更時のみ）
+task prod:down     # 停止
 ```
 
-特定ユーザーを指定する場合は、次の形式で実行します。
+### アーキテクチャメモ: Cloudflare環境下でのSSE
 
-```bash
-task db:role -- --user=<username>
-```
+Cloudflare を経由する通信は、100秒間無通信が続くと強制切断（HTTP 524）されます。本アプリはリアルタイム通信にSSEを使うため、以下の対策を実装済みです。
+
+1. Keep-Alive Ping: サーバー側（`src/app/api/events/race-status/route.ts`）から約30秒間隔で ping を送信。
+2. 自動再接続: クライアント（`src/shared/hooks/use-sse.ts`）で40秒以上 ping がない場合はソケットを破棄して再接続。
+
+SSE接続のタイムアウトが問題になる場合は、該当ファイルのパラメータを調整してください。
 
 ## ディレクトリ構成
 
-本プロジェクトは Feature-Sliced Design (FSD) を採用しています。
-詳細は [.github/copilot-instructions.md](.github/copilot-instructions.md) を参照してください。
+Feature-Sliced Design (FSD) をベースにしています。
 
-- `src/app`: App Router Pages
-- `src/features`: 機能モジュール (admin, auth, betting, economy, forecasts, ranking, stats, user)
-- `src/entities`: ドメインモデル (bet, horse, race, ranking, user, wallet)
-- `src/shared`: 共有コンポーネント・ユーティリティ・DB・設定
-
-## 開発ルール
-
-- [共通ルール](.github/copilot-instructions.md)
-- [スコープ別ルール](.github/instructions)
+- `src/app`: App Router のページとAPIルート
+- `src/features`: 機能モジュール（betting, economy, ranking, admin など）
+- `src/entities`: ドメインモデルとロジック（bet の払戻・オッズ計算など）
+- `src/shared`: 共有UI・ユーティリティ・DB・設定

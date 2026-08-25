@@ -9,42 +9,27 @@ tasks:
     cmds:
       - task --list
 
-  # ── Docker (開発) ──────────────────────────────────────────────
+  # ── Docker ─────────────────────────────────────────────────────
   docker:up:
-    desc: Dockerコンテナを起動します（Cloudflare Tunnel含む）
+    desc: 開発コンテナを起動します（Cloudflare Tunnel含む）
     cmds:
       - docker compose --profile dev up -d
 
   docker:down:
-    desc: Dockerコンテナを停止します
+    desc: 開発コンテナを停止します
     cmds:
       - docker compose --profile dev down
 
-  docker:restart:
-    desc: Dockerコンテナを再起動します
+  docker:clean:
+    desc: ボリュームごと破棄して再ビルドします
     cmds:
-      - docker compose --profile dev restart
-
-  docker:rebuild:
-    desc: Dockerイメージを再ビルドして起動します
-    cmds:
+      - docker compose --profile dev down -v
       - docker compose --profile dev up -d --build
-
-  docker:logs:
-    desc: Dockerログを表示します
-    cmds:
-      - docker compose --profile dev logs -f
 
   docker:logs:tunnel:
     desc: Cloudflare TunnelのログURLを確認します
     cmds:
       - docker compose --profile dev logs tunnel-dev
-
-  docker:clean:
-    desc: 完全にクリーンアップして再構築します
-    cmds:
-      - docker compose --profile dev down -v
-      - docker compose --profile dev up -d --build
 
   # ── アプリケーション ───────────────────────────────────────────
   dev:
@@ -52,19 +37,13 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm dev
 
-  build:
-    desc: アプリケーションをビルドします
+  run:
+    desc: 'コンテナ内で任意のpnpmコマンドを実行します（例: task run -- build）'
     cmds:
-      - docker compose exec {{.TTY}} app pnpm build
+      - docker compose exec {{.TTY}} app pnpm {{.CLI_ARGS}}
 
-  add:
-    desc: パッケージを追加します
-    cmds:
-      - docker compose exec {{.TTY}} app pnpm add {{.CLI_ARGS}}
-
-  # ── テスト・品質 ───────────────────────────────────────────────
   test:
-    desc: 'テストを実行します（デフォルト: 重いテストはスキップ）'
+    desc: 'テストを実行します（重いテストはスキップ）'
     cmds:
       - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=0 pnpm test {{.CLI_ARGS}}"
 
@@ -85,7 +64,7 @@ tasks:
 
   # ── データベース ───────────────────────────────────────────────
   db:setup:
-    desc: データベースのセットアップを実行します
+    desc: 依存インストール・スキーマ反映・シード投入を実行します
     cmds:
       - docker compose exec {{.TTY}} app pnpm install
       - docker compose exec {{.TTY}} app pnpm drizzle-kit push
@@ -97,24 +76,14 @@ tasks:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reset.ts
 
   db:seed:
-    desc: データベースにシードデータを投入します
+    desc: シードデータを投入します（--master-only でマスタのみ）
     cmds:
-      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts
-
-  db:seed:master:
-    desc: マスターデータのみを投入します
-    cmds:
-      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts --master-only
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts {{.CLI_ARGS}}
 
   db:role:
     desc: ユーザーのロールを変更します
     cmds:
-      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-role.ts
-
-  db:redis:reset:
-    desc: Redisをリセットします
-    cmds:
-      - docker compose exec {{.TTY}} app pnpm tsx src/shared/lib/reset-redis.ts
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-role.ts {{.CLI_ARGS}}
 
   # ── 本番環境（VM上で実行） ────────────────────────────────────
   prod:up:
@@ -124,12 +93,12 @@ tasks:
       - docker compose -f docker-compose.prod.yml build app
       - docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-  prod:down:
-    desc: 本番環境のコンテナを停止します（VM上で実行）
-    cmds:
-      - docker compose -f docker-compose.prod.yml down
-
   prod:migrate:
     desc: 本番環境のDBマイグレーションを実行します（VM上で実行）
     cmds:
       - docker compose -f docker-compose.prod.yml run --rm app pnpm drizzle-kit push
+
+  prod:down:
+    desc: 本番環境のコンテナを停止します（VM上で実行）
+    cmds:
+      - docker compose -f docker-compose.prod.yml down
