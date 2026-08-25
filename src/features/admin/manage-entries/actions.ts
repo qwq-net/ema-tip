@@ -1,38 +1,11 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { horses, raceEntries, raceInstances, venues } from '@/shared/db/schema';
+import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
-import { asc, desc, eq, notInArray } from 'drizzle-orm';
+import { eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-
-export async function getEntries() {
-  await requireAdmin();
-
-  const entries = await db
-    .select({
-      id: raceEntries.id,
-      bracketNumber: raceEntries.bracketNumber,
-      horseNumber: raceEntries.horseNumber,
-      jockey: raceEntries.jockey,
-      weight: raceEntries.weight,
-      status: raceEntries.status,
-      raceId: raceInstances.id,
-      raceDate: raceInstances.date,
-      raceLocation: venues.shortName,
-      raceName: raceInstances.name,
-      horseName: horses.name,
-      horseGender: horses.gender,
-    })
-    .from(raceEntries)
-    .innerJoin(raceInstances, eq(raceEntries.raceId, raceInstances.id))
-    .innerJoin(horses, eq(raceEntries.horseId, horses.id))
-    .leftJoin(venues, eq(raceInstances.venueId, venues.id))
-    .orderBy(desc(raceInstances.date), asc(raceInstances.name), asc(raceEntries.horseNumber));
-
-  return entries;
-}
 
 export async function getRacesForSelect() {
   await requireAdmin();
@@ -171,6 +144,15 @@ export async function saveEntries(raceId: string, horseIds: string[]) {
   await requireAdmin();
 
   await db.transaction(async (tx) => {
+    // 全削除して馬番を振り直すため、ベットが存在すると既存ベットの馬番の意味が変わってしまう
+    const existingBet = await tx.query.bets.findFirst({
+      where: eq(bets.raceId, raceId),
+      columns: { id: true },
+    });
+    if (existingBet) {
+      throw new Error('このレースには既にベットが存在するため、出走馬を変更できません');
+    }
+
     await tx.delete(raceEntries).where(eq(raceEntries.raceId, raceId));
 
     if (horseIds.length > 0) {
@@ -185,15 +167,6 @@ export async function saveEntries(raceId: string, horseIds: string[]) {
       await tx.insert(raceEntries).values(entries);
     }
   });
-
-  revalidatePath(`/admin/entries/${raceId}`);
-  revalidatePath('/admin/entries');
-}
-
-export async function deleteEntry(entryId: string, raceId: string) {
-  await requireAdmin();
-
-  await db.delete(raceEntries).where(eq(raceEntries.id, entryId));
 
   revalidatePath(`/admin/entries/${raceId}`);
   revalidatePath('/admin/entries');

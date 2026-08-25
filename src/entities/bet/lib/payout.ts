@@ -95,21 +95,18 @@ export function calculatePayoutRate(
   totalPool: number,
   winningAmount: number,
   totalWinningAmount: number,
-  winningCount: number = 1,
-  takeoutRate: number = 0
+  winningCount: number = 1
 ): number {
   if (winningAmount <= 0) return 0;
-
-  const netPool = totalPool * (1 - takeoutRate);
 
   let payoutPerUnit: number;
 
   if (winningCount > 1) {
-    const profit = Math.max(0, netPool - totalWinningAmount);
+    const profit = Math.max(0, totalPool - totalWinningAmount);
     const dividedProfit = profit / winningCount;
     payoutPerUnit = (winningAmount + dividedProfit) / winningAmount;
   } else {
-    payoutPerUnit = netPool / winningAmount;
+    payoutPerUnit = totalPool / winningAmount;
   }
 
   const rate = Math.floor(payoutPerUnit * 10) / 10;

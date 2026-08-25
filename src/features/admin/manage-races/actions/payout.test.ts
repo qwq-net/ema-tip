@@ -224,6 +224,27 @@ describe('finalizePayout', () => {
     expect(updatedRace?.status).toBe('FINALIZED');
   });
 
+  it('処理済み（PENDING以外）のベットは再処理されず、二重払戻が発生しない', async () => {
+    const { bet: processedBet } = await createBet({ type: 'win', selections: [1], amount: 100 });
+    await db.update(bets).set({ status: 'HIT', payout: 250, odds: '2.5' }).where(eq(bets.id, processedBet.id));
+
+    const { bet: pendingBet } = await createBet({ type: 'win', selections: [1], amount: 100 });
+
+    await db.insert(payoutResults).values({
+      raceId: raceId,
+      type: 'win',
+      combinations: [{ numbers: [1], payout: 250 }],
+    });
+
+    await finalizePayout(raceId);
+
+    const updatedPending = await db.query.bets.findFirst({ where: eq(bets.id, pendingBet.id) });
+    const updatedWallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+
+    expect(updatedPending?.status).toBe('HIT');
+    expect(Number(updatedWallet?.balance)).toBe(10250);
+  });
+
   it('馬連: 順不同で的中判定が正しく行われる', async () => {
     const { bet: betHit } = await createBet({ type: 'quinella', selections: [2, 1], amount: 200 });
     const { bet: betMiss } = await createBet({ type: 'quinella', selections: [1, 3], amount: 200 });

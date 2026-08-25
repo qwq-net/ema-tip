@@ -1,24 +1,5 @@
 export const JST_TIMEZONE = 'Asia/Tokyo';
 
-export function toJSTString(date: Date | string | null | undefined): string {
-  if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '';
-
-  return new Intl.DateTimeFormat('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: JST_TIMEZONE,
-  })
-    .format(d)
-    .replace(/\//g, '-')
-    .replace(' ', 'T');
-}
-
 export function parseJSTToUTC(jstString: string | null | undefined): Date | null {
   if (!jstString || !jstString.includes('T')) return null;
 

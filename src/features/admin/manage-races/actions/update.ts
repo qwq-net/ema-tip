@@ -2,9 +2,10 @@
 
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { raceSchema } from '../model/validation';
 
 export async function updateRace(id: string, formData: FormData) {
@@ -41,6 +42,7 @@ export async function updateRace(id: string, formData: FormData) {
     });
 
     if (!race) throw new Error(ADMIN_ERRORS.NOT_FOUND);
+    if (race.status === 'FINALIZED') throw new Error('払戻確定済みのレースは編集できません');
 
     let newStatus = race.status;
     if (race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {
@@ -73,9 +75,19 @@ export async function updateRace(id: string, formData: FormData) {
 export async function closeRace(raceId: string) {
   await requireAdmin();
 
-  await db.update(raceInstances).set({ status: 'CLOSED' }).where(eq(raceInstances.id, raceId));
+  const updated = await db
+    .update(raceInstances)
+    .set({ status: 'CLOSED' })
+    .where(and(eq(raceInstances.id, raceId), eq(raceInstances.status, 'SCHEDULED')))
+    .returning({ id: raceInstances.id });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
+  if (updated.length === 0) {
+    const race = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
+    // タイマー自動締切と手動締切が競合しうるため、既にCLOSEDなら冪等に成功扱いとする
+    if (race?.status === 'CLOSED') return { success: true };
+    throw new Error('受付中のレースのみ締め切れます');
+  }
+
   raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -85,9 +97,16 @@ export async function closeRace(raceId: string) {
 export async function reopenRace(raceId: string) {
   await requireAdmin();
 
-  await db.update(raceInstances).set({ status: 'SCHEDULED', closingAt: null }).where(eq(raceInstances.id, raceId));
+  const updated = await db
+    .update(raceInstances)
+    .set({ status: 'SCHEDULED', closingAt: null })
+    .where(and(eq(raceInstances.id, raceId), eq(raceInstances.status, 'CLOSED')))
+    .returning({ id: raceInstances.id });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
+  if (updated.length === 0) {
+    throw new Error('締切済みのレースのみ再開できます');
+  }
+
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -99,9 +118,16 @@ export async function setClosingTime(raceId: string, minutes: number) {
 
   const closingAt = new Date(Date.now() + minutes * 60 * 1000);
 
-  await db.update(raceInstances).set({ closingAt, status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
+  const updated = await db
+    .update(raceInstances)
+    .set({ closingAt, status: 'SCHEDULED' })
+    .where(and(eq(raceInstances.id, raceId), inArray(raceInstances.status, ['SCHEDULED', 'CLOSED'])))
+    .returning({ id: raceInstances.id });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
+  if (updated.length === 0) {
+    throw new Error('払戻確定済みのレースには締切時刻を設定できません');
+  }
+
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);

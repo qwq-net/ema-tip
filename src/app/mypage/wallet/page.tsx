@@ -1,8 +1,7 @@
 import { WalletOverview, getEventWallets } from '@/features/economy/wallet';
-import { auth } from '@/shared/config/auth';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 import type { Metadata } from 'next';
 
@@ -11,13 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function WalletPage() {
-  const session = await auth();
+  await requireLoginPage();
 
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
-
-  const userWallets = await getEventWallets(session.user.id);
+  const userWallets = await getEventWallets();
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">

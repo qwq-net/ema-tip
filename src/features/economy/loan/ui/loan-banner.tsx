@@ -1,5 +1,6 @@
 'use client';
 
+import { isEligibleForLoan } from '@/entities/wallet';
 import { Button, Card } from '@/shared/ui';
 import { AlertTriangle, Banknote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,8 +22,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
   const [showConfirm, setShowConfirm] = useState(false);
   const [completed, setCompleted] = useState(false);
 
-  const threshold = distributeAmount * 0.6;
-  const shouldShow = balance < threshold && !hasLoaned && !completed;
+  const shouldShow = isEligibleForLoan(balance, distributeAmount, hasLoaned) && !completed;
 
   if (!shouldShow) return null;
 

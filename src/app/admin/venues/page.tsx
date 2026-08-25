@@ -1,10 +1,8 @@
 import { VenueList } from '@/features/admin/manage-venues/ui/venue-list';
-import { auth } from '@/shared/config/auth';
 import { Button, Card } from '@/shared/ui';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -12,11 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminVenuesPage() {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    redirect('/');
-  }
-
   return (
     <div className="space-y-6">
       <div>

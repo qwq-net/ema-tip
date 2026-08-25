@@ -1,8 +1,36 @@
 import { ForecastSelection, ForecastWithUser } from '@/features/forecasts/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
 import { User } from 'lucide-react';
+import Image from 'next/image';
+
+/** 予想者のアイコン画像を丸抜きで表示する。画像がない場合は人型アイコンで代替する。 */
+function UserAvatar({
+  src,
+  alt,
+  className,
+  iconClassName,
+}: {
+  src: string | null;
+  alt: string;
+  className: string;
+  iconClassName: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100',
+        className
+      )}
+    >
+      {src ? (
+        <Image src={src} alt={alt} fill sizes="32px" className="object-cover" />
+      ) : (
+        <User className={iconClassName} />
+      )}
+    </div>
+  );
+}
 
 interface ForecastDisplayProps {
   forecasts: ForecastWithUser[];
@@ -33,12 +61,12 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
               {forecasts.map((forecast) => (
                 <th key={forecast.id} className="min-w-[80px] px-3 py-2 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={forecast.user.image || ''} alt={forecast.user.name || ''} />
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      src={forecast.user.image}
+                      alt={forecast.user.name || ''}
+                      className="h-8 w-8"
+                      iconClassName="h-4 w-4"
+                    />
                     <span className="max-w-[80px] truncate text-sm font-semibold text-gray-700">
                       {forecast.user.name}
                     </span>
@@ -85,12 +113,12 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
             forecast.comment && (
               <div key={forecast.id} className="rounded-md bg-gray-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={forecast.user.image || ''} alt={forecast.user.name || ''} />
-                    <AvatarFallback>
-                      <User className="h-3 w-3" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    src={forecast.user.image}
+                    alt={forecast.user.name || ''}
+                    className="h-6 w-6"
+                    iconClassName="h-3 w-3"
+                  />
                   <span className="text-sm font-semibold text-gray-900">{forecast.user.name}</span>
                 </div>
                 <p className="text-sm whitespace-pre-wrap text-gray-700">{forecast.comment}</p>

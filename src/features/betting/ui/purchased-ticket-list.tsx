@@ -131,8 +131,6 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
       otherBets.map((b) => ({
         selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
         status: b.status,
-        odds: b.odds,
-        amount: b.amount,
       }))
     );
 
@@ -142,8 +140,6 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
       group.bets.map((b) => ({
         selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
         status: b.status,
-        odds: b.odds,
-        amount: b.amount,
       }))
     );
   }

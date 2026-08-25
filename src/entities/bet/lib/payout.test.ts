@@ -175,11 +175,6 @@ describe('calculatePayoutRate (オッズ計算)', () => {
     expect(rate).toBe(0);
   });
 
-  it('控除率 (takeoutRate) が適用される', () => {
-    const rate = calculatePayoutRate(1000, 100, 100, 1, 0.2);
-    expect(rate).toBe(8.0);
-  });
-
   it('複数的中組み合わせがある場合のオッズ分配 (ワイド等)', () => {
     const rateA = calculatePayoutRate(1000, 200, 600, 3);
     expect(rateA).toBe(1.6);
@@ -199,11 +194,6 @@ describe('calculatePayoutRate (オッズ計算)', () => {
   it('大きなプールでの計算精度', () => {
     const rate = calculatePayoutRate(1000000, 10000, 10000);
     expect(rate).toBe(100.0);
-  });
-
-  it('控除率100%の場合、最低倍率1.0を返す', () => {
-    const rate = calculatePayoutRate(1000, 100, 100, 1, 1.0);
-    expect(rate).toBe(1.0);
   });
 });
 

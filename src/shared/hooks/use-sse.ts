@@ -1,5 +1,5 @@
 import type { RaceStatusSSEMessage } from '@/shared/lib/sse/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
 
@@ -14,13 +14,23 @@ interface UseSSEProps {
 export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(disabled ? 'DISCONNECTED' : 'CONNECTING');
 
+  // onMessage の参照が変わるたびに再接続しないよう、ref経由で最新のハンドラを呼ぶ
+  const onMessageRef = useRef(onMessage);
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
+
   useEffect(() => {
     if (disabled) return;
 
     let eventSource: EventSource | null = null;
     let heartbeatTimeout: NodeJS.Timeout;
+    let reconnectTimeout: NodeJS.Timeout;
+    // アンマウント後に再接続タイマーが発火すると誰もcloseできない接続が残るため、破棄済みフラグで止める
+    let disposed = false;
 
     const connectSSE = () => {
+      if (disposed) return;
       setConnectionStatus('CONNECTING');
       eventSource = new EventSource(url);
 
@@ -40,7 +50,7 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
           const data: SSEMessage = JSON.parse(event.data);
           if (data.type === 'connected') return;
 
-          onMessage?.(data);
+          onMessageRef.current?.(data);
         } catch (error) {
           console.error('[SSE] Parse Error', error);
         }
@@ -51,7 +61,8 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
         setConnectionStatus('DISCONNECTED');
         eventSource?.close();
         clearTimeout(heartbeatTimeout);
-        setTimeout(connectSSE, 5000);
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(connectSSE, 5000);
       };
     };
 
@@ -68,11 +79,13 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
     connectSSE();
 
     return () => {
+      disposed = true;
       eventSource?.close();
       clearTimeout(heartbeatTimeout);
+      clearTimeout(reconnectTimeout);
       setConnectionStatus('DISCONNECTED');
     };
-  }, [url, disabled, onMessage]);
+  }, [url, disabled]);
 
   return { connectionStatus };
 }

@@ -87,26 +87,10 @@ export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' 
   revalidatePath('/admin/events');
 }
 
-export async function deleteEvent(id: string) {
-  await requireAdmin();
-
-  await db.delete(events).where(eq(events.id, id));
-
-  revalidatePath('/admin/events');
-}
-
 export async function getEvent(id: string) {
   await requireAdmin();
 
   return db.query.events.findFirst({
     where: eq(events.id, id),
-  });
-}
-
-export async function getEvents() {
-  await requireAdmin();
-
-  return db.query.events.findMany({
-    orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
   });
 }

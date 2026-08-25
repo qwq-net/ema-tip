@@ -1,5 +1,6 @@
 import { EVENT_STATUS_LABELS, RACE_STATUS_LABELS, type EventStatus, type RaceStatus } from '@/shared/constants/status';
 import { cn } from '@/shared/utils/cn';
+import { getGenderBadgeClass } from '@/shared/utils/gender';
 
 type BadgeVariant = 'surface' | 'condition' | 'status' | 'gender' | 'role' | 'origin' | 'outline';
 
@@ -71,10 +72,7 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
         }
 
       case 'gender':
-        if (label?.startsWith('牡')) return 'bg-blue-100 text-blue-800';
-        if (label?.startsWith('牝')) return 'bg-red-100 text-red-800';
-        if (label?.startsWith('セ') || label?.startsWith('セン')) return 'bg-gray-200 text-gray-800';
-        return 'bg-gray-100 text-gray-800';
+        return getGenderBadgeClass(label?.charAt(0) ?? '');
 
       case 'role':
         switch (label) {

@@ -4,7 +4,6 @@ import { db } from '@/shared/db';
 import { transactions, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
 import { asc, desc, eq, inArray } from 'drizzle-orm';
-import { shouldGroupEventHistoryPoint, shouldGroupGlobalHistoryPoint } from './history';
 import { formatChartDate, formatTransactionDate, getActionName, getTransactionDescription } from './utils';
 
 import type { AssetHistoryPoint, EventStats } from './utils';
@@ -23,6 +22,29 @@ type StatTransaction = {
     } | null;
   } | null;
 };
+
+// 直前の履歴ポイントと同種（type・eventId・label が一致）の取引かを判定する。
+// true なら新規ポイントを追加せず直前ポイントへ合算する。履歴が空なら false。
+function shouldGroupGlobalHistoryPoint(
+  lastPoint: AssetHistoryPoint | undefined,
+  transaction: { type: string },
+  eventId: string,
+  label: string
+): boolean {
+  if (!lastPoint) return false;
+  return lastPoint.type === transaction.type && lastPoint.eventId === eventId && lastPoint.label === label;
+}
+
+// イベント別履歴版のグルーピング判定。eventId の代わりに raceName で同一性を見る。
+function shouldGroupEventHistoryPoint(
+  lastPoint: AssetHistoryPoint | undefined,
+  transaction: { type: string },
+  raceName: string | undefined,
+  label: string
+): boolean {
+  if (!lastPoint) return false;
+  return lastPoint.type === transaction.type && lastPoint.raceName === raceName && lastPoint.label === label;
+}
 
 export async function getGlobalStats() {
   const session = await requireUser();

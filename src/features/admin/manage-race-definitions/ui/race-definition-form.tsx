@@ -1,6 +1,6 @@
 'use client';
 
-import { RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { DIRECTION_LABELS, RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
@@ -22,12 +22,6 @@ interface RaceDefinitionFormProps {
   venues: Array<{ id: string; name: string; defaultDirection?: string }>;
   onSuccess?: () => void;
 }
-
-const DIRECTION_LABELS: Record<string, string> = {
-  LEFT: '左回り',
-  RIGHT: '右回り',
-  STRAIGHT: '直線',
-};
 
 const GRADE_LABELS: Record<string, string> = {
   G1: 'G1',

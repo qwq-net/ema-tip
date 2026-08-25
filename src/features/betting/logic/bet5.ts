@@ -138,6 +138,17 @@ export async function placeBet5Bet({
       throw new Error('BET5 event is closed');
     }
 
+    // 後出し購入防止: 対象レースのいずれかが締切・確定済みなら、BET5イベントの締切忘れがあっても購入不可
+    const targetRaceIds = [event.race1Id, event.race2Id, event.race3Id, event.race4Id, event.race5Id];
+    const closedRaces = await tx.query.raceInstances.findMany({
+      where: (raceInstances, { and, inArray, ne }) =>
+        and(inArray(raceInstances.id, targetRaceIds), ne(raceInstances.status, 'SCHEDULED')),
+      columns: { id: true },
+    });
+    if (closedRaces.length > 0) {
+      throw new Error('対象レースが既に締め切られているため購入できません');
+    }
+
     const count = calculateBet5Count(selections);
 
     if (count === 0) throw new Error('Invalid selection');
@@ -210,6 +221,10 @@ export async function calculateBet5Payout(bet5EventId: string) {
 
     if (!bet5Event) throw new Error('Event not found');
     if (bet5Event.status === 'FINALIZED') return { success: false, message: 'Already finalized' };
+    // 精算中の購入混入を防ぐため、締切済みのイベントのみ精算できる
+    if (bet5Event.status !== 'CLOSED') {
+      return { success: false, message: 'BET5イベントが締切状態ではありません' };
+    }
 
     const event = bet5Event.event;
     const races = [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id];
@@ -317,11 +332,18 @@ export async function calculateBet5Payout(bet5EventId: string) {
 
       await tx.insert(transactions).values(transactionValues);
 
+      // 並行する払戻確定の加算を消さないよう、絶対値SETではなく増減分の演算で更新する
       if (Number(event.carryoverAmount) > 0) {
-        await tx.update(events).set({ carryoverAmount: 0 }).where(eq(events.id, event.id));
+        await tx
+          .update(events)
+          .set({ carryoverAmount: sql`${events.carryoverAmount} - ${Number(event.carryoverAmount)}` })
+          .where(eq(events.id, event.id));
       }
     } else {
-      await tx.update(events).set({ carryoverAmount: totalPot }).where(eq(events.id, event.id));
+      await tx
+        .update(events)
+        .set({ carryoverAmount: sql`${events.carryoverAmount} + ${bet5Event.initialPot + totalSales}` })
+        .where(eq(events.id, event.id));
     }
 
     await tx.update(bet5Events).set({ status: 'FINALIZED' }).where(eq(bet5Events.id, bet5EventId));

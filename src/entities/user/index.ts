@@ -6,4 +6,3 @@ export {
   ROLE_LABELS as RoleLabel,
   type Role,
 } from './constants';
-export * from './ui/user-profile';

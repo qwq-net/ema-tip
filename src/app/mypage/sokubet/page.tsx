@@ -1,9 +1,9 @@
+import { getDisplayStatus } from '@/entities/race/lib/status';
 import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
-import { auth } from '@/shared/config/auth';
 import { Badge, Card } from '@/shared/ui';
-import { getDisplayStatus } from '@/shared/utils/race-status';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -15,11 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SokubetPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  const session = await requireLoginPage();
 
   if (!session.user.isOnboardingCompleted) {
     redirect('/onboarding/name-change');

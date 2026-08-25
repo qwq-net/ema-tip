@@ -1,6 +1,6 @@
 'use client';
 
-import { VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
@@ -18,12 +18,6 @@ interface VenueFormProps {
   };
   onSuccess?: () => void;
 }
-
-const DIRECTION_LABELS: Record<string, string> = {
-  LEFT: '左回り',
-  RIGHT: '右回り',
-  STRAIGHT: '直線',
-};
 
 export function VenueForm({ initialData, onSuccess }: VenueFormProps) {
   const formRef = useRef<HTMLFormElement>(null);

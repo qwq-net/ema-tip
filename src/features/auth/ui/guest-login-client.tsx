@@ -1,6 +1,8 @@
 'use client';
 
 import { checkIpLockStatus } from '@/features/auth/actions/auth-actions';
+import { getAuthErrorMessage, LOGIN_ERROR_MESSAGES } from '@/features/auth/lib/error-messages';
+import { useEmojiPassword } from '@/features/auth/lib/use-emoji-password';
 import { EmojiKeypad } from '@/features/auth/ui/emoji-keypad';
 import { GuestAuthTabs } from '@/features/auth/ui/guest-auth-tabs';
 import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
@@ -15,24 +17,9 @@ import { useState } from 'react';
 export function GuestLoginClient() {
   const router = useRouter();
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { password, setPassword, handleEmojiClick, handleBackspace, handleClear } = useEmojiPassword();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleEmojiClick = (emoji: string) => {
-    if ([...password].length >= 6) return;
-    setPassword((prev) => prev + emoji);
-  };
-
-  const handleBackspace = () => {
-    const chars = [...password];
-    chars.pop();
-    setPassword(chars.join(''));
-  };
-
-  const handleClear = () => {
-    setPassword('');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,24 +58,9 @@ export function GuestLoginClient() {
           `試行回数制限を超えました。一定時間アクセスを制限します。（解除まであと約${postIpLockStatus.remainingMinutes}分）`
         );
       } else {
-        switch (result.error) {
-          case 'UserNotFound':
-          case 'InvalidPassword':
-          case 'CredentialsSignin':
-            setError('ユーザー名またはパスワードが間違っています。');
-            break;
-          case 'UserSetupIncomplete':
-            setError('アカウント設定が完了していません。管理者にお問い合わせください。');
-            break;
-          case 'AccountDisabled':
-            setError('このアカウントは無効化されています。');
-            break;
-          case 'RateLimitExceeded':
-            setError('試行回数制限を超えました。しばらく待ってから再度お試しください。');
-            break;
-          default:
-            setError('ログインエラーが発生しました: ' + result.error);
-        }
+        setError(
+          getAuthErrorMessage(result.error, LOGIN_ERROR_MESSAGES, 'ログインエラーが発生しました: ' + result.error)
+        );
       }
     } else {
       router.push('/');

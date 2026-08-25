@@ -22,23 +22,3 @@ export async function getRaces() {
 export async function getEvents() {
   return db.select().from(events).orderBy(desc(events.date), desc(events.createdAt), events.name);
 }
-
-export async function getRaceById(id: string) {
-  return db.query.raceInstances.findFirst({
-    where: (raceInstances, { eq }) => eq(raceInstances.id, id),
-    with: {
-      venue: true,
-    },
-  });
-}
-
-export async function getRacesByEventId(eventId: string) {
-  return db.query.raceInstances.findMany({
-    where: (raceInstances, { eq }) => eq(raceInstances.eventId, eventId),
-    orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
-    with: {
-      venue: true,
-      entries: true,
-    },
-  });
-}

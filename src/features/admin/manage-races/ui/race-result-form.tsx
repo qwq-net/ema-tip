@@ -282,10 +282,7 @@ export function RaceResultForm({
       }));
 
       try {
-        await finalizeRace(raceId, results, {
-          payoutMode: 'TOTAL_DISTRIBUTION',
-          takeoutRate: 0,
-        });
+        await finalizeRace(raceId, results);
         toast.success('着順を確定しました（払い戻し計算完了）', {
           icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
         });
@@ -325,12 +322,7 @@ export function RaceResultForm({
         .filter((r): r is { entryId: string; finishPosition: number } => r !== null);
 
       try {
-        await finalizeRace(
-          raceId,
-          results,
-          { payoutMode: 'TOTAL_DISTRIBUTION', takeoutRate: 0 },
-          netkeibaResult.payouts
-        );
+        await finalizeRace(raceId, results, netkeibaResult.payouts);
         toast.success('着順を確定しました（Netkeibaオッズ払い戻し計算完了）', {
           icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
         });

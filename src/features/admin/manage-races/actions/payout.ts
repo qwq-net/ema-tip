@@ -1,6 +1,7 @@
 'use server';
 
 import { BetDetail } from '@/entities/bet';
+import { isRefundedBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import {
   bets,
@@ -11,9 +12,9 @@ import {
   transactions,
   wallets,
 } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
-import { isRefundedBet, normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
-import { eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {
   await requireAdmin();
@@ -64,8 +65,9 @@ export async function finalizePayout(raceId: string) {
         .filter((b): b is number => b !== null)
     );
 
+    // 二重払戻防止: 万一FINALIZED以外へ状態が戻されても、処理済みベットは再処理しない
     const allBets = await tx.query.bets.findMany({
-      where: eq(bets.raceId, raceId),
+      where: and(eq(bets.raceId, raceId), eq(bets.status, 'PENDING')),
     });
 
     const betById = new Map(allBets.map((bet) => [bet.id, bet]));
@@ -217,7 +219,6 @@ export async function finalizePayout(raceId: string) {
       .where(eq(raceInstances.id, raceId));
   });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_BROADCAST, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);

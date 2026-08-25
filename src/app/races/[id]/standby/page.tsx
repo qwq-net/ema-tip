@@ -4,10 +4,10 @@ import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
-import { auth } from '@/shared/config/auth';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { StandbyClient } from './standby-client';
 
 interface Entry {
@@ -38,11 +38,7 @@ export const metadata: Metadata = {
 
 export default async function RaceStandbyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  await requireLoginPage();
 
   const [race, entriesData, betGroupsData] = await Promise.all([
     getRaceById(id),

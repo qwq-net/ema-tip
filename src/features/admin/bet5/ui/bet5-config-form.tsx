@@ -17,7 +17,6 @@ type Race = {
 interface Bet5ConfigFormProps {
   eventId: string;
   races: Race[];
-  carryoverAmount?: number;
 }
 
 export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {

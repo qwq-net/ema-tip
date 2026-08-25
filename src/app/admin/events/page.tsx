@@ -1,5 +1,4 @@
 import { EventList } from '@/features/admin/manage-events';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
 import { Button } from '@/shared/ui';
@@ -7,18 +6,12 @@ import { desc } from 'drizzle-orm';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'イベント管理',
 };
 
 export default async function AdminEventsPage() {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    redirect('/');
-  }
-
   const allEvents = await db.query.events.findMany({
     orderBy: [desc(events.date), desc(events.createdAt)],
   });

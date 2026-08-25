@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useIsMounted } from '../hooks/use-is-mounted';
 import { formatJST } from '../utils/date';
 
 interface FormattedDateProps {
@@ -9,12 +9,8 @@ interface FormattedDateProps {
   className?: string;
 }
 
-const emptySubscribe = () => () => {};
-const getSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export function FormattedDate({ date, options, className }: FormattedDateProps) {
-  const isCient = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
+  const isClient = useIsMounted();
 
-  return <span className={className}>{isCient ? formatJST(date, options) : ''}</span>;
+  return <span className={className}>{isClient ? formatJST(date, options) : ''}</span>;
 }

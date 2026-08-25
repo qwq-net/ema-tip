@@ -1,12 +1,13 @@
 'use server';
 
-import { BetDetail, BetType } from '@/entities/bet';
+import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, BetDetail, BetType } from '@/entities/bet';
+import { normalizeSelections } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
-import { betGroups, bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
+import { betGroups, bets, events, raceEntries, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireUser } from '@/shared/utils/admin';
-import { normalizeSelections } from '@/shared/utils/payout';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { calculateAllProvisionalOdds, calculateOdds } from './logic/odds';
 
 const BATCH_SIZE = 100;
 const MAX_COMBINATIONS = 1000;
@@ -50,6 +51,40 @@ export async function placeBets({
 
   if (race.closingAt && new Date() > new Date(race.closingAt)) {
     throw new Error(ADMIN_ERRORS.DEADLINE_EXCEEDED);
+  }
+
+  // イベント終了後に SCHEDULED のまま残ったレースへのベットで順位確定後の残高が動くのを防ぐ
+  const event = await db.query.events.findFirst({
+    where: eq(events.id, race.eventId),
+    columns: { id: true, status: true },
+  });
+  if (!event || event.status !== 'ACTIVE') {
+    throw new Error(ADMIN_ERRORS.RACE_CLOSED);
+  }
+
+  // 組み合わせの中身はクライアント任せにせず、要素数・整数性・実在番号・重複をここで検証する
+  const entries = await db.query.raceEntries.findMany({
+    where: eq(raceEntries.raceId, raceId),
+    columns: { horseNumber: true, bracketNumber: true, status: true },
+  });
+  const isBracket = betType === BET_TYPES.BRACKET_QUINELLA;
+  const validNumbers = new Set(
+    entries
+      .filter((e) => e.status === 'ENTRANT')
+      .map((e) => (isBracket ? e.bracketNumber : e.horseNumber))
+      .filter((n): n is number => n !== null)
+  );
+  const selectionCount = BET_TYPE_SELECTION_COUNTS[betType];
+  for (const combo of combinations) {
+    const isValid =
+      Array.isArray(combo) &&
+      combo.length === selectionCount &&
+      combo.every((n) => Number.isInteger(n) && validNumbers.has(n)) &&
+      // 枠連のみ同一番号の組み合わせを許容する
+      (isBracket || new Set(combo).size === combo.length);
+    if (!isValid) {
+      throw new Error(ADMIN_ERRORS.INVALID_INPUT);
+    }
   }
 
   const wallet = await db.query.wallets.findFirst({
@@ -145,10 +180,9 @@ export async function placeBets({
   revalidatePath('/mypage');
   revalidatePath(`/races/${raceId}`);
 
-  import('./logic/odds').then(({ calculateOdds }) => {
-    calculateOdds(raceId).catch((err) => {
-      console.error('Failed to calculate odds:', err);
-    });
+  // オッズ再計算は応答を待たないファイア・アンド・フォーゲット
+  void calculateOdds(raceId).catch((err) => {
+    console.error('Failed to calculate odds:', err);
   });
 }
 
@@ -164,24 +198,11 @@ export async function getUserBetGroupsForRace(raceId: string) {
     where: (bg, { and, eq }) => and(eq(bg.userId, session.user!.id!), eq(bg.raceId, raceId)),
     orderBy: (bg, { desc }) => [desc(bg.createdAt)],
     with: {
-      bets: {
-        with: {
-          race: {
-            with: {
-              entries: {
-                with: {
-                  horse: true,
-                },
-              },
-            },
-          },
-        },
-      },
+      bets: true,
     },
   });
 
   if (race?.status === 'CLOSED') {
-    const { calculateAllProvisionalOdds } = await import('./logic/odds');
     const provisionalOdds = await calculateAllProvisionalOdds(raceId);
 
     return groups.map((group) => ({
@@ -201,9 +222,4 @@ export async function getUserBetGroupsForRace(raceId: string) {
   }
 
   return groups;
-}
-
-export async function fetchRaceOdds(raceId: string) {
-  const { getRaceOdds } = await import('./logic/odds');
-  return getRaceOdds(raceId);
 }

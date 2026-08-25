@@ -1,9 +1,8 @@
 import { EventClaimList } from '@/features/economy/claim';
 import { getEventsWithJoinStatus } from '@/features/economy/claim/queries';
-import { auth } from '@/shared/config/auth';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 import type { Metadata } from 'next';
 
@@ -12,11 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ClaimPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  const session = await requireLoginPage();
 
   const eventsWithJoinStatus = await getEventsWithJoinStatus(session.user.id);
 

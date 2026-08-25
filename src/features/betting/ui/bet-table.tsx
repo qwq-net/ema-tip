@@ -2,14 +2,13 @@
 
 import { BET_TYPES, getValidBetCombinations } from '@/entities/bet';
 import { useRaceOdds as useRaceOddsData } from '@/features/betting';
-import { fetchRaceOdds, placeBets } from '@/features/betting/actions';
+import { placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
 import { useRaceTimer } from '@/features/betting/hooks/use-race-timer';
-import { validateBetSubmission } from '@/features/betting/lib/validation';
+import type { getRaceOdds } from '@/features/betting/logic/odds';
 import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
-import { useSSE } from '@/shared/hooks/use-sse';
 import { Badge, Button, Checkbox, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
@@ -30,6 +29,23 @@ interface Entry {
   status: string;
 }
 
+// 購入確定前のバリデーション。エラーメッセージを返し、問題なければ null を返す。
+function validateBetSubmission(betCount: number, amount: number, totalAmount: number, balance: number): string | null {
+  if (betCount === 0) {
+    return '馬を選択してください';
+  }
+
+  if (amount < 100) {
+    return '100円以上で入力してください';
+  }
+
+  if (totalAmount > balance) {
+    return '残高が不足しています';
+  }
+
+  return null;
+}
+
 interface BetTableProps {
   raceId: string;
   walletId: string;
@@ -37,9 +53,8 @@ interface BetTableProps {
   entries: Entry[];
   initialStatus: string;
   closingAt: string | null;
-  initialOdds: Awaited<ReturnType<typeof fetchRaceOdds>>;
+  initialOdds: Awaited<ReturnType<typeof getRaceOdds>>;
   fixedOddsMode?: boolean;
-  netkeibaUrl?: string | null;
 }
 
 export function BetTable({
@@ -56,18 +71,16 @@ export function BetTable({
   const [isPending, startTransition] = useTransition();
   const [showBetConfirm, setShowBetConfirm] = useState(false);
 
-  const { isClosed, handleSSEMessage } = useRaceTimer({
-    raceId,
+  const { isClosed, setIsClosed } = useRaceTimer({
     initialStatus,
     closingAt,
   });
 
-  const { connectionStatus } = useSSE({
-    url: '/api/events/race-status',
-    onMessage: handleSSEMessage,
+  const { odds, connectionStatus } = useRaceOddsData(raceId, initialOdds, fixedOddsMode, {
+    onRaceBroadcast: () => router.push(`/races/${raceId}/standby`),
+    onRaceClosed: () => setIsClosed(true),
+    onRaceReopened: () => setIsClosed(false),
   });
-
-  const odds = useRaceOddsData(raceId, initialOdds, false, fixedOddsMode);
 
   const {
     betType,

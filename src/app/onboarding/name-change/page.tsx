@@ -1,5 +1,5 @@
 import { NameChangeForm } from '@/features/user/ui/name-change-form';
-import { auth } from '@/shared/config/auth';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { redirect } from 'next/navigation';
 
 import type { Metadata } from 'next';
@@ -9,11 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OnboardingNameChangePage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  const session = await requireLoginPage();
 
   if (session.user.isOnboardingCompleted) {
     redirect('/mypage');

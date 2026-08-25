@@ -1,4 +1,3 @@
-import { auth } from '@/shared/config/auth';
 import { Card } from '@/shared/ui';
 import {
   BookOpen,
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'クイックガイド | 管理画面',
@@ -198,11 +196,6 @@ function StepCard({ step }: { step: Step }) {
 }
 
 export default async function AdminGuidePage() {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    redirect('/');
-  }
-
   return (
     <div className="max-w-6xl space-y-12 pb-12">
       <div className="text-center md:text-left">

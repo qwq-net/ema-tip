@@ -1,6 +1,6 @@
 'use client';
 
-import { VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
@@ -35,13 +35,6 @@ interface RaceFormProps {
   venues?: Array<{ id: string; name: string; defaultDirection: string }>;
   onSuccess?: () => void;
 }
-
-const DIRECTION_LABELS: Record<string, string> = {
-  LEFT: '左回り',
-  RIGHT: '右回り',
-  STRAIGHT: '直線',
-  OTHER: 'その他',
-};
 
 export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], onSuccess }: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);

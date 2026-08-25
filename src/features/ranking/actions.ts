@@ -12,6 +12,27 @@ import { type RankingData } from '@/entities/ranking';
 
 export type RankingDisplayMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
 
+/**
+ * イベント参加ウォレットをユーザー名付きで順位順に取得する。
+ * orderByNet が true の場合は借入額を差し引いた純資産の降順、false の場合は残高の降順で並べる。
+ */
+async function fetchRankedWallets(eventId: string, orderByNet: boolean) {
+  return db.query.wallets.findMany({
+    where: eq(wallets.eventId, eventId),
+    with: {
+      user: {
+        columns: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: orderByNet
+      ? [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`), asc(wallets.createdAt), asc(wallets.userId)]
+      : [desc(wallets.balance), asc(wallets.createdAt), asc(wallets.userId)],
+  });
+}
+
 export async function getEventRanking(eventId: string): Promise<{
   ranking: RankingData[];
   published: boolean;
@@ -32,25 +53,18 @@ export async function getEventRanking(eventId: string): Promise<{
   const distributeAmount = event.distributeAmount;
   const isFullWithLoan = event.rankingDisplayMode === 'FULL_WITH_LOAN';
 
-  const eventWallets = await db.query.wallets.findMany({
-    where: eq(wallets.eventId, eventId),
-    with: {
-      user: {
-        columns: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-    orderBy: isFullWithLoan
-      ? [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`), asc(wallets.createdAt), asc(wallets.userId)]
-      : [desc(wallets.balance), asc(wallets.createdAt), asc(wallets.userId)],
-  });
+  const eventWallets = await fetchRankedWallets(eventId, isFullWithLoan);
 
-  const ranking: RankingData[] = eventWallets.map((wallet, index) => {
+  const isHidden = event.rankingDisplayMode === 'HIDDEN';
+  const isAnonymous = event.rankingDisplayMode === 'ANONYMOUS';
+
+  // HIDDEN では残高降順の並びから実際の順位が漏れるため、順位と無関係な作成順に並べ直す
+  const walletsForDisplay = isHidden
+    ? [...eventWallets].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    : eventWallets;
+
+  const ranking: RankingData[] = walletsForDisplay.map((wallet, index) => {
     const isCurrentUser = wallet.userId === currentUserId;
-    const isHidden = event.rankingDisplayMode === 'HIDDEN';
-    const isAnonymous = event.rankingDisplayMode === 'ANONYMOUS';
 
     let name = wallet.user.name || 'Unknown';
     let rank: number | string = index + 1;
@@ -72,9 +86,12 @@ export async function getEventRanking(eventId: string): Promise<{
       name = '???';
     }
 
+    // マスク時は userId から匿名化が破られないよう、実IDの代わりに表示用のキーを返す
+    const shouldMaskId = isHidden || (isAnonymous && !isCurrentUser);
+
     return {
       rank,
-      userId: wallet.userId,
+      userId: shouldMaskId ? `masked-${index}` : wallet.userId,
       name,
       balance,
       isCurrentUser,
@@ -110,18 +127,7 @@ export async function getAdminEventRanking(eventId: string): Promise<{
 
   const distributeAmount = event.distributeAmount;
 
-  const eventWallets = await db.query.wallets.findMany({
-    where: eq(wallets.eventId, eventId),
-    with: {
-      user: {
-        columns: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-    orderBy: [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`), asc(wallets.createdAt), asc(wallets.userId)],
-  });
+  const eventWallets = await fetchRankedWallets(eventId, true);
 
   const ranking: RankingData[] = eventWallets.map((wallet, index) => {
     const isCurrentUser = wallet.userId === session.user?.id;

@@ -27,6 +27,7 @@ vi.mock('@/shared/db', () => ({
     transaction: vi.fn(),
     query: {
       raceInstances: { findFirst: vi.fn() },
+      events: { findFirst: vi.fn() },
       wallets: { findFirst: vi.fn() },
       betGroups: { findMany: vi.fn() },
       bets: { findMany: vi.fn() },
@@ -37,8 +38,8 @@ vi.mock('@/shared/db', () => ({
   },
 }));
 
-vi.mock('@/shared/utils/payout', async () => {
-  const actual = await vi.importActual('@/shared/utils/payout');
+vi.mock('@/entities/bet/lib/payout', async () => {
+  const actual = await vi.importActual('@/entities/bet/lib/payout');
   return {
     ...actual,
     isRefundedBet: vi.fn().mockReturnValue(false),
@@ -63,6 +64,7 @@ vi.mock('@/shared/db/schema', () => ({
   betGroups: { id: 'betGroups.id' },
   bets: { id: 'bets.id', raceId: 'bets.raceId' },
   raceInstances: { id: 'raceInstances.id', status: 'status' },
+  events: { id: 'events.id', status: 'events.status' },
   raceEntries: { raceId: 'raceEntries.raceId' },
   raceOdds: { raceId: 'raceOdds.raceId' },
   transactions: {},
@@ -136,7 +138,15 @@ describe('placeBets', () => {
       cb(mockTx)
     );
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(mockRace);
+    (db.query.events.findFirst as unknown as Mock).mockResolvedValue({ id: eventId, status: 'ACTIVE' });
     (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue(mockWallet);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue(
+      Array.from({ length: 8 }, (_, i) => ({
+        horseNumber: i + 1,
+        bracketNumber: i + 1,
+        status: 'ENTRANT',
+      }))
+    );
   });
 
   it('ユーザー認証がない場合はエラーをスローする', async () => {
@@ -175,6 +185,55 @@ describe('placeBets', () => {
     await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).rejects.toThrow(
       ADMIN_ERRORS.INVALID_INPUT
     );
+  });
+
+  it('券種と要素数が一致しない組み合わせは INVALID_INPUT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, betType: 'win', combinations: [[1, 2]] })).rejects.toThrow(
+      ADMIN_ERRORS.INVALID_INPUT
+    );
+  });
+
+  it('整数以外を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, combinations: [[1.5]] })).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
+  });
+
+  it('出走馬に存在しない馬番を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, combinations: [[99]] })).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
+  });
+
+  it('馬連で同一馬番の重複を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, betType: 'quinella', combinations: [[1, 1]] })).rejects.toThrow(
+      ADMIN_ERRORS.INVALID_INPUT
+    );
+  });
+
+  it('枠連は同一枠番の組み合わせを許容する', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(
+      placeBets({ ...defaultArgs, betType: 'bracket_quinella', combinations: [[1, 1]] })
+    ).resolves.not.toThrow();
+  });
+
+  it('イベントが ACTIVE でない場合はエラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.events.findFirst as unknown as Mock).mockResolvedValue({ id: eventId, status: 'COMPLETED' });
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.RACE_CLOSED);
   });
 
   it('レースが存在しない場合は NOT_FOUND エラーをスローする', async () => {

@@ -1,23 +1,26 @@
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
-import { fetchRaceOdds } from '@/features/betting/actions';
+import { getRaceOdds } from '@/features/betting/logic/odds';
 import { BetTable } from '@/features/betting/ui/bet-table';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
-import { auth } from '@/shared/config/auth';
 import { Button } from '@/shared/ui';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
-import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { cache, Suspense } from 'react';
 
 import { ForecastSection } from './_components/forecast-section';
 
 import type { Metadata } from 'next';
 
+// generateMetadata と page 本体で同じレースを引くため、リクエスト内で重複クエリを排除する
+const getRaceCached = cache(getRaceById);
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const race = await getRaceById(id);
+  const race = await getRaceCached(id);
 
   if (!race) {
     return {
@@ -33,17 +36,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function RacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  await requireLoginPage();
 
   const [race, entries, wallets, initialOdds] = await Promise.all([
-    getRaceById(id),
+    getRaceCached(id),
     getEntriesForRace(id),
-    getEventWallets(session.user.id),
-    fetchRaceOdds(id),
+    getEventWallets(),
+    getRaceOdds(id),
   ]);
 
   if (!race) {
@@ -126,7 +125,6 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           closingAt={race.closingAt ? race.closingAt.toISOString() : null}
           initialOdds={initialOdds}
           fixedOddsMode={race.fixedOddsMode}
-          netkeibaUrl={race.netkeibaUrl}
         />
 
         <Suspense

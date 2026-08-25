@@ -1,23 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatJST, parseJSTToUTC, toJSTString } from './date';
+import { formatJST, parseJSTToUTC } from './date';
 
 describe('utils/date', () => {
-  describe('toJSTString', () => {
-    it('日付をJST文字列に正しくフォーマットすること', () => {
-      const date = new Date('2023-01-01T00:00:00Z');
-      expect(toJSTString(date)).toBe('2023-01-01T09:00');
-    });
-
-    it('文字列入力を扱えること', () => {
-      expect(toJSTString('2023-01-01T00:00:00Z')).toBe('2023-01-01T09:00');
-    });
-
-    it('null/undefinedに対して空文字を返すこと', () => {
-      expect(toJSTString(null)).toBe('');
-      expect(toJSTString(undefined)).toBe('');
-    });
-  });
-
   describe('parseJSTToUTC', () => {
     it('JST文字列をUTCのDateオブジェクトに正しくパースすること', () => {
       const jstString = '2023-01-01T09:00';

@@ -1,9 +1,11 @@
 import { auth } from '@/shared/config/auth';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import type { RaceOddsData, RaceResultItem, RankingMode } from '@/shared/lib/sse/types';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
+
+// 1接続あたり7リスナーを登録するため、既定の上限10では数接続で警告が出る
+raceEventEmitter.setMaxListeners(0);
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -17,72 +19,46 @@ export async function GET(req: NextRequest) {
     start(controller) {
       controller.enqueue(encoder.encode(`data: {"type":"connected","id":"${raceEventEmitter.id}"}\n\n`));
 
-      const onRaceFinalized = (data: { raceId: string }) => {
-        console.log(`[SSE] Emitting RACE_FINALIZED for race: ${data.raceId}`);
-        const payload = JSON.stringify({ type: 'RACE_FINALIZED', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+      let closed = false;
+      const handlers: Array<[string, (data: object) => void]> = [];
+
+      const cleanup = () => {
+        if (closed) return;
+        closed = true;
+        clearInterval(heartbeatInterval);
+        for (const [type, handler] of handlers) {
+          raceEventEmitter.off(type, handler);
+        }
+        try {
+          controller.close();
+        } catch {
+          // クライアント切断と同時に close 済みの場合がある
+        }
       };
 
-      const onRaceBroadcast = (data: { raceId: string }) => {
-        console.log(`[SSE] Emitting RACE_BROADCAST for race: ${data.raceId}`);
-        const payload = JSON.stringify({ type: 'RACE_BROADCAST', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+      // リスナーは emit 元のサーバーアクション内で同期実行されるため、
+      // close 済み controller への enqueue 例外を emit 元へ伝播させてはいけない
+      const safeEnqueue = (payload: string) => {
+        try {
+          controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+        } catch {
+          cleanup();
+        }
       };
 
-      const onRaceClosed = (data: { raceId: string }) => {
-        console.log(`[SSE] Emitting RACE_CLOSED for race: ${data.raceId}`);
-        const payload = JSON.stringify({ type: 'RACE_CLOSED', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
-      };
-
-      const onRaceReopened = (data: { raceId: string }) => {
-        console.log(`[SSE] Emitting RACE_REOPENED for race: ${data.raceId}`);
-        const payload = JSON.stringify({ type: 'RACE_REOPENED', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
-      };
-
-      const onRaceOddsUpdated = (data: { raceId: string; data: RaceOddsData }) => {
-        console.log(`[SSE] Emitting RACE_ODDS_UPDATED for race: ${data.raceId}`);
-        const payload = JSON.stringify({ type: 'RACE_ODDS_UPDATED', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
-      };
-
-      const onRankingUpdated = (data: { eventId: string; mode: RankingMode }) => {
-        console.log(`[SSE] Emitting RANKING_UPDATED for event: ${data.eventId}`);
-        const payload = JSON.stringify({ type: 'RANKING_UPDATED', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
-      };
-
-      const onRaceResultUpdated = (data: { raceId: string; results: RaceResultItem[]; timestamp: number }) => {
-        console.log(`[SSE] Emitting RACE_RESULT_UPDATED for race: ${data.raceId}`);
-        const payload = JSON.stringify({ type: 'RACE_RESULT_UPDATED', ...data });
-        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
-      };
-
-      raceEventEmitter.on(RACE_EVENTS.RACE_FINALIZED, onRaceFinalized);
-      raceEventEmitter.on(RACE_EVENTS.RACE_BROADCAST, onRaceBroadcast);
-      raceEventEmitter.on(RACE_EVENTS.RACE_CLOSED, onRaceClosed);
-      raceEventEmitter.on(RACE_EVENTS.RACE_REOPENED, onRaceReopened);
-      raceEventEmitter.on(RACE_EVENTS.RACE_ODDS_UPDATED, onRaceOddsUpdated);
-      raceEventEmitter.on(RACE_EVENTS.RANKING_UPDATED, onRankingUpdated);
-      raceEventEmitter.on(RACE_EVENTS.RACE_RESULT_UPDATED, onRaceResultUpdated);
+      for (const type of Object.values(RACE_EVENTS)) {
+        const handler = (data: object) => {
+          safeEnqueue(JSON.stringify({ type, ...data }));
+        };
+        handlers.push([type, handler]);
+        raceEventEmitter.on(type, handler);
+      }
 
       const heartbeatInterval = setInterval(() => {
-        controller.enqueue(encoder.encode('data: : ping\n\n'));
+        safeEnqueue(': ping');
       }, 30000);
 
-      req.signal.addEventListener('abort', () => {
-        console.log(`[SSE] Client disconnected. Cleaning up listeners for EventEmitter: ${raceEventEmitter.id}`);
-        clearInterval(heartbeatInterval);
-        raceEventEmitter.off(RACE_EVENTS.RACE_FINALIZED, onRaceFinalized);
-        raceEventEmitter.off(RACE_EVENTS.RACE_BROADCAST, onRaceBroadcast);
-        raceEventEmitter.off(RACE_EVENTS.RACE_CLOSED, onRaceClosed);
-        raceEventEmitter.off(RACE_EVENTS.RACE_REOPENED, onRaceReopened);
-        raceEventEmitter.off(RACE_EVENTS.RACE_ODDS_UPDATED, onRaceOddsUpdated);
-        raceEventEmitter.off(RACE_EVENTS.RANKING_UPDATED, onRankingUpdated);
-        raceEventEmitter.off(RACE_EVENTS.RACE_RESULT_UPDATED, onRaceResultUpdated);
-        controller.close();
-      });
+      req.signal.addEventListener('abort', cleanup);
     },
   });
 

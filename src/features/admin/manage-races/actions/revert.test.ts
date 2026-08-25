@@ -48,6 +48,7 @@ describe('resetRaceResults', () => {
     execute: ReturnType<typeof vi.fn>;
     query: {
       raceInstances: { findFirst: ReturnType<typeof vi.fn> };
+      bet5Events: { findFirst: ReturnType<typeof vi.fn> };
     };
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
@@ -71,6 +72,9 @@ describe('resetRaceResults', () => {
         raceInstances: {
           findFirst: vi.fn().mockResolvedValue({ id: raceId, status: 'CLOSED' }),
         },
+        bet5Events: {
+          findFirst: vi.fn().mockResolvedValue(undefined),
+        },
       },
       update: vi.fn().mockReturnValue(updateChain),
       delete: vi.fn().mockReturnValue(deleteChain),
@@ -87,6 +91,15 @@ describe('resetRaceResults', () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
   }
+
+  it('BET5精算済みイベントの構成レースはリセットできない', async () => {
+    await setupAdminAuth();
+    mockTx.query.bet5Events.findFirst.mockResolvedValue({ id: 'bet5-1' });
+
+    await expect(resetRaceResults(raceId)).rejects.toThrow('BET5');
+    expect(mockTx.update).not.toHaveBeenCalled();
+    expect(mockTx.delete).not.toHaveBeenCalled();
+  });
 
   it('トランザクション内で advisory lock を取得する', async () => {
     await setupAdminAuth();

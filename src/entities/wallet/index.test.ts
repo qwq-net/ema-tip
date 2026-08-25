@@ -1,19 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { calculateLoanThreshold, calculateNetBalance, isEligibleForLoan } from './logic';
+import { calculateNetBalance, isEligibleForLoan } from './index';
 
 describe('Loan Logic', () => {
-  describe('calculateLoanThreshold', () => {
-    it('分配額の60%を返すこと', () => {
-      expect(calculateLoanThreshold(10000)).toBe(6000);
-      expect(calculateLoanThreshold(0)).toBe(0);
-      expect(calculateLoanThreshold(5000)).toBe(3000);
-    });
-  });
-
   describe('isEligibleForLoan', () => {
     const distributeAmount = 10000;
 
-    it('残高が閾値未満かつ未ローンの場合、trueを返すこと', () => {
+    it('残高が閾値（分配額の60%）未満かつ未ローンの場合、trueを返すこと', () => {
       expect(isEligibleForLoan(5999, distributeAmount, false)).toBe(true);
       expect(isEligibleForLoan(0, distributeAmount, false)).toBe(true);
     });

@@ -1,11 +1,11 @@
+import { isRefundedBet } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { isRefundedBet } from '@/shared/utils/payout';
 import { eq } from 'drizzle-orm';
 
-import { aggregateOddsPool, BetDetail, calculateProvisionalOdds, calculateWinOdds } from '@/entities/bet';
+import { aggregateOddsPool, BET_TYPES, BetDetail, calculateProvisionalOdds } from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
 
@@ -23,7 +23,11 @@ export async function calculateOdds(raceId: string) {
 
   const winBets = raceBets.filter((bet) => bet.details.type === 'win');
 
-  const winOdds = calculateWinOdds(winBets);
+  // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す
+  const provisionalWin = calculateProvisionalOdds(aggregateOddsPool(winBets))[BET_TYPES.WIN] ?? {};
+  const winOdds = Object.fromEntries(
+    Object.entries(provisionalWin).map(([key, rate]) => [String((JSON.parse(key) as number[])[0]), rate])
+  );
 
   await db
     .insert(raceOdds)

@@ -20,9 +20,13 @@ vi.mock('@/shared/db/schema', () => ({
   raceOdds: { raceId: 'raceOdds.raceId' },
 }));
 
-vi.mock('@/shared/utils/payout', () => ({
-  isRefundedBet: vi.fn().mockReturnValue(false),
-}));
+vi.mock('@/entities/bet/lib/payout', async () => {
+  const actual = await vi.importActual('@/entities/bet/lib/payout');
+  return {
+    ...actual,
+    isRefundedBet: vi.fn().mockReturnValue(false),
+  };
+});
 
 vi.mock('@/shared/lib/redis', () => ({
   redis: {

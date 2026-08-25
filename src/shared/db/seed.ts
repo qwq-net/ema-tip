@@ -1,8 +1,7 @@
 import type { HorseTagType, HorseType } from '@/entities/horse';
-import { type RaceStatus } from '@/entities/race';
 import { ROLES } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
-import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { RACE_CONDITIONS, RACE_GRADES, RACE_STATUSES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { and, eq } from 'drizzle-orm';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
@@ -10,6 +9,8 @@ import * as schema from './schema';
 import horsesDataRaw from './seeds/horses.json';
 import racesDataRaw from './seeds/races.json';
 import venuesDataRaw from './seeds/venues.json';
+
+type RaceStatus = (typeof RACE_STATUSES)[number];
 
 interface VenueSeedData {
   code: string;

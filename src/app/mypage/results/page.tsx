@@ -1,8 +1,7 @@
-import { auth } from '@/shared/config/auth';
 import { Card, CardContent } from '@/shared/ui';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft, Trophy } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 import type { Metadata } from 'next';
 
@@ -11,11 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ResultsPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  await requireLoginPage();
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">

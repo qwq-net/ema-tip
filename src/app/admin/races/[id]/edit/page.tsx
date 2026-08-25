@@ -1,5 +1,6 @@
+import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/actions';
-import { getEvents, getRaceById } from '@/features/admin/manage-races';
+import { getEvents } from '@/features/admin/manage-races/actions';
 import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { Card } from '@/shared/ui';

@@ -1,12 +1,7 @@
+import { DIRECTION_LABELS } from '@/shared/constants/race';
 import Link from 'next/link';
 import { getVenues } from '../actions';
 import { DeleteVenueButton } from './delete-venue-button';
-
-const DIRECTION_LABELS: Record<string, string> = {
-  LEFT: '左回り',
-  RIGHT: '右回り',
-  STRAIGHT: '直線',
-};
 
 export async function VenueList() {
   const venues = await getVenues();

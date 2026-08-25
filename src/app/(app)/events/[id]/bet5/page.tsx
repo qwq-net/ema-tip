@@ -47,7 +47,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const wallets = await getEventWallets(session.user.id);
+  const wallets = await getEventWallets();
   const wallet = wallets.find((w) => w.eventId === id);
 
   if (!wallet) {

@@ -5,6 +5,7 @@ const GENDER_CLASS_MAP: Record<string, string> = {
   牝: 'bg-pink-100 text-pink-800',
   MARE: 'bg-pink-100 text-pink-800',
   FILLY: 'bg-pink-100 text-pink-800',
+  セ: 'bg-gray-100 text-gray-800',
   セン: 'bg-gray-100 text-gray-800',
   GELDING: 'bg-gray-100 text-gray-800',
 };

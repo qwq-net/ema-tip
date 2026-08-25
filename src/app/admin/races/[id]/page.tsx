@@ -1,8 +1,7 @@
 import { getPayoutResults } from '@/entities/race/actions';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
-import { getRaceById } from '@/features/admin/manage-races/actions';
+import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, horses, raceEntries, raceOdds } from '@/shared/db/schema';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
@@ -13,7 +12,7 @@ import { eq } from 'drizzle-orm';
 import { ChevronLeft, ExternalLink, Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'レース詳細編集',
@@ -21,10 +20,6 @@ export const metadata: Metadata = {
 
 export default async function RaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    redirect('/');
-  }
 
   const [race, payoutResults] = await Promise.all([getRaceById(id), getPayoutResults(id)]);
   if (!race) {

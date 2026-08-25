@@ -1,16 +1,15 @@
-import { SSEMessage } from '@/shared/hooks/use-sse';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 interface UseRaceTimerProps {
-  raceId: string;
   initialStatus: string;
   closingAt: string | null;
 }
 
-export function useRaceTimer({ raceId, initialStatus, closingAt }: UseRaceTimerProps) {
-  const router = useRouter();
+/**
+ * 締切時刻のカウントダウンで受付終了状態を管理する。
+ * SSEによる締切・再開の反映は useRaceEvents 側のコールバックから setIsClosed で行う。
+ */
+export function useRaceTimer({ initialStatus, closingAt }: UseRaceTimerProps) {
   const [isClosed, setIsClosed] = useState(initialStatus !== 'SCHEDULED');
 
   useEffect(() => {
@@ -31,27 +30,5 @@ export function useRaceTimer({ raceId, initialStatus, closingAt }: UseRaceTimerP
     return () => clearInterval(timer);
   }, [closingAt, isClosed]);
 
-  const handleSSEMessage = useCallback(
-    (data: SSEMessage) => {
-      if (!('raceId' in data)) return;
-      if (data.raceId !== raceId) return;
-
-      if (data.type === 'RACE_CLOSED' || data.type === 'RACE_FINALIZED' || data.type === 'RACE_BROADCAST') {
-        setIsClosed(true);
-        if (data.type === 'RACE_BROADCAST') {
-          toast.success('レース結果が確定しました！結果画面へ移動します。');
-          router.push(`/races/${raceId}/standby`);
-        } else {
-          toast.info('このレースの受付は終了しました');
-        }
-      } else if (data.type === 'RACE_REOPENED') {
-        setIsClosed(false);
-        toast.success('レースの受付が再開されました！');
-        router.refresh();
-      }
-    },
-    [raceId, router]
-  );
-
-  return { isClosed, handleSSEMessage };
+  return { isClosed, setIsClosed };
 }

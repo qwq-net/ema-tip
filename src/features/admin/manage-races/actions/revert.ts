@@ -2,6 +2,7 @@
 
 import { db } from '@/shared/db';
 import { payoutResults, raceEntries, raceInstances } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireAdmin } from '@/shared/utils/admin';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -22,12 +23,30 @@ export async function resetRaceResults(raceId: string) {
       throw new Error('確定済みのレースはリセットできません');
     }
 
+    // BET5精算はレースの着順を前提に行われるため、精算後に着順を消すと払戻の根拠が失われる
+    const finalizedBet5 = await tx.query.bet5Events.findFirst({
+      where: (bet5Events, { and, eq, or }) =>
+        and(
+          or(
+            eq(bet5Events.race1Id, raceId),
+            eq(bet5Events.race2Id, raceId),
+            eq(bet5Events.race3Id, raceId),
+            eq(bet5Events.race4Id, raceId),
+            eq(bet5Events.race5Id, raceId)
+          ),
+          eq(bet5Events.status, 'FINALIZED')
+        ),
+      columns: { id: true },
+    });
+    if (finalizedBet5) {
+      throw new Error('BET5精算済みのイベントに含まれるレースはリセットできません');
+    }
+
     await tx.update(raceEntries).set({ finishPosition: null }).where(eq(raceEntries.raceId, raceId));
 
     await tx.delete(payoutResults).where(eq(payoutResults.raceId, raceId));
   });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_RESULT_UPDATED, {
     raceId,
     results: [],

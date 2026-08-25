@@ -155,6 +155,16 @@ describe('calculateBet5Payout', () => {
     expect(mockTx.insert).not.toHaveBeenCalled();
   });
 
+  it('SCHEDULED のままの場合は精算せず success:false を返す', async () => {
+    mockTx.query.bet5Events.findFirst.mockResolvedValue({ ...baseBet5Event, status: 'SCHEDULED' });
+
+    const result = await calculateBet5Payout(bet5EventId);
+
+    expect(result).toMatchObject({ success: false });
+    expect(mockTx.update).not.toHaveBeenCalled();
+    expect(mockTx.insert).not.toHaveBeenCalled();
+  });
+
   it('全レースの1着が揃っていない場合は success:false を返す', async () => {
     mockTx.query.raceEntries.findMany.mockResolvedValue([
       { raceId: raceIds[0], horseId: 'horse-1', finishPosition: 1 },
@@ -205,7 +215,7 @@ describe('calculateBet5Payout', () => {
     expect((result as { totalPot: number }).totalPot).toBe(baseBet5Event.initialPot + losingTicket.amount + carryover);
   });
 
-  it('的中あり時にキャリーオーバーが存在する場合はゼロにリセットされる', async () => {
+  it('的中あり時のキャリーオーバー消費は絶対値0ではなく読み取り分の減算で行う', async () => {
     mockTx.query.bet5Events.findFirst.mockResolvedValue({
       ...baseBet5Event,
       event: { id: 'event-1', carryoverAmount: 2000 },
@@ -216,7 +226,79 @@ describe('calculateBet5Payout', () => {
     const zeroCarryoverSet = mockTx._updateChain.set.mock.calls.find(
       (args: unknown[]) => (args[0] as Record<string, unknown>)?.carryoverAmount === 0
     );
-    expect(zeroCarryoverSet).toBeDefined();
+    expect(zeroCarryoverSet).toBeUndefined();
+
+    const decrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
+      const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
+      return value !== undefined && typeof value === 'object' && JSON.stringify(value).includes('2000');
+    });
+    expect(decrementSet).toBeDefined();
+  });
+
+  it('的中者なし時のキャリーオーバーは絶対値SETではなく売上と初期ポット分の加算で行う', async () => {
+    mockTx.query.bet5Events.findFirst.mockResolvedValue({
+      ...baseBet5Event,
+      event: { id: 'event-1', carryoverAmount: 3000 },
+    });
+    mockTx.query.bet5Tickets.findMany.mockResolvedValue([losingTicket]);
+
+    await calculateBet5Payout(bet5EventId);
+
+    const incrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
+      const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
+      const increment = baseBet5Event.initialPot + losingTicket.amount;
+      return value !== undefined && typeof value === 'object' && JSON.stringify(value).includes(String(increment));
+    });
+    expect(incrementSet).toBeDefined();
+
+    const absoluteSet = mockTx._updateChain.set.mock.calls.find(
+      (args: unknown[]) => typeof (args[0] as Record<string, unknown>)?.carryoverAmount === 'number'
+    );
+    expect(absoluteSet).toBeUndefined();
+  });
+});
+
+describe('placeBet5Bet', () => {
+  it('対象レースにSCHEDULED以外が含まれる場合は購入を拒否する', async () => {
+    const { placeBet5Bet } = await import('./bet5');
+    const insertMock = vi.fn();
+    const mockTx = {
+      execute: vi.fn().mockResolvedValue(undefined),
+      query: {
+        bet5Events: {
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'bet5-1',
+            status: 'SCHEDULED',
+            eventId: 'event-1',
+            race1Id: 'r1',
+            race2Id: 'r2',
+            race3Id: 'r3',
+            race4Id: 'r4',
+            race5Id: 'r5',
+          }),
+        },
+        raceInstances: {
+          findMany: vi.fn().mockResolvedValue([{ id: 'r1', status: 'FINALIZED' }]),
+        },
+        wallets: { findFirst: vi.fn() },
+      },
+      insert: insertMock,
+      update: vi.fn(),
+    };
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+      cb(mockTx)
+    );
+
+    await expect(
+      placeBet5Bet({
+        userId: 'user-1',
+        bet5EventId: 'bet5-1',
+        unitAmount: 100,
+        selections: { race1: ['h1'], race2: ['h2'], race3: ['h3'], race4: ['h4'], race5: ['h5'] },
+      })
+    ).rejects.toThrow('対象レース');
+
+    expect(insertMock).not.toHaveBeenCalled();
   });
 });
 

@@ -2,15 +2,11 @@ export interface CompressedRow {
   positions: number[][];
   betCount: number;
   hasHit: boolean;
-  minPayout?: number;
-  maxPayout?: number;
 }
 
 interface BetInput {
   selections: number[];
   status: 'PENDING' | 'HIT' | 'LOST' | 'REFUNDED';
-  odds?: string;
-  amount?: number;
 }
 
 export function compressBetSelections(bets: BetInput[]): CompressedRow[] {
@@ -18,8 +14,6 @@ export function compressBetSelections(bets: BetInput[]): CompressedRow[] {
 
   const selectionLength = bets[0].selections.length;
   const positions: Set<number>[] = Array.from({ length: selectionLength }, () => new Set());
-
-  const payouts = bets.filter((b) => b.odds).map((b) => Math.floor((b.amount || 0) * parseFloat(b.odds!)));
 
   for (const bet of bets) {
     bet.selections.forEach((sel, index) => {
@@ -36,8 +30,6 @@ export function compressBetSelections(bets: BetInput[]): CompressedRow[] {
       positions: sortedPositions,
       betCount: bets.length,
       hasHit: bets.some((b) => b.status === 'HIT'),
-      minPayout: payouts.length > 0 ? Math.min(...payouts) : undefined,
-      maxPayout: payouts.length > 0 ? Math.max(...payouts) : undefined,
     },
   ];
 }

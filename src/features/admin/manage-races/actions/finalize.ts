@@ -1,9 +1,11 @@
 'use server';
 
 import {
+  BET_TYPES,
   BetDetail,
   calculatePayoutRate,
   Finisher,
+  getWinningCombinations,
   isRefundedBet,
   isWinningBet,
   normalizeSelections,
@@ -12,17 +14,14 @@ import {
 import type { NetkeibaPayoutEntry } from '@/features/admin/import-race/model/types';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
-import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
+import { bets, payoutResults as payoutResultsTable, raceEntries, raceInstances } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { eq, sql, SQL } from 'drizzle-orm';
 
 export async function finalizeRace(
   raceId: string,
   results: { entryId: string; finishPosition: number }[],
-  options: { payoutMode: 'TOTAL_DISTRIBUTION' | 'MANUAL'; takeoutRate: number } = {
-    payoutMode: 'TOTAL_DISTRIBUTION',
-    takeoutRate: 0,
-  },
   netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
 ) {
   await requireAdmin();
@@ -140,9 +139,6 @@ export async function finalizeRace(
         }
       }
     } else {
-      const takeoutRate =
-        options.payoutMode === 'TOTAL_DISTRIBUTION' ? 0 : Math.max(0, Math.min(1, Number(options.takeoutRate || 0)));
-
       for (const [type, selectionAmounts] of Object.entries(winningSelectionAmounts)) {
         const totalWinningAmount = Object.values(selectionAmounts).reduce((sum, amount) => sum + amount, 0);
         const winningCount = Object.keys(selectionAmounts).length;
@@ -150,13 +146,7 @@ export async function finalizeRace(
         if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
         for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
-          let rate = calculatePayoutRate(
-            poolByBetType[type],
-            selectionAmount,
-            totalWinningAmount,
-            winningCount,
-            takeoutRate
-          );
+          let rate = calculatePayoutRate(poolByBetType[type], selectionAmount, totalWinningAmount, winningCount);
 
           if (guaranteedOdds?.[type]) {
             rate = Math.max(rate, guaranteedOdds[type]);
@@ -166,9 +156,6 @@ export async function finalizeRace(
           payoutCalculationsByType[type].push({ numbers: JSON.parse(selectionKey) as number[], payout: unitPayout });
         }
       }
-
-      const { BET_TYPES } = await import('@/entities/bet');
-      const { getWinningCombinations } = await import('@/entities/bet');
 
       for (const type of Object.values(BET_TYPES)) {
         if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
@@ -192,7 +179,6 @@ export async function finalizeRace(
       }
     }
 
-    const { payoutResults: payoutResultsTable } = await import('@/shared/db/schema');
     await tx.delete(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
 
     for (const [type, combinations] of Object.entries(payoutCalculationsByType)) {
@@ -206,7 +192,6 @@ export async function finalizeRace(
     }
   });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_RESULT_UPDATED, {
     raceId,
     results: rankingPayload,

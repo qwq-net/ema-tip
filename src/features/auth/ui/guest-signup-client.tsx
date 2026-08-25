@@ -1,6 +1,8 @@
 'use client';
 
 import { checkIpLockStatus, validateGuestRegistration } from '@/features/auth/actions/auth-actions';
+import { getAuthErrorMessage, SIGNUP_ERROR_MESSAGES } from '@/features/auth/lib/error-messages';
+import { useEmojiPassword } from '@/features/auth/lib/use-emoji-password';
 import { EmojiKeypad } from '@/features/auth/ui/emoji-keypad';
 import { GuestAuthTabs } from '@/features/auth/ui/guest-auth-tabs';
 import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
@@ -16,24 +18,9 @@ export function GuestSignupClient() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [code, setCode] = useState('');
-  const [password, setPassword] = useState('');
+  const { password, setPassword, handleEmojiClick, handleBackspace, handleClear } = useEmojiPassword();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleEmojiClick = (emoji: string) => {
-    if ([...password].length >= 6) return;
-    setPassword((prev) => prev + emoji);
-  };
-
-  const handleBackspace = () => {
-    const chars = [...password];
-    chars.pop();
-    setPassword(chars.join(''));
-  };
-
-  const handleClear = () => {
-    setPassword('');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,18 +47,10 @@ export function GuestSignupClient() {
     const validationResult = await validateGuestRegistration(code, username);
     if (validationResult.error) {
       setIsLoading(false);
-      switch (validationResult.error) {
-        case 'RateLimitExceeded':
-          setError(`アクセスが制限されています。解除まであと約${validationResult.remainingMinutes}分です。`);
-          break;
-        case 'InvalidGuestCode':
-          setError('無効な招待コードです。');
-          break;
-        case 'UsernameTaken':
-          setError('このユーザー名は既に使用されています。');
-          break;
-        default:
-          setError('エラーが発生しました。');
+      if (validationResult.error === 'RateLimitExceeded') {
+        setError(`アクセスが制限されています。解除まであと約${validationResult.remainingMinutes}分です。`);
+      } else {
+        setError(getAuthErrorMessage(validationResult.error, SIGNUP_ERROR_MESSAGES, 'エラーが発生しました。'));
       }
       return;
     }
@@ -96,22 +75,7 @@ export function GuestSignupClient() {
         }
       }
 
-      switch (result.error) {
-        case 'InvalidGuestCode':
-          setError('無効な招待コードです。');
-          break;
-        case 'UsernameTaken':
-          setError('このユーザー名は既に使用されています。');
-          break;
-        case 'RateLimitExceeded':
-          setError('試行回数制限を超えました。しばらく待ってから再度お試しください。');
-          break;
-        case 'CredentialsSignin':
-          setError('登録に失敗しました。入力内容を確認してください。');
-          break;
-        default:
-          setError('エラーが発生しました: ' + result.error);
-      }
+      setError(getAuthErrorMessage(result.error, SIGNUP_ERROR_MESSAGES, 'エラーが発生しました: ' + result.error));
     } else {
       router.push('/');
       router.refresh();

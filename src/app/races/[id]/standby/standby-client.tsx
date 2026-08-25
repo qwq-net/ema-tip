@@ -1,5 +1,6 @@
 'use client';
 
+import { getDisplayStatus } from '@/entities/race/lib/status';
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
@@ -7,7 +8,6 @@ import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
-import { getDisplayStatus } from '@/shared/utils/race-status';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useState } from 'react';
 

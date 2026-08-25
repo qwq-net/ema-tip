@@ -1,6 +1,7 @@
 import { ROLES } from '@/entities/user/constants';
 import { auth } from '@/shared/config/auth';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 export const ADMIN_ERRORS = {
   UNAUTHORIZED: '認証されていません',
@@ -27,6 +28,20 @@ export async function requireUser() {
     throw new Error(ADMIN_ERRORS.UNAUTHORIZED);
   }
   return session;
+}
+
+/**
+ * server component ページ用のログインガード。
+ * 未ログインなら /login へ redirect して戻らず、ログイン済みならセッションを返す。
+ * エラー表示にしたい server action では requireUser を使うこと。
+ */
+export async function requireLoginPage() {
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) {
+    redirect('/login');
+  }
+  return { ...session!, user };
 }
 
 export function revalidateRacePaths(raceId: string) {

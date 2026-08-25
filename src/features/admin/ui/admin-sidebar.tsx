@@ -89,10 +89,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     }
   }, [isOpen]);
 
-  const filteredGroups = NAV_GROUPS.map((group) => ({
-    ...group,
-    items: group.items,
-  })).filter((group) => !group.role || (user.role && (group.role as string[]).includes(user.role)));
+  const filteredGroups = NAV_GROUPS.filter(
+    (group) => !group.role || (user.role && (group.role as string[]).includes(user.role))
+  );
 
   return (
     <>

@@ -67,51 +67,38 @@ const NETKEIBA_SCRATCHED_ODDS = 999.9;
 
 async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, number>> {
   const apiUrl = `https://race.netkeiba.com/api/api_get_jra_odds.html?race_id=${raceId}&type=1&action=init&output=jsonp&callback=cb`;
-  console.log('[NetkeibaOdds] request:', apiUrl);
   const res = await fetch(apiUrl, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PaperTipster/1.0)' },
     signal: AbortSignal.timeout(10000),
     cache: 'no-store',
   });
-  console.log('[NetkeibaOdds] HTTP status:', res.status);
   if (!res.ok) {
-    console.log('[NetkeibaOdds] HTTP error, returning empty');
     return {};
   }
 
   const text = await res.text();
-  console.log('[NetkeibaOdds] raw response (first 300 chars):', text.slice(0, 300));
   const jsonStr = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
   const json = JSON.parse(jsonStr) as { status: string; data: string | unknown };
-  console.log('[NetkeibaOdds] json.status:', json.status, 'data type:', typeof json.data, 'data truthy:', !!json.data);
 
   if ((json.status !== 'result' && json.status !== 'middle') || !json.data) {
-    console.log('[NetkeibaOdds] unexpected status or no data, returning empty. status:', json.status);
     return {};
   }
 
   let oddsData: { odds?: Record<string, Record<string, [string, string, string]>> };
   if (typeof json.data === 'string') {
-    console.log('[NetkeibaOdds] data is base64 string, length:', json.data.length);
     const buf = Buffer.from(json.data, 'base64');
     oddsData = JSON.parse(inflateSync(buf).toString('utf-8'));
   } else {
-    console.log('[NetkeibaOdds] data is object');
     oddsData = json.data as typeof oddsData;
   }
 
-  console.log('[NetkeibaOdds] oddsData keys:', Object.keys(oddsData));
-  console.log('[NetkeibaOdds] oddsData.odds keys:', oddsData.odds ? Object.keys(oddsData.odds) : 'undefined');
   const winOddsRaw = oddsData.odds?.['1'] ?? {};
-  console.log('[NetkeibaOdds] winOddsRaw entries count:', Object.keys(winOddsRaw).length);
-  console.log('[NetkeibaOdds] winOddsRaw sample:', JSON.stringify(Object.entries(winOddsRaw).slice(0, 3)));
   const result: Record<string, number> = {};
   for (const [key, val] of Object.entries(winOddsRaw)) {
     const horseNum = parseInt(key, 10);
     const oddsVal = parseFloat(val[0]);
     if (!isNaN(oddsVal) && oddsVal < NETKEIBA_SCRATCHED_ODDS) result[String(horseNum)] = oddsVal;
   }
-  console.log('[NetkeibaOdds] final result:', JSON.stringify(result));
   return result;
 }
 
@@ -300,7 +287,6 @@ export async function fetchNetkeibaRaceResult(raceId: string): Promise<NetkeibaR
   const result = parseNetkeibaResult(html);
 
   if (result && result.finishOrder.length < 3) {
-    console.log('[NetkeibaResult] finishOrder incomplete:', result.finishOrder, '- treating as not yet confirmed');
     return null;
   }
 

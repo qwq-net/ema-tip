@@ -336,7 +336,7 @@ describe('finalizeRace', () => {
       [BET_TYPES.TRIFECTA]: [{ numbers: [1, 2, 3], payout: 25600 }],
     };
 
-    await finalizeRace('race1', defaultResults, undefined, netkeibaPayouts);
+    await finalizeRace('race1', defaultResults, netkeibaPayouts);
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
     expect(winInsert).toBeDefined();
@@ -367,7 +367,7 @@ describe('finalizeRace', () => {
       [BET_TYPES.WIN]: [{ numbers: [1], payout: 540 }],
     };
 
-    await finalizeRace('race1', defaultResults, undefined, netkeibaPayouts);
+    await finalizeRace('race1', defaultResults, netkeibaPayouts);
 
     const allTypes = insertedValues.map((v) => v.type);
     expect(allTypes).toEqual([BET_TYPES.WIN]);

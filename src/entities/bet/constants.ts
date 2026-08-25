@@ -33,6 +33,17 @@ export const BET_TYPE_LABELS: Record<BetType, string> = {
   [BET_TYPES.TRIO]: '三連複',
 };
 
+export const BET_TYPE_SELECTION_COUNTS: Record<BetType, number> = {
+  [BET_TYPES.WIN]: 1,
+  [BET_TYPES.PLACE]: 1,
+  [BET_TYPES.BRACKET_QUINELLA]: 2,
+  [BET_TYPES.QUINELLA]: 2,
+  [BET_TYPES.WIDE]: 2,
+  [BET_TYPES.EXACTA]: 2,
+  [BET_TYPES.TRIFECTA]: 3,
+  [BET_TYPES.TRIO]: 3,
+};
+
 export interface BetDetail {
   type: BetType;
   selections: number[];

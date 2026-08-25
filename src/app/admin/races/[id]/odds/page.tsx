@@ -1,12 +1,11 @@
 import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { ChevronLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: '保証オッズ設定',
@@ -14,10 +13,6 @@ export const metadata: Metadata = {
 
 export default async function RaceOddsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    redirect('/');
-  }
 
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, id),

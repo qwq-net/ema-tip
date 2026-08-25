@@ -14,5 +14,3 @@ export const raceSchema = z.object({
   raceDefinitionId: z.string().optional(),
   direction: z.enum(VENUE_DIRECTIONS).optional(),
 });
-
-export type RaceInput = z.infer<typeof raceSchema>;

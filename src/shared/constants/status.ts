@@ -24,15 +24,3 @@ export const BET5_STATUS_LABELS = {
 } as const;
 
 export type Bet5Status = keyof typeof BET5_STATUS_LABELS;
-
-export function isEventStatus(status: string): status is EventStatus {
-  return status in EVENT_STATUS_LABELS;
-}
-
-export function isRaceStatus(status: string): status is RaceStatus {
-  return status in RACE_STATUS_LABELS;
-}
-
-export function isBet5Status(status: string): status is Bet5Status {
-  return status in BET5_STATUS_LABELS;
-}

@@ -57,32 +57,3 @@ export function calculateProvisionalOdds(
 
   return provisionalOdds;
 }
-
-export function calculateWinOdds(winBets: { amount: number; details: BetDetail }[]): Record<string, number> {
-  const winPool = winBets.reduce((sum, bet) => sum + bet.amount, 0);
-  const winVotes: Record<string, number> = {};
-  const winOdds: Record<string, number> = {};
-
-  winBets.forEach((bet) => {
-    const details = bet.details as BetDetail;
-    const horseNumber = details.selections[0];
-    if (horseNumber) {
-      winVotes[horseNumber] = (winVotes[horseNumber] || 0) + bet.amount;
-    }
-  });
-
-  const returnAmount = winPool;
-
-  Object.entries(winVotes).forEach(([horse, amount]) => {
-    if (amount === 0) {
-      winOdds[horse] = 0.0;
-      return;
-    }
-    let odds = returnAmount / amount;
-    odds = Math.floor(odds * 10) / 10;
-    if (odds < 1.1) odds = 1.1;
-    winOdds[horse] = odds;
-  });
-
-  return winOdds;
-}

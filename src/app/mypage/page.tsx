@@ -1,7 +1,7 @@
 import { LogoutButton } from '@/features/auth';
 import { EditableUserProfile } from '@/features/user/ui/editable-user-profile';
-import { auth } from '@/shared/config/auth';
 import { Button, Card, CardContent } from '@/shared/ui';
+import { requireLoginPage } from '@/shared/utils/admin';
 import { Coins, History, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -13,11 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MyPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
+  const session = await requireLoginPage();
 
   if (!session.user.isOnboardingCompleted) {
     redirect('/onboarding/name-change');
