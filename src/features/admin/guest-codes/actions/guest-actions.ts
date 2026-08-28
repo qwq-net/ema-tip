@@ -32,7 +32,10 @@ export async function getGuestCodes() {
   const codes = await db.query.guestCodes.findMany({
     orderBy: [desc(guestCodes.createdAt)],
     with: {
-      creator: true,
+      // パスワードハッシュ等を含むためカラムを明示的に絞る
+      creator: {
+        columns: { name: true },
+      },
     },
   });
 

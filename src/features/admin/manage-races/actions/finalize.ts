@@ -16,10 +16,20 @@ import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
 import { bets, payoutResults as payoutResultsTable, raceEntries, raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { ActionError, requireAdmin, revalidateRacePaths, runAction } from '@/shared/utils/admin';
 import { eq, sql, SQL } from 'drizzle-orm';
 
+// 着順を確定して払戻を計算する。未締切・確定済みなどの想定内エラーは throw せず
+// { success: false, error } で返す（本番では throw のメッセージがマスクされるため）。
 export async function finalizeRace(
+  raceId: string,
+  results: { entryId: string; finishPosition: number }[],
+  netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
+) {
+  return runAction(() => finalizeRaceInner(raceId, results, netkeibaPayouts));
+}
+
+async function finalizeRaceInner(
   raceId: string,
   results: { entryId: string; finishPosition: number }[],
   netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
@@ -42,15 +52,15 @@ export async function finalizeRace(
     });
 
     if (!raceInstance) {
-      throw new Error('レースが見つかりません');
+      throw new ActionError('レースが見つかりません');
     }
 
     if (raceInstance.status === 'FINALIZED') {
-      throw new Error('払戻確定済みのため着順を変更できません');
+      throw new ActionError('払戻確定済みのため着順を変更できません');
     }
 
     if (raceInstance.status !== 'CLOSED') {
-      throw new Error('レースが締切状態ではありません');
+      throw new ActionError('レースが締切状態ではありません');
     }
 
     if (results.length > 0) {
@@ -80,7 +90,7 @@ export async function finalizeRace(
         bracketNumber: e.bracketNumber!,
       }));
 
-    if (finishers.length === 0) throw new Error('着順が指定されていません');
+    if (finishers.length === 0) throw new ActionError('着順が指定されていません');
 
     const invalidHorseIds = new Set(
       raceEntriesWithInfo.filter((e) => e.status === 'SCRATCHED' || e.status === 'EXCLUDED').map((e) => e.horseNumber!)

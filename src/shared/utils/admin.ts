@@ -14,10 +14,14 @@ export const ADMIN_ERRORS = {
   INVALID_AMOUNT: '金額が無効です',
 } as const;
 
+import { ActionError } from '@/shared/utils/action-result';
+
+export { ActionError, runAction, type ActionResult } from '@/shared/utils/action-result';
+
 export async function requireAdmin() {
   const session = await auth();
   if (session?.user?.role !== ROLES.ADMIN) {
-    throw new Error(ADMIN_ERRORS.UNAUTHORIZED);
+    throw new ActionError(ADMIN_ERRORS.UNAUTHORIZED);
   }
   return session;
 }
@@ -25,7 +29,7 @@ export async function requireAdmin() {
 export async function requireUser() {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error(ADMIN_ERRORS.UNAUTHORIZED);
+    throw new ActionError(ADMIN_ERRORS.UNAUTHORIZED);
   }
   return session;
 }

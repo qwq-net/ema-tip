@@ -282,7 +282,11 @@ export function RaceResultForm({
       }));
 
       try {
-        await finalizeRace(raceId, results);
+        const result = await finalizeRace(raceId, results);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('着順を確定しました（払い戻し計算完了）', {
           icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
         });
@@ -297,14 +301,18 @@ export function RaceResultForm({
     startTransition(async () => {
       try {
         const result = await fetchNetkeibaRaceResult(raceId);
-        if (!result) {
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        if (!result.data) {
           toast.info('レース結果はまだ確定していません。しばらく後に再試行してください。');
           return;
         }
-        setNetkeibaResult(result);
+        setNetkeibaResult(result.data);
         setShowNetkeibaConfirm(true);
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+      } catch {
+        toast.error('エラーが発生しました');
       }
     });
   };
@@ -322,13 +330,17 @@ export function RaceResultForm({
         .filter((r): r is { entryId: string; finishPosition: number } => r !== null);
 
       try {
-        await finalizeRace(raceId, results, netkeibaResult.payouts);
+        const result = await finalizeRace(raceId, results, netkeibaResult.payouts);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('着順を確定しました（Netkeibaオッズ払い戻し計算完了）', {
           icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
         });
         router.refresh();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+      } catch {
+        toast.error('エラーが発生しました');
       }
     });
   };

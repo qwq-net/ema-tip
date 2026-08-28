@@ -1,5 +1,5 @@
 import { db } from '@/shared/db';
-import { ADMIN_ERRORS } from '@/shared/utils/admin';
+import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getUserBetGroupsForRace, placeBets } from './actions';
 
@@ -151,30 +151,30 @@ describe('placeBets', () => {
 
   it('ユーザー認証がない場合はエラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
-    (requireUser as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    (requireUser as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
   });
 
   it('組み合わせが空の場合は INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, combinations: [] })).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
+    await expect(placeBets({ ...defaultArgs, combinations: [] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
   });
 
   it('賭け金額が 0 以下の場合は INVALID_AMOUNT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, amountPerBet: 0 })).rejects.toThrow(ADMIN_ERRORS.INVALID_AMOUNT);
+    await expect(placeBets({ ...defaultArgs, amountPerBet: 0 })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_AMOUNT });
   });
 
   it('賭け金額が 100 の倍数でない場合は INVALID_AMOUNT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, amountPerBet: 150 })).rejects.toThrow(ADMIN_ERRORS.INVALID_AMOUNT);
+    await expect(placeBets({ ...defaultArgs, amountPerBet: 150 })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_AMOUNT });
   });
 
   it('組み合わせ数が上限（1000）を超える場合は INVALID_INPUT エラーをスローする', async () => {
@@ -182,41 +182,35 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
     const tooManyCombinations = Array.from({ length: 1001 }, (_, i) => [i + 1]);
-    await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).rejects.toThrow(
-      ADMIN_ERRORS.INVALID_INPUT
-    );
+    await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
   });
 
   it('券種と要素数が一致しない組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, betType: 'win', combinations: [[1, 2]] })).rejects.toThrow(
-      ADMIN_ERRORS.INVALID_INPUT
-    );
+    await expect(placeBets({ ...defaultArgs, betType: 'win', combinations: [[1, 2]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
   });
 
   it('整数以外を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, combinations: [[1.5]] })).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
+    await expect(placeBets({ ...defaultArgs, combinations: [[1.5]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
   });
 
   it('出走馬に存在しない馬番を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, combinations: [[99]] })).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
+    await expect(placeBets({ ...defaultArgs, combinations: [[99]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
   });
 
   it('馬連で同一馬番の重複を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, betType: 'quinella', combinations: [[1, 1]] })).rejects.toThrow(
-      ADMIN_ERRORS.INVALID_INPUT
-    );
+    await expect(placeBets({ ...defaultArgs, betType: 'quinella', combinations: [[1, 1]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
   });
 
   it('枠連は同一枠番の組み合わせを許容する', async () => {
@@ -233,7 +227,7 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     (db.query.events.findFirst as unknown as Mock).mockResolvedValue({ id: eventId, status: 'COMPLETED' });
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.RACE_CLOSED);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.RACE_CLOSED });
   });
 
   it('レースが存在しない場合は NOT_FOUND エラーをスローする', async () => {
@@ -241,7 +235,7 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.NOT_FOUND);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.NOT_FOUND });
   });
 
   it('レースが SCHEDULED 以外の場合は RACE_CLOSED エラーをスローする', async () => {
@@ -249,7 +243,7 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ ...mockRace, status: 'CLOSED' });
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.RACE_CLOSED);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.RACE_CLOSED });
   });
 
   it('締切時刻を超えている場合は DEADLINE_EXCEEDED エラーをスローする', async () => {
@@ -260,7 +254,7 @@ describe('placeBets', () => {
       closingAt: new Date(Date.now() - 1000),
     });
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.DEADLINE_EXCEEDED);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.DEADLINE_EXCEEDED });
   });
 
   it('トランザクション内で advisory lock を取得する', async () => {
@@ -313,7 +307,7 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ ...mockRace, status: 'CLOSED' });
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.RACE_CLOSED);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.RACE_CLOSED });
   });
 
   it('ロック後にレースの締切時刻を超えていた場合は DEADLINE_EXCEEDED エラーをスローする（競合シナリオ）', async () => {
@@ -324,7 +318,7 @@ describe('placeBets', () => {
       closingAt: new Date(Date.now() - 1000),
     });
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.DEADLINE_EXCEEDED);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.DEADLINE_EXCEEDED });
   });
 
   it('トランザクション内の残高チェックで不足の場合は INSUFFICIENT_BALANCE エラーをスローする（競合シナリオ）', async () => {
@@ -333,7 +327,7 @@ describe('placeBets', () => {
     (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, balance: 10000 });
     mockTx.query.wallets.findFirst.mockResolvedValue({ ...mockWallet, balance: 50 });
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INSUFFICIENT_BALANCE });
   });
 
   it('残高が十分な場合はウォレットが正しく減算される', async () => {
@@ -351,7 +345,7 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     mockTx.query.wallets.findFirst.mockResolvedValue(null);
 
-    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INSUFFICIENT_BALANCE });
   });
 });
 

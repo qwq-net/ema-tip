@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/shared/config/auth';
+import { ActionError, runAction } from '@/shared/utils/admin';
 import { db } from '@/shared/db';
 import { bet5Tickets } from '@/shared/db/schema';
 import { eq } from 'drizzle-orm';
@@ -63,6 +64,8 @@ export async function updateBet5InitialPotAction(bet5EventId: string, eventId: s
   return updated;
 }
 
+// BET5 の投票を行う。締切済み・残高不足などの想定内エラーは throw せず
+// { success: false, error } で返す（本番では throw のメッセージがマスクされるため）。
 export async function placeBet5BetAction({
   bet5EventId,
   eventId,
@@ -74,30 +77,32 @@ export async function placeBet5BetAction({
   unitAmount: number;
   selections: Bet5Selection;
 }) {
-  const session = await auth();
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  return runAction(async () => {
+    const session = await auth();
+    if (!session?.user) {
+      throw new Error('Unauthorized');
+    }
 
-  const validation = Bet5SelectionSchema.safeParse(selections);
-  if (!validation.success) {
-    throw new Error('Invalid selections');
-  }
+    const validation = Bet5SelectionSchema.safeParse(selections);
+    if (!validation.success) {
+      throw new ActionError('選択内容が正しくありません');
+    }
 
-  const amountValidation = Bet5UnitAmountSchema.safeParse(unitAmount);
-  if (!amountValidation.success) {
-    throw new Error('Invalid unit amount');
-  }
+    const amountValidation = Bet5UnitAmountSchema.safeParse(unitAmount);
+    if (!amountValidation.success) {
+      throw new ActionError('投票金額が正しくありません');
+    }
 
-  const ticket = await placeBet5Bet({
-    userId: session.user.id!,
-    bet5EventId,
-    unitAmount: amountValidation.data,
-    selections: validation.data,
+    const ticket = await placeBet5Bet({
+      userId: session.user.id!,
+      bet5EventId,
+      unitAmount: amountValidation.data,
+      selections: validation.data,
+    });
+
+    revalidatePath(`/events/${eventId}/bet5`);
+    return ticket;
   });
-
-  revalidatePath(`/events/${eventId}/bet5`);
-  return ticket;
 }
 
 export async function calculateBet5PayoutAction(bet5EventId: string, eventId: string) {

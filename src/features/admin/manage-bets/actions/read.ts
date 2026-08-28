@@ -39,7 +39,10 @@ export async function getBetsByRace(raceId: string) {
     where: eq(bets.raceId, raceId),
     orderBy: (bets, { desc }) => [desc(bets.createdAt)],
     with: {
-      user: true,
+      // パスワードハッシュ等を含むためカラムを明示的に絞る
+      user: {
+        columns: { id: true, name: true },
+      },
     },
   });
 }

@@ -1,5 +1,6 @@
 import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from '@/entities/bet';
 import { db } from '@/shared/db';
+import { ActionError } from '@/shared/utils/action-result';
 import { bet5Events, bet5Tickets, events, transactions, wallets } from '@/shared/db/schema';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
@@ -132,10 +133,10 @@ export async function placeBet5Bet({
       where: eq(bet5Events.id, bet5EventId),
     });
 
-    if (!event) throw new Error('BET5 event not found');
+    if (!event) throw new ActionError('BET5 event not found');
 
     if (event.status !== 'SCHEDULED') {
-      throw new Error('BET5 event is closed');
+      throw new ActionError('BET5 event is closed');
     }
 
     // 後出し購入防止: 対象レースのいずれかが締切・確定済みなら、BET5イベントの締切忘れがあっても購入不可
@@ -146,12 +147,12 @@ export async function placeBet5Bet({
       columns: { id: true },
     });
     if (closedRaces.length > 0) {
-      throw new Error('対象レースが既に締め切られているため購入できません');
+      throw new ActionError('対象レースが既に締め切られているため購入できません');
     }
 
     const count = calculateBet5Count(selections);
 
-    if (count === 0) throw new Error('Invalid selection');
+    if (count === 0) throw new ActionError('Invalid selection');
     const normalizedUnitAmount = Math.max(100, Math.floor(unitAmount / 100) * 100);
     const cost = count * normalizedUnitAmount;
 
@@ -159,7 +160,7 @@ export async function placeBet5Bet({
       where: and(eq(wallets.userId, userId), eq(wallets.eventId, event.eventId)),
     });
 
-    if (!wallet) throw new Error('Wallet not found');
+    if (!wallet) throw new ActionError('Wallet not found');
 
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${wallet.id}`}))`);
 
@@ -168,14 +169,14 @@ export async function placeBet5Bet({
     });
 
     if (!lockedEvent || lockedEvent.status !== 'SCHEDULED') {
-      throw new Error('BET5 event is closed');
+      throw new ActionError('BET5 event is closed');
     }
 
     const lockedWallet = await tx.query.wallets.findFirst({
       where: eq(wallets.id, wallet.id),
     });
 
-    if (!lockedWallet || lockedWallet.balance < cost) throw new Error('Insufficient balance');
+    if (!lockedWallet || lockedWallet.balance < cost) throw new ActionError('Insufficient balance');
 
     const [ticket] = await tx
       .insert(bet5Tickets)

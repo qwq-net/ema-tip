@@ -92,7 +92,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
       try {
         const raceIds = races.map((r) => r.id);
 
-        await placeBet5BetAction({
+        const result = await placeBet5BetAction({
           bet5EventId,
           eventId,
           unitAmount: amount,
@@ -104,11 +104,14 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             race5: selections[raceIds[4]] || [],
           },
         });
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('投票を受け付けました！');
         router.push('/mypage/sokubet');
       } catch (error) {
-        const errMsg = error instanceof Error ? error.message : '投票に失敗しました';
-        toast.error(errMsg);
+        toast.error('投票に失敗しました');
         console.error(error);
       }
     });

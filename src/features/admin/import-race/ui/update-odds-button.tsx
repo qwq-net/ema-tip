@@ -15,11 +15,15 @@ export function UpdateNetkeibaOddsButton({ raceId, className }: { raceId: string
   function handleUpdate() {
     startTransition(async () => {
       try {
-        await updateOddsFromNetkeiba(raceId);
+        const result = await updateOddsFromNetkeiba(raceId);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('オッズを更新しました');
         router.refresh();
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'オッズの更新に失敗しました');
+      } catch {
+        toast.error('オッズの更新に失敗しました');
       }
     });
   }

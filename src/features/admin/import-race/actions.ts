@@ -3,13 +3,13 @@
 import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { requireAdmin } from '@/shared/utils/admin';
+import { ActionError, requireAdmin, runAction, type ActionResult } from '@/shared/utils/admin';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { inflateSync } from 'zlib';
 import { parseNetkeibaResult } from './lib/parse-result';
 import { parseShutuba } from './lib/parse-shutuba';
-import type { ActionResult, HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
+import type { HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
 
 const ALLOWED_HOSTS: Record<string, string> = {
   'race.netkeiba.com': 'https://race.netkeiba.com/race/shutuba.html',
@@ -236,22 +236,28 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
   }
 }
 
-export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {
+// Netkeiba から単勝オッズを取り込んで上書きする。URL未設定・取得失敗などの
+// 想定内エラーは throw せず { success: false, error } で返す。
+export async function updateOddsFromNetkeiba(raceId: string): Promise<ActionResult<void>> {
+  return runAction(() => updateOddsFromNetkeibaInner(raceId));
+}
+
+async function updateOddsFromNetkeibaInner(raceId: string): Promise<void> {
   await requireAdmin();
 
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),
     columns: { netkeibaUrl: true },
   });
-  if (!race?.netkeibaUrl) throw new Error('Netkeiba URLが設定されていません');
+  if (!race?.netkeibaUrl) throw new ActionError('Netkeiba URLが設定されていません');
 
-  if (isNarUrl(race.netkeibaUrl)) throw new Error('地方競馬のオッズ更新は対応していません');
+  if (isNarUrl(race.netkeibaUrl)) throw new ActionError('地方競馬のオッズ更新は対応していません');
 
   const netkeibaRaceId = new URL(race.netkeibaUrl).searchParams.get('race_id');
-  if (!netkeibaRaceId) throw new Error('race_idが取得できません');
+  if (!netkeibaRaceId) throw new ActionError('race_idが取得できません');
 
   const winOdds = await fetchNetkeibaWinOdds(netkeibaRaceId);
-  if (Object.keys(winOdds).length === 0) throw new Error('オッズデータが取得できませんでした');
+  if (Object.keys(winOdds).length === 0) throw new ActionError('オッズデータが取得できませんでした');
 
   await db
     .insert(raceOdds)
@@ -269,17 +275,23 @@ export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {
   revalidatePath(`/admin/races/${raceId}`);
 }
 
-export async function fetchNetkeibaRaceResult(raceId: string): Promise<NetkeibaRaceResult | null> {
+// Netkeiba の結果ページを取得して着順・払戻をパースする。結果未確定なら data は null。
+// URL未設定などの想定内エラーは throw せず { success: false, error } で返す。
+export async function fetchNetkeibaRaceResult(raceId: string): Promise<ActionResult<NetkeibaRaceResult | null>> {
+  return runAction(() => fetchNetkeibaRaceResultInner(raceId));
+}
+
+async function fetchNetkeibaRaceResultInner(raceId: string): Promise<NetkeibaRaceResult | null> {
   await requireAdmin();
 
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),
     columns: { netkeibaUrl: true },
   });
-  if (!race?.netkeibaUrl) throw new Error('Netkeiba URLが設定されていません');
+  if (!race?.netkeibaUrl) throw new ActionError('Netkeiba URLが設定されていません');
 
   const netkeibaRaceId = new URL(race.netkeibaUrl).searchParams.get('race_id');
-  if (!netkeibaRaceId) throw new Error('race_idが取得できません');
+  if (!netkeibaRaceId) throw new ActionError('race_idが取得できません');
 
   const host = isNarUrl(race.netkeibaUrl) ? 'nar.netkeiba.com' : 'race.netkeiba.com';
   const resultUrl = `https://${host}/race/result.html?race_id=${netkeibaRaceId}`;

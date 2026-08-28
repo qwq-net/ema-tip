@@ -2,18 +2,6 @@ import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const CSP_HEADER = [
-  "default-src 'self'",
-  process.env.NODE_ENV !== 'production'
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' https://cdn.discordapp.com data:",
-  "connect-src 'self'",
-  "font-src 'self'",
-  "frame-ancestors 'none'",
-].join('; ');
-
 export async function middleware(request: NextRequest) {
   const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
@@ -32,9 +20,7 @@ export async function middleware(request: NextRequest) {
   if (!token || !adminRoles.includes(token.role as string)) {
     const url = request.nextUrl.clone();
     url.pathname = '/404-not-found-trigger';
-    const res = NextResponse.rewrite(url);
-    res.headers.set('Content-Security-Policy-Report-Only', CSP_HEADER);
-    return res;
+    return NextResponse.rewrite(url);
   }
 
   const requestHeaders = new Headers(request.headers);
@@ -48,13 +34,11 @@ export async function middleware(request: NextRequest) {
   const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
   requestHeaders.set('x-forwarded-proto', forwardedProto);
 
-  const res = NextResponse.next({
+  return NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
-  res.headers.set('Content-Security-Policy-Report-Only', CSP_HEADER);
-  return res;
 }
 
 export const config = {

@@ -5,6 +5,7 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
+import { requireUser } from '@/shared/utils/admin';
 import { asc, desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -39,8 +40,8 @@ export async function getEventRanking(eventId: string): Promise<{
   distributeAmount: number;
   displayMode: RankingDisplayMode;
 }> {
-  const session = await auth();
-  const currentUserId = session?.user?.id;
+  const session = await requireUser();
+  const currentUserId = session.user!.id;
 
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),

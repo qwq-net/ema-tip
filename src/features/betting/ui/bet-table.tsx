@@ -114,18 +114,22 @@ export function BetTable({
 
     startTransition(async () => {
       try {
-        await placeBets({
+        const result = await placeBets({
           raceId,
           walletId,
           betType,
           combinations: validCombinations,
           amountPerBet: amount,
         });
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success(`${totalAmount.toLocaleString('ja-JP')}円分の馬券を購入しました`);
         resetSelections();
         router.refresh();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+      } catch {
+        toast.error('エラーが発生しました');
       }
     });
   };

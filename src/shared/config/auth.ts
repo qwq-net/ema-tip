@@ -1,6 +1,6 @@
 import { db } from '@/shared/db';
 import * as schema from '@/shared/db/schema';
-import { redis } from '@/shared/lib/redis';
+import { clearLoginFailures, getLoginAttemptRecord, isLoginLocked, recordLoginFailure } from '@/shared/lib/login-rate-limit';
 import { getClientIp } from '@/shared/utils/get-client-ip';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import bcrypt from 'bcryptjs';
@@ -93,51 +93,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const { code, username, password } = parsed.data;
 
           const ip = await getClientIp();
-          const identifier = `ratelimit:ip:${ip}`;
-          const now = Date.now();
+          const attemptRecord = await getLoginAttemptRecord(ip);
 
-          const data = await redis.get(identifier);
-          const attemptRecord = data ? JSON.parse(data) : null;
-
-          if (attemptRecord?.lockedUntil && attemptRecord.lockedUntil > now) {
-            console.warn(`IP Limit Exceeded: ${identifier}`);
+          if (isLoginLocked(attemptRecord)) {
+            console.warn(`IP Limit Exceeded: ${ip}`);
             throw new RateLimitError();
           }
 
-          const recordFailure = async (isStrict = false) => {
-            const currentAttempts = (attemptRecord?.attempts || 0) + 1;
-            const currentBlockLevel = attemptRecord?.blockLevel || 0;
-
-            let lockedUntil: number | null = null;
-            let newBlockLevel = currentBlockLevel;
-            let newAttempts = currentAttempts;
-
-            const threshold = isStrict ? (currentBlockLevel > 0 ? 1 : 3) : 5;
-
-            if (currentAttempts >= threshold) {
-              let durationMinutes;
-              if (isStrict) {
-                const strictDurations = [60, 24 * 60];
-                durationMinutes = strictDurations[Math.min(currentBlockLevel, strictDurations.length - 1)];
-              } else {
-                const normalDurations = [10, 60, 24 * 60];
-                durationMinutes = normalDurations[Math.min(currentBlockLevel, normalDurations.length - 1)];
-              }
-
-              lockedUntil = Date.now() + durationMinutes * 60 * 1000;
-              newBlockLevel = currentBlockLevel + 1;
-              newAttempts = 0;
-            }
-
-            const newState = {
-              attempts: newAttempts,
-              blockLevel: newBlockLevel,
-              lockedUntil,
-              lastAttemptAt: Date.now(),
-            };
-
-            await redis.set(identifier, JSON.stringify(newState), 'EX', 24 * 60 * 60);
-          };
+          const recordFailure = (isStrict = false) => recordLoginFailure(ip, attemptRecord, isStrict);
 
           if (code) {
             const guestCode = await db.query.guestCodes.findFirst({
@@ -173,7 +136,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .returning();
 
             if (attemptRecord) {
-              await redis.del(identifier);
+              await clearLoginFailures(ip);
             }
             return newUser;
           } else {
@@ -206,7 +169,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
 
             if (attemptRecord) {
-              await redis.del(identifier);
+              await clearLoginFailures(ip);
             }
             return existingUser;
           }

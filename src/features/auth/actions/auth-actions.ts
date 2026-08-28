@@ -3,7 +3,7 @@
 import { signIn, signOut } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
-import { redis } from '@/shared/lib/redis';
+import { getLoginAttemptRecord, isLoginLocked, recordLoginFailure } from '@/shared/lib/login-rate-limit';
 import { getClientIp } from '@/shared/utils/get-client-ip';
 import { eq } from 'drizzle-orm';
 
@@ -13,34 +13,37 @@ export async function discordSignIn() {
 
 export async function checkIpLockStatus() {
   const ip = await getClientIp();
-  const identifier = `ratelimit:ip:${ip}`;
+  const attempt = await getLoginAttemptRecord(ip);
 
-  const data = await redis.get(identifier);
-  const attempt = data ? JSON.parse(data) : null;
-
-  const now = new Date();
-  if (attempt?.lockedUntil && attempt.lockedUntil > now.getTime()) {
-    const diff = attempt.lockedUntil - now.getTime();
-    const minutes = Math.ceil(diff / 60000);
+  if (attempt?.lockedUntil && attempt.lockedUntil > Date.now()) {
+    const diff = attempt.lockedUntil - Date.now();
     return {
       isLocked: true,
       lockedUntil: new Date(attempt.lockedUntil),
-      remainingMinutes: minutes,
+      remainingMinutes: Math.ceil(diff / 60000),
     };
   }
 
   return { isLocked: false };
 }
 
+// ゲスト登録の事前検証。authorize と同じく失敗を記録しないと、
+// この action 経由でコードとユーザー名を無制限に試せてしまう。
 export async function validateGuestRegistration(code: string, username: string) {
-  const ipLock = await checkIpLockStatus();
-  if (ipLock.isLocked) return { error: 'RateLimitExceeded', remainingMinutes: ipLock.remainingMinutes };
+  const ip = await getClientIp();
+  const attemptRecord = await getLoginAttemptRecord(ip);
+
+  if (isLoginLocked(attemptRecord)) {
+    const remaining = Math.ceil((attemptRecord!.lockedUntil! - Date.now()) / 60000);
+    return { error: 'RateLimitExceeded', remainingMinutes: remaining };
+  }
 
   const guestCode = await db.query.guestCodes.findFirst({
     where: eq(guestCodes.code, code),
   });
 
   if (!guestCode || guestCode.disabledAt) {
+    await recordLoginFailure(ip, attemptRecord, true);
     return { error: 'InvalidGuestCode' };
   }
 
@@ -49,6 +52,7 @@ export async function validateGuestRegistration(code: string, username: string) 
   });
 
   if (existingUser) {
+    await recordLoginFailure(ip, attemptRecord);
     return { error: 'UsernameTaken' };
   }
 

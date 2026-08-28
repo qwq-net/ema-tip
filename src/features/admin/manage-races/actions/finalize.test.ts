@@ -1,6 +1,6 @@
 import { BET_TYPES } from '@/entities/bet';
 import { db } from '@/shared/db';
-import { ADMIN_ERRORS } from '@/shared/utils/admin';
+import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizeRace } from './finalize';
 
@@ -142,22 +142,22 @@ describe('finalizeRace', () => {
 
   it('管理者でないユーザーはエラーになる', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
-    await expect(finalizeRace('123', [])).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+    (requireAdmin as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
+    await expect(finalizeRace('123', [])).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
   });
 
   it('レースがCLOSED以外の場合は着順確定できない', async () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'SCHEDULED', guaranteedOdds: {} });
 
-    await expect(finalizeRace('race1', defaultResults)).rejects.toThrow('レースが締切状態ではありません');
+    await expect(finalizeRace('race1', defaultResults)).resolves.toEqual({ success: false, error: 'レースが締切状態ではありません' });
   });
 
   it('払戻確定済みレースは着順変更できない', async () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'FINALIZED', guaranteedOdds: {} });
 
-    await expect(finalizeRace('race1', defaultResults)).rejects.toThrow('払戻確定済みのため着順を変更できません');
+    await expect(finalizeRace('race1', defaultResults)).resolves.toEqual({ success: false, error: '払戻確定済みのため着順を変更できません' });
   });
 
   it('単勝: 1着馬に賭けた馬券が的中し、正しいpayoutResultsが生成される', async () => {
