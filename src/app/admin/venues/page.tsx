@@ -1,5 +1,6 @@
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { VenueList } from '@/features/admin/manage-venues/ui/venue-list';
-import { Button, Card } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -12,10 +13,7 @@ export const metadata: Metadata = {
 export default async function AdminVenuesPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">開催会場管理</h1>
-        <p className="mt-1 text-sm text-gray-500">開催会場の登録・管理を行います</p>
-      </div>
+      <AdminPageHeader title="開催会場管理" description="開催会場の登録・管理を行います" />
 
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
@@ -31,7 +29,7 @@ export default async function AdminVenuesPage() {
           </Button>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<AdminLoadingCard />}>
           <VenueList />
         </Suspense>
       </div>

@@ -1,6 +1,6 @@
 import { getRaces } from '@/features/admin/manage-races/actions/read';
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { ForecastRaceAccordion } from '@/features/forecasts/components/ForecastRaceAccordion';
-import { Card } from '@/shared/ui/card';
 import { CircleHelp } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -36,10 +36,7 @@ export default async function ForecastsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">予想管理</h1>
-        <p className="mt-1 text-sm text-gray-500">レースを選択して予想を入力してください</p>
-      </div>
+      <AdminPageHeader title="予想管理" description="レースを選択して予想を入力してください" />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
@@ -52,7 +49,7 @@ export default async function ForecastsPage() {
           </div>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<AdminLoadingCard />}>
           <ForecastRaceAccordion events={sortedEventGroups} />
         </Suspense>
       </div>

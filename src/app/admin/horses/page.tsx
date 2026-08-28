@@ -1,5 +1,6 @@
 import { HorseList } from '@/features/admin/manage-horses';
-import { Button, Card } from '@/shared/ui';
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { Button } from '@/shared/ui';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -12,10 +13,7 @@ export const metadata: Metadata = {
 export default async function HorsesPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">馬マスタ管理</h1>
-        <p className="mt-1 text-sm text-gray-500">競走馬の新規登録と情報の管理を行います</p>
-      </div>
+      <AdminPageHeader title="馬マスタ管理" description="競走馬の新規登録と情報の管理を行います" />
 
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
@@ -31,7 +29,7 @@ export default async function HorsesPage() {
           </Button>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<AdminLoadingCard />}>
           <HorseList />
         </Suspense>
       </div>

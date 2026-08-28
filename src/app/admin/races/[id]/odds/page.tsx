@@ -1,4 +1,5 @@
 import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
 import { eq } from 'drizzle-orm';
@@ -34,9 +35,7 @@ export default async function RaceOddsPage({ params }: { params: Promise<{ id: s
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{race.name} - 保証オッズ設定</h1>
-        </div>
+        <AdminPageHeader title={`${race.name} - 保証オッズ設定`} />
       </div>
 
       <RaceGuaranteedOddsForm raceId={race.id} initialOdds={race.guaranteedOdds as Record<string, number>} />

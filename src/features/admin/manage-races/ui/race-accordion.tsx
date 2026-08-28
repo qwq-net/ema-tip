@@ -1,10 +1,9 @@
 'use client';
 
 import { getDisplayStatus } from '@/entities/race/lib/status';
-import { Badge } from '@/shared/ui';
-import { PersistedAccordion } from '@/shared/ui/persisted-accordion';
-import * as Accordion from '@radix-ui/react-accordion';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { Badge, TableBody, TableHead, TableRow, Td, Th } from '@/shared/ui';
+import { PersistedAccordion, PersistedAccordionItem } from '@/shared/ui/persisted-accordion';
+import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 interface RaceAccordionProps {
@@ -55,7 +54,7 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
     <PersistedAccordion
       storageKey={STORAGE_KEY}
       allIds={events.map((e) => e.id)}
-      emptyState={<div className="py-12 text-center text-gray-500">登録されているレースはありません</div>}
+      emptyState="登録されているレースはありません"
     >
       {events.map((event) => {
         const isEventCompleted = event.status === 'COMPLETED';
@@ -75,111 +74,91 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
           areBet5TargetRacesFinished(event.bet5Event);
 
         return (
-          <Accordion.Item key={event.id} value={event.id}>
-            <Accordion.Header className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-base font-semibold hover:bg-gray-100">
-              <Accordion.Trigger className="flex w-full items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <span>{event.name}</span>
-                  <span className="text-sm font-normal text-gray-500">{event.date}</span>
-                  <Badge variant="status" label={getDisplayStatus(event.status, false)} />
-                  {showBet5SetupLink && (
-                    <Link
-                      href={`/admin/events/${event.id}/bet5`}
-                      className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-100"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      BET5が設定できます
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Link>
-                  )}
-                  {showBet5CloseReminder && (
-                    <Link
-                      href={`/admin/events/${event.id}/bet5`}
-                      className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      BET5を締め切り忘れていませんか？
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Link>
-                  )}
-                  {showBet5PayoutReminder && (
-                    <Link
-                      href={`/admin/events/${event.id}/bet5`}
-                      className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      BET5を払い戻し忘れていませんか？
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Link>
-                  )}
-                </div>
-                <ChevronDown className="h-5 w-5 text-gray-400 transition-transform duration-300 ease-in-out data-[state=open]:rotate-180" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-              <div className="border-t border-gray-100">
-                {event.races.length === 0 ? (
-                  <div className="py-8 text-center text-gray-500">登録されているレースがありません</div>
-                ) : (
-                  <table className="w-full min-w-[800px] border-collapse">
-                    <thead className="bg-gray-50">
-                      <tr className="border-b border-gray-100">
-                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                          番号
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                          レース名
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                          場所
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                          距離
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                          馬場
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                          状態
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
-                      {event.races.map((race) => (
-                        <tr key={race.id} className="transition-colors hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
-                            {race.raceNumber ? `${race.raceNumber}R` : '-'}
-                          </td>
-                          <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                            <Link
-                              href={`/admin/races/${race.id}`}
-                              className="text-primary hover:text-primary-hover font-semibold hover:underline"
-                            >
-                              {race.name}
-                            </Link>
-                          </td>
-                          <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.venue?.name}</td>
-                          <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.distance}m</td>
-                          <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                            {race.surface} {race.condition || ''}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge
-                              variant="status"
-                              label={getDisplayStatus(
-                                race.status,
-                                race.entries?.some((e) => e.finishPosition !== null) ?? false
-                              )}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          <PersistedAccordionItem
+            key={event.id}
+            value={event.id}
+            header={
+              <div className="flex items-center gap-4">
+                <span>{event.name}</span>
+                <span className="text-sm font-normal text-gray-500">{event.date}</span>
+                <Badge variant="status" label={getDisplayStatus(event.status, false)} />
+                {showBet5SetupLink && (
+                  <Link
+                    href={`/admin/events/${event.id}/bet5`}
+                    className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    BET5が設定できます
+                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                  </Link>
+                )}
+                {showBet5CloseReminder && (
+                  <Link
+                    href={`/admin/events/${event.id}/bet5`}
+                    className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    BET5を締め切り忘れていませんか？
+                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                  </Link>
+                )}
+                {showBet5PayoutReminder && (
+                  <Link
+                    href={`/admin/events/${event.id}/bet5`}
+                    className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    BET5を払い戻し忘れていませんか？
+                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                  </Link>
                 )}
               </div>
-            </Accordion.Content>
-          </Accordion.Item>
+            }
+          >
+            {event.races.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">登録されているレースがありません</div>
+            ) : (
+              <table className="w-full min-w-[800px] border-collapse">
+                <TableHead>
+                  <Th>番号</Th>
+                  <Th>レース名</Th>
+                  <Th>場所</Th>
+                  <Th>距離</Th>
+                  <Th>馬場</Th>
+                  <Th>状態</Th>
+                </TableHead>
+                <TableBody>
+                  {event.races.map((race) => (
+                    <TableRow key={race.id}>
+                      <Td className="font-medium text-gray-900">{race.raceNumber ? `${race.raceNumber}R` : '-'}</Td>
+                      <Td className="font-medium">
+                        <Link
+                          href={`/admin/races/${race.id}`}
+                          className="text-primary hover:text-primary-hover font-semibold hover:underline"
+                        >
+                          {race.name}
+                        </Link>
+                      </Td>
+                      <Td className="text-gray-500">{race.venue?.name}</Td>
+                      <Td className="text-gray-500">{race.distance}m</Td>
+                      <Td className="text-gray-500">
+                        {race.surface} {race.condition || ''}
+                      </Td>
+                      <Td>
+                        <Badge
+                          variant="status"
+                          label={getDisplayStatus(
+                            race.status,
+                            race.entries?.some((e) => e.finishPosition !== null) ?? false
+                          )}
+                        />
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </table>
+            )}
+          </PersistedAccordionItem>
         );
       })}
     </PersistedAccordion>

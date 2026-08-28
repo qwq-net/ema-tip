@@ -1,9 +1,8 @@
 import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
 import { getHorse } from '@/features/admin/manage-horses/actions';
 import { HorseForm } from '@/features/admin/manage-horses/ui/horse-form';
+import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export default async function EditHorsePage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,18 +17,11 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <Link
-          href="/admin/horses"
-          className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-        >
-          <ChevronLeft size={16} />
-          一覧へ戻る
-        </Link>
+        <AdminBackLink href="/admin/horses" />
       </div>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">馬情報の編集</h1>
-        <p className="mt-1 text-gray-500">馬情報を編集します。</p>
+        <AdminPageHeader title="馬情報の編集" description="馬情報を編集します。" />
       </div>
 
       <Card className="p-6">

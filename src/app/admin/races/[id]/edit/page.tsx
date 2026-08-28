@@ -3,9 +3,8 @@ import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/act
 import { getEvents } from '@/features/admin/manage-races/actions';
 import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
+import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
 export default async function EditRacePage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,18 +28,11 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <Link
-          href={`/admin/races/${id}`}
-          className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-        >
-          <ChevronLeft size={16} />
-          レース確定画面へ戻る
-        </Link>
+        <AdminBackLink href={`/admin/races/${id}`}>レース確定画面へ戻る</AdminBackLink>
       </div>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">レース情報の編集</h1>
-        <p className="mt-1 text-gray-500">レース情報を編集します。</p>
+        <AdminPageHeader title="レース情報の編集" description="レース情報を編集します。" />
       </div>
 
       <Card className="p-6">

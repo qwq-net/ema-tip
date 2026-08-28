@@ -1,4 +1,5 @@
 import { EventList } from '@/features/admin/manage-events';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
 import { Button } from '@/shared/ui';
@@ -18,10 +19,7 @@ export default async function AdminEventsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">イベント管理</h1>
-        <p className="mt-1 text-sm text-gray-500">イベントの作成・ステータス管理を行います</p>
-      </div>
+      <AdminPageHeader title="イベント管理" description="イベントの作成・ステータス管理を行います" />
 
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">

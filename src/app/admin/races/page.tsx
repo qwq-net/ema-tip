@@ -1,6 +1,7 @@
 import { getAdminRaceGroups } from '@/features/admin/manage-races/queries';
 import { RaceAccordion } from '@/features/admin/manage-races/ui/race-accordion';
-import { Button, Card } from '@/shared/ui';
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { Button } from '@/shared/ui';
 import { CircleHelp, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -15,10 +16,7 @@ export default async function RacesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">レース管理</h1>
-        <p className="mt-1 text-sm text-gray-500">レースの登録・管理を行います</p>
-      </div>
+      <AdminPageHeader title="レース管理" description="レースの登録・管理を行います" />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
@@ -40,7 +38,7 @@ export default async function RacesPage() {
           </Button>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<AdminLoadingCard />}>
           <RaceAccordion events={sortedEventGroups} />
         </Suspense>
       </div>

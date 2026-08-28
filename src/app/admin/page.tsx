@@ -1,3 +1,4 @@
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -183,9 +184,7 @@ const SYSTEM_ACTIONS = [
 export default async function AdminPage() {
   return (
     <div className="max-w-5xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">ダッシュボード</h1>
-      </div>
+      <AdminPageHeader title="ダッシュボード" />
 
       <Card className="border-indigo-100 bg-indigo-50/50 shadow-sm transition-all hover:bg-indigo-50">
         <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">

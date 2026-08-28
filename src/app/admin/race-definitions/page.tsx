@@ -1,5 +1,6 @@
 import { RaceDefinitionList } from '@/features/admin/manage-race-definitions/ui/race-definition-list';
-import { Button, Card } from '@/shared/ui';
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { Button } from '@/shared/ui';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
 export default async function RaceDefinitionsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">レース定義（マスタ）管理</h1>
-        <p className="mt-1 text-sm text-gray-500">毎年開催されるレースの基本情報（マスタデータ）を管理します。</p>
-      </div>
+      <AdminPageHeader
+        title="レース定義（マスタ）管理"
+        description="毎年開催されるレースの基本情報（マスタデータ）を管理します。"
+      />
 
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
@@ -31,7 +32,7 @@ export default async function RaceDefinitionsPage() {
           </Button>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<AdminLoadingCard />}>
           <RaceDefinitionList />
         </Suspense>
       </div>

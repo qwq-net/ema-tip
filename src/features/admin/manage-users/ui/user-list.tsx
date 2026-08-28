@@ -1,7 +1,7 @@
 'use client';
 
 import { Role } from '@/entities/user';
-import { Badge, Card, CardContent } from '@/shared/ui';
+import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -78,97 +78,70 @@ export function UserList({ users, currentUserId }: UserListProps) {
         </Link>
       </div>
 
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] border-collapse text-left text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-100">
-                  <th className="px-6 py-4 font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                    User
-                  </th>
-                  <th className="px-6 py-4 font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">ID</th>
-                  <th className="px-6 py-4 font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                      No users found in this category.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr
-                      key={user.id}
-                      className={clsx(
-                        'transition-colors hover:bg-gray-50/50',
-                        user.disabledAt && 'bg-red-50 text-gray-500 hover:bg-red-100/50'
-                      )}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {user.image ? (
-                            <Image
-                              src={user.image}
-                              alt="User Icon"
-                              width={32}
-                              height={32}
-                              className="rounded-full shadow-sm ring-1 ring-gray-200"
-                            />
-                          ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-sm font-semibold text-gray-400">
-                              ?
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-medium text-gray-900">{user.name || 'No Name'}</div>
-                            <div className="text-sm text-gray-400">{user.accounts[0]?.provider || 'credential'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-500">
-                            {user.id.substring(0, 8)}...
-                          </code>
-                          {user.id === currentUserId && <Badge variant="role" label="You" />}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <UserRoleSelect userId={user.id} currentRole={user.role} />
-                      </td>
-                      <td className="px-6 py-4">
-                        {user.disabledAt ? (
-                          <Badge variant="status" label="Disabled" />
-                        ) : (
-                          <Badge variant="status" label="Active" />
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <UserActionsMenu
-                          userId={user.id}
-                          isDisabled={!!user.disabledAt}
-                          isCurrentUser={user.id === currentUserId}
-                        />
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <TableShell>
+        <TableHead>
+          <Th>ユーザー</Th>
+          <Th>ID</Th>
+          <Th>ロール</Th>
+          <Th>ステータス</Th>
+          <Th>操作</Th>
+        </TableHead>
+        <TableBody>
+          {filteredUsers.length === 0 ? (
+            <TableEmptyRow colSpan={5}>該当するユーザーがいません</TableEmptyRow>
+          ) : (
+            filteredUsers.map((user) => (
+              <TableRow
+                key={user.id}
+                className={clsx(user.disabledAt && 'bg-red-50 text-gray-500 hover:bg-red-100/50')}
+              >
+                <Td>
+                  <div className="flex items-center gap-3">
+                    {user.image ? (
+                      <Image
+                        src={user.image}
+                        alt="User Icon"
+                        width={32}
+                        height={32}
+                        className="rounded-full shadow-sm ring-1 ring-gray-200"
+                      />
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-sm font-semibold text-gray-400">
+                        ?
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-medium text-gray-900">{user.name || '名前なし'}</div>
+                      <div className="text-sm text-gray-400">{user.accounts[0]?.provider || 'credential'}</div>
+                    </div>
+                  </div>
+                </Td>
+                <Td>
+                  <div className="flex items-center gap-2">
+                    <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-500">
+                      {user.id.substring(0, 8)}...
+                    </code>
+                    {user.id === currentUserId && <Badge variant="role" label="You" />}
+                  </div>
+                </Td>
+                <Td>
+                  <UserRoleSelect userId={user.id} currentRole={user.role} />
+                </Td>
+                <Td>
+                  {user.disabledAt ? <Badge variant="status" label="無効" /> : <Badge variant="status" label="有効" />}
+                </Td>
+                <Td>
+                  <UserActionsMenu
+                    userId={user.id}
+                    isDisabled={!!user.disabledAt}
+                    isCurrentUser={user.id === currentUserId}
+                  />
+                </Td>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </TableShell>
     </div>
   );
 }

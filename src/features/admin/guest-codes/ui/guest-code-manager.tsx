@@ -1,10 +1,11 @@
 'use client';
 
-import { Badge, Button, Input } from '@/shared/ui';
+import { Badge, Button, ConfirmDialog, Input, TableBody, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { Ban, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { generateGuestCode, invalidateGuestCode, invalidateUsersByCode } from '../actions/guest-actions';
 
 type GuestCode = {
@@ -32,31 +33,31 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert('コード生成に失敗しました');
+      toast.error('コード生成に失敗しました');
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleInvalidateCode = async (code: string) => {
-    if (!confirm('このコードを無効化してもよろしいですか？新規登録ができなくなります。')) return;
     try {
       await invalidateGuestCode(code);
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert('コードの無効化に失敗しました');
+      toast.error('コードの無効化に失敗しました');
+      throw error;
     }
   };
 
   const handleInvalidateUsers = async (code: string) => {
-    if (!confirm('危険: このコードで登録した全てのユーザーを凍結します。本当によろしいですか？')) return;
     try {
       await invalidateUsersByCode(code);
-      alert('このコードに関連する全てのユーザーを凍結しました。');
+      toast.success('このコードに関連する全てのユーザーを凍結しました。');
     } catch (error) {
       console.error(error);
-      alert('ユーザーの凍結に失敗しました');
+      toast.error('ユーザーの凍結に失敗しました');
+      throw error;
     }
   };
 
@@ -78,99 +79,71 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase"
-                >
-                  コード
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase"
-                >
-                  タイトル
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase"
-                >
-                  作成者
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase"
-                >
-                  作成日
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase"
-                >
-                  ステータス
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-right text-sm font-medium tracking-wider text-gray-500 uppercase"
-                >
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {codes.map((code) => (
-                <tr key={code.code} className="transition-colors hover:bg-gray-50/50">
-                  <td className="px-6 py-4 font-mono text-sm font-semibold whitespace-nowrap text-gray-900">
-                    {code.code}
-                  </td>
-                  <td className="max-w-[200px] truncate px-6 py-4 text-sm text-gray-900" title={code.title}>
-                    {code.title}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{code.creator?.name || '不明'}</td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                    <FormattedDate date={code.createdAt} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {code.disabledAt ? (
-                      <Badge variant="status" label="無効" />
-                    ) : (
-                      <Badge variant="status" label="有効" />
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                    <div className="flex justify-end space-x-2">
+      <TableShell>
+        <TableHead>
+          <Th>コード</Th>
+          <Th>タイトル</Th>
+          <Th>作成者</Th>
+          <Th>作成日</Th>
+          <Th>ステータス</Th>
+          <Th className="text-right">操作</Th>
+        </TableHead>
+        <TableBody>
+          {codes.map((code) => (
+            <TableRow key={code.code}>
+              <Td className="font-mono font-semibold text-gray-900">{code.code}</Td>
+              <Td className="max-w-[200px] truncate text-gray-900" title={code.title}>
+                {code.title}
+              </Td>
+              <Td className="text-gray-500">{code.creator?.name || '不明'}</Td>
+              <Td className="text-gray-500">
+                <FormattedDate date={code.createdAt} />
+              </Td>
+              <Td>
+                {code.disabledAt ? <Badge variant="status" label="無効" /> : <Badge variant="status" label="有効" />}
+              </Td>
+              <Td className="text-right font-medium">
+                <div className="flex justify-end space-x-2">
+                  <ConfirmDialog
+                    trigger={
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleInvalidateUsers(code.code)}
                         className="text-red-600 hover:bg-red-50 hover:text-red-900"
                         title="このコードの全ユーザーを凍結"
                       >
                         <Ban className="h-4 w-4" />
                       </Button>
-                      {!code.disabledAt && (
+                    }
+                    title="ユーザーの一括凍結"
+                    description="危険: このコードで登録した全てのユーザーを凍結します。本当によろしいですか？"
+                    confirmLabel="凍結する"
+                    onConfirm={() => handleInvalidateUsers(code.code)}
+                  />
+                  {!code.disabledAt && (
+                    <ConfirmDialog
+                      trigger={
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleInvalidateCode(code.code)}
                           className="text-orange-600 hover:bg-orange-50 hover:text-orange-900"
                           title="コード無効化"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                      }
+                      title="ゲストコードの無効化"
+                      description="このコードを無効化してもよろしいですか？新規登録ができなくなります。"
+                      confirmLabel="無効化する"
+                      onConfirm={() => handleInvalidateCode(code.code)}
+                    />
+                  )}
+                </div>
+              </Td>
+            </TableRow>
+          ))}
+        </TableBody>
+      </TableShell>
     </div>
   );
 }

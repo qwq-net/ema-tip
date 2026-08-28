@@ -1,6 +1,6 @@
 import { getRacesForSelect } from '@/features/admin/manage-entries';
 import { EntryRaceAccordion } from '@/features/admin/manage-entries/ui/entry-race-accordion';
-import { Card } from '@/shared/ui';
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
@@ -17,10 +17,7 @@ async function RaceSelectList() {
 export default function EntriesPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">出走馬管理</h1>
-        <p className="mt-1 text-sm text-gray-500">レースを選択して出走馬を登録します</p>
-      </div>
+      <AdminPageHeader title="出走馬管理" description="レースを選択して出走馬を登録します" />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
@@ -29,7 +26,7 @@ export default function EntriesPage() {
           </div>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<AdminLoadingCard />}>
           <RaceSelectList />
         </Suspense>
       </div>

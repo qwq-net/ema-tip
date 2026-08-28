@@ -1,8 +1,7 @@
 import { updateSystemDefaultOdds } from '@/features/admin/manage-settings/actions';
+import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { OddsForm } from './odds-form';
@@ -31,15 +30,11 @@ export default async function DefaultOddsSettingsPage() {
   return (
     <div className="mx-auto max-w-4xl py-8">
       <div className="mb-6">
-        <Link href="/admin" className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900">
-          <ChevronLeft size={16} />
-          ダッシュボードへ戻る
-        </Link>
+        <AdminBackLink href="/admin">ダッシュボードへ戻る</AdminBackLink>
       </div>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">デフォルト保証オッズ設定</h1>
-        <p className="mt-1 text-gray-500">システム全体のデフォルト保証オッズを設定します。</p>
+        <AdminPageHeader title="デフォルト保証オッズ設定" description="システム全体のデフォルト保証オッズを設定します。" />
       </div>
 
       <Card>

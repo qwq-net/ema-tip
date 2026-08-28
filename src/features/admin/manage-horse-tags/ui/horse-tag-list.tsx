@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  ConfirmDialog,
   Dialog,
   DialogContent,
   DialogHeader,
@@ -32,13 +33,13 @@ export function HorseTagList({ tags }: HorseTagListProps) {
   const [editingTag, setEditingTag] = useState<{ id: string; type: HorseTagType; content: string } | null>(null);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('本当に削除しますか？')) return;
     try {
       await deleteHorseTag(id);
       toast.success('削除しました');
     } catch (error) {
       console.error(error);
       toast.error('削除に失敗しました');
+      throw error;
     }
   };
 
@@ -94,12 +95,17 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                           >
                             <Edit className="h-3 w-3" />
                           </button>
-                          <button
-                            onClick={() => handleDelete(tag.id)}
-                            className="text-gray-400 transition-colors hover:text-red-500"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
+                          <ConfirmDialog
+                            trigger={
+                              <button className="text-gray-400 transition-colors hover:text-red-500">
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            }
+                            title="タグの削除"
+                            description={`本当に「${tag.content}」を削除してもよろしいですか？`}
+                            confirmLabel="削除する"
+                            onConfirm={() => handleDelete(tag.id)}
+                          />
                         </div>
                       </div>
                     ))

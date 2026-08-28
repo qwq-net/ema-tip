@@ -1,5 +1,6 @@
 import type { HorseTagType } from '@/entities/horse';
 import { HorseTagList } from '@/features/admin/manage-horse-tags/ui/horse-tag-list';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import type { Metadata } from 'next';
 
@@ -14,10 +15,7 @@ export default async function HorseTagsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">馬タグ管理</h1>
-        <p className="mt-1 text-sm text-gray-500">馬の詳細情報に使用するタグ（脚質、特性、来歴など）を管理します。</p>
-      </div>
+      <AdminPageHeader title="馬タグ管理" description="馬の詳細情報に使用するタグ（脚質、特性、来歴など）を管理します。" />
 
       <HorseTagList tags={tags as { id: string; type: HorseTagType; content: string }[]} />
     </div>
