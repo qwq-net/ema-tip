@@ -4,43 +4,46 @@ import { db } from '@/shared/db';
 import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
-import { eq, notInArray } from 'drizzle-orm';
+import { count, eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function getRacesForSelect() {
   await requireAdmin();
 
-  const allRaces = await db.query.raceInstances.findMany({
-    where: eq(raceInstances.status, 'SCHEDULED'),
-    columns: {
-      id: true,
-      eventId: true,
-      name: true,
-      raceNumber: true,
-      distance: true,
-      surface: true,
-      finalizedAt: true,
-      date: true,
-    },
-    with: {
-      event: true,
-      venue: {
-        columns: {
-          shortName: true,
+  // UIは頭数しか使わないため、全entriesを載せず件数だけ返す
+  const [allRaces, entryCounts] = await Promise.all([
+    db.query.raceInstances.findMany({
+      where: eq(raceInstances.status, 'SCHEDULED'),
+      columns: {
+        id: true,
+        eventId: true,
+        name: true,
+        raceNumber: true,
+        distance: true,
+        surface: true,
+        condition: true,
+        finalizedAt: true,
+        date: true,
+      },
+      with: {
+        event: true,
+        venue: {
+          columns: {
+            name: true,
+            shortName: true,
+          },
         },
       },
-    },
-    orderBy: (raceInstances, { asc, desc }) => [
-      desc(raceInstances.date),
-      asc(raceInstances.raceNumber),
-      asc(raceInstances.name),
-    ],
-  });
+      orderBy: (raceInstances, { asc, desc }) => [
+        desc(raceInstances.date),
+        asc(raceInstances.raceNumber),
+        asc(raceInstances.name),
+      ],
+    }),
+    db.select({ raceId: raceEntries.raceId, entryCount: count() }).from(raceEntries).groupBy(raceEntries.raceId),
+  ]);
 
-  const races = allRaces.map((race) => ({
-    ...race,
-    raceLocation: race.venue?.shortName,
-  }));
+  const countByRace = new Map(entryCounts.map((c) => [c.raceId, c.entryCount]));
 
   const eventsMap = new Map<
     string,
@@ -48,11 +51,17 @@ export async function getRacesForSelect() {
       id: string;
       name: string;
       date: string;
+      status: string;
       races: Array<{
         id: string;
         name: string;
         raceNumber: number | null;
+        distance: number;
+        surface: string;
+        condition: string | null;
+        entryCount: number;
         venue: {
+          name: string;
           shortName: string;
         };
         date: string;
@@ -60,12 +69,13 @@ export async function getRacesForSelect() {
     }
   >();
 
-  for (const race of races) {
+  for (const race of allRaces) {
     if (!eventsMap.has(race.eventId)) {
       eventsMap.set(race.eventId, {
         id: race.event.id,
         name: race.event.name,
         date: race.event.date,
+        status: race.event.status,
         races: [],
       });
     }
@@ -73,7 +83,12 @@ export async function getRacesForSelect() {
       id: race.id,
       name: race.name,
       raceNumber: race.raceNumber,
+      distance: race.distance,
+      surface: race.surface,
+      condition: race.condition,
+      entryCount: countByRace.get(race.id) ?? 0,
       venue: {
+        name: race.venue?.name || '',
         shortName: race.venue?.shortName || '',
       },
       date: race.date,

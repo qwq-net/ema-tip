@@ -38,9 +38,10 @@ export function Bet5EventList({ events }: { events: Event[] }) {
     <TableShell>
       <TableHead>
         <Th>イベント名</Th>
+        <Th>開催日</Th>
+        <Th>ステータス</Th>
         <Th>対象レース構成</Th>
         <Th>登録レース数</Th>
-        <Th>ステータス</Th>
         <Th className="w-48 text-right">操作</Th>
       </TableHead>
       <TableBody>
@@ -51,11 +52,18 @@ export function Bet5EventList({ events }: { events: Event[] }) {
 
           return (
             <TableRow key={event.id}>
-              <Td title={event.name}>
-                <div>
-                  <div className="font-semibold text-gray-900">{event.name}</div>
-                  <div className="text-sm text-gray-400">{event.date}</div>
-                </div>
+              <Td title={event.name} className="font-semibold text-gray-900">
+                {event.name}
+              </Td>
+              <Td className="text-gray-500">{event.date}</Td>
+              <Td>
+                {isConfigured ? (
+                  <Badge label="設定済み" className="border-blue-200 bg-blue-100 text-blue-700" />
+                ) : isReady ? (
+                  <Badge label="設定可能" className="border-green-200 bg-green-100 text-green-700" />
+                ) : (
+                  <Badge label="レース不足" variant="outline" className="text-gray-400" />
+                )}
               </Td>
               <Td className="font-medium text-gray-600">
                 {event.bet5Event ? (
@@ -69,15 +77,6 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                   <span className={cn('font-semibold', isReady ? 'text-green-600' : 'text-gray-500')}>{raceCount}</span>
                   <span className="text-gray-400">/ 5</span>
                 </div>
-              </Td>
-              <Td>
-                {isConfigured ? (
-                  <Badge label="設定済み" className="border-blue-200 bg-blue-100 text-blue-700" />
-                ) : isReady ? (
-                  <Badge label="設定可能" className="border-green-200 bg-green-100 text-green-700" />
-                ) : (
-                  <Badge label="レース不足" variant="outline" className="text-gray-400" />
-                )}
               </Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -104,7 +103,7 @@ export function Bet5EventList({ events }: { events: Event[] }) {
             </TableRow>
           );
         })}
-        {events.length === 0 && <TableEmptyRow colSpan={5}>表示できるイベントがありません</TableEmptyRow>}
+        {events.length === 0 && <TableEmptyRow colSpan={6}>表示できるイベントがありません</TableEmptyRow>}
       </TableBody>
     </TableShell>
   );

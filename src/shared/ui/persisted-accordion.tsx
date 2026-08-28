@@ -86,6 +86,33 @@ export function PersistedAccordion({ storageKey, allIds, emptyState, children }:
   );
 }
 
+interface PersistedAccordionHeaderProps {
+  name: string;
+  date?: string;
+  /** ステータスバッジ等。Badge 要素を渡す。 */
+  badge?: ReactNode;
+  /** 件数表示。「5レース」のような単位込みの文字列を渡す。 */
+  countLabel?: string;
+  /** ページ固有の追加要素。末尾に並ぶ。 */
+  children?: ReactNode;
+}
+
+/**
+ * PersistedAccordionItem の header に渡す標準見出し。
+ * 名前 → 日付 → バッジ → 件数 → 固有要素 の並びを全画面で統一するために使う。
+ */
+export function PersistedAccordionHeader({ name, date, badge, countLabel, children }: PersistedAccordionHeaderProps) {
+  return (
+    <div className="flex items-center gap-4">
+      <span>{name}</span>
+      {date && <span className="text-sm font-normal text-gray-500">{date}</span>}
+      {badge}
+      {countLabel && <span className="text-sm font-normal text-gray-500">{countLabel}</span>}
+      {children}
+    </div>
+  );
+}
+
 interface PersistedAccordionItemProps {
   /** PersistedAccordion の allIds の要素と対応させる値。 */
   value: string;

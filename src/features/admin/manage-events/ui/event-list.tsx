@@ -42,29 +42,29 @@ export function EventList({ events }: { events: Event[] }) {
   return (
     <TableShell>
       <TableHead>
-        <Th>ステータス</Th>
         <Th>イベント名</Th>
-        <Th>配布金額</Th>
         <Th>開催日</Th>
+        <Th>ステータス</Th>
+        <Th>配布金額</Th>
         <Th className="w-48 text-right">操作</Th>
       </TableHead>
       <TableBody>
         {events.map((event) => (
           <TableRow key={event.id}>
-            <Td>
-              <Badge label={event.status} variant="status" />
-            </Td>
             <Td title={event.name}>
               <Link
                 prefetch={false}
                 href={`/admin/events/${event.id}`}
-                className="text-primary hover:text-primary/80 font-medium hover:underline"
+                className="text-primary hover:text-primary/80 font-semibold transition-colors hover:underline"
               >
                 {event.name}
               </Link>
             </Td>
+            <Td className="text-gray-500">{event.date}</Td>
+            <Td>
+              <Badge label={event.status} variant="status" />
+            </Td>
             <Td className="font-semibold text-gray-600">{event.distributeAmount.toLocaleString('ja-JP')} 円</Td>
-            <Td className="font-semibold text-gray-400">{event.date}</Td>
             <Td className="text-right">
               <div className="flex items-center justify-end gap-2">
                 <Button asChild size="sm" variant="outline" className="gap-1">

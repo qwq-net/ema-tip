@@ -1,20 +1,27 @@
 'use client';
 
-import { PersistedAccordion, PersistedAccordionItem } from '@/shared/ui/persisted-accordion';
-import { Calendar, ChevronRight, MapPin } from 'lucide-react';
-import Link from 'next/link';
+import { getDisplayStatus } from '@/entities/race/lib/status';
+import { RaceListTable } from '@/entities/race/ui/race-list-table';
+import { Badge } from '@/shared/ui';
+import { PersistedAccordion, PersistedAccordionHeader, PersistedAccordionItem } from '@/shared/ui/persisted-accordion';
 
 interface EntryRaceAccordionProps {
   events: Array<{
     id: string;
     name: string;
     date: string;
+    status: string;
     races: Array<{
       id: string;
       name: string;
       raceNumber: number | null;
+      distance: number;
+      surface: string;
+      condition: string | null;
+      entryCount: number;
       date: string;
       venue: {
+        name: string;
         shortName: string;
       };
     }>;
@@ -35,48 +42,25 @@ export function EntryRaceAccordion({ events }: EntryRaceAccordionProps) {
           key={event.id}
           value={event.id}
           header={
-            <div className="flex items-center gap-4">
-              <span>{event.name}</span>
-              <span className="text-sm font-normal text-gray-500">{event.date}</span>
-            </div>
+            <PersistedAccordionHeader
+              name={event.name}
+              date={event.date}
+              badge={<Badge variant="status" label={getDisplayStatus(event.status, false)} />}
+              countLabel={`${event.races.length}レース`}
+            />
           }
         >
-          <div className="divide-y divide-gray-100">
-            {event.races.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">このイベントに登録可能なレースはありません</div>
-            ) : (
-              event.races.map((race) => (
-                <Link
-                  key={race.id}
-                  href={`/admin/entries/${race.id}`}
-                  className="group flex items-center justify-between p-4 transition-all hover:bg-gray-50"
-                >
-                  <div className="flex items-center gap-4 pl-8">
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="text-primary flex items-center gap-2 font-semibold">
-                        {race.raceNumber ? (
-                          <span className="text-sm font-semibold tracking-tighter text-gray-400 uppercase">
-                            {race.raceNumber}R
-                          </span>
-                        ) : null}
-                        {race.name}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {race.venue?.shortName}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 transition-colors group-hover:text-gray-600" />
-                </Link>
-              ))
-            )}
-          </div>
+          <RaceListTable
+            races={event.races}
+            hrefFor={(race) => `/admin/entries/${race.id}`}
+            tail={{
+              header: '頭数',
+              cell: (race) => (
+                <Badge label={`${race.entryCount}頭`} className="bg-blue-50 text-blue-700 ring-blue-200" />
+              ),
+            }}
+            emptyMessage="このイベントに登録可能なレースはありません"
+          />
         </PersistedAccordionItem>
       ))}
     </PersistedAccordion>
