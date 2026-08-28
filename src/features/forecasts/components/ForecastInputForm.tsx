@@ -4,7 +4,7 @@ import { upsertForecast } from '@/features/forecasts/actions';
 
 import { FORECAST_SYMBOLS } from '@/features/forecasts/constants';
 import { ForecastSelection } from '@/features/forecasts/types';
-import { Button, Textarea } from '@/shared/ui';
+import { Button, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
 import { Badge } from '@/shared/ui/badge';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
@@ -88,28 +88,26 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">枠</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">馬番</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">馬名</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">性齢</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">印</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
+        <table className="w-full min-w-[600px] border-collapse">
+          <TableHead>
+            <Th>枠</Th>
+            <Th>馬番</Th>
+            <Th>馬名</Th>
+            <Th>性齢</Th>
+            <Th>印</Th>
+          </TableHead>
+          <TableBody>
             {entries.map((entry) => (
-              <tr key={entry.id}>
-                <td className="px-3 py-2 text-sm text-gray-900">
+              <TableRow key={entry.id}>
+                <Td>
                   <BracketBadge bracketNumber={entry.bracketNumber} />
-                </td>
-                <td className="px-3 py-2 text-sm text-gray-900">{entry.horseNumber}</td>
-                <td className="px-3 py-2 text-sm text-gray-900">{entry.horseName}</td>
-                <td className="px-3 py-2 text-sm text-gray-900">
+                </Td>
+                <Td className="text-gray-900">{entry.horseNumber}</Td>
+                <Td className="font-medium text-gray-900">{entry.horseName}</Td>
+                <Td>
                   <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
-                </td>
-                <td className="px-3 py-2">
+                </Td>
+                <Td className="whitespace-normal">
                   <div className="flex flex-wrap gap-2">
                     {FORECAST_SYMBOLS.map((symbol) => (
                       <button
@@ -126,10 +124,10 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
                       </button>
                     ))}
                   </div>
-                </td>
-              </tr>
+                </Td>
+              </TableRow>
             ))}
-          </tbody>
+          </TableBody>
         </table>
       </div>
 

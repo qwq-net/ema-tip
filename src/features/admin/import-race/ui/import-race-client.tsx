@@ -1,6 +1,19 @@
 'use client';
 
-import { Badge, Button, Card, Checkbox, Input, Label, Select } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Input,
+  Label,
+  Select,
+  TableBody,
+  TableHead,
+  TableRow,
+  Td,
+  Th,
+} from '@/shared/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -204,40 +217,31 @@ export function ImportRaceClient({ events, venues }: Props) {
               )}
             </h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-sm font-semibold text-gray-500 uppercase">
-                    <th className="px-2 py-2">枠</th>
-                    <th className="px-2 py-2">馬番</th>
-                    <th className="px-2 py-2">馬名</th>
-                    <th className="px-2 py-2">性齢</th>
-                    <th className="px-2 py-2">騎手</th>
-                    <th className="px-2 py-2">斤量</th>
-                    <th className="px-2 py-2">予想オッズ</th>
-                    <th className="px-2 py-2">状態</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <table className="w-full min-w-[800px] border-collapse">
+                <TableHead>
+                  <Th>枠</Th>
+                  <Th>馬番</Th>
+                  <Th>馬名</Th>
+                  <Th>性齢</Th>
+                  <Th>騎手</Th>
+                  <Th>斤量</Th>
+                  <Th>予想オッズ</Th>
+                  <Th>状態</Th>
+                </TableHead>
+                <TableBody>
                   {preview.horses.map((h) => (
-                    <tr
-                      key={h.name}
-                      className={
-                        h.scratched
-                          ? 'border-b bg-red-50/50 text-gray-400 line-through last:border-0'
-                          : 'border-b last:border-0'
-                      }
-                    >
-                      <td className="px-2 py-1.5">{h.bracketNumber}</td>
-                      <td className="px-2 py-1.5">{h.horseNumber}</td>
-                      <td className="px-2 py-1.5 font-medium">{h.name}</td>
-                      <td className="px-2 py-1.5">
+                    <TableRow key={h.name} className={h.scratched ? 'bg-red-50/50 text-gray-400 line-through' : ''}>
+                      <Td>{h.bracketNumber}</Td>
+                      <Td>{h.horseNumber}</Td>
+                      <Td className="font-medium">{h.name}</Td>
+                      <Td>
                         {GENDER_LABELS[h.gender] ?? h.gender}
                         {h.age}
-                      </td>
-                      <td className="px-2 py-1.5">{h.jockey ?? '-'}</td>
-                      <td className="px-2 py-1.5">{h.weight?.toFixed(1) ?? '-'}</td>
-                      <td className="px-2 py-1.5">{h.scratched ? '-' : (h.odds?.toFixed(1) ?? '-')}</td>
-                      <td className="px-2 py-1.5 no-underline">
+                      </Td>
+                      <Td>{h.jockey ?? '-'}</Td>
+                      <Td>{h.weight?.toFixed(1) ?? '-'}</Td>
+                      <Td>{h.scratched ? '-' : (h.odds?.toFixed(1) ?? '-')}</Td>
+                      <Td className="no-underline">
                         {h.scratched ? (
                           <Badge label="取消" className="bg-red-100 text-red-600" />
                         ) : h.existingHorseId ? (
@@ -245,10 +249,10 @@ export function ImportRaceClient({ events, venues }: Props) {
                         ) : (
                           <Badge label="新規" className="bg-green-100 text-green-700" />
                         )}
-                      </td>
-                    </tr>
+                      </Td>
+                    </TableRow>
                   ))}
-                </tbody>
+                </TableBody>
               </table>
             </div>
 

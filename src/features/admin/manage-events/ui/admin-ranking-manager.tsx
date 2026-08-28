@@ -1,10 +1,10 @@
 'use client';
 
 import { type RankingData } from '@/entities/ranking';
+import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { type RankingDisplayMode, updateRankingDisplayMode } from '@/features/ranking';
-import { Badge, Button } from '@/shared/ui';
-import { Banknote, ChevronLeft, EyeOff, Trophy, Users } from 'lucide-react';
-import Link from 'next/link';
+import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
+import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -61,22 +61,9 @@ export function AdminRankingManager({
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-4">
-          <Link
-            href={`/admin/events/${eventId}`}
-            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-          >
-            <ChevronLeft size={16} />
-            イベント詳細へ戻る
-          </Link>
-        </div>
-        <div className="mt-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">ランキング管理</h1>
-            <p className="mt-1 text-sm text-gray-500">{eventName} のランキング確認と公開設定</p>
-          </div>
-        </div>
+      <div className="space-y-4">
+        <AdminBackLink href={`/admin/events/${eventId}`}>イベント詳細へ戻る</AdminBackLink>
+        <AdminPageHeader title="ランキング管理" description={`${eventName} のランキング確認と公開設定`} />
       </div>
 
       <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -132,7 +119,7 @@ export function AdminRankingManager({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
         <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-gray-400" />
@@ -141,69 +128,60 @@ export function AdminRankingManager({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] border-collapse text-left text-sm">
-            <thead className="bg-gray-50 text-gray-500">
-              <tr>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">順位</th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">ユーザー名</th>
-                <th className="px-6 py-3 text-right font-medium whitespace-nowrap">所持金</th>
-                <th className="px-6 py-3 text-right font-medium whitespace-nowrap">収支</th>
-                <th className="px-6 py-3 text-right font-medium whitespace-nowrap">借入総額</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {initialRanking.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    参加者がいません
-                  </td>
-                </tr>
-              ) : (
-                initialRanking.map((user) => (
-                  <tr key={user.userId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div
-                        className={`flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold ${
-                          user.rank === 1
-                            ? 'bg-amber-100 text-amber-700'
-                            : user.rank === 2
-                              ? 'bg-gray-200 text-gray-700'
-                              : user.rank === 3
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {user.rank}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-medium whitespace-nowrap text-gray-900">{user.name}</td>
-                    <td className="px-6 py-4 text-right font-medium whitespace-nowrap text-gray-900">
-                      {Number(user.balance).toLocaleString('ja-JP')} 円
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <span
-                        className={`font-medium ${
-                          Number(user.balance) - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
-                        }`}
-                      >
-                        {Number(user.balance) - distributeAmount >= 0 ? '+' : ''}
-                        {(Number(user.balance) - distributeAmount).toLocaleString('ja-JP')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      {user.totalLoaned && user.totalLoaned > 0 ? (
-                        <Badge
-                          label={`${user.totalLoaned.toLocaleString('ja-JP')} 円`}
-                          className="bg-orange-100 text-orange-800 ring-orange-200"
-                        />
-                      ) : (
-                        <span className="text-gray-300">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+          <table className="w-full min-w-[600px] border-collapse">
+            <TableHead>
+              <Th>順位</Th>
+              <Th>ユーザー名</Th>
+              <Th className="text-right">所持金</Th>
+              <Th className="text-right">収支</Th>
+              <Th className="text-right">借入総額</Th>
+            </TableHead>
+            <TableBody>
+              {initialRanking.length === 0 && <TableEmptyRow colSpan={5}>参加者がいません</TableEmptyRow>}
+              {initialRanking.map((user) => (
+                <TableRow key={user.userId}>
+                  <Td>
+                    <div
+                      className={`flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold ${
+                        user.rank === 1
+                          ? 'bg-amber-100 text-amber-700'
+                          : user.rank === 2
+                            ? 'bg-gray-200 text-gray-700'
+                            : user.rank === 3
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {user.rank}
+                    </div>
+                  </Td>
+                  <Td className="font-medium text-gray-900">{user.name}</Td>
+                  <Td className="text-right font-medium text-gray-900">
+                    {Number(user.balance).toLocaleString('ja-JP')} 円
+                  </Td>
+                  <Td className="text-right">
+                    <span
+                      className={`font-medium ${
+                        Number(user.balance) - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
+                      }`}
+                    >
+                      {Number(user.balance) - distributeAmount >= 0 ? '+' : ''}
+                      {(Number(user.balance) - distributeAmount).toLocaleString('ja-JP')}
+                    </span>
+                  </Td>
+                  <Td className="text-right">
+                    {user.totalLoaned && user.totalLoaned > 0 ? (
+                      <Badge
+                        label={`${user.totalLoaned.toLocaleString('ja-JP')} 円`}
+                        className="bg-orange-100 text-orange-800 ring-orange-200"
+                      />
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
+                  </Td>
+                </TableRow>
+              ))}
+            </TableBody>
           </table>
         </div>
       </div>
