@@ -1,6 +1,11 @@
 import { db } from '@/shared/db';
 import * as schema from '@/shared/db/schema';
-import { clearLoginFailures, getLoginAttemptRecord, isLoginLocked, recordLoginFailure } from '@/shared/lib/login-rate-limit';
+import {
+  clearLoginFailures,
+  getLoginAttemptRecord,
+  isLoginLocked,
+  recordLoginFailure,
+} from '@/shared/lib/login-rate-limit';
 import { getClientIp } from '@/shared/utils/get-client-ip';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import bcrypt from 'bcryptjs';

@@ -36,7 +36,6 @@ export type RacePreviewWithHorseStatus = {
   sourceUrl: string;
 };
 
-
 export type NetkeibaPayoutEntry = {
   numbers: number[];
   payout: number;

@@ -6,6 +6,6 @@ export { ConfirmDialog } from './confirm-dialog';
 export * from './dialog';
 export * from './dropdown-menu';
 export * from './forms';
-export * from './table';
 export { LiveConnectionStatus } from './live-connection-status';
 export { NumericInput } from './numeric-input';
+export * from './table';

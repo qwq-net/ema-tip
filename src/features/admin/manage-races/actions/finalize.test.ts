@@ -1,7 +1,7 @@
 import { BET_TYPES } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { finalizeRace } from './finalize';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -150,14 +150,20 @@ describe('finalizeRace', () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'SCHEDULED', guaranteedOdds: {} });
 
-    await expect(finalizeRace('race1', defaultResults)).resolves.toEqual({ success: false, error: 'レースが締切状態ではありません' });
+    await expect(finalizeRace('race1', defaultResults)).resolves.toEqual({
+      success: false,
+      error: 'レースが締切状態ではありません',
+    });
   });
 
   it('払戻確定済みレースは着順変更できない', async () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'FINALIZED', guaranteedOdds: {} });
 
-    await expect(finalizeRace('race1', defaultResults)).resolves.toEqual({ success: false, error: '払戻確定済みのため着順を変更できません' });
+    await expect(finalizeRace('race1', defaultResults)).resolves.toEqual({
+      success: false,
+      error: '払戻確定済みのため着順を変更できません',
+    });
   });
 
   it('単勝: 1着馬に賭けた馬券が的中し、正しいpayoutResultsが生成される', async () => {

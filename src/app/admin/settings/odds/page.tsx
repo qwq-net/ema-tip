@@ -34,7 +34,10 @@ export default async function DefaultOddsSettingsPage() {
       </div>
 
       <div className="mb-8">
-        <AdminPageHeader title="デフォルト保証オッズ設定" description="システム全体のデフォルト保証オッズを設定します。" />
+        <AdminPageHeader
+          title="デフォルト保証オッズ設定"
+          description="システム全体のデフォルト保証オッズを設定します。"
+        />
       </div>
 
       <Card>

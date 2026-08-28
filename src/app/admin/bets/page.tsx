@@ -1,6 +1,6 @@
 import { getEventsWithRaces } from '@/features/admin/manage-bets/actions/read';
-import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { EventAccordion } from '@/features/admin/manage-bets/ui/event-accordion';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

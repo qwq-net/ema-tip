@@ -3,8 +3,8 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { forecasts } from '@/shared/db/schema';
-import { canManageForecasts } from '@/shared/utils/auth-helpers';
 import { requireUser } from '@/shared/utils/admin';
+import { canManageForecasts } from '@/shared/utils/auth-helpers';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

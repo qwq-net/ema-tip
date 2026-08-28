@@ -1,5 +1,5 @@
-import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { VenueList } from '@/features/admin/manage-venues/ui/venue-list';
+import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Button } from '@/shared/ui';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';

@@ -1,6 +1,6 @@
 import { db } from '@/shared/db';
 import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { getUserBetGroupsForRace, placeBets } from './actions';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -160,21 +160,30 @@ describe('placeBets', () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, combinations: [] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
+    await expect(placeBets({ ...defaultArgs, combinations: [] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('賭け金額が 0 以下の場合は INVALID_AMOUNT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, amountPerBet: 0 })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_AMOUNT });
+    await expect(placeBets({ ...defaultArgs, amountPerBet: 0 })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_AMOUNT,
+    });
   });
 
   it('賭け金額が 100 の倍数でない場合は INVALID_AMOUNT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, amountPerBet: 150 })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_AMOUNT });
+    await expect(placeBets({ ...defaultArgs, amountPerBet: 150 })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_AMOUNT,
+    });
   });
 
   it('組み合わせ数が上限（1000）を超える場合は INVALID_INPUT エラーをスローする', async () => {
@@ -182,35 +191,50 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
     const tooManyCombinations = Array.from({ length: 1001 }, (_, i) => [i + 1]);
-    await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
+    await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('券種と要素数が一致しない組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, betType: 'win', combinations: [[1, 2]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
+    await expect(placeBets({ ...defaultArgs, betType: 'win', combinations: [[1, 2]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('整数以外を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, combinations: [[1.5]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
+    await expect(placeBets({ ...defaultArgs, combinations: [[1.5]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('出走馬に存在しない馬番を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, combinations: [[99]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
+    await expect(placeBets({ ...defaultArgs, combinations: [[99]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('馬連で同一馬番の重複を含む組み合わせは INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    await expect(placeBets({ ...defaultArgs, betType: 'quinella', combinations: [[1, 1]] })).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_INPUT });
+    await expect(placeBets({ ...defaultArgs, betType: 'quinella', combinations: [[1, 1]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('枠連は同一枠番の組み合わせを許容する', async () => {

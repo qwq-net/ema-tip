@@ -18,7 +18,13 @@ interface ConfirmDialogProps {
  * 破壊的操作の確認ダイアログ。onConfirm の実行中は確認ボタンを無効化する。
  * エラー通知は呼び出し側の責務。閉じたままにしたい失敗は onConfirm から throw して伝える。
  */
-export function ConfirmDialog({ trigger, title, description, confirmLabel = '実行する', onConfirm }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  trigger,
+  title,
+  description,
+  confirmLabel = '実行する',
+  onConfirm,
+}: ConfirmDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
