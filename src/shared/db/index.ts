@@ -11,12 +11,14 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is not set');
 }
 
-const globalForDb = globalThis as unknown as {
-  conn: postgres.Sql | undefined;
-};
+declare global {
+  // 開発時のホットリロードをまたいで postgres 接続を再利用するためのキャッシュ
 
-const conn = globalForDb.conn ?? postgres(connectionString, { prepare: false });
+  var __dbConn: postgres.Sql | undefined;
+}
 
-if (process.env.NODE_ENV !== 'production') globalForDb.conn = conn;
+const conn = globalThis.__dbConn ?? postgres(connectionString, { prepare: false });
+
+if (process.env.NODE_ENV !== 'production') globalThis.__dbConn = conn;
 
 export const db = drizzle(conn, { schema });

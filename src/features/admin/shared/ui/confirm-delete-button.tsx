@@ -10,7 +10,7 @@ interface ConfirmDeleteButtonProps {
   /** 確認文とトーストに表示する対象名。 */
   itemName: string;
   /** 削除を実行する処理。サーバーアクションを bind して渡す想定。失敗時は throw すること。 */
-  onDelete: () => Promise<unknown>;
+  onDelete: () => Promise<void>;
 }
 
 /**

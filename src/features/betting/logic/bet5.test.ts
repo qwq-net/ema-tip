@@ -73,22 +73,9 @@ describe('calculateBet5Payout', () => {
     race5HorseIds: ['horse-5'],
   };
 
-  let mockTx: {
-    execute: ReturnType<typeof vi.fn>;
-    query: {
-      bet5Events: { findFirst: ReturnType<typeof vi.fn> };
-      raceEntries: { findMany: ReturnType<typeof vi.fn> };
-      bet5Tickets: { findMany: ReturnType<typeof vi.fn> };
-    };
-    update: ReturnType<typeof vi.fn>;
-    insert: ReturnType<typeof vi.fn>;
-    _updateChain: ReturnType<typeof makeUpdateChain>;
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
+  const createMockTx = () => {
     const updateChain = makeUpdateChain();
-    mockTx = {
+    return {
       execute: vi.fn().mockResolvedValue(undefined),
       query: {
         bet5Events: { findFirst: vi.fn().mockResolvedValue(baseBet5Event) },
@@ -99,7 +86,13 @@ describe('calculateBet5Payout', () => {
       insert: vi.fn().mockReturnValue(makeInsertChain()),
       _updateChain: updateChain,
     };
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+  };
+  let mockTx: ReturnType<typeof createMockTx>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockTx = createMockTx();
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
   });
@@ -194,9 +187,7 @@ describe('calculateBet5Payout', () => {
 
     expect(result).toMatchObject({ success: true, winCount: 0 });
     const carryoverSet = mockTx._updateChain.set.mock.calls.find(
-      (args: unknown[]) =>
-        typeof (args[0] as Record<string, unknown>)?.carryoverAmount === 'number' ||
-        (args[0] as Record<string, unknown>)?.carryoverAmount !== undefined
+      (args: unknown[]) => (args[0] as Record<string, unknown>)?.carryoverAmount !== undefined
     );
     expect(carryoverSet).toBeDefined();
   });
@@ -230,7 +221,7 @@ describe('calculateBet5Payout', () => {
 
     const decrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
       const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
-      return value !== undefined && typeof value === 'object' && JSON.stringify(value).includes('2000');
+      return value instanceof Object && JSON.stringify(value).includes('2000');
     });
     expect(decrementSet).toBeDefined();
   });
@@ -247,12 +238,12 @@ describe('calculateBet5Payout', () => {
     const incrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
       const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
       const increment = baseBet5Event.initialPot + losingTicket.amount;
-      return value !== undefined && typeof value === 'object' && JSON.stringify(value).includes(String(increment));
+      return value instanceof Object && JSON.stringify(value).includes(String(increment));
     });
     expect(incrementSet).toBeDefined();
 
-    const absoluteSet = mockTx._updateChain.set.mock.calls.find(
-      (args: unknown[]) => typeof (args[0] as Record<string, unknown>)?.carryoverAmount === 'number'
+    const absoluteSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) =>
+      Number.isFinite((args[0] as Record<string, unknown>)?.carryoverAmount)
     );
     expect(absoluteSet).toBeUndefined();
   });
@@ -285,7 +276,7 @@ describe('placeBet5Bet', () => {
       insert: insertMock,
       update: vi.fn(),
     };
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
 

@@ -44,7 +44,7 @@ const horsesData = horsesDataRaw as HorseSeedData[];
 
 const getRandomCondition = () => RACE_CONDITIONS[Math.floor(Math.random() * RACE_CONDITIONS.length)];
 
-function generateDummyWinOdds(entryCount: number): Record<string, number> {
+function generateDummyWinOdds(entryCount: number) {
   const odds: Record<string, number> = {};
   for (let i = 1; i <= entryCount; i++) {
     odds[String(i)] = Math.round((1.5 + Math.random() * 30) * 10) / 10;
@@ -52,7 +52,7 @@ function generateDummyWinOdds(entryCount: number): Record<string, number> {
   return odds;
 }
 
-function generateDummyPlaceOdds(entryCount: number): Record<string, { min: number; max: number }> {
+function generateDummyPlaceOdds(entryCount: number) {
   const odds: Record<string, { min: number; max: number }> = {};
   for (let i = 1; i <= entryCount; i++) {
     const min = Math.round((1.1 + Math.random() * 5) * 10) / 10;

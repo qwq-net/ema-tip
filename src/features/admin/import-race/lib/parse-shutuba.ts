@@ -1,11 +1,12 @@
+import { lookup } from '@/shared/utils/lookup';
 import { parse } from 'node-html-parser';
 import type { RacePreviewData, ScrapedHorse, ScrapedRaceInfo } from '../model/types';
 
-const GENDER_MAP: Record<string, 'HORSE' | 'MARE' | 'GELDING'> = {
+const GENDER_MAP = {
   牡: 'HORSE',
   牝: 'MARE',
   セ: 'GELDING',
-};
+} satisfies Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'>;
 
 function extractRaceId(url: string): string {
   const raceId = new URL(url).searchParams.get('race_id');
@@ -66,7 +67,7 @@ function parseHorses(root: ReturnType<typeof parse>): ScrapedHorse[] {
       const bareiText =
         row.querySelector('td.Barei')?.text?.trim() || row.querySelector('td.HorseInfo .Age')?.text?.trim() || '';
       const genderChar = bareiText[0] ?? '';
-      const gender = GENDER_MAP[genderChar] ?? 'HORSE';
+      const gender = lookup(GENDER_MAP, genderChar) ?? 'HORSE';
       const ageMatch = bareiText.match(/(\d+)/);
       const age = ageMatch ? parseInt(ageMatch[1]) : null;
 

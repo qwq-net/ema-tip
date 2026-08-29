@@ -3,6 +3,7 @@
 import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
+import { lookup } from '@/shared/utils/lookup';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -182,9 +183,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
           <p className="mt-1 text-sm text-gray-500">
             {venueId
               ? '会場のデフォルト: ' +
-                (venues.find((v) => v.id === venueId)?.defaultDirection
-                  ? DIRECTION_LABELS[venues.find((v) => v.id === venueId)!.defaultDirection]
-                  : '-')
+                (lookup(DIRECTION_LABELS, venues.find((v) => v.id === venueId)?.defaultDirection ?? '') ?? '-')
               : '会場を選択してください'}
           </p>
         </div>

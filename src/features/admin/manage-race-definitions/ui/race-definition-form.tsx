@@ -23,7 +23,7 @@ interface RaceDefinitionFormProps {
   onSuccess?: () => void;
 }
 
-const GRADE_LABELS: Record<string, string> = {
+const GRADE_LABELS = {
   G1: 'G1',
   G2: 'G2',
   G3: 'G3',
@@ -34,12 +34,12 @@ const GRADE_LABELS: Record<string, string> = {
   '1_WIN': '1勝クラス',
   MAIDEN: '未勝利',
   NEWCOMER: '新馬',
-};
+} satisfies Record<string, string>;
 
-const TYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS = {
   REAL: '実在',
   FICTIONAL: '架空',
-};
+} satisfies Record<string, string>;
 
 export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefinitionFormProps) {
   const formRef = useRef<HTMLFormElement>(null);

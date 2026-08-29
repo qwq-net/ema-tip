@@ -1,12 +1,28 @@
 'use server';
 
+import { BET_TYPES, type BetType } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { payoutResults as payoutResultsTable } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 
+const BET_TYPE_SET = new Set<string>(Object.values(BET_TYPES));
+
+/**
+ * レースの払戻結果を返す。combinations が jsonb のためここで型を確定させる境界。
+ * type が馬券種別として不正な行（シードのダミー等）は除外する。
+ */
 export async function getPayoutResults(raceId: string) {
   await requireUser();
 
-  return db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
+  const rows = await db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
+  return rows
+    .filter((row) => BET_TYPE_SET.has(row.type))
+    .map((row) => ({
+      ...row,
+      // SAFETY: 直前の filter で BET_TYPES に含まれる値のみ通している
+      type: row.type as BetType,
+      // SAFETY: 払戻確定処理が書き込む combinations はこの形状のみ。異形状はシード由来で type filter により除外済み
+      combinations: row.combinations as { numbers: number[]; payout: number; popularity?: number }[],
+    }));
 }

@@ -3,7 +3,7 @@ import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, T
 import Link from 'next/link';
 import { deleteRaceDefinition, getRaceDefinitions } from '../actions';
 
-const GRADE_LABELS: Record<string, string> = {
+const GRADE_LABELS = {
   G1: 'G1',
   G2: 'G2',
   G3: 'G3',
@@ -14,13 +14,13 @@ const GRADE_LABELS: Record<string, string> = {
   '1_WIN': '1勝',
   MAIDEN: '未',
   NEWCOMER: '新',
-};
+} satisfies Record<string, string>;
 
-const DIRECTION_LABELS: Record<string, string> = {
+const DIRECTION_LABELS = {
   LEFT: '左',
   RIGHT: '右',
   STRAIGHT: '直',
-};
+} satisfies Record<string, string>;
 
 export async function RaceDefinitionList() {
   const definitions = await getRaceDefinitions();

@@ -104,10 +104,10 @@ export function RankingList({
                   )}
                   <div className="text-right">
                     <div className="font-semibold text-gray-900">
-                      {typeof user.balance === 'number' ? user.balance.toLocaleString('ja-JP') : user.balance}
-                      {typeof user.balance === 'number' && '円'}
+                      {user.balance === '???' ? user.balance : user.balance.toLocaleString('ja-JP')}
+                      {user.balance !== '???' && '円'}
                     </div>
-                    {typeof user.balance === 'number' && (
+                    {user.balance !== '???' && (
                       <div
                         className={`text-sm font-medium ${
                           user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'

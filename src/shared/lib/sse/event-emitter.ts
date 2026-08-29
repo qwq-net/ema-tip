@@ -4,10 +4,36 @@ class RaceEventEmitter extends EventEmitter {
   public id = Math.random().toString(36).substring(7);
 }
 
-const globalForEvents = global as unknown as { raceEventEmitter: RaceEventEmitter };
+declare global {
+  // 開発時のホットリロードをまたいで emitter インスタンスを共有するためのキャッシュ
 
-export const raceEventEmitter = globalForEvents.raceEventEmitter ?? new RaceEventEmitter();
-globalForEvents.raceEventEmitter = raceEventEmitter;
+  var __raceEventEmitter: RaceEventEmitter | undefined;
+}
+
+export const raceEventEmitter = globalThis.__raceEventEmitter ?? new RaceEventEmitter();
+globalThis.__raceEventEmitter = raceEventEmitter;
+
+/**
+ * SSE でクライアントへ JSON 配信するイベント内容。イベント種別ごとに使うフィールドが異なる。
+ * JSON.stringify で直列化されるため、シリアライズ不能な値を入れないこと。
+ */
+export type RaceEventPayload = {
+  raceId?: string;
+  eventId?: string;
+  timestamp?: number;
+  mode?: string;
+  data?: {
+    winOdds: Record<string, number>;
+    placeOdds: Record<string, { min: number; max: number }>;
+    updatedAt: Date;
+  };
+  results?: {
+    finishPosition: number;
+    horseNumber: number;
+    bracketNumber: number;
+    horseName: string;
+  }[];
+};
 
 export const RACE_EVENTS = {
   RACE_FINALIZED: 'RACE_FINALIZED',

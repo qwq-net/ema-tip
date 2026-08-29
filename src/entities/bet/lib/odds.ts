@@ -1,10 +1,11 @@
+import { lookup } from '@/shared/utils/lookup';
 import { BET_TYPES, BetDetail, BetType } from '../constants';
 import { normalizeSelections } from './payout';
 
-const EXPECTED_WINNER_COUNT: Partial<Record<string, number>> = {
+const EXPECTED_WINNER_COUNT = {
   [BET_TYPES.PLACE]: 3,
   [BET_TYPES.WIDE]: 3,
-};
+} satisfies Partial<Record<BetType, number>>;
 
 export interface OddsPool {
   poolByBetType: Record<string, number>;
@@ -28,16 +29,13 @@ export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]
   return { poolByBetType, amountBySelection };
 }
 
-export function calculateProvisionalOdds(
-  pool: OddsPool,
-  guaranteedOdds?: Record<string, number>
-): Record<string, Record<string, number>> {
+export function calculateProvisionalOdds(pool: OddsPool, guaranteedOdds?: Record<string, number>) {
   const provisionalOdds: Record<string, Record<string, number>> = {};
 
   for (const [type, totalAmount] of Object.entries(pool.poolByBetType)) {
     provisionalOdds[type] = {};
     const selections = pool.amountBySelection[type];
-    const expectedWinners = EXPECTED_WINNER_COUNT[type] ?? 1;
+    const expectedWinners = lookup(EXPECTED_WINNER_COUNT, type) ?? 1;
     const effectivePool = totalAmount / expectedWinners;
 
     for (const [key, amount] of Object.entries(selections)) {

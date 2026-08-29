@@ -45,7 +45,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     getEntriesForRace(id),
     getUserBetGroupsForRace(id),
   ]);
-  const entries = entriesData as unknown as Entry[];
+  const entries: Entry[] = entriesData;
 
   if (!race) {
     notFound();
@@ -55,12 +55,9 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
 
   let initialResults: ClientPayoutResult[] = [];
   if (isFinalized) {
-    const rawResults = (await getPayoutResults(id)) as unknown as {
-      type: string;
-      combinations: { numbers: number[]; payout: number }[];
-    }[];
+    const rawResults = await getPayoutResults(id);
     initialResults = rawResults.map((r) => ({
-      type: r.type as BetType,
+      type: r.type,
       combinations: r.combinations,
     }));
   }

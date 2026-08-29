@@ -14,17 +14,18 @@ import {
   Td,
   Th,
 } from '@/shared/ui';
+import { lookup } from '@/shared/utils/lookup';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { fetchRacePreview, importRace } from '../actions';
 import type { RacePreviewWithHorseStatus } from '../model/types';
 
-const GENDER_LABELS: Record<string, string> = {
+const GENDER_LABELS = {
   HORSE: '牡',
   MARE: '牝',
   GELDING: 'セ',
-};
+} satisfies Record<string, string>;
 
 type EventItem = { id: string; name: string; date: string };
 type VenueItem = { id: string; name: string; shortName: string; code: string | null };
@@ -235,7 +236,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                       <Td>{h.horseNumber}</Td>
                       <Td className="font-medium">{h.name}</Td>
                       <Td>
-                        {GENDER_LABELS[h.gender] ?? h.gender}
+                        {lookup(GENDER_LABELS, h.gender) ?? h.gender}
                         {h.age}
                       </Td>
                       <Td>{h.jockey ?? '-'}</Td>

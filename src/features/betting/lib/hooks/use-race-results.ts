@@ -18,7 +18,7 @@ export function useRaceResults(raceId: string, initialResults: PayoutResult[] = 
   const fetchResults = useCallback(async () => {
     try {
       const data = await getPayoutResults(raceId);
-      setResults(data as unknown as PayoutResult[]);
+      setResults(data);
     } catch (e) {
       console.error('Failed to fetch payout results:', e);
     }

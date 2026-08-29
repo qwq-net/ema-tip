@@ -48,26 +48,12 @@ describe('claimEvent', () => {
 
   const makeInsertChain = () => ({ values: vi.fn().mockResolvedValue(undefined) });
 
-  let mockTx: {
-    execute: ReturnType<typeof vi.fn>;
-    query: {
-      wallets: { findFirst: ReturnType<typeof vi.fn> };
-    };
-    insert: ReturnType<typeof vi.fn>;
-    _insertCalls: ReturnType<typeof vi.fn>[];
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    (auth as unknown as Mock).mockResolvedValue({ user: { id: userId } });
-    (db.query.events.findFirst as unknown as Mock).mockResolvedValue(mockEvent);
-
+  const createMockTx = () => {
     const walletInsert = makeInsertReturning();
     const txInsert = makeInsertChain();
     let insertCallCount = 0;
 
-    mockTx = {
+    return {
       execute: vi.fn().mockResolvedValue(undefined),
       query: {
         wallets: { findFirst: vi.fn().mockResolvedValue(null) },
@@ -76,10 +62,20 @@ describe('claimEvent', () => {
         insertCallCount++;
         return insertCallCount === 1 ? walletInsert : txInsert;
       }),
-      _insertCalls: [],
+      _insertCalls: [] as ReturnType<typeof vi.fn>[],
     };
+  };
+  let mockTx: ReturnType<typeof createMockTx>;
 
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    (auth as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.events.findFirst as unknown as Mock).mockResolvedValue(mockEvent);
+
+    mockTx = createMockTx();
+
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
   });

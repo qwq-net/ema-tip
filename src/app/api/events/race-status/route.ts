@@ -1,5 +1,5 @@
 import { auth } from '@/shared/config/auth';
-import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
+import { RACE_EVENTS, raceEventEmitter, type RaceEventPayload } from '@/shared/lib/sse/event-emitter';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       controller.enqueue(encoder.encode(`data: {"type":"connected","id":"${raceEventEmitter.id}"}\n\n`));
 
       let closed = false;
-      const handlers: Array<[string, (data: object) => void]> = [];
+      const handlers: Array<[string, (data: RaceEventPayload) => void]> = [];
 
       const cleanup = () => {
         if (closed) return;
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       };
 
       for (const type of Object.values(RACE_EVENTS)) {
-        const handler = (data: object) => {
+        const handler = (data: RaceEventPayload) => {
           safeEnqueue(JSON.stringify({ type, ...data }));
         };
         handlers.push([type, handler]);

@@ -11,7 +11,7 @@ interface ConfirmDialogProps {
   description: ReactNode;
   confirmLabel?: string;
   /** 確認時に実行する処理。resolve でダイアログを閉じ、throw なら開いたまま維持する。 */
-  onConfirm: () => Promise<unknown> | void;
+  onConfirm: () => Promise<void> | void;
 }
 
 /**

@@ -69,7 +69,7 @@ export async function getEventRanking(eventId: string): Promise<{
 
     let name = wallet.user.name || 'Unknown';
     let rank: number | string = index + 1;
-    let balance: number | string = wallet.balance;
+    let balance: number | '???' = wallet.balance;
     let totalLoaned: number | undefined = undefined;
 
     if (isFullWithLoan) {

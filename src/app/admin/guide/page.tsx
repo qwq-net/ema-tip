@@ -1,4 +1,5 @@
 import { Card } from '@/shared/ui';
+import { lookup } from '@/shared/utils/lookup';
 import {
   BookOpen,
   Calendar,
@@ -127,7 +128,7 @@ const OTHER_STEPS = [
   },
 ];
 
-const COLOR_MAP: Record<string, string> = {
+const COLOR_MAP = {
   slate: 'bg-slate-50 text-slate-600 border-slate-100',
   teal: 'bg-teal-50 text-teal-600 border-teal-100',
   amber: 'bg-amber-50 text-amber-600 border-amber-100',
@@ -138,7 +139,7 @@ const COLOR_MAP: Record<string, string> = {
   rose: 'bg-rose-50 text-rose-600 border-rose-100',
   cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100',
   sky: 'bg-sky-50 text-sky-600 border-sky-100',
-};
+} satisfies Record<string, string>;
 
 type Step = {
   title: string;
@@ -151,7 +152,7 @@ type Step = {
 
 function StepCard({ step }: { step: Step }) {
   const Icon = step.icon;
-  const colorClass = COLOR_MAP[step.color] || 'bg-gray-50 text-gray-600 border-gray-100';
+  const colorClass = lookup(COLOR_MAP, step.color) ?? 'bg-gray-50 text-gray-600 border-gray-100';
 
   return (
     <Card

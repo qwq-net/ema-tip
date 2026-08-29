@@ -21,7 +21,7 @@ interface PayoutResultModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const TYPE_COLORS: Record<BetType, string> = {
+const TYPE_COLORS = {
   [BET_TYPES.WIN]: 'bg-blue-800 text-white',
   [BET_TYPES.PLACE]: 'bg-red-600 text-white',
   [BET_TYPES.BRACKET_QUINELLA]: 'bg-green-700 text-white',
@@ -30,9 +30,9 @@ const TYPE_COLORS: Record<BetType, string> = {
   [BET_TYPES.EXACTA]: 'bg-yellow-500 text-black',
   [BET_TYPES.TRIO]: 'bg-blue-600 text-white',
   [BET_TYPES.TRIFECTA]: 'bg-amber-700 text-white',
-};
+} satisfies Record<BetType, string>;
 
-const TYPE_LABELS: Record<BetType, string> = {
+const TYPE_LABELS = {
   [BET_TYPES.WIN]: '単 勝',
   [BET_TYPES.PLACE]: '複 勝',
   [BET_TYPES.BRACKET_QUINELLA]: '枠 連',
@@ -41,7 +41,7 @@ const TYPE_LABELS: Record<BetType, string> = {
   [BET_TYPES.EXACTA]: '馬 単',
   [BET_TYPES.TRIO]: '3連複',
   [BET_TYPES.TRIFECTA]: '3連単',
-};
+} satisfies Record<BetType, string>;
 
 export function PayoutResultModal({ raceName, raceDate, results, open, onOpenChange }: PayoutResultModalProps) {
   return (

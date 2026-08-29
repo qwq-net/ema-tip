@@ -42,7 +42,7 @@ describe('saveEntries', () => {
     vi.clearAllMocks();
     mockTx.delete.mockReturnValue({ where: deleteWhere });
     mockTx.insert.mockReturnValue({ values: insertValues });
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
   });

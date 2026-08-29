@@ -1,6 +1,7 @@
 'use client';
 
 import { FormattedDate } from '@/shared/ui/formatted-date';
+import { lookup } from '@/shared/utils/lookup';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
 export interface Transaction {
@@ -20,7 +21,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
     return <div className="py-8 text-center text-gray-400">取引履歴はありません。</div>;
   }
 
-  const typeLabels: Record<string, string> = {
+  const typeLabels = {
     CLAIM: '配布金',
     BET: '投票',
     PAYOUT: '払戻',
@@ -28,7 +29,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
     WIN: '配当',
     BONUS: 'ボーナス',
     LOAN: '借入金',
-  };
+  } satisfies Record<string, string>;
 
   return (
     <div className="space-y-3">
@@ -46,7 +47,9 @@ export function TransactionList({ transactions }: TransactionListProps) {
                 {isExpense ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
               </div>
               <div>
-                <div className="font-semibold text-gray-900">{tx.description || typeLabels[tx.type] || tx.type}</div>
+                <div className="font-semibold text-gray-900">
+                  {tx.description || lookup(typeLabels, tx.type) || tx.type}
+                </div>
                 <div className="text-sm text-gray-400">
                   <FormattedDate
                     date={tx.createdAt}

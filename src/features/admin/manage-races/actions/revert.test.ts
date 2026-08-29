@@ -44,21 +44,7 @@ vi.mock('@/shared/lib/sse/event-emitter', () => ({
 describe('resetRaceResults', () => {
   const raceId = 'race-123';
 
-  let mockTx: {
-    execute: ReturnType<typeof vi.fn>;
-    query: {
-      raceInstances: { findFirst: ReturnType<typeof vi.fn> };
-      bet5Events: { findFirst: ReturnType<typeof vi.fn> };
-    };
-    update: ReturnType<typeof vi.fn>;
-    delete: ReturnType<typeof vi.fn>;
-    _updateChain: { set: ReturnType<typeof vi.fn>; where: ReturnType<typeof vi.fn> };
-    _deleteChain: { where: ReturnType<typeof vi.fn> };
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-
+  const createMockTx = () => {
     const updateWhere = vi.fn().mockResolvedValue(undefined);
     const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
     const updateChain = { set: updateSet, where: updateWhere };
@@ -66,7 +52,7 @@ describe('resetRaceResults', () => {
     const deleteWhere = vi.fn().mockResolvedValue(undefined);
     const deleteChain = { where: deleteWhere };
 
-    mockTx = {
+    return {
       execute: vi.fn().mockResolvedValue(undefined),
       query: {
         raceInstances: {
@@ -81,8 +67,15 @@ describe('resetRaceResults', () => {
       _updateChain: updateChain,
       _deleteChain: deleteChain,
     };
+  };
+  let mockTx: ReturnType<typeof createMockTx>;
 
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockTx = createMockTx();
+
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
   });

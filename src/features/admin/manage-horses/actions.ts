@@ -28,11 +28,11 @@ const horseSchema = z.object({
     .optional(),
 });
 
-const GENDER_MAP: Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'> = {
+const GENDER_MAP = {
   牡: 'HORSE',
   牝: 'MARE',
   セン: 'GELDING',
-};
+} satisfies Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'>;
 
 export async function createHorse(formData: FormData) {
   await requireAdmin();

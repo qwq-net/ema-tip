@@ -315,14 +315,14 @@ describe('updateRace ステータス遷移', () => {
   };
 
   const createFormData = (overrides: Record<string, string> = {}) => {
-    const defaults: Record<string, string> = {
+    const defaults = {
       eventId: 'event-1',
       date: '2026-03-10',
       venueId: 'venue-1',
       name: 'テストレース',
       distance: '2000',
       surface: 'turf',
-    };
+    } satisfies Record<string, string>;
     const merged = { ...defaults, ...overrides };
     const fd = new FormData();
     for (const [key, value] of Object.entries(merged)) {
@@ -335,7 +335,7 @@ describe('updateRace ステータス遷移', () => {
     vi.clearAllMocks();
     mockUpdate.mockReturnValue({ set: mockSet });
     mockSet.mockReturnValue({ where: mockWhere });
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
   });

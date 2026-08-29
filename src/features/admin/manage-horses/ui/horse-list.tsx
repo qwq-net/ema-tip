@@ -7,11 +7,11 @@ import { deleteHorse, getHorses } from '../actions';
 export async function HorseList() {
   const horses = await getHorses();
 
-  const originLabels: Record<string, string> = {
+  const originLabels = {
     DOMESTIC: '日本産',
     FOREIGN_BRED: '外国産',
     FOREIGN_TRAINED: '外来馬',
-  };
+  } satisfies Record<string, string>;
 
   return (
     <TableShell className="min-w-[700px]">

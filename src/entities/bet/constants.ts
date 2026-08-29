@@ -22,7 +22,7 @@ export const BET_TYPE_ORDER = [
 
 export type BetType = (typeof BET_TYPES)[keyof typeof BET_TYPES];
 
-export const BET_TYPE_LABELS: Record<BetType, string> = {
+export const BET_TYPE_LABELS = {
   [BET_TYPES.WIN]: '単勝',
   [BET_TYPES.PLACE]: '複勝',
   [BET_TYPES.BRACKET_QUINELLA]: '枠連',
@@ -31,9 +31,9 @@ export const BET_TYPE_LABELS: Record<BetType, string> = {
   [BET_TYPES.EXACTA]: '馬単',
   [BET_TYPES.TRIFECTA]: '三連単',
   [BET_TYPES.TRIO]: '三連複',
-};
+} satisfies Record<BetType, string>;
 
-export const BET_TYPE_SELECTION_COUNTS: Record<BetType, number> = {
+export const BET_TYPE_SELECTION_COUNTS = {
   [BET_TYPES.WIN]: 1,
   [BET_TYPES.PLACE]: 1,
   [BET_TYPES.BRACKET_QUINELLA]: 2,
@@ -42,7 +42,7 @@ export const BET_TYPE_SELECTION_COUNTS: Record<BetType, number> = {
   [BET_TYPES.EXACTA]: 2,
   [BET_TYPES.TRIFECTA]: 3,
   [BET_TYPES.TRIO]: 3,
-};
+} satisfies Record<BetType, number>;
 
 export interface BetDetail {
   type: BetType;

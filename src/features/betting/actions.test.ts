@@ -99,21 +99,7 @@ describe('placeBets', () => {
     amountPerBet: 100,
   };
 
-  let mockTx: {
-    execute: ReturnType<typeof vi.fn>;
-    query: {
-      raceInstances: { findFirst: ReturnType<typeof vi.fn> };
-      wallets: { findFirst: ReturnType<typeof vi.fn> };
-    };
-    insert: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
-    _insertChain: { values: ReturnType<typeof vi.fn>; returning: ReturnType<typeof vi.fn> };
-    _updateChain: { set: ReturnType<typeof vi.fn>; where: ReturnType<typeof vi.fn> };
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-
+  const createMockTx = () => {
     const insertReturning = vi.fn().mockResolvedValue([{ id: 'bet-1' }]);
     const insertValues = vi.fn().mockReturnValue({ returning: insertReturning });
     const insertChain = { values: insertValues, returning: insertReturning };
@@ -122,7 +108,7 @@ describe('placeBets', () => {
     const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
     const updateChain = { set: updateSet, where: updateWhere };
 
-    mockTx = {
+    return {
       execute: vi.fn().mockResolvedValue(undefined),
       query: {
         raceInstances: { findFirst: vi.fn().mockResolvedValue(mockRace) },
@@ -133,8 +119,15 @@ describe('placeBets', () => {
       _insertChain: insertChain,
       _updateChain: updateChain,
     };
+  };
+  let mockTx: ReturnType<typeof createMockTx>;
 
-    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockTx = createMockTx();
+
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(mockRace);
@@ -448,7 +441,7 @@ describe('getUserBetGroupsForRace', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].bets[0].odds).toBeDefined();
-    expect(typeof result[0].bets[0].odds).toBe('string');
+    expect(result[0].bets[0].odds).toEqual(expect.any(String));
   });
 
   it('FINALIZED レースではオッズ付与なしでグループを返す', async () => {

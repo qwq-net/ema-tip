@@ -4,6 +4,7 @@ import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ActionError, requireAdmin, runAction, type ActionResult } from '@/shared/utils/admin';
+import { lookup } from '@/shared/utils/lookup';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { inflateSync } from 'zlib';
@@ -11,10 +12,10 @@ import { parseNetkeibaResult } from './lib/parse-result';
 import { parseShutuba } from './lib/parse-shutuba';
 import type { HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
 
-const ALLOWED_HOSTS: Record<string, string> = {
+const ALLOWED_HOSTS = {
   'race.netkeiba.com': 'https://race.netkeiba.com/race/shutuba.html',
   'nar.netkeiba.com': 'https://nar.netkeiba.com/race/shutuba.html',
-};
+} satisfies Record<string, string>;
 
 function normalizeNetkeibaUrl(input: string): string {
   let parsed: URL;
@@ -23,7 +24,7 @@ function normalizeNetkeibaUrl(input: string): string {
   } catch {
     throw new Error('URLの形式が正しくありません');
   }
-  const base = ALLOWED_HOSTS[parsed.hostname];
+  const base = lookup(ALLOWED_HOSTS, parsed.hostname);
   if (!base) {
     throw new Error('Netkeiba出馬表のURLを入力してください');
   }
@@ -85,11 +86,11 @@ async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, numb
   }
 
   let oddsData: { odds?: Record<string, Record<string, [string, string, string]>> };
-  if (typeof json.data === 'string') {
-    const buf = Buffer.from(json.data, 'base64');
-    oddsData = JSON.parse(inflateSync(buf).toString('utf-8'));
-  } else {
+  if (json.data instanceof Object) {
     oddsData = json.data as typeof oddsData;
+  } else {
+    const buf = Buffer.from(String(json.data), 'base64');
+    oddsData = JSON.parse(inflateSync(buf).toString('utf-8'));
   }
 
   const winOddsRaw = oddsData.odds?.['1'] ?? {};

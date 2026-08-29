@@ -38,22 +38,15 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
     }
   };
 
-  const categorizedMasterTags = useMemo(() => {
-    const categories: Record<string, typeof tagOptions> = {
-      LEG_TYPE: [],
-      CHARACTERISTIC: [],
-      BIOGRAPHY: [],
-      OTHER: [],
-    };
-
-    tagOptions.forEach((tag) => {
-      if (categories[tag.type]) {
-        categories[tag.type].push(tag);
-      }
-    });
-
-    return categories;
-  }, [tagOptions]);
+  const categorizedMasterTags = useMemo(
+    () => ({
+      LEG_TYPE: tagOptions.filter((tag) => tag.type === 'LEG_TYPE'),
+      CHARACTERISTIC: tagOptions.filter((tag) => tag.type === 'CHARACTERISTIC'),
+      BIOGRAPHY: tagOptions.filter((tag) => tag.type === 'BIOGRAPHY'),
+      OTHER: tagOptions.filter((tag) => tag.type === 'OTHER'),
+    }),
+    [tagOptions]
+  );
 
   async function handleSubmit(formData: FormData) {
     try {
