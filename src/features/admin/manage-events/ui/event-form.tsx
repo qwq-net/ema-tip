@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Input, Label, NumericInput, Textarea } from '@/shared/ui';
+import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -21,7 +22,7 @@ interface EventFormProps {
 
 export function EventForm({ initialData, onSuccess }: EventFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(initialData?.date || todayJST());
   const [distributeAmount, setDistributeAmount] = useState(initialData?.distributeAmount ?? 100000);
   const [loanAmount, setLoanAmount] = useState<number | null>(initialData?.loanAmount ?? null);
 
@@ -37,7 +38,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
       } else {
         await createEvent(formData);
         formRef.current?.reset();
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(todayJST());
         setDistributeAmount(100000);
         setLoanAmount(null);
         toast.success('イベントを作成しました');

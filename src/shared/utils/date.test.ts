@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { formatJST, parseJSTToUTC } from './date';
+import { describe, expect, it, vi } from 'vitest';
+import { formatJST, parseJSTToUTC, todayJST } from './date';
 
 describe('utils/date', () => {
   describe('parseJSTToUTC', () => {
@@ -43,6 +43,20 @@ describe('utils/date', () => {
 
     it('null/undefinedに対して空文字を返すこと', () => {
       expect(formatJST(null)).toBe('');
+    });
+  });
+
+  describe('todayJST', () => {
+    it('YYYY-MM-DD 形式で返すこと', () => {
+      expect(todayJST()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('UTC 深夜でも JST の日付を返すこと', () => {
+      vi.useFakeTimers();
+      // UTC 2026-03-09 23:30 = JST 2026-03-10 08:30
+      vi.setSystemTime(new Date('2026-03-09T23:30:00Z'));
+      expect(todayJST()).toBe('2026-03-10');
+      vi.useRealTimers();
     });
   });
 });

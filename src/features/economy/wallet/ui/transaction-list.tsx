@@ -21,13 +21,13 @@ export function TransactionList({ transactions }: TransactionListProps) {
     return <div className="py-8 text-center text-gray-400">取引履歴はありません。</div>;
   }
 
+  // キーは transactionTypeEnum の値に一致させること
   const typeLabels = {
-    CLAIM: '配布金',
+    DISTRIBUTION: '配布金',
     BET: '投票',
     PAYOUT: '払戻',
     REFUND: '払戻',
-    WIN: '配当',
-    BONUS: 'ボーナス',
+    ADJUSTMENT: '調整',
     LOAN: '借入金',
   } satisfies Record<string, string>;
 

@@ -23,3 +23,16 @@ export function formatJST(
     timeZone: JST_TIMEZONE,
   }).format(d);
 }
+
+/**
+ * JST における今日の日付を YYYY-MM-DD で返す。date input の初期値用。
+ * new Date().toISOString() は UTC 日付になり JST 深夜〜9時に前日へずれるため使わないこと。
+ */
+export function todayJST(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: JST_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}

@@ -2,6 +2,7 @@
 
 import { DIRECTION_LABELS, RACE_CONDITIONS, RACE_SURFACES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
+import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { lookup, narrowToOption } from '@/shared/utils/lookup';
 import { Calendar } from 'lucide-react';
@@ -40,7 +41,7 @@ interface RaceFormProps {
 export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], onSuccess }: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(initialData?.eventId || events[0]?.id || '');
-  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(initialData?.date || todayJST());
   const [surface, setSurface] = useState(initialData?.surface || '芝');
   const [condition, setCondition] = useState(initialData?.condition || '良');
 
@@ -90,7 +91,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
         await createRace(formData);
         formRef.current?.reset();
         setEventId(events[0]?.id || '');
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(todayJST());
         setSurface('芝');
         setCondition('良');
         setRaceDefinitionId('');

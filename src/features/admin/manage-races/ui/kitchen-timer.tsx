@@ -72,18 +72,27 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
       return;
     }
 
+    // 締切処理は一度だけ発火させる。発火後も interval が残ると毎秒サーバーアクションを呼び続けてしまう
+    let fired = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
     const updateTimer = () => {
-      const now = Date.now();
-      const diff = Math.max(0, closingAt.getTime() - now);
+      const diff = Math.max(0, closingAt.getTime() - Date.now());
       setTimeLeft(diff);
-      if (diff === 0) {
+      if (diff === 0 && !fired) {
+        fired = true;
+        if (timer) clearInterval(timer);
         handleAutoClose();
       }
     };
 
     updateTimer();
-    const timer = setInterval(updateTimer, 1000);
-    return () => clearInterval(timer);
+    if (!fired) {
+      timer = setInterval(updateTimer, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [closingAt, status, handleAutoClose]);
 
   const handleSetTimer = async (minutes: number) => {
