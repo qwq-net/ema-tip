@@ -31,5 +31,5 @@
     "**/*.mts",
     ".next/dev/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "pnpm-lock.yaml"]
+  "exclude": ["node_modules", "pnpm-lock.yaml", "tools", "eslint.config.ts"]
 }
