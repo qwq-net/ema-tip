@@ -146,7 +146,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+    setActiveId(String(event.active.id));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -155,8 +155,8 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
     if (!over) return;
 
-    const activeIdStr = active.id as string;
-    const overIdStr = over.id as string;
+    const activeIdStr = String(active.id);
+    const overIdStr = String(over.id);
 
     if (activeIdStr.startsWith('available-')) {
       const horseId = activeIdStr.replace('available-', '');

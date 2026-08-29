@@ -52,7 +52,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
   ) => {
     const ignoreAttrs = getPasswordManagerIgnoreAttributes(ignorePasswordManager);
     const innerRef = useRef<HTMLInputElement>(null);
-    useImperativeHandle(ref, () => innerRef.current as HTMLInputElement);
+    useImperativeHandle(ref, () => innerRef.current!);
     const isComposing = useRef(false);
     const isFocused = useRef(false);
 

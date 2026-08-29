@@ -1,4 +1,4 @@
-import { BET_TYPE_ORDER } from '@/entities/bet/constants';
+import { BET_TYPE_ORDER, type BetDetail } from '@/entities/bet/constants';
 import {
   bigint,
   boolean,
@@ -60,7 +60,7 @@ export const bets = pgTable(
     betGroupId: uuid('bet_group_id')
       .notNull()
       .references(() => betGroups.id, { onDelete: 'cascade' }),
-    details: jsonb('details').notNull(),
+    details: jsonb('details').$type<BetDetail>().notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     odds: numeric('odds'),
     payout: bigint('payout', { mode: 'number' }),

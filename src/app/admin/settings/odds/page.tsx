@@ -9,13 +9,10 @@ import { OddsForm } from './odds-form';
 export default async function DefaultOddsSettingsPage() {
   const guaranteedOddsMaster = await db.query.guaranteedOddsMaster.findMany();
 
-  const defaultOdds = guaranteedOddsMaster.reduce(
-    (acc, item) => {
-      acc[item.key] = Number(item.odds);
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const defaultOdds = guaranteedOddsMaster.reduce<Record<string, number>>((acc, item) => {
+    acc[item.key] = Number(item.odds);
+    return acc;
+  }, {});
 
   async function updateOdds(formData: FormData) {
     'use server';

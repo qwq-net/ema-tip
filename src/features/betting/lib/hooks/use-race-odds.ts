@@ -2,7 +2,7 @@
 
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import type { getRaceOdds } from '@/features/betting/logic/odds';
-import type { SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
+import type { RaceOddsData, SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -25,13 +25,12 @@ export function useRaceOdds(
   fixedOddsMode: boolean = false,
   events?: RaceEventCallbacks
 ) {
-  const [odds, setOdds] = useState<OddsData>(initialOdds);
+  const [odds, setOdds] = useState<OddsData | RaceOddsData>(initialOdds);
 
   const handleOddsUpdated = useCallback(
     (message: SSERaceOddsUpdatedMessage) => {
       if (fixedOddsMode) return;
-      const nextOdds = message.data as OddsData;
-      setOdds(nextOdds);
+      setOdds(message.data);
       toast.info('オッズが更新されました');
     },
     [fixedOddsMode]

@@ -79,6 +79,7 @@ async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, numb
 
   const text = await res.text();
   const jsonStr = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
+  // SAFETY: netkeiba オッズ API の JSONP レスポンス形状。直後の status / data ガードで異形状は空扱いにする
   const json = JSON.parse(jsonStr) as { status: string; data: string | unknown };
 
   if ((json.status !== 'result' && json.status !== 'middle') || !json.data) {
@@ -87,6 +88,7 @@ async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, numb
 
   let oddsData: { odds?: Record<string, Record<string, [string, string, string]>> };
   if (json.data instanceof Object) {
+    // SAFETY: netkeiba API は data にオブジェクトか base64 文字列のみを返す
     oddsData = json.data as typeof oddsData;
   } else {
     const buf = Buffer.from(String(json.data), 'base64');

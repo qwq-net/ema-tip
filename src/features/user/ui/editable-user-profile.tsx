@@ -1,8 +1,9 @@
 'use client';
 
-import { Role, RoleColor, RoleLabel } from '@/entities/user';
+import { RoleColor, RoleLabel } from '@/entities/user';
 import { updateUserName } from '@/features/user/actions/user-actions';
 import { Button, Input } from '@/shared/ui';
+import { lookup } from '@/shared/utils/lookup';
 import { Check, Loader2, Pencil, X } from 'lucide-react';
 import type { Session } from 'next-auth';
 import Image from 'next/image';
@@ -68,9 +69,9 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
       )}
       <div className="flex flex-col">
         <span
-          className={`mb-0.5 w-fit rounded border px-1.5 py-0.5 text-sm font-medium ${RoleColor[user.role as Role]}`}
+          className={`mb-0.5 w-fit rounded border px-1.5 py-0.5 text-sm font-medium ${lookup(RoleColor, user.role ?? '') ?? ''}`}
         >
-          {RoleLabel[user.role as Role]}
+          {lookup(RoleLabel, user.role ?? '') ?? user.role}
         </span>
         {isEditing ? (
           <div className="flex items-center gap-2">

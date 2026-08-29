@@ -1,6 +1,6 @@
 'use server';
 
-import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, BetDetail, BetType } from '@/entities/bet';
+import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, BetType } from '@/entities/bet';
 import { normalizeSelections } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import { betGroups, bets, events, raceEntries, raceInstances, transactions, wallets } from '@/shared/db/schema';
@@ -210,8 +210,8 @@ export async function getUserBetGroupsForRace(raceId: string) {
     return groups.map((group) => ({
       ...group,
       bets: group.bets.map((bet) => {
-        const details = bet.details as BetDetail;
-        const betType = details.type as BetType;
+        const details = bet.details;
+        const betType = details.type;
         const selectionKey = normalizeSelections(betType, details.selections);
 
         const oddsValue = provisionalOdds[betType]?.[selectionKey];

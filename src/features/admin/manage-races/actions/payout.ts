@@ -1,6 +1,5 @@
 'use server';
 
-import { BetDetail } from '@/entities/bet';
 import { isRefundedBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import {
@@ -46,7 +45,7 @@ export async function finalizePayout(raceId: string) {
 
     const resultsMap = new Map<string, Array<{ numbers: number[]; payout: number }>>();
     for (const r of results) {
-      resultsMap.set(r.type, r.combinations as Array<{ numbers: number[]; payout: number }>);
+      resultsMap.set(r.type, r.combinations);
     }
 
     const raceEntriesInRace = await tx.query.raceEntries.findMany({
@@ -94,7 +93,7 @@ export async function finalizePayout(raceId: string) {
     }[] = [];
 
     for (const bet of allBets) {
-      const betDetail = bet.details as BetDetail;
+      const betDetail = bet.details;
 
       if (isRefundedBet(betDetail.type, betDetail.selections, invalidHorseIds, validBrackets)) {
         betUpdates.push({
@@ -184,7 +183,7 @@ export async function finalizePayout(raceId: string) {
       .filter((d) => d.payout > 0)
       .map((d) => ({
         walletId: betById.get(d.id)!.walletId,
-        type: (d.status === 'REFUNDED' ? 'REFUND' : 'PAYOUT') as 'REFUND' | 'PAYOUT',
+        type: d.status === 'REFUNDED' ? ('REFUND' as const) : ('PAYOUT' as const),
         amount: d.payout,
         referenceId: d.id,
       }));

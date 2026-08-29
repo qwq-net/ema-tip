@@ -1,4 +1,4 @@
-import { BET_TYPE_LABELS, BetType } from '@/entities/bet';
+import { BET_TYPE_LABELS } from '@/entities/bet';
 import { getBetsByRace, getRaceWithBets } from '@/features/admin/manage-bets/actions/read';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
@@ -61,18 +61,9 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
             <TableRow key={bet.id}>
               <Td className="font-medium text-gray-900">{bet.user.name || 'Unknown'}</Td>
               <Td>
-                <Badge
-                  variant="status"
-                  label={
-                    BET_TYPE_LABELS[(bet.details as { type?: BetType })?.type as BetType] ||
-                    (bet.details as { type?: string })?.type ||
-                    'Unknown'
-                  }
-                />
+                <Badge variant="status" label={BET_TYPE_LABELS[bet.details.type] || bet.details.type || 'Unknown'} />
               </Td>
-              <Td className="font-semibold text-gray-900">
-                {JSON.stringify((bet.details as { selections?: unknown })?.selections || [])}
-              </Td>
+              <Td className="font-semibold text-gray-900">{JSON.stringify(bet.details.selections || [])}</Td>
               <Td className="font-semibold text-gray-900">{bet.amount.toLocaleString('ja-JP')}円</Td>
               <Td className="text-gray-500">
                 <FormattedDate date={bet.createdAt} />

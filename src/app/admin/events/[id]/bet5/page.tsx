@@ -82,7 +82,7 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
       case 5:
         return ticket.race5HorseIds;
       default:
-        return [] as string[];
+        return [];
     }
   };
 

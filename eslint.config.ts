@@ -24,8 +24,7 @@ const eslintConfig = defineConfig([
       'anti-slop/no-unknown-type-aliases': 'error',
       'anti-slop/no-unsafe-dictionary-type': 'error',
       'anti-slop/no-widen-then-assert': 'error',
-      // 既存コードに129件あるため段階導入として warn。解消後に error へ昇格する
-      'anti-slop/require-safety-comment-for-type-assertion': 'warn',
+      'anti-slop/require-safety-comment-for-type-assertion': 'error',
     },
   },
   {

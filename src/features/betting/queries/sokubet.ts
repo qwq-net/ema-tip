@@ -61,29 +61,8 @@ export async function getSokubetDashboardData(userId: string) {
     bet5TicketCountByEventId.set(eventId, current + 1);
   });
 
-  const eventGroups = activeRaces.reduce(
-    (acc, race) => {
-      const eventId = race.event.id;
-      if (!acc[eventId]) {
-        const wallet = walletByEventId.get(eventId);
-        const bet5 = bet5ByEventId.get(eventId);
-        const bet5TicketCount = bet5TicketCountByEventId.get(eventId) ?? 0;
-        acc[eventId] = {
-          event: race.event,
-          races: [],
-          balance: wallet?.balance ?? 0,
-          totalLoaned: wallet?.totalLoaned ?? 0,
-          bet5Id: bet5?.id,
-          bet5Status: bet5?.status,
-          hasPurchasedBet5: bet5TicketCount > 0,
-          purchasedBet5Count: bet5TicketCount,
-          hasWallet: !!wallet,
-        };
-      }
-      acc[eventId].races.push(race);
-      return acc;
-    },
-    {} as Record<
+  const eventGroups = activeRaces.reduce<
+    Record<
       string,
       {
         event: (typeof activeRaces)[0]['event'];
@@ -97,7 +76,27 @@ export async function getSokubetDashboardData(userId: string) {
         hasWallet: boolean;
       }
     >
-  );
+  >((acc, race) => {
+    const eventId = race.event.id;
+    if (!acc[eventId]) {
+      const wallet = walletByEventId.get(eventId);
+      const bet5 = bet5ByEventId.get(eventId);
+      const bet5TicketCount = bet5TicketCountByEventId.get(eventId) ?? 0;
+      acc[eventId] = {
+        event: race.event,
+        races: [],
+        balance: wallet?.balance ?? 0,
+        totalLoaned: wallet?.totalLoaned ?? 0,
+        bet5Id: bet5?.id,
+        bet5Status: bet5?.status,
+        hasPurchasedBet5: bet5TicketCount > 0,
+        purchasedBet5Count: bet5TicketCount,
+        hasWallet: !!wallet,
+      };
+    }
+    acc[eventId].races.push(race);
+    return acc;
+  }, {});
 
   return Object.values(eventGroups)
     .sort((a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime())

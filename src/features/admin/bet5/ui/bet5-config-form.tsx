@@ -57,6 +57,7 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
       try {
         await createBet5EventAction({
           eventId,
+          // SAFETY: handleSubmit 冒頭のガードで選択数が 5 件ちょうどであることを確認済み
           raceIds: sortedSelectedIds as [string, string, string, string, string],
           initialPot,
         });

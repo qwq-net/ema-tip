@@ -69,8 +69,9 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
   }
 }
 
-export const isOrderSensitive = (type: BetType) =>
-  ([BET_TYPES.EXACTA, BET_TYPES.TRIFECTA, BET_TYPES.WIN, BET_TYPES.PLACE] as BetType[]).includes(type);
+const ORDER_SENSITIVE_TYPES = new Set<BetType>([BET_TYPES.EXACTA, BET_TYPES.TRIFECTA, BET_TYPES.WIN, BET_TYPES.PLACE]);
+
+export const isOrderSensitive = (type: BetType) => ORDER_SENSITIVE_TYPES.has(type);
 
 export const normalizeSelections = (type: BetType, numbers: number[]) => {
   if (isOrderSensitive(type)) {

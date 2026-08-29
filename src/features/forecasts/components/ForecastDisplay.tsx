@@ -1,4 +1,4 @@
-import { ForecastSelection, ForecastWithUser } from '@/features/forecasts/types';
+import { ForecastWithUser } from '@/features/forecasts/types';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
 import { User } from 'lucide-react';
@@ -84,7 +84,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
                 <td className="px-3 py-2 text-center text-sm font-semibold text-gray-900">{entry.horseNumber}</td>
                 <td className="px-3 py-2 text-sm font-medium text-gray-900">{entry.horseName}</td>
                 {forecasts.map((forecast) => {
-                  const selections = forecast.selections as ForecastSelection;
+                  const selections = forecast.selections;
                   const symbol = selections[entry.horseId];
                   return (
                     <td key={forecast.id} className="px-3 py-2 text-center text-base font-semibold text-gray-900">

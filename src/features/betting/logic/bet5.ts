@@ -234,7 +234,7 @@ export async function calculateBet5Payout(bet5EventId: string) {
         and(inArray(raceEntries.raceId, races), eq(raceEntries.finishPosition, 1)),
     });
 
-    const sortedWinners = resolveBet5Winners(races, allWinners as Bet5WinnerRow[]);
+    const sortedWinners = resolveBet5Winners(races, allWinners);
     if (!sortedWinners) {
       return {
         success: false,
@@ -254,11 +254,11 @@ export async function calculateBet5Payout(bet5EventId: string) {
 
     const winningTickets = tickets.filter((t) => {
       const ticketSelections = {
-        race1: t.race1HorseIds as string[],
-        race2: t.race2HorseIds as string[],
-        race3: t.race3HorseIds as string[],
-        race4: t.race4HorseIds as string[],
-        race5: t.race5HorseIds as string[],
+        race1: t.race1HorseIds,
+        race2: t.race2HorseIds,
+        race3: t.race3HorseIds,
+        race4: t.race4HorseIds,
+        race5: t.race5HorseIds,
       };
       return isBet5Winner(ticketSelections, sortedWinners);
     });
@@ -266,11 +266,11 @@ export async function calculateBet5Payout(bet5EventId: string) {
     const winCount = winningTickets.length;
     const winningTicketUnits = winningTickets.map((ticket) => {
       const ticketSelections = {
-        race1: ticket.race1HorseIds as string[],
-        race2: ticket.race2HorseIds as string[],
-        race3: ticket.race3HorseIds as string[],
-        race4: ticket.race4HorseIds as string[],
-        race5: ticket.race5HorseIds as string[],
+        race1: ticket.race1HorseIds,
+        race2: ticket.race2HorseIds,
+        race3: ticket.race3HorseIds,
+        race4: ticket.race4HorseIds,
+        race5: ticket.race5HorseIds,
       };
       const combinationCount = calculateBet5Count(ticketSelections);
       if (combinationCount <= 0) {

@@ -3,6 +3,7 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { users } from '@/shared/db/schema';
+import { formString } from '@/shared/utils/form';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -15,7 +16,7 @@ export async function updateUserOnboarding(formData: FormData) {
     throw new Error('認証されていません');
   }
 
-  const name = formData.get('name') as string;
+  const name = formString(formData, 'name');
 
   if (!name || !VALID_NAME_REGEX.test(name)) {
     return { error: '無効な名前です。英数字、ひらがな、カタカナ、漢字のみ使用可能です。' };
@@ -44,7 +45,7 @@ export async function updateUserName(formData: FormData) {
     throw new Error('認証されていません');
   }
 
-  const name = formData.get('name') as string;
+  const name = formString(formData, 'name');
 
   if (!name || !VALID_NAME_REGEX.test(name)) {
     return { error: '無効な名前です。英数字、ひらがな、カタカナ、漢字のみ使用可能です。' };

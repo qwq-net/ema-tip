@@ -137,17 +137,14 @@ export function BetTable({
   const isBracketType = betType === BET_TYPES.BRACKET_QUINELLA;
 
   const bracketGroups = isBracketType
-    ? entries.reduce(
-        (acc, entry) => {
-          const bracket = entry.bracketNumber!;
-          if (!acc[bracket]) {
-            acc[bracket] = [];
-          }
-          acc[bracket].push(entry);
-          return acc;
-        },
-        {} as Record<number, Entry[]>
-      )
+    ? entries.reduce<Record<number, Entry[]>>((acc, entry) => {
+        const bracket = entry.bracketNumber!;
+        if (!acc[bracket]) {
+          acc[bracket] = [];
+        }
+        acc[bracket].push(entry);
+        return acc;
+      }, {})
     : {};
 
   if (entries.length === 0) {

@@ -5,7 +5,7 @@ import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { eq } from 'drizzle-orm';
 
-import { aggregateOddsPool, BET_TYPES, BetDetail, calculateProvisionalOdds } from '@/entities/bet';
+import { aggregateOddsPool, BET_TYPES, calculateProvisionalOdds } from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
 
@@ -17,15 +17,16 @@ export async function calculateOdds(raceId: string) {
 
   if (race?.fixedOddsMode) return;
 
-  const raceBets = (await db.query.bets.findMany({
+  const raceBets = await db.query.bets.findMany({
     where: eq(bets.raceId, raceId),
-  })) as { amount: number; details: BetDetail }[];
+  });
 
   const winBets = raceBets.filter((bet) => bet.details.type === 'win');
 
   // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す
   const provisionalWin = calculateProvisionalOdds(aggregateOddsPool(winBets))[BET_TYPES.WIN] ?? {};
   const winOdds = Object.fromEntries(
+    // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
     Object.entries(provisionalWin).map(([key, rate]) => [String((JSON.parse(key) as number[])[0]), rate])
   );
 
@@ -71,8 +72,8 @@ export async function calculateOdds(raceId: string) {
             raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
               raceId,
               data: {
-                winOdds: latestOdds.winOdds as Record<string, number>,
-                placeOdds: latestOdds.placeOdds as Record<string, { min: number; max: number }>,
+                winOdds: latestOdds.winOdds,
+                placeOdds: latestOdds.placeOdds,
                 updatedAt: latestOdds.updatedAt,
               },
             });
@@ -115,12 +116,12 @@ export async function calculateAllProvisionalOdds(raceId: string) {
       .filter((b): b is number => b !== null)
   );
 
-  const raceBets = (raceBetsRaw as { amount: number; details: BetDetail }[]).filter(
+  const raceBets = raceBetsRaw.filter(
     (bet) => !isRefundedBet(bet.details.type, bet.details.selections, invalidHorseIds, validBrackets)
   );
 
   const pool = aggregateOddsPool(raceBets);
-  return calculateProvisionalOdds(pool, (race?.guaranteedOdds as Record<string, number>) || undefined);
+  return calculateProvisionalOdds(pool, race?.guaranteedOdds || undefined);
 }
 
 export async function getRaceOdds(raceId: string) {

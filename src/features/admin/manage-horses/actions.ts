@@ -54,7 +54,7 @@ export async function createHorse(formData: FormData) {
     throw new Error('入力内容が無効です');
   }
 
-  const genderInput = parse.data.gender as '牡' | '牝' | 'セン';
+  const genderInput = parse.data.gender;
   const gender = GENDER_MAP[genderInput];
 
   const [horse] = await db
@@ -102,7 +102,7 @@ export async function updateHorse(id: string, formData: FormData) {
     throw new Error('入力内容が無効です');
   }
 
-  const genderInput = parse.data.gender as '牡' | '牝' | 'セン';
+  const genderInput = parse.data.gender;
   const gender = GENDER_MAP[genderInput];
 
   await db.transaction(async (tx) => {

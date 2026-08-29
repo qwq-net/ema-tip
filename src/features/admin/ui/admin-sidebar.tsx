@@ -1,8 +1,9 @@
 'use client';
 
-import { ROLES, ROLE_LABELS, type Role } from '@/entities/user';
+import { ROLES, ROLE_LABELS } from '@/entities/user';
 import { LogoutButton } from '@/features/auth';
 import { cn } from '@/shared/utils/cn';
+import { lookup } from '@/shared/utils/lookup';
 import {
   BookOpen,
   Calendar,
@@ -90,7 +91,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   }, [isOpen]);
 
   const filteredGroups = NAV_GROUPS.filter(
-    (group) => !group.role || (user.role && (group.role as string[]).includes(user.role))
+    (group) => !group.role || (user.role && group.role.some((role) => role === user.role))
   );
 
   return (
@@ -177,7 +178,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             )}
             <div className="flex flex-col overflow-hidden">
               <span className="truncate text-sm leading-none font-semibold text-white">{user.name}</span>
-              <span className="mt-1 text-sm text-gray-400">{ROLE_LABELS[user.role as Role] || '管理者'}</span>
+              <span className="mt-1 text-sm text-gray-400">{lookup(ROLE_LABELS, user.role ?? '') ?? '管理者'}</span>
             </div>
           </div>
           <Link

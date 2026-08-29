@@ -133,7 +133,7 @@ export const payoutResults = pgTable(
       .notNull()
       .references(() => raceInstances.id, { onDelete: 'cascade' }),
     type: text('type').notNull(),
-    combinations: jsonb('combinations').notNull(),
+    combinations: jsonb('combinations').$type<{ numbers: number[]; payout: number; popularity?: number }[]>().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({

@@ -1,8 +1,9 @@
 'use client';
 
 import { calculateBet5PayoutAction, closeBet5EventAction, updateBet5InitialPotAction } from '@/features/betting';
-import { BET5_STATUS_LABELS, type Bet5Status } from '@/shared/constants/status';
+import { BET5_STATUS_LABELS } from '@/shared/constants/status';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
+import { lookup } from '@/shared/utils/lookup';
 import { Calculator, ExternalLink, Info, Loader2, Lock, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -128,7 +129,7 @@ export function Bet5ManageCard({
             <div>
               <p className="font-medium text-gray-900">ステータス</p>
               <p className="text-sm text-gray-500">
-                {BET5_STATUS_LABELS[bet5Event.status as Bet5Status] || bet5Event.status}
+                {lookup(BET5_STATUS_LABELS, bet5Event.status) || bet5Event.status}
               </p>
             </div>
             <div>

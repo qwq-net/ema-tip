@@ -5,6 +5,15 @@ import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-h
 import { Card } from '@/shared/ui';
 import { redirect } from 'next/navigation';
 
+// DB は英語 enum、フォームは日本語表記のため編集初期値をここで変換する
+const GENDER_TO_FORM = {
+  HORSE: '牡',
+  COLT: '牡',
+  MARE: '牝',
+  FILLY: '牝',
+  GELDING: 'セン',
+} satisfies Record<string, '牡' | '牝' | 'セン'>;
+
 export default async function EditHorsePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [horse, tagOptions] = await Promise.all([getHorse(id), getHorseTags()]);
@@ -28,9 +37,9 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
         <HorseForm
           initialData={{
             ...horse,
-            gender: horse.gender as '牡' | '牝' | 'セン',
-            origin: horse.origin as 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED',
-            type: horse.type as 'REAL' | 'FICTIONAL',
+            gender: GENDER_TO_FORM[horse.gender],
+            origin: horse.origin,
+            type: horse.type,
             tags: horse.tags,
           }}
           tagOptions={tagOptions}

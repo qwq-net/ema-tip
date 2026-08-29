@@ -5,6 +5,7 @@ import { HORSE_TAG_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
+import { narrowToOption } from '@/shared/utils/lookup';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createHorseTag, updateHorseTag } from '../actions';
@@ -43,7 +44,12 @@ export function HorseTagForm({ initialData, onSuccess }: HorseTagFormProps) {
     <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label>種別</Label>
-        <Select name="type" value={type} onChange={(e) => setType(e.target.value as HorseTagType)} required>
+        <Select
+          name="type"
+          value={type}
+          onChange={(e) => setType(narrowToOption(HORSE_TAG_TYPES, e.target.value) ?? 'LEG_TYPE')}
+          required
+        >
           {HORSE_TAG_TYPES.map((t) => (
             <option key={t} value={t}>
               {HORSE_TAG_CATEGORIES[t] || t}

@@ -1,6 +1,7 @@
 import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
+import { lookup } from '@/shared/utils/lookup';
 import {
   ArrowRight,
   BookOpen,
@@ -85,8 +86,6 @@ const COLOR_VARIANTS = {
     qaHoverText: 'group-hover:text-cyan-600',
   },
 } as const;
-
-type ColorVariant = keyof typeof COLOR_VARIANTS;
 
 const OPERATION_ACTIONS = [
   {
@@ -216,7 +215,7 @@ export default async function AdminPage() {
           </CardHeader>
           <CardContent className="grid flex-1 grid-cols-1 gap-4">
             {OPERATION_ACTIONS.map((action) => {
-              const colors = COLOR_VARIANTS[action.color as ColorVariant];
+              const colors = lookup(COLOR_VARIANTS, action.color) ?? COLOR_VARIANTS.slate;
               return <ActionLink key={action.href} action={action} colors={colors} />;
             })}
           </CardContent>
@@ -228,7 +227,7 @@ export default async function AdminPage() {
           </CardHeader>
           <CardContent className="grid flex-1 grid-cols-1 gap-4">
             {MASTER_ACTIONS.map((action) => {
-              const colors = COLOR_VARIANTS[action.color as ColorVariant];
+              const colors = lookup(COLOR_VARIANTS, action.color) ?? COLOR_VARIANTS.slate;
               return <ActionLink key={action.href} action={action} colors={colors} />;
             })}
           </CardContent>
@@ -241,7 +240,7 @@ export default async function AdminPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {SYSTEM_ACTIONS.map((action) => {
-            const colors = COLOR_VARIANTS[action.color as ColorVariant];
+            const colors = lookup(COLOR_VARIANTS, action.color) ?? COLOR_VARIANTS.slate;
             return <ActionLink key={action.href} action={action} colors={colors} />;
           })}
         </CardContent>

@@ -38,7 +38,7 @@ export default async function RaceOddsPage({ params }: { params: Promise<{ id: s
         <AdminPageHeader title={`${race.name} - 保証オッズ設定`} />
       </div>
 
-      <RaceGuaranteedOddsForm raceId={race.id} initialOdds={race.guaranteedOdds as Record<string, number>} />
+      <RaceGuaranteedOddsForm raceId={race.id} initialOdds={race.guaranteedOdds ?? {}} />
     </div>
   );
 }

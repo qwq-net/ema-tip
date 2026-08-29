@@ -1,12 +1,16 @@
 'use client';
+import { HORSE_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES, HorseTagType } from '@/shared/constants/horse-tags';
 import { Button, Input, Label, Select, Textarea } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { preventEnterSubmit } from '@/shared/utils/form';
+import { narrowToOption } from '@/shared/utils/lookup';
 import { X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createHorse, updateHorse } from '../actions';
+
+const GENDER_INPUTS = ['牡', '牝', 'セン'] as const;
 
 interface HorseFormProps {
   initialData?: {
@@ -17,7 +21,7 @@ interface HorseFormProps {
     origin: 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED';
     notes: string | null;
     type: 'REAL' | 'FICTIONAL';
-    tags: Array<{ type: string; content: string }>;
+    tags: Array<{ type: HorseTagType; content: string }>;
   };
   tagOptions: Array<{ id: string; type: HorseTagType; content: string }>;
   onSuccess?: () => void;
@@ -27,7 +31,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
   const formRef = useRef<HTMLFormElement>(null);
   const [gender, setGender] = useState(initialData?.gender || '牡');
   const [type, setType] = useState(initialData?.type || 'REAL');
-  const [tags, setTags] = useState<Array<{ type: string; content: string }>>(initialData?.tags || []);
+  const [tags, setTags] = useState<Array<{ type: HorseTagType; content: string }>>(initialData?.tags || []);
 
   const toggleTag = (masterTag: { type: HorseTagType; content: string }) => {
     const exists = tags.some((t) => t.type === masterTag.type && t.content === masterTag.content);
@@ -104,7 +108,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                   name="type_radio"
                   value={t.value}
                   checked={type === t.value}
-                  onChange={(e) => setType(e.target.value as 'REAL' | 'FICTIONAL')}
+                  onChange={(e) => setType(narrowToOption(HORSE_TYPES, e.target.value) ?? 'REAL')}
                   className="sr-only"
                 />
                 {t.label}
@@ -132,7 +136,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                   name="gender"
                   value={g}
                   checked={gender === g}
-                  onChange={(e) => setGender(e.target.value as '牡' | '牝' | 'セン')}
+                  onChange={(e) => setGender(narrowToOption(GENDER_INPUTS, e.target.value) ?? '牡')}
                   className="sr-only"
                 />
                 {g === 'セン' ? 'セ' : g}
@@ -204,15 +208,13 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                   key={index}
                   className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm shadow-sm ring-1 ring-gray-200"
                 >
-                  <span className="mr-1 text-sm font-semibold text-gray-500">
-                    {HORSE_TAG_CATEGORIES[tag.type as HorseTagType] || tag.type}:
-                  </span>
+                  <span className="mr-1 text-sm font-semibold text-gray-500">{HORSE_TAG_CATEGORIES[tag.type]}:</span>
                   <span className="text-gray-700">{tag.content}</span>
                   <button
                     type="button"
                     onClick={() =>
                       toggleTag({
-                        type: tag.type as HorseTagType,
+                        type: tag.type,
                         content: tag.content,
                       })
                     }

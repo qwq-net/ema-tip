@@ -28,8 +28,8 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
           initialData={{
             ...venue,
             code: venue.code || undefined,
-            direction: venue.defaultDirection as 'LEFT' | 'RIGHT' | 'STRAIGHT',
-            area: venue.area as 'EAST_JAPAN' | 'WEST_JAPAN' | 'OVERSEAS',
+            direction: venue.defaultDirection,
+            area: venue.area,
           }}
           onSuccess={onSuccess}
         />

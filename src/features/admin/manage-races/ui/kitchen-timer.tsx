@@ -35,6 +35,7 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // SAFETY: mousedown イベントの target は常に DOM ノード
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }

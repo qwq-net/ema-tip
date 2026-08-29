@@ -17,8 +17,8 @@ export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]
   const amountBySelection: Record<string, Record<string, number>> = {};
 
   for (const bet of bets) {
-    const details = bet.details as BetDetail;
-    const betType = details.type as BetType;
+    const details = bet.details;
+    const betType = details.type;
     const key = normalizeSelections(betType, details.selections);
 
     poolByBetType[betType] = (poolByBetType[betType] || 0) + bet.amount;

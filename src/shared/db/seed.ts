@@ -1,7 +1,7 @@
 import type { HorseTagType, HorseType } from '@/entities/horse';
 import { ROLES } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
-import { RACE_CONDITIONS, RACE_GRADES, RACE_STATUSES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { and, eq } from 'drizzle-orm';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
@@ -10,36 +10,37 @@ import horsesDataRaw from './seeds/horses.json';
 import racesDataRaw from './seeds/races.json';
 import venuesDataRaw from './seeds/venues.json';
 
-type RaceStatus = (typeof RACE_STATUSES)[number];
-
 interface VenueSeedData {
   code: string;
   name: string;
   shortName: string;
-  direction: string;
-  area: string;
+  direction: (typeof VENUE_DIRECTIONS)[number];
+  area: (typeof VENUE_AREAS)[number];
 }
 
 interface RaceSeedData {
   name: string;
-  grade: string;
+  grade: (typeof RACE_GRADES)[number];
   venue: string;
   surface: string;
   distance: number;
-  direction: string;
+  direction: (typeof VENUE_DIRECTIONS)[number];
 }
 
 interface HorseSeedData {
   name: string;
   gender: string;
   age: number | null;
-  type?: string;
-  tags?: { type: string; content: string }[];
+  type?: HorseType;
+  tags?: { type: HorseTagType; content: string }[];
   wins?: { title: string; date: string }[];
 }
 
+// SAFETY: seeds/*.json は手管理のマスタ。列挙値の妥当性は SeedData interface の union で表現している
 const venuesData = venuesDataRaw as VenueSeedData[];
+// SAFETY: 同上
 const racesData = racesDataRaw as RaceSeedData[];
+// SAFETY: 同上
 const horsesData = horsesDataRaw as HorseSeedData[];
 
 const getRandomCondition = () => RACE_CONDITIONS[Math.floor(Math.random() * RACE_CONDITIONS.length)];
@@ -182,8 +183,8 @@ async function main() {
             name: v.name,
             shortName: v.shortName,
             code: v.code,
-            defaultDirection: v.direction as (typeof VENUE_DIRECTIONS)[number],
-            area: v.area as (typeof VENUE_AREAS)[number],
+            defaultDirection: v.direction,
+            area: v.area,
           })
           .returning();
         venueMap[v.name] = venue.id;
@@ -193,7 +194,7 @@ async function main() {
     }
     if (createdVenueCount === 0) console.log('Venues: all exist, skipped');
 
-    const raceDefinitionMap: Record<string, { id: string; grade: string }> = {};
+    const raceDefinitionMap: Record<string, { id: string; grade: (typeof RACE_GRADES)[number] }> = {};
     let createdDefCount = 0;
 
     for (const def of racesData) {
@@ -208,9 +209,9 @@ async function main() {
           .insert(schema.raceDefinitions)
           .values({
             name: def.name,
-            grade: def.grade as (typeof RACE_GRADES)[number],
+            grade: def.grade,
             type: 'REAL',
-            defaultDirection: def.direction as (typeof VENUE_DIRECTIONS)[number],
+            defaultDirection: def.direction,
             defaultDistance: def.distance,
             defaultSurface: def.surface,
             defaultVenueId: venueMap[def.venue],
@@ -261,7 +262,7 @@ async function main() {
             gender: horseData.gender === '牡' ? 'HORSE' : horseData.gender === '牝' ? 'MARE' : 'GELDING',
             age: horseData.age,
             origin: isForeign ? 'FOREIGN_BRED' : 'DOMESTIC',
-            type: (horseData.type as HorseType) || 'REAL',
+            type: horseData.type || 'REAL',
           })
           .returning();
 
@@ -269,7 +270,7 @@ async function main() {
           await tx.insert(schema.horseTags).values(
             horseData.tags.map((tag) => ({
               horseId: horse.id,
-              type: tag.type as HorseTagType,
+              type: tag.type,
               content: tag.content,
             }))
           );
@@ -387,7 +388,7 @@ async function main() {
 
         if (existingInstance) continue;
 
-        const raceStatus = (i < 2 ? 'FINALIZED' : i === 2 ? 'CLOSED' : 'SCHEDULED') as RaceStatus;
+        const raceStatus = i < 2 ? 'FINALIZED' : i === 2 ? 'CLOSED' : 'SCHEDULED';
 
         const [race] = await tx
           .insert(schema.raceInstances)
@@ -401,7 +402,7 @@ async function main() {
             distance: def.defaultDistance,
             surface: def.defaultSurface,
             direction: def.defaultDirection,
-            grade: defInfo.grade as typeof def.grade,
+            grade: defInfo.grade,
             condition: getRandomCondition(),
             status: raceStatus,
             type: 'REAL',
@@ -455,14 +456,14 @@ async function main() {
                 );
             }
 
-            await tx.insert(schema.payoutResults).values({
-              raceId: race.id,
-              type: '単勝',
-              combinations: {
-                horseNumber: top3[0]?.horseNumber,
-                odds: Math.round((2 + Math.random() * 20) * 10) / 10,
-              },
-            });
+            const winnerNumber = top3[0]?.horseNumber;
+            if (winnerNumber != null) {
+              await tx.insert(schema.payoutResults).values({
+                raceId: race.id,
+                type: 'win',
+                combinations: [{ numbers: [winnerNumber], payout: Math.round((2 + Math.random() * 20) * 10) * 10 }],
+              });
+            }
             console.log(`  Payout: result recorded (winner: No.${top3[0]?.horseNumber})`);
           }
         }

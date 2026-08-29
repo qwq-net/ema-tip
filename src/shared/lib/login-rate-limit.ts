@@ -22,6 +22,7 @@ export async function getLoginAttemptRecord(ip: string): Promise<LoginAttemptRec
   const data = await redis.get(keyFor(ip));
   if (!data) return null;
   try {
+    // SAFETY: この値は recordLoginAttempt が LoginAttemptRecord を JSON 化して保存したもの
     return JSON.parse(data) as LoginAttemptRecord;
   } catch {
     await redis.del(keyFor(ip));

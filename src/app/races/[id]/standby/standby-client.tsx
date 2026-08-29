@@ -8,6 +8,7 @@ import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
+import { lookup } from '@/shared/utils/lookup';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -132,7 +133,7 @@ export function StandbyClient({
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <span className={`rounded px-2 py-0.5 text-sm font-semibold text-white ${getStatusColor(displayStatus)}`}>
-              {RACE_STATUS_LABELS[displayStatus as RaceStatus] || RACE_STATUS_LABELS[baseStatus]}
+              {lookup(RACE_STATUS_LABELS, displayStatus) || RACE_STATUS_LABELS[baseStatus]}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-500">{race.location}</span>

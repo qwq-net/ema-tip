@@ -30,7 +30,7 @@ export function GuaranteedOddsInputs({ value, onChange }: GuaranteedOddsInputsPr
             onChange={(val) => handleChange(type, val)}
             min={0}
             allowDecimal
-            placeholder={DEFAULT_GUARANTEED_ODDS[type as keyof typeof DEFAULT_GUARANTEED_ODDS].toFixed(1)}
+            placeholder={DEFAULT_GUARANTEED_ODDS[type].toFixed(1)}
           />
         </div>
       ))}

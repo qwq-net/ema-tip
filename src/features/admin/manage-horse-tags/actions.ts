@@ -1,9 +1,10 @@
 'use server';
 
-import { HorseTagType } from '@/entities/horse';
+import { isHorseTagType } from '@/shared/constants/horse-tags';
 import { db } from '@/shared/db';
 import { horseTagMaster } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
+import { formString } from '@/shared/utils/form';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -18,10 +19,10 @@ export async function getHorseTags() {
 export async function createHorseTag(formData: FormData) {
   await requireAdmin();
 
-  const type = formData.get('type') as HorseTagType;
-  const content = formData.get('content') as string;
+  const type = formString(formData, 'type');
+  const content = formString(formData, 'content');
 
-  if (!type || !content) {
+  if (!isHorseTagType(type) || !content) {
     throw new Error('入力内容が無効です');
   }
 
@@ -36,10 +37,10 @@ export async function createHorseTag(formData: FormData) {
 export async function updateHorseTag(id: string, formData: FormData) {
   await requireAdmin();
 
-  const type = formData.get('type') as HorseTagType;
-  const content = formData.get('content') as string;
+  const type = formString(formData, 'type');
+  const content = formString(formData, 'content');
 
-  if (!type || !content) {
+  if (!isHorseTagType(type) || !content) {
     throw new Error('入力内容が無効です');
   }
 

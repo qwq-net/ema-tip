@@ -22,7 +22,6 @@ export async function getPayoutResults(raceId: string) {
       ...row,
       // SAFETY: 直前の filter で BET_TYPES に含まれる値のみ通している
       type: row.type as BetType,
-      // SAFETY: 払戻確定処理が書き込む combinations はこの形状のみ。異形状はシード由来で type filter により除外済み
-      combinations: row.combinations as { numbers: number[]; payout: number; popularity?: number }[],
+      combinations: row.combinations,
     }));
 }

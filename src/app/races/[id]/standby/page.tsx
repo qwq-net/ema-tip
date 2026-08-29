@@ -1,4 +1,4 @@
-import { BetDetail, BetType } from '@/entities/bet';
+import { BetType } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
@@ -65,11 +65,11 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
   const ticketGroups = betGroupsData.map((group) => {
     return {
       id: group.id,
-      type: group.type as BetType,
+      type: group.type,
       totalAmount: group.totalAmount,
       createdAt: group.createdAt,
       bets: group.bets.map((bet) => {
-        const details = bet.details as BetDetail;
+        const details = bet.details;
         return {
           id: bet.id,
           type: details.type,

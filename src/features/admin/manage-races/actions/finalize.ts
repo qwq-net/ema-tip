@@ -2,7 +2,6 @@
 
 import {
   BET_TYPES,
-  BetDetail,
   calculatePayoutRate,
   Finisher,
   getWinningCombinations,
@@ -117,13 +116,13 @@ async function finalizeRaceInner(
       where: eq(bets.raceId, raceId),
     });
 
-    const guaranteedOdds = raceInstance.guaranteedOdds as Record<string, number> | undefined;
+    const guaranteedOdds = raceInstance.guaranteedOdds ?? undefined;
 
     const poolByBetType: Record<string, number> = {};
     const winningSelectionAmounts: Record<string, Record<string, number>> = {};
 
     for (const bet of allBets) {
-      const betDetail = bet.details as BetDetail;
+      const betDetail = bet.details;
       const type = betDetail.type;
 
       if (isRefundedBet(type, betDetail.selections, invalidHorseIds, validBrackets)) {
@@ -163,6 +162,7 @@ async function finalizeRaceInner(
           }
 
           const unitPayout = Math.floor(ODDS_UNIT * rate);
+          // SAFETY: selectionKey は normalizeSelections が number[] を JSON.stringify したもの
           payoutCalculationsByType[type].push({ numbers: JSON.parse(selectionKey) as number[], payout: unitPayout });
         }
       }
@@ -171,8 +171,7 @@ async function finalizeRaceInner(
         if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
         const winningCombinations = getWinningCombinations(type, finishers);
-        const defaultRate =
-          guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type as keyof typeof DEFAULT_GUARANTEED_ODDS] ?? 1.0;
+        const defaultRate = guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type] ?? 1.0;
 
         for (const combination of winningCombinations) {
           const key = normalizeSelections(type, combination);

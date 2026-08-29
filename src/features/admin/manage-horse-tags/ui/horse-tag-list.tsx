@@ -43,14 +43,12 @@ export function HorseTagList({ tags }: HorseTagListProps) {
     }
   };
 
-  const categorizedTags = tags.reduce(
-    (acc, tag) => {
-      if (!acc[tag.type]) acc[tag.type] = [];
-      acc[tag.type].push(tag);
-      return acc;
-    },
-    {} as Record<HorseTagType, typeof tags>
-  );
+  const categorizedTags = {
+    LEG_TYPE: tags.filter((tag) => tag.type === 'LEG_TYPE'),
+    CHARACTERISTIC: tags.filter((tag) => tag.type === 'CHARACTERISTIC'),
+    BIOGRAPHY: tags.filter((tag) => tag.type === 'BIOGRAPHY'),
+    OTHER: tags.filter((tag) => tag.type === 'OTHER'),
+  };
 
   return (
     <div className="space-y-6">

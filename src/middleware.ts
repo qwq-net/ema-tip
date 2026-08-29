@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
   });
 
   const adminRoles = ['ADMIN', 'TIPSTER'];
-  if (!token || !adminRoles.includes(token.role as string)) {
+  if (!token || !adminRoles.includes(String(token.role))) {
     const url = request.nextUrl.clone();
     url.pathname = '/404-not-found-trigger';
     return NextResponse.rewrite(url);

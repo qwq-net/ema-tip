@@ -2,12 +2,14 @@ import { getPayoutResults } from '@/entities/race/actions';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
+import { RACE_CONDITIONS, RACE_SURFACES } from '@/shared/constants/race';
 import { db } from '@/shared/db';
 import { bet5Events, horses, raceEntries, raceOdds } from '@/shared/db/schema';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
+import { narrowToOption } from '@/shared/utils/lookup';
 import { eq } from 'drizzle-orm';
 import { ChevronLeft, ExternalLink, Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -215,9 +217,9 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 name: race.name,
                 raceNumber: race.raceNumber,
                 status: race.status,
-                surface: (race.surface as '芝' | 'ダート') || '芝',
+                surface: narrowToOption(RACE_SURFACES, race.surface) ?? '芝',
                 distance: race.distance,
-                condition: (race.condition as '良' | '稍重' | '重' | '不良' | null) || null,
+                condition: narrowToOption(RACE_CONDITIONS, race.condition),
                 closingAt: race.closingAt ? race.closingAt.toISOString() : null,
                 netkeibaUrl: race.netkeibaUrl ?? null,
                 fixedOddsMode: race.fixedOddsMode,

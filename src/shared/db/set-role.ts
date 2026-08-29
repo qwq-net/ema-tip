@@ -1,4 +1,4 @@
-import { ROLE_LABELS, ROLES, type Role } from '@/entities/user/constants';
+import { ROLE_LABELS, ROLES } from '@/entities/user/constants';
 import { asc, eq } from 'drizzle-orm';
 import { createInterface } from 'readline/promises';
 import { db } from './index';
@@ -21,7 +21,7 @@ async function main() {
 
     console.log('\n--- ロールを変更するユーザーを選択 ---');
     allUsers.forEach((u, i) => {
-      const label = ROLE_LABELS[u.role as Role] || u.role;
+      const label = ROLE_LABELS[u.role] || u.role;
       console.log(`${i + 1}. ${u.name || '名前なし'} (${u.email || 'メールなし'}) [${label}]`);
     });
 
@@ -58,7 +58,7 @@ async function main() {
 
     await db.update(users).set({ role: newRole }).where(eq(users.id, targetUser.id));
 
-    const oldLabel = ROLE_LABELS[targetUser.role as Role] || targetUser.role;
+    const oldLabel = ROLE_LABELS[targetUser.role] || targetUser.role;
     const newLabel = ROLE_LABELS[newRole];
     console.log(`\n✅ ${targetUser.name || targetUser.id} のロールを ${oldLabel} → ${newLabel} に変更しました。`);
   } catch (err) {

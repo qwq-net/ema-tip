@@ -1,6 +1,7 @@
 'use client';
 
 import { ROLES, ROLE_COLORS, ROLE_LABELS, type Role } from '@/entities/user';
+import { narrowToOption } from '@/shared/utils/lookup';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { updateUserRole } from '../actions';
@@ -14,7 +15,7 @@ export function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRole = e.target.value as Role;
+    const newRole = narrowToOption(Object.values(ROLES), e.target.value) ?? currentRole;
     startTransition(async () => {
       try {
         await updateUserRole(userId, newRole);

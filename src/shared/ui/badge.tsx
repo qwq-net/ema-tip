@@ -1,6 +1,7 @@
-import { EVENT_STATUS_LABELS, RACE_STATUS_LABELS, type EventStatus, type RaceStatus } from '@/shared/constants/status';
+import { EVENT_STATUS_LABELS, RACE_STATUS_LABELS } from '@/shared/constants/status';
 import { cn } from '@/shared/utils/cn';
 import { getGenderBadgeClass } from '@/shared/utils/gender';
+import { lookup } from '@/shared/utils/lookup';
 
 type BadgeVariant = 'surface' | 'condition' | 'status' | 'gender' | 'role' | 'origin' | 'outline';
 
@@ -13,8 +14,7 @@ interface BadgeProps {
 
 export function Badge({ label, variant = 'outline', className, children }: BadgeProps) {
   const content =
-    children ||
-    (label && (EVENT_STATUS_LABELS[label as EventStatus] || RACE_STATUS_LABELS[label as RaceStatus] || label));
+    children || (label && (lookup(EVENT_STATUS_LABELS, label) || lookup(RACE_STATUS_LABELS, label) || label));
   if (!content) return <span>-</span>;
 
   const getVariantStyles = () => {

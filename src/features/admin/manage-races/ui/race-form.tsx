@@ -1,9 +1,9 @@
 'use client';
 
-import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { DIRECTION_LABELS, RACE_CONDITIONS, RACE_SURFACES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
-import { lookup } from '@/shared/utils/lookup';
+import { lookup, narrowToOption } from '@/shared/utils/lookup';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -58,7 +58,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
     if (def) {
       setName(def.name);
       setDistance(def.defaultDistance);
-      setSurface(def.defaultSurface as '芝' | 'ダート');
+      setSurface(narrowToOption(RACE_SURFACES, def.defaultSurface) ?? '芝');
 
       if (def.defaultVenueId) {
         setVenueId(def.defaultVenueId);
@@ -244,7 +244,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
                   name="surface"
                   value={s}
                   checked={surface === s}
-                  onChange={(e) => setSurface(e.target.value as '芝' | 'ダート')}
+                  onChange={(e) => setSurface(narrowToOption(RACE_SURFACES, e.target.value) ?? '芝')}
                   className="sr-only"
                 />
                 {s}
@@ -271,7 +271,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
                 name="condition"
                 value={c}
                 checked={condition === c}
-                onChange={(e) => setCondition(e.target.value as '良' | '稍重' | '重' | '不良')}
+                onChange={(e) => setCondition(narrowToOption(RACE_CONDITIONS, e.target.value) ?? '良')}
                 className="sr-only"
               />
               {c}
