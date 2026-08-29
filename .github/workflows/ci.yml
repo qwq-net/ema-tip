@@ -19,8 +19,6 @@ jobs:
       - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.29.1
 
       - uses: actions/setup-node@v6
         with:
@@ -32,6 +30,12 @@ jobs:
 
       - name: Run checks
         run: pnpm check
+
+      - name: Build
+        run: pnpm build
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          REDIS_URL: redis://localhost:6379
 
   test:
     name: Unit & Integration Tests
@@ -66,13 +70,12 @@ jobs:
       REDIS_URL: redis://localhost:6379
       AUTH_SECRET: dummy-ci-secret
       NEXTAUTH_URL: http://localhost:3000
+      RUN_SLOW_TESTS: '1'
 
     steps:
       - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.29.1
 
       - uses: actions/setup-node@v6
         with:

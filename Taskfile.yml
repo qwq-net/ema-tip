@@ -3,6 +3,8 @@ version: '3'
 vars:
   # CI環境では -T を付け、ローカルでは外す
   TTY: '{{if .CI}}-T{{else}}{{end}}'
+  # 本番は override を読ませず prod 差分を明示指定する
+  PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml
 
 tasks:
   default:
@@ -29,14 +31,9 @@ tasks:
   docker:logs:tunnel:
     desc: Cloudflare TunnelのログURLを確認します
     cmds:
-      - docker compose --profile dev logs tunnel-dev
+      - docker compose --profile dev logs tunnel
 
   # ── アプリケーション ───────────────────────────────────────────
-  dev:
-    desc: 開発サーバーを起動します
-    cmds:
-      - docker compose exec {{.TTY}} app pnpm dev
-
   run:
     desc: 'コンテナ内で任意のpnpmコマンドを実行します（例: task run -- build）'
     cmds:
@@ -64,9 +61,8 @@ tasks:
 
   # ── データベース ───────────────────────────────────────────────
   db:setup:
-    desc: 依存インストール・スキーマ反映・シード投入を実行します
+    desc: スキーマ反映とシード投入を実行します
     cmds:
-      - docker compose exec {{.TTY}} app pnpm install
       - docker compose exec {{.TTY}} app pnpm drizzle-kit push
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts
 
@@ -90,15 +86,15 @@ tasks:
     desc: 本番環境を起動・更新します（VM上で実行）
     cmds:
       - git pull origin main
-      - docker compose -f docker-compose.prod.yml build app
-      - docker compose -f docker-compose.prod.yml up -d --remove-orphans
+      - '{{.PROD}} build app'
+      - '{{.PROD}} up -d --remove-orphans'
 
   prod:migrate:
     desc: 本番環境のDBマイグレーションを実行します（VM上で実行）
     cmds:
-      - docker compose -f docker-compose.prod.yml run --rm app pnpm drizzle-kit push
+      - '{{.PROD}} run --rm app pnpm drizzle-kit push'
 
   prod:down:
     desc: 本番環境のコンテナを停止します（VM上で実行）
     cmds:
-      - docker compose -f docker-compose.prod.yml down
+      - '{{.PROD}} down'

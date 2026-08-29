@@ -35,7 +35,7 @@ Winning Post などのプレイデータをもとに、仲間内で仮想の競�
 
 ### Cloudflare Tunnel（外部公開・実機確認）
 
-Cloudflare Zero Trust でトンネルを作成し、`.env` に `TUNNEL_TOKEN` を設定すると、`task docker:up` で `tunnel-dev` コンテナも起動して外部からアクセスできます。トンネルの稼働状況は `task docker:logs:tunnel` で確認します。
+Cloudflare Zero Trust でトンネルを作成し、`.env` に `TUNNEL_TOKEN` を設定すると、`task docker:up` で `tunnel` コンテナも起動して外部からアクセスできます。トンネルの稼働状況は `task docker:logs:tunnel` で確認します。
 
 ## シードデータ
 

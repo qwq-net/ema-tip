@@ -1,10 +1,10 @@
+# 共通定義。開発時は docker-compose.override.yml が自動で重なる。
+# 本番は docker-compose.prod.yml を明示指定する。task prod:* を参照。
 services:
   app:
     build: .
     ports:
       - '127.0.0.1:3000:3000'
-    volumes:
-      - .:/app
     env_file:
       - .env
     environment:
@@ -15,7 +15,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    command: sh -c "CI=true pnpm install && pnpm dev"
 
   db:
     image: postgres:15-alpine
@@ -39,14 +38,6 @@ services:
       - '127.0.0.1:6379:6379'
     volumes:
       - redis-data:/data
-
-  tunnel-dev:
-    image: cloudflare/cloudflared:latest
-    command: tunnel run
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    profiles:
-      - dev
 
 volumes:
   db-data:

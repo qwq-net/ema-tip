@@ -1,43 +1,12 @@
+# 本番用の差分。docker-compose.yml と併せて明示指定する。task prod:* を参照。
 services:
   app:
-    build: .
-    ports:
-      - '127.0.0.1:3000:3000'
-    env_file:
-      - .env
-    environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/webapp
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
     restart: unless-stopped
 
   db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: webapp
-    ports:
-      - '127.0.0.1:5432:5432'
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d webapp']
-      interval: 5s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   redis:
-    image: redis:alpine
-    ports:
-      - '127.0.0.1:6379:6379'
-    volumes:
-      - redis-data:/data
     restart: unless-stopped
 
   tunnel:
@@ -46,7 +15,3 @@ services:
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     restart: unless-stopped
-
-volumes:
-  db-data:
-  redis-data:

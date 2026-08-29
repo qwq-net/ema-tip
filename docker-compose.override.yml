@@ -1,0 +1,14 @@
+# 開発用の差分。docker compose 実行時に自動で読み込まれる。
+services:
+  app:
+    volumes:
+      - .:/app
+    command: sh -c "CI=true pnpm install && pnpm dev"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    profiles:
+      - dev
