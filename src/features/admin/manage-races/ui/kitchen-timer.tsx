@@ -2,9 +2,11 @@
 
 import { Button } from '@/shared/ui';
 import { Clock, Loader2, Timer, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { closeRace, setClosingTime } from '../actions/update';
+
+const emptySubscribe = () => () => {};
 
 interface KitchenTimerProps {
   raceId: string;
@@ -16,16 +18,20 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
   const [isOpen, setIsOpen] = useState(false);
   const [closingAt, setClosingAt] = useState<Date | null>(initialClosingAt);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  // 残り時間はクライアントでしか計算できないため、ハイドレーション完了までスピナーを表示する
+  const isInitialized = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setIsInitialized(true);
-  }, []);
-
-  useEffect(() => {
+  // 親から新しい締切時刻が渡されたらレンダー中にローカル状態を同期する
+  const [prevInitialClosingAt, setPrevInitialClosingAt] = useState(initialClosingAt);
+  if (prevInitialClosingAt?.getTime() !== initialClosingAt?.getTime()) {
+    setPrevInitialClosingAt(initialClosingAt);
     setClosingAt(initialClosingAt);
-  }, [initialClosingAt]);
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,7 +68,6 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
 
   useEffect(() => {
     if (!closingAt || status !== 'SCHEDULED') {
-      setTimeLeft(null);
       return;
     }
 
@@ -102,6 +107,9 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
 
   if (status !== 'SCHEDULED') return null;
 
+  // 締切未設定時は過去のカウントダウン値を表示しない
+  const shownTimeLeft = closingAt ? timeLeft : null;
+
   if (!isInitialized) {
     return (
       <div className="flex h-10 items-center justify-center">
@@ -115,13 +123,17 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
-          timeLeft && timeLeft > 0
+          shownTimeLeft && shownTimeLeft > 0
             ? 'animate-pulse border-orange-200 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
             : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
         }`}
       >
-        <Clock className={`h-4 w-4 ${timeLeft && timeLeft > 0 ? 'animate-spin-slow' : ''}`} />
-        {timeLeft && timeLeft > 0 ? <span className="tabular-nums">{formatTime(timeLeft)}</span> : '自動タイマー設定'}
+        <Clock className={`h-4 w-4 ${shownTimeLeft && shownTimeLeft > 0 ? 'animate-spin-slow' : ''}`} />
+        {shownTimeLeft && shownTimeLeft > 0 ? (
+          <span className="tabular-nums">{formatTime(shownTimeLeft)}</span>
+        ) : (
+          '自動タイマー設定'
+        )}
       </button>
 
       {isOpen && (
