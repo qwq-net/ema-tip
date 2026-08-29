@@ -98,15 +98,10 @@ describe('finalizePayout', () => {
   });
 
   afterEach(async () => {
-    for (const betId of createdBetIds) {
-      await db.delete(transactions).where(eq(transactions.referenceId, betId));
-    }
-    for (const betId of createdBetIds) {
-      await db.delete(bets).where(eq(bets.id, betId));
-    }
-    for (const groupId of createdBetGroupIds) {
-      await db.delete(betGroups).where(eq(betGroups.id, groupId));
-    }
+    // 1件ずつの逐次DELETEだと大量ベットのテストで hookTimeout を超えるため一括削除する
+    await db.delete(transactions).where(inArray(transactions.referenceId, createdBetIds));
+    await db.delete(bets).where(inArray(bets.id, createdBetIds));
+    await db.delete(betGroups).where(inArray(betGroups.id, createdBetGroupIds));
     if (raceId) {
       await db.delete(payoutResults).where(eq(payoutResults.raceId, raceId));
       await db.delete(raceInstances).where(eq(raceInstances.id, raceId));
