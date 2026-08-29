@@ -22,7 +22,7 @@ Winning Post などのプレイデータをもとに、仲間内で仮想の競�
 2. コンテナを起動します。Next.js アプリ、PostgreSQL、Redis が立ち上がります。
 
    ```bash
-   task docker:up
+   task up
    ```
 
 3. 初回起動時やリセット時はデータベースをセットアップします。

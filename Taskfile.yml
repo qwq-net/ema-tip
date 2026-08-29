@@ -12,23 +12,23 @@ tasks:
       - task --list
 
   # ── Docker ─────────────────────────────────────────────────────
-  docker:up:
+  up:
     desc: 開発コンテナを起動します（Cloudflare Tunnel含む）
     cmds:
       - docker compose --profile dev up -d
 
-  docker:down:
+  down:
     desc: 開発コンテナを停止します
     cmds:
       - docker compose --profile dev down
 
-  docker:clean:
+  clean:
     desc: ボリュームごと破棄して再ビルドします
     cmds:
       - docker compose --profile dev down -v
       - docker compose --profile dev up -d --build
 
-  docker:logs:tunnel:
+  logs:tunnel:
     desc: Cloudflare TunnelのログURLを確認します
     cmds:
       - docker compose --profile dev logs tunnel
