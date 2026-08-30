@@ -34,12 +34,14 @@ describe('saveEntries', () => {
     delete: vi.fn().mockReturnValue({ where: deleteWhere }),
     insert: vi.fn().mockReturnValue({ values: insertValues }),
     query: {
+      raceInstances: { findFirst: vi.fn() },
       bets: { findFirst: vi.fn() },
     },
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'SCHEDULED' });
     mockTx.delete.mockReturnValue({ where: deleteWhere });
     mockTx.insert.mockReturnValue({ values: insertValues });
     (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
@@ -61,5 +63,13 @@ describe('saveEntries', () => {
 
     expect(mockTx.delete).toHaveBeenCalled();
     expect(mockTx.insert).toHaveBeenCalled();
+  });
+
+  it('出走前以外のレースでは保存を拒否し、エントリを削除しないこと', async () => {
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'FINALIZED' });
+    mockTx.query.bets.findFirst.mockResolvedValue(undefined);
+
+    await expect(saveEntries('race-1', ['horse-1'])).rejects.toThrow('出走前');
+    expect(mockTx.delete).not.toHaveBeenCalled();
   });
 });

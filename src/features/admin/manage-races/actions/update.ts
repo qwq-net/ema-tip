@@ -34,6 +34,9 @@ export async function updateRace(id: string, formData: FormData) {
   }
 
   const now = new Date();
+  // レース編集フォームは closingAt を持たない。未送信のとき null を書くとタイマー設定が消えるため、
+  // フィールドが送信された場合のみ closingAt を更新する
+  const closingAtProvided = closingAtValue !== null;
   const newClosingAt = parse.data.closingAt ? parseJSTToUTC(parse.data.closingAt) : null;
 
   await db.transaction(async (tx) => {
@@ -45,7 +48,7 @@ export async function updateRace(id: string, formData: FormData) {
     if (race.status === 'FINALIZED') throw new Error('払戻確定済みのレースは編集できません');
 
     let newStatus = race.status;
-    if (race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {
+    if (closingAtProvided && race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {
       newStatus = 'SCHEDULED';
     }
 
@@ -56,14 +59,14 @@ export async function updateRace(id: string, formData: FormData) {
         date: parse.data.date,
         venueId: parse.data.venueId,
 
-        raceDefinitionId: parse.data.raceDefinitionId,
+        raceDefinitionId: parse.data.raceDefinitionId || null,
         direction: parse.data.direction,
         name: parse.data.name,
         raceNumber: parse.data.raceNumber,
         distance: parse.data.distance,
         surface: parse.data.surface,
-        condition: parse.data.condition,
-        closingAt: newClosingAt,
+        condition: parse.data.condition || null,
+        closingAt: closingAtProvided ? newClosingAt : undefined,
         status: newStatus,
       })
       .where(eq(raceInstances.id, id));

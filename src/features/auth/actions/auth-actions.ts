@@ -1,5 +1,6 @@
 'use server';
 
+import { isValidUserName } from '@/entities/user';
 import { signIn, signOut } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
@@ -38,8 +39,15 @@ export async function validateGuestRegistration(code: string, username: string) 
     return { error: 'RateLimitExceeded', remainingMinutes: remaining };
   }
 
+  // コピペ由来の前後空白・改行で有効なコードが不一致になり、共有IPのロックを誘発するため正規化する
+  const normalizedCode = code.trim();
+
+  if (!isValidUserName(username)) {
+    return { error: 'InvalidUsername' };
+  }
+
   const guestCode = await db.query.guestCodes.findFirst({
-    where: eq(guestCodes.code, code),
+    where: eq(guestCodes.code, normalizedCode),
   });
 
   if (!guestCode || guestCode.disabledAt) {

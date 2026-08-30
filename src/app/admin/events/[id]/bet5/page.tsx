@@ -1,3 +1,4 @@
+import { getDisplayStatus } from '@/entities/race/lib/status';
 import { getBet5AdminData } from '@/features/admin/bet5/queries';
 import { Bet5ConfigForm } from '@/features/admin/bet5/ui/bet5-config-form';
 import { Bet5ManageCard } from '@/features/admin/bet5/ui/bet5-manage-card';
@@ -49,7 +50,11 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
           id: race.id,
           raceNumber: race.raceNumber,
           name: race.name,
-          status: race.status,
+          // DB の status は着順確定を表現しない。1着が記録済みなら RANKING_CONFIRMED として扱う
+          status: getDisplayStatus(
+            race.status,
+            winnerRows.some((row) => row.raceId === race.id)
+          ),
           entryCount: race.entries.length,
         }))
     : [];

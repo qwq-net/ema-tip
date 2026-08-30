@@ -71,6 +71,9 @@ export function TransactionList({ transactions }: TransactionListProps) {
           </div>
         );
       })}
+      {transactions.length >= 200 && (
+        <div className="py-2 text-center text-sm text-gray-400">直近200件のみ表示しています</div>
+      )}
     </div>
   );
 }

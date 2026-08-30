@@ -31,20 +31,27 @@ export async function createEvent(formData: FormData) {
     throw new Error('無効な入力です: ' + JSON.stringify(parse.error.flatten()));
   }
 
-  const lastEvent = await db.query.events.findFirst({
-    orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
-  });
+  // キャリーオーバーは前イベントからの「移動」。コピー元を残すと複数イベント作成時に二重計上される
+  await db.transaction(async (tx) => {
+    const lastEvent = await tx.query.events.findFirst({
+      orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
+    });
 
-  const carryover = lastEvent ? Number(lastEvent.carryoverAmount) : 0;
+    const carryover = lastEvent ? Number(lastEvent.carryoverAmount) : 0;
 
-  await db.insert(events).values({
-    name: parse.data.name,
-    description: parse.data.description,
-    distributeAmount: parse.data.distributeAmount,
-    date: parse.data.date,
-    status: 'SCHEDULED',
-    carryoverAmount: carryover,
-    loanAmount: parse.data.loanAmount ?? null,
+    await tx.insert(events).values({
+      name: parse.data.name,
+      description: parse.data.description,
+      distributeAmount: parse.data.distributeAmount,
+      date: parse.data.date,
+      status: 'SCHEDULED',
+      carryoverAmount: carryover,
+      loanAmount: parse.data.loanAmount ?? null,
+    });
+
+    if (lastEvent && carryover > 0) {
+      await tx.update(events).set({ carryoverAmount: 0 }).where(eq(events.id, lastEvent.id));
+    }
   });
 
   revalidatePath('/admin/events');
@@ -69,7 +76,7 @@ export async function updateEvent(id: string, formData: FormData) {
     .update(events)
     .set({
       name: parse.data.name,
-      description: parse.data.description,
+      description: parse.data.description ?? null,
       distributeAmount: parse.data.distributeAmount,
       loanAmount: parse.data.loanAmount ?? null,
       date: parse.data.date,

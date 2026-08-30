@@ -71,10 +71,14 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
         orderBy: (entries, { asc }) => [asc(entries.horseNumber)],
       },
     },
-    orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
   });
 
-  const orderedRaces = races;
+  // 表示順・選択スロット・的中判定はすべて bet5Event の race1..race5 の定義順で揃える。
+  // raceNumber 順に並べると同番号レース混在時に選択が別レースのスロットへ保存されてしまう
+  const racesById = new Map(races.map((race) => [race.id, race]));
+  const orderedRaces = targetRaceIds
+    .map((raceId) => racesById.get(raceId))
+    .filter((race): race is NonNullable<typeof race> => race !== undefined);
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">

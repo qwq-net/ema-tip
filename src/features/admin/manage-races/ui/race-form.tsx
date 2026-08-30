@@ -1,7 +1,7 @@
 'use client';
 
 import { DIRECTION_LABELS, RACE_CONDITIONS, RACE_SURFACES, VENUE_DIRECTIONS } from '@/shared/constants/race';
-import { Button, Input, Label, Select } from '@/shared/ui';
+import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { lookup, narrowToOption } from '@/shared/utils/lookup';
@@ -281,12 +281,9 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
         </div>
       </div>
 
-      <Button
-        type="submit"
-        className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg"
-      >
+      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
         {initialData ? '更新する' : '登録する'}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

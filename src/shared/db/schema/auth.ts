@@ -1,6 +1,16 @@
 import { ROLES } from '@/entities/user/constants';
 import type { AdapterAccount } from '@auth/core/adapters';
-import { boolean, index, integer, pgEnum, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', [
   ROLES.USER,
@@ -33,7 +43,8 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => ({
-    nameIdx: index('user_name_idx').on(table.name),
+    // 名前はゲストログインの識別子。重複すると findFirst の解決先が不定になりログイン不能に陥る
+    nameIdx: uniqueIndex('user_name_idx').on(table.name),
     guestCodeIdx: index('user_guest_code_idx').on(table.guestCodeId),
   })
 );

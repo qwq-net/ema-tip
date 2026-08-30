@@ -61,10 +61,10 @@ export function ImportRaceClient({ events, venues }: Props) {
       }
       setPreview(result.data);
       setRaceName(result.data.raceInfo.raceName);
-      setRaceDate(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }));
+      // 日付・イベントは運用者が調整済みのことがあるため、解析のやり直しで巻き戻さない
       const matched = venues.find((v) => v.code === result.data.raceInfo.netkeibaVenueCode);
-      setVenueId(matched?.id ?? '');
-      setEventId(events[0]?.id ?? '');
+      setVenueId((prev) => matched?.id ?? prev);
+      setEventId((prev) => prev || (events[0]?.id ?? ''));
     });
   }
 

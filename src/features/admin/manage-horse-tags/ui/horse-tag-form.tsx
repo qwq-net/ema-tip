@@ -3,7 +3,7 @@
 import { HorseTagType } from '@/entities/horse';
 import { HORSE_TAG_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
-import { Button, Input, Label, Select } from '@/shared/ui';
+import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { narrowToOption } from '@/shared/utils/lookup';
 import { useRef, useState } from 'react';
@@ -63,9 +63,9 @@ export function HorseTagForm({ initialData, onSuccess }: HorseTagFormProps) {
         <Input name="content" defaultValue={initialData?.content} placeholder="例: 逃げ, G1, ~1200m" required />
       </div>
 
-      <Button type="submit" className="from-primary to-primary/80 w-full bg-linear-to-r">
+      <SubmitButton className="from-primary to-primary/80 w-full bg-linear-to-r">
         {initialData ? '更新する' : '登録する'}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

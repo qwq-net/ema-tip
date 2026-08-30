@@ -1,7 +1,7 @@
 'use client';
 import { HORSE_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES, HorseTagType } from '@/shared/constants/horse-tags';
-import { Button, Input, Label, Select, Textarea } from '@/shared/ui';
+import { Input, Label, Select, SubmitButton, Textarea } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { narrowToOption } from '@/shared/utils/lookup';
@@ -242,12 +242,9 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
         />
       </div>
 
-      <Button
-        type="submit"
-        className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg"
-      >
+      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
         {initialData ? '更新する' : '登録する'}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

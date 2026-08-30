@@ -230,13 +230,33 @@ describe('placeBets', () => {
     });
   });
 
-  it('枠連は同一枠番の組み合わせを許容する', async () => {
+  it('枠連のゾロ目は同一枠に出走中が2頭以上いる場合のみ許容する', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([
+      { horseNumber: 1, bracketNumber: 1, status: 'ENTRANT' },
+      { horseNumber: 2, bracketNumber: 1, status: 'ENTRANT' },
+      ...Array.from({ length: 6 }, (_, i) => ({ horseNumber: i + 3, bracketNumber: i + 2, status: 'ENTRANT' })),
+    ]);
 
     await expect(
       placeBets({ ...defaultArgs, betType: 'bracket_quinella', combinations: [[1, 1]] })
-    ).resolves.not.toThrow();
+    ).resolves.toMatchObject({ success: true });
+  });
+
+  it('枠連のゾロ目は枠内の出走中が1頭（取消で頭数割れ）なら拒否する', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([
+      { horseNumber: 1, bracketNumber: 1, status: 'ENTRANT' },
+      { horseNumber: 2, bracketNumber: 1, status: 'SCRATCHED' },
+      ...Array.from({ length: 6 }, (_, i) => ({ horseNumber: i + 3, bracketNumber: i + 2, status: 'ENTRANT' })),
+    ]);
+
+    await expect(placeBets({ ...defaultArgs, betType: 'bracket_quinella', combinations: [[1, 1]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
   });
 
   it('イベントが ACTIVE でない場合はエラーをスローする', async () => {

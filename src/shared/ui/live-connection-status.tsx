@@ -11,6 +11,11 @@ interface LiveConnectionStatusProps {
 }
 
 export function LiveConnectionStatus({ status, className, showText = true }: LiveConnectionStatusProps) {
+  // 確定済みレース等で意図的に接続していない場合は、切断エラーと紛らわしいため何も表示しない
+  if (status === 'DISABLED') {
+    return null;
+  }
+
   if (status === 'DISCONNECTED') {
     return (
       <div className={cn('flex items-center gap-2 text-red-500', className)}>

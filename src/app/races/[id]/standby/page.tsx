@@ -79,6 +79,16 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           odds: bet.odds ?? undefined,
           createdAt: bet.createdAt,
           selections: details.selections.map((num: number) => {
+            // 枠連の selections は馬番ではなく枠番。馬番として引き当てると別の馬の枠色が表示される
+            if (group.type === 'bracket_quinella') {
+              return {
+                horseNumber: num,
+                bracketNumber: num,
+                horseName: `${num}枠`,
+                horseGender: '',
+                horseAge: 0,
+              };
+            }
             const entry = entries.find((e: Entry) => e.horseNumber === num);
             return {
               horseNumber: num,

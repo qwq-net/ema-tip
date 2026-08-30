@@ -8,4 +8,5 @@ export * from './dropdown-menu';
 export * from './forms';
 export { LiveConnectionStatus } from './live-connection-status';
 export { NumericInput } from './numeric-input';
+export * from './submit-button';
 export * from './table';

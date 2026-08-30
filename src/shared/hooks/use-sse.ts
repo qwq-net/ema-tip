@@ -1,7 +1,7 @@
 import type { RaceStatusSSEMessage } from '@/shared/lib/sse/types';
 import { useEffect, useRef, useState } from 'react';
 
-export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
+export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING' | 'DISABLED';
 
 export type SSEMessage = RaceStatusSSEMessage;
 
@@ -12,7 +12,7 @@ interface UseSSEProps {
 }
 
 export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(disabled ? 'DISCONNECTED' : 'CONNECTING');
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(disabled ? 'DISABLED' : 'CONNECTING');
 
   // onMessage の参照が変わるたびに再接続しないよう、ref経由で最新のハンドラを呼ぶ
   const onMessageRef = useRef(onMessage);

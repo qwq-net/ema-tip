@@ -93,12 +93,15 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
   const maxProvisional = Math.max(...provisionalPayouts);
 
   const isHit = group.bets.some((bet) => bet.status === 'HIT');
-  const isLost = group.bets.every((bet) => bet.status === 'LOST');
+  const isAllRefunded = group.bets.every((bet) => bet.status === 'REFUNDED');
+  const isSettledWithoutHit = group.bets.every((bet) => bet.status === 'LOST' || bet.status === 'REFUNDED');
   const isPending = group.bets.some((bet) => bet.status === 'PENDING');
 
   const getGroupStatusBadge = () => {
     if (isHit) return <Badge variant="status" label="的中" className="bg-red-100 text-red-800" />;
-    if (isLost && !isPending) return <Badge variant="status" label="不的中" className="bg-gray-100 text-gray-500" />;
+    if (isAllRefunded) return <Badge variant="status" label="返還" className="bg-blue-50 text-blue-700" />;
+    if (isSettledWithoutHit && !isPending)
+      return <Badge variant="status" label="不的中" className="bg-gray-100 text-gray-500" />;
     return null;
   };
 
@@ -170,7 +173,11 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
             {unitAmount.toLocaleString('ja-JP')}円 × {betCount}点 = {group.totalAmount.toLocaleString('ja-JP')}円
           </div>
           {groupPayout > 0 ? (
-            <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString('ja-JP')}円</div>
+            isAllRefunded ? (
+              <div className="text-sm font-semibold text-gray-500">返還 {groupPayout.toLocaleString('ja-JP')}円</div>
+            ) : (
+              <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString('ja-JP')}円</div>
+            )
           ) : fixedOddsMode ? (
             <div className="mt-0.5 text-sm text-gray-400">Netkeibaオッズで払戻</div>
           ) : (

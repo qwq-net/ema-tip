@@ -150,6 +150,25 @@ export async function placeBet5Bet({
       throw new ActionError('対象レースが既に締め切られているため購入できません');
     }
 
+    // 取消馬・別レースの馬IDが混ざった選択は絶対に的中しないため、出走中の馬に限定する
+    const allEntries = await tx.query.raceEntries.findMany({
+      where: (raceEntries, { and, inArray, eq }) =>
+        and(inArray(raceEntries.raceId, targetRaceIds), eq(raceEntries.status, 'ENTRANT')),
+      columns: { raceId: true, horseId: true },
+    });
+    const entrantsByRace = new Map<string, Set<string>>();
+    for (const entry of allEntries) {
+      if (!entrantsByRace.has(entry.raceId)) entrantsByRace.set(entry.raceId, new Set());
+      entrantsByRace.get(entry.raceId)!.add(entry.horseId);
+    }
+    const selectionsByRace = [selections.race1, selections.race2, selections.race3, selections.race4, selections.race5];
+    for (let i = 0; i < targetRaceIds.length; i++) {
+      const entrants = entrantsByRace.get(targetRaceIds[i]);
+      if (!entrants || !selectionsByRace[i].every((horseId) => entrants.has(horseId))) {
+        throw new ActionError('出走取消となった馬が含まれています。選択し直してください');
+      }
+    }
+
     const count = calculateBet5Count(selections);
 
     if (count === 0) throw new ActionError('Invalid selection');

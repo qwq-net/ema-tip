@@ -94,7 +94,8 @@ export async function getGlobalStats() {
 
   const allTransactions = await db.query.transactions.findMany({
     where: inArray(transactions.walletId, walletIds),
-    orderBy: asc(transactions.createdAt),
+    // 一括ベットは createdAt が完全一致するため、id で並びを安定させる
+    orderBy: [asc(transactions.createdAt), asc(transactions.id)],
     with: {
       wallet: {
         columns: {

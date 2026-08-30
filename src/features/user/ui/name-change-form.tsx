@@ -1,13 +1,12 @@
 'use client';
 
+import { isValidUserName, MAX_NAME_LENGTH } from '@/entities/user';
 import { updateUserOnboarding } from '@/features/user/actions/user-actions';
 import { Button, Input } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Loader2 } from 'lucide-react';
 import { useActionState } from 'react';
 import { toast } from 'sonner';
-
-const VALID_NAME_REGEX = /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$/;
 
 export function NameChangeForm({ initialName }: { initialName: string }) {
   const [state, action, isPending] = useActionState(async (_: { error?: string } | null, formData: FormData) => {
@@ -22,8 +21,8 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
 
   const validateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value && !VALID_NAME_REGEX.test(value)) {
-      e.target.setCustomValidity('英数字、ひらがな、カタカナ、漢字のみ使用可能です。');
+    if (value && !isValidUserName(value)) {
+      e.target.setCustomValidity(`${MAX_NAME_LENGTH}文字以内の英数字、ひらがな、カタカナ、漢字のみ使用可能です。`);
     } else {
       e.target.setCustomValidity('');
     }

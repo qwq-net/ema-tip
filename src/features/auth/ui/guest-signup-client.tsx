@@ -116,7 +116,7 @@ export function GuestSignupClient() {
                   required
                   autoComplete="off"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onChange={(e) => setCode(e.target.value.toUpperCase().trim())}
                   placeholder="管理者からコードを受け取ってください"
                   ignorePasswordManager={false}
                 />

@@ -2,7 +2,7 @@
 
 import { HORSE_TAG_TYPES, HORSE_TYPES } from '@/shared/constants/horse';
 import { db } from '@/shared/db';
-import { horseTags, horses } from '@/shared/db/schema';
+import { horseTags, horses, raceEntries } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -111,9 +111,9 @@ export async function updateHorse(id: string, formData: FormData) {
       .set({
         name: parse.data.name,
         gender: gender,
-        age: parse.data.age,
+        age: parse.data.age ?? null,
         origin: parse.data.origin,
-        notes: parse.data.notes,
+        notes: parse.data.notes ?? null,
         type: parse.data.type,
       })
       .where(eq(horses.id, id));
@@ -147,6 +147,15 @@ export async function getHorses() {
 
 export async function deleteHorse(id: string) {
   await requireAdmin();
+
+  // race_entry.horseId は cascade 削除のため、無条件で消すと確定済みレースの出走・着順記録が消える
+  const entry = await db.query.raceEntries.findFirst({
+    where: eq(raceEntries.horseId, id),
+    columns: { id: true },
+  });
+  if (entry) {
+    throw new Error('出走記録がある馬は削除できません');
+  }
 
   await db.delete(horses).where(eq(horses.id, id));
 

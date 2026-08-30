@@ -34,6 +34,21 @@ async function fetchRankedWallets(eventId: string, orderByNet: boolean) {
   });
 }
 
+/**
+ * 直前と同じ基準額なら同じ順位を返す（同額同順位、次の順位は人数分飛ぶ方式）。
+ * 呼び出し側は基準額の降順で並んだ配列を index 順に処理すること。
+ */
+function createCompetitionRanker() {
+  let lastBasis: number | null = null;
+  let lastRank = 0;
+  return (basis: number, index: number): number => {
+    const rank = lastBasis !== null && basis === lastBasis ? lastRank : index + 1;
+    lastBasis = basis;
+    lastRank = rank;
+    return rank;
+  };
+}
+
 export async function getEventRanking(eventId: string): Promise<{
   ranking: RankingData[];
   published: boolean;
@@ -64,11 +79,13 @@ export async function getEventRanking(eventId: string): Promise<{
     ? [...eventWallets].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     : eventWallets;
 
+  const rankOf = createCompetitionRanker();
   const ranking: RankingData[] = walletsForDisplay.map((wallet, index) => {
     const isCurrentUser = wallet.userId === currentUserId;
 
     let name = wallet.user.name || 'Unknown';
-    let rank: number | string = index + 1;
+    const rankBasis = isFullWithLoan ? calculateNetBalance(wallet.balance, wallet.totalLoaned) : wallet.balance;
+    let rank: number | string = rankOf(rankBasis, index);
     let balance: number | '???' = wallet.balance;
     let totalLoaned: number | undefined = undefined;
 
@@ -130,11 +147,12 @@ export async function getAdminEventRanking(eventId: string): Promise<{
 
   const eventWallets = await fetchRankedWallets(eventId, true);
 
+  const rankOf = createCompetitionRanker();
   const ranking: RankingData[] = eventWallets.map((wallet, index) => {
     const isCurrentUser = wallet.userId === session.user?.id;
     const name = wallet.user.name || 'Unknown';
-    const rank = index + 1;
     const balance = calculateNetBalance(wallet.balance, wallet.totalLoaned);
+    const rank = rankOf(balance, index);
     const totalLoaned = wallet.totalLoaned > 0 ? wallet.totalLoaned : undefined;
 
     return {

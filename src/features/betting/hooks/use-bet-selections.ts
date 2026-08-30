@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 interface Entry {
   bracketNumber: number | null;
+  horseNumber: number | null;
+  status: string;
 }
 
 interface UseBetSelectionsProps {
@@ -17,13 +19,26 @@ export function useBetSelections({ entries }: UseBetSelectionsProps) {
 
   const columnCount = getBetTypeColumnCount(betType);
 
+  // 取消馬を数えるとゾロ目枠連（同枠2頭以上が前提）が誤って有効になるため、出走中のみ集計する
   const bracketHorseCount = new Map<number, number>();
   entries.forEach((entry) => {
     const bracket = entry.bracketNumber;
-    if (bracket !== null) {
+    if (entry.status === 'ENTRANT' && bracket !== null) {
       bracketHorseCount.set(bracket, (bracketHorseCount.get(bracket) || 0) + 1);
     }
   });
+
+  // 選択後に取消となった馬（枠）を選択状態から取り除く。
+  // 表示のチェックだけ消すと、見えない選択が残って購入全体が原因不明のエラーになる
+  const selectableNumbers = new Set<number>();
+  for (const entry of entries) {
+    if (entry.status !== 'ENTRANT') continue;
+    const num = betType === BET_TYPES.BRACKET_QUINELLA ? entry.bracketNumber : entry.horseNumber;
+    if (num !== null) selectableNumbers.add(num);
+  }
+  if (selections.some((set) => [...set].some((num) => !selectableNumbers.has(num)))) {
+    setSelections(selections.map((set) => new Set([...set].filter((num) => selectableNumbers.has(num)))));
+  }
 
   const selectionsArray = selections.slice(0, columnCount).map((s) => Array.from(s));
   const betCount = calculateBetCount(selectionsArray, betType, bracketHorseCount);

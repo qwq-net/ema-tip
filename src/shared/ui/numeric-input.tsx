@@ -55,17 +55,29 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
     useImperativeHandle(ref, () => innerRef.current!);
     const isComposing = useRef(false);
     const isFocused = useRef(false);
+    // この入力自身が onChange で親へ通知した最後の値。
+    // これと異なる value が来たら外部起点の変更（キーパッド・リセット等）なので、フォーカス中でも表示へ反映する
+    const lastEmitted = useRef(value);
 
     const [localValue, setLocalValue] = React.useState(
       allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value)
     );
 
     React.useEffect(() => {
-      if (!isComposing.current && !isFocused.current) {
-        const nextValue = allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value);
-        setLocalValue(nextValue);
-      }
+      if (isComposing.current) return;
+      if (isFocused.current && value === lastEmitted.current) return;
+      const nextValue = allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value);
+      setLocalValue(nextValue);
+      lastEmitted.current = value;
     }, [value, allowDecimal]);
+
+    const emitChange = useCallback(
+      (num: number) => {
+        lastEmitted.current = num;
+        onChange(num);
+      },
+      [onChange]
+    );
 
     const handleCompositionStart = useCallback(() => {
       isComposing.current = true;
@@ -79,13 +91,13 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
 
         if (allowDecimal) {
           const num = parseFloat(targetValue.replace(/[^0-9.]/g, ''));
-          onChange(isNaN(num) ? 0 : num);
+          emitChange(isNaN(num) ? 0 : num);
         } else {
           const num = parseNumericString(targetValue);
-          onChange(num);
+          emitChange(num);
         }
       },
-      [onChange, allowDecimal]
+      [emitChange, allowDecimal]
     );
 
     const handleChange = useCallback(
@@ -104,19 +116,19 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
           const num = parseFloat(sanitized);
           if (isNaN(num)) {
             setLocalValue('');
-            onChange(0);
+            emitChange(0);
           } else {
             if (max !== undefined && num > max) return;
             if (min !== undefined && num < min) return;
             setLocalValue(sanitized);
-            onChange(num);
+            emitChange(num);
           }
           return;
         }
 
         if (raw.replace(/[^0-9]/g, '') === '') {
           setLocalValue('');
-          onChange(0);
+          emitChange(0);
           return;
         }
 
@@ -125,9 +137,9 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         if (min !== undefined && num < min) return;
 
         setLocalValue(formatWithCommas(num));
-        onChange(num);
+        emitChange(num);
       },
-      [onChange, min, max, allowDecimal]
+      [emitChange, min, max, allowDecimal]
     );
 
     const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { RoleColor, RoleLabel } from '@/entities/user';
+import { isValidUserName, MAX_NAME_LENGTH, RoleColor, RoleLabel } from '@/entities/user';
 import { updateUserName } from '@/features/user/actions/user-actions';
 import { Button, Input } from '@/shared/ui';
 import { lookup } from '@/shared/utils/lookup';
@@ -15,8 +15,6 @@ interface EditableUserProfileProps {
   user: Session['user'];
 }
 
-const VALID_NAME_REGEX = /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$/;
-
 export function EditableUserProfile({ user }: EditableUserProfileProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -26,8 +24,8 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
   if (!user) return null;
 
   const handleSave = async () => {
-    if (!name || !VALID_NAME_REGEX.test(name)) {
-      toast.error('英数字、ひらがな、カタカナ、漢字のみ使用可能です。');
+    if (!isValidUserName(name)) {
+      toast.error(`${MAX_NAME_LENGTH}文字以内の英数字、ひらがな、カタカナ、漢字のみ使用可能です。`);
       return;
     }
 

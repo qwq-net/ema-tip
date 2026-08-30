@@ -188,6 +188,15 @@ export function RaceResultForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [sortedEntries, setSortedEntries] = useState(initialEntries);
+
+  // リセットや他所での確定でサーバー側の並びが変わったら、ドラッグ中のローカル状態を破棄して追従する。
+  // 内容が同じ再レンダーでは並び替え作業を保持したいため、参照ではなく内容で比較する
+  const initialSignature = JSON.stringify(initialEntries.map((entry) => entry.id));
+  const [prevSignature, setPrevSignature] = useState(initialSignature);
+  if (prevSignature !== initialSignature) {
+    setPrevSignature(initialSignature);
+    setSortedEntries(initialEntries);
+  }
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);

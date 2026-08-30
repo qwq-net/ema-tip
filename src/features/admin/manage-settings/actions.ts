@@ -3,7 +3,6 @@
 import { db } from '@/shared/db';
 import { guaranteedOddsMaster } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
-import { sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function updateSystemDefaultOdds(defaultGuaranteedOdds: Record<string, number>) {
@@ -13,18 +12,13 @@ export async function updateSystemDefaultOdds(defaultGuaranteedOdds: Record<stri
     .filter(([, odds]) => Number.isFinite(odds) && odds >= 0)
     .map(([key, odds]) => ({ key, odds: odds.toString() }));
 
-  if (oddsEntries.length > 0) {
-    await db
-      .insert(guaranteedOddsMaster)
-      .values(oddsEntries)
-      .onConflictDoUpdate({
-        target: guaranteedOddsMaster.key,
-        set: {
-          odds: sql`excluded.odds`,
-          updatedAt: new Date(),
-        },
-      });
-  }
+  // 入力を空にしたキーは payload に含まれない。upsert だけだと旧行が残り「消したのに復活する」ため全置換する
+  await db.transaction(async (tx) => {
+    await tx.delete(guaranteedOddsMaster);
+    if (oddsEntries.length > 0) {
+      await tx.insert(guaranteedOddsMaster).values(oddsEntries);
+    }
+  });
 
   revalidatePath('/admin/settings/odds');
 }

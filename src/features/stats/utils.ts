@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-
 export type AssetHistoryPoint = {
   date: string;
   timestamp: number;
@@ -69,10 +67,34 @@ export function getTransactionDescription(tx: TransactionWithDetails): string {
   }
 }
 
+const JST_DATE = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+const JST_MONTH_DAY = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit' });
+const JST_TIME = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+});
+const JST_ISO_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+// サーバー（コンテナ）は UTC のため、ローカル TZ 依存の date-fns format は使わず JST 固定で整形する
 export function formatTransactionDate(date: Date): string {
-  return format(date, 'yyyy/MM/dd HH:mm:ss');
+  return `${JST_DATE.format(date)} ${JST_TIME.format(date)}`;
 }
 
 export function formatChartDate(date: Date, global: boolean = false): string {
-  return format(date, global ? 'yyyy-MM-dd HH:mm:ss' : 'MM/dd HH:mm:ss');
+  return global
+    ? `${JST_ISO_DATE.format(date)} ${JST_TIME.format(date)}`
+    : `${JST_MONTH_DAY.format(date)} ${JST_TIME.format(date)}`;
 }

@@ -34,7 +34,8 @@ export function ConfirmDeleteButton({ title, itemName, onDelete }: ConfirmDelete
           toast.success(`「${itemName}」を削除しました`);
         } catch (error) {
           console.error(error);
-          toast.error('削除に失敗しました');
+          const message = error instanceof Error && error.message ? error.message : '削除に失敗しました';
+          toast.error(message);
           throw error;
         }
       }}

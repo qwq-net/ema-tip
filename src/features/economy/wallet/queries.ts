@@ -52,7 +52,8 @@ export async function getWalletTransactions(walletId: string) {
         },
       },
     },
-    orderBy: [desc(transactions.createdAt)],
+    // 一括ベットは createdAt が完全一致するため、id で並びを安定させる
+    orderBy: [desc(transactions.createdAt), desc(transactions.id)],
     // ベットは組み合わせ1点ごとに1行入るため無制限だと数千行になる
     // ponytail: 直近200件固定。全件が必要になったらページングを入れる
     limit: 200,

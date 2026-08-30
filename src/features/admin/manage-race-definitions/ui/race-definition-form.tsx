@@ -1,7 +1,7 @@
 'use client';
 
 import { DIRECTION_LABELS, RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
-import { Button, Input, Label, Select } from '@/shared/ui';
+import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
 import { toast } from 'sonner';
@@ -164,12 +164,9 @@ export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefin
         <p className="mt-1 text-sm text-gray-500">選択した会場の方向が自動選択されます</p>
       </div>
 
-      <Button
-        type="submit"
-        className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg"
-      >
+      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
         {initialData ? '更新する' : '登録する'}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

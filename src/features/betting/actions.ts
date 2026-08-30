@@ -76,14 +76,27 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
       .map((e) => (isBracket ? e.bracketNumber : e.horseNumber))
       .filter((n): n is number => n !== null)
   );
+  const bracketEntrantCount = new Map<number, number>();
+  if (isBracket) {
+    for (const e of entries) {
+      if (e.status === 'ENTRANT' && e.bracketNumber !== null) {
+        bracketEntrantCount.set(e.bracketNumber, (bracketEntrantCount.get(e.bracketNumber) ?? 0) + 1);
+      }
+    }
+  }
+  // 枠連のゾロ目は同枠に出走中の馬が組合せ数以上いる場合のみ成立しうる
+  const isZoromeFeasible = (combo: number[]) => {
+    const counts = new Map<number, number>();
+    for (const n of combo) counts.set(n, (counts.get(n) ?? 0) + 1);
+    return [...counts].every(([bracket, needed]) => needed === 1 || (bracketEntrantCount.get(bracket) ?? 0) >= needed);
+  };
   const selectionCount = BET_TYPE_SELECTION_COUNTS[betType];
   for (const combo of combinations) {
     const isValid =
       Array.isArray(combo) &&
       combo.length === selectionCount &&
       combo.every((n) => Number.isInteger(n) && validNumbers.has(n)) &&
-      // 枠連のみ同一番号の組み合わせを許容する
-      (isBracket || new Set(combo).size === combo.length);
+      (isBracket ? isZoromeFeasible(combo) : new Set(combo).size === combo.length);
     if (!isValid) {
       throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
     }

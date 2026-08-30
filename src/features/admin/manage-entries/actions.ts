@@ -2,7 +2,7 @@
 
 import { db } from '@/shared/db';
 import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
-import { requireAdmin } from '@/shared/utils/admin';
+import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
 import { count, eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -159,6 +159,18 @@ export async function saveEntries(raceId: string, horseIds: string[]) {
   await requireAdmin();
 
   await db.transaction(async (tx) => {
+    // 全削除して馬番を振り直すため、締切後・確定後のレースを触ると着順や払戻の根拠が消えてしまう
+    const race = await tx.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+      columns: { status: true },
+    });
+    if (!race) {
+      throw new Error('レースが見つかりません');
+    }
+    if (race.status !== 'SCHEDULED') {
+      throw new Error('出走前のレースのみ出走馬を変更できます');
+    }
+
     // 全削除して馬番を振り直すため、ベットが存在すると既存ベットの馬番の意味が変わってしまう
     const existingBet = await tx.query.bets.findFirst({
       where: eq(bets.raceId, raceId),
@@ -185,4 +197,5 @@ export async function saveEntries(raceId: string, horseIds: string[]) {
 
   revalidatePath(`/admin/entries/${raceId}`);
   revalidatePath('/admin/entries');
+  revalidateRacePaths(raceId);
 }

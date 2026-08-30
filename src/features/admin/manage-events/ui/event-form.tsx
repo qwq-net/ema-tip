@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input, Label, NumericInput, Textarea } from '@/shared/ui';
+import { Input, Label, NumericInput, SubmitButton, Textarea } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
@@ -112,9 +112,9 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         </div>
       </div>
 
-      <Button type="submit" className="mt-2 w-full" size="lg">
+      <SubmitButton className="mt-2 w-full" size="lg">
         {initialData ? 'イベント更新' : 'イベント作成'}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

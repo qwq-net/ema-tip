@@ -165,16 +165,18 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
   try {
     await requireAdmin();
 
-    normalizeNetkeibaUrl(params.url);
+    const normalizedUrl = normalizeNetkeibaUrl(params.url);
     if (params.horses.length === 0) throw new Error('出走馬が0頭です');
 
-    const duplicateRace = await db.query.raceInstances.findFirst({
-      where: and(eq(raceInstances.eventId, params.eventId), eq(raceInstances.name, params.raceName)),
-      columns: { id: true },
-    });
-    if (duplicateRace) throw new Error(`同じイベントに「${params.raceName}」は既に登録されています`);
-
     const result = await db.transaction(async (tx) => {
+      // レース名一致だけだと別会場の同名レース（3歳未勝利等）が登録できないため、netkeiba の URL で同定する。
+      // 二重確定の競合を防ぐため、チェックは insert と同じトランザクションで行う
+      const duplicateRace = await tx.query.raceInstances.findFirst({
+        where: and(eq(raceInstances.eventId, params.eventId), eq(raceInstances.netkeibaUrl, normalizedUrl)),
+        columns: { id: true },
+      });
+      if (duplicateRace) throw new Error('このレースは既に同じイベントへ取り込み済みです');
+
       const horseIds: Record<number, string> = {};
 
       for (const horse of params.horses) {
@@ -207,7 +209,7 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
           direction: params.direction,
           condition: params.condition,
           status: 'SCHEDULED',
-          netkeibaUrl: params.url,
+          netkeibaUrl: normalizedUrl,
           fixedOddsMode: params.fixedOddsMode,
         })
         .returning({ id: raceInstances.id });

@@ -1,7 +1,7 @@
 'use client';
 
 import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
-import { Button, Input, Label, Select } from '@/shared/ui';
+import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
 import { toast } from 'sonner';
@@ -85,12 +85,9 @@ export function VenueForm({ initialData, onSuccess }: VenueFormProps) {
         </div>
       </div>
 
-      <Button
-        type="submit"
-        className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg"
-      >
+      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
         {initialData ? '更新する' : '登録する'}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

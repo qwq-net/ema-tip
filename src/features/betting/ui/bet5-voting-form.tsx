@@ -50,6 +50,20 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   const [activeTab, setActiveTab] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // 選択後に取消となった馬を選択状態から取り除く。残すと点数に数えられ、外れ確定の買い目に課金される
+  let selectionsChanged = false;
+  const prunedSelections: Record<string, string[]> = {};
+  for (const race of races) {
+    const entrants = new Set(race.entries.filter((entry) => entry.status === 'ENTRANT').map((entry) => entry.horse.id));
+    const current = selections[race.id] || [];
+    const filtered = current.filter((horseId) => entrants.has(horseId));
+    if (filtered.length !== current.length) selectionsChanged = true;
+    prunedSelections[race.id] = filtered;
+  }
+  if (selectionsChanged) {
+    setSelections(prunedSelections);
+  }
+
   const toggleSelection = (raceId: string, horseId: string) => {
     setSelections((prev) => {
       const current = prev[raceId] || [];

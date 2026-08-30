@@ -1,3 +1,4 @@
+import { isValidUserName } from '@/entities/user';
 import { db } from '@/shared/db';
 import * as schema from '@/shared/db/schema';
 import {
@@ -41,6 +42,10 @@ class InvalidPasswordError extends CredentialsSignin {
 
 class AccountDisabledError extends CredentialsSignin {
   code = 'AccountDisabled';
+}
+
+class InvalidUsernameError extends CredentialsSignin {
+  code = 'InvalidUsername';
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -88,7 +93,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const parsed = z
             .object({
-              code: z.string().optional(),
+              code: z.string().trim().optional(),
               username: z.string().min(1),
               password: z.string().refine((val) => [...val].length >= 3 && [...val].length <= 6),
             })
@@ -118,6 +123,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               throw new InvalidGuestCodeError();
             }
 
+            if (!isValidUserName(username)) {
+              await recordFailure();
+              throw new InvalidUsernameError();
+            }
+
             const existingUser = await db.query.users.findFirst({
               where: eq(schema.users.name, username),
             });
@@ -129,16 +139,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const [newUser] = await db
-              .insert(schema.users)
-              .values({
-                name: username,
-                role: 'GUEST',
-                guestCodeId: code,
-                password: hashedPassword,
-                isOnboardingCompleted: true,
-              })
-              .returning();
+            let newUser: typeof schema.users.$inferSelect;
+            try {
+              [newUser] = await db
+                .insert(schema.users)
+                .values({
+                  name: username,
+                  role: 'GUEST',
+                  guestCodeId: code,
+                  password: hashedPassword,
+                  isOnboardingCompleted: true,
+                })
+                .returning();
+            } catch (error) {
+              // 同時登録の競合は user_name_idx の一意制約で片方が落ちる
+              if (error instanceof Error && 'code' in error && error.code === '23505') {
+                await recordFailure();
+                throw new UsernameTakenError();
+              }
+              throw error;
+            }
 
             if (attemptRecord) {
               await clearLoginFailures(ip);

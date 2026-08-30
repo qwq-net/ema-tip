@@ -164,7 +164,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       if (overIdStr === 'entries-list' || entries.some((e) => e.id === overIdStr)) {
         const horse = available.find((h) => h.id === horseId);
         if (horse) {
-          addToEntries(horse);
+          addToEntries(horse, overIdStr === 'entries-list' ? undefined : overIdStr);
         }
       }
       return;
@@ -184,9 +184,14 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     }
   };
 
-  const addToEntries = (horse: Horse) => {
+  // insertBeforeId のエントリの直前に挿入する。省略時は末尾に追加
+  const addToEntries = (horse: Horse, insertBeforeId?: string) => {
     setAvailable((prev) => prev.filter((h) => h.id !== horse.id));
-    setEntries((prev) => [...prev, horse]);
+    setEntries((prev) => {
+      const index = insertBeforeId ? prev.findIndex((e) => e.id === insertBeforeId) : -1;
+      if (index === -1) return [...prev, horse];
+      return [...prev.slice(0, index), horse, ...prev.slice(index)];
+    });
   };
 
   const removeFromEntries = (horseId: string) => {
