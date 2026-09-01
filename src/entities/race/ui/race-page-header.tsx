@@ -2,7 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 /**
- * レース詳細系ページ共通のヘッダ。会場略称・レース番号・レース名・Netkeibaリンクと、
+ * レース詳細系ページ共通のヘッダ。会場略称・レース番号・所属イベント名・レース名・Netkeibaリンクと、
  * 馬場・距離・頭数のメタ行を表示する。投票画面と管理詳細で同一の情報構成を保つための部品。
  * entrantCount は出走中の頭数を渡す前提。取消・除外馬は呼び手側で除外する。
  * 開催日は表示しない。操作時点がレース当日である運用前提のため。
@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 export function RacePageHeader({
   venueShortName,
   raceNumber,
+  eventName,
   name,
   netkeibaUrl,
   surface,
@@ -20,6 +21,7 @@ export function RacePageHeader({
 }: {
   venueShortName?: string | null;
   raceNumber: number | null;
+  eventName?: string | null;
   name: string;
   netkeibaUrl?: string | null;
   surface: string;
@@ -35,6 +37,12 @@ export function RacePageHeader({
           <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
             {raceNumber}R
           </span>
+        )}
+        {eventName && (
+          <>
+            <span className="text-gray-300">/</span>
+            <span className="truncate text-sm font-semibold text-gray-500">{eventName}</span>
+          </>
         )}
       </div>
       <div className="flex items-center justify-between gap-4">

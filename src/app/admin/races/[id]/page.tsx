@@ -85,6 +85,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
           <RacePageHeader
             venueShortName={race.venue?.shortName}
             raceNumber={race.raceNumber}
+            eventName={race.event?.name}
             name={race.name}
             netkeibaUrl={race.netkeibaUrl}
             surface={race.surface}
