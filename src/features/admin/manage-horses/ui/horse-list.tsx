@@ -1,5 +1,6 @@
 'use client';
 
+import { HorseTypeBadge } from '@/entities/horse';
 import {
   filterHorses,
   SOURCE_FILTER_OPTIONS,
@@ -64,14 +65,7 @@ export function HorseList({ horses }: { horses: Horse[] }) {
             <TableRow key={horse.id}>
               <Td className="font-semibold text-gray-900">
                 <div className="flex items-center gap-2">
-                  <Badge
-                    label={horse.type === 'REAL' ? '実在' : '架空'}
-                    className={
-                      horse.type === 'REAL'
-                        ? 'bg-green-50 text-green-700 ring-green-200'
-                        : 'bg-purple-50 text-purple-700 ring-purple-200'
-                    }
-                  />
+                  <HorseTypeBadge type={horse.type} />
                   <Link
                     href={`/admin/horses/${horse.id}`}
                     className="text-primary hover:text-primary/80 transition-colors hover:underline"

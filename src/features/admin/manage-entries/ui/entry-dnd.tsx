@@ -1,6 +1,6 @@
 'use client';
 
-import type { HorseSource, HorseType } from '@/entities/horse/types';
+import { HorseTypeBadge, type HorseSource, type HorseType } from '@/entities/horse';
 import {
   filterHorses,
   SOURCE_FILTER_OPTIONS,
@@ -102,6 +102,7 @@ function SortableEntry({
         {horseNumber}
       </span>
       <span className="flex-1 font-medium text-gray-900">{horse.name}</span>
+      <HorseTypeBadge type={horse.type} />
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
       </span>
@@ -137,6 +138,7 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       className="flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
       <span className="flex-1 text-sm font-medium text-gray-900">{horse.name}</span>
+      <HorseTypeBadge type={horse.type} />
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
       </span>
@@ -341,6 +343,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
         {activeHorse && (
           <div className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white p-3 shadow-lg">
             <span className="font-medium text-gray-900">{activeHorse.name}</span>
+            <HorseTypeBadge type={activeHorse.type} />
             <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(activeHorse.gender)}`}>
               {getGenderAge(activeHorse.gender, activeHorse.age)}
             </span>
