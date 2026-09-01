@@ -1,3 +1,4 @@
+import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getRaceOdds } from '@/features/betting/logic/odds';
 import { BetTable } from '@/features/betting/ui/bet-table';
@@ -6,7 +7,7 @@ import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { Button } from '@/shared/ui';
 import { requireLoginPage } from '@/shared/utils/admin';
-import { ChevronLeft, ExternalLink, Loader2 } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
@@ -67,45 +68,23 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
         </Link>
 
         <div className="mb-8 space-y-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-500">{race.venue?.shortName}</span>
-              {race.raceNumber && (
-                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
-                  {race.raceNumber}R
-                </span>
-              )}
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
-                {race.netkeibaUrl && (
-                  <a
-                    href={race.netkeibaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Netkeiba
-                  </a>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
+          <RacePageHeader
+            venueShortName={race.venue?.shortName}
+            raceNumber={race.raceNumber}
+            name={race.name}
+            netkeibaUrl={race.netkeibaUrl}
+            surface={race.surface}
+            distance={race.distance}
+            entrantCount={entries.filter((e) => e.status === 'ENTRANT').length}
+            actions={
+              <>
                 <RankingButton eventId={race.eventId} size="md" />
                 <Button variant="outline" asChild>
                   <Link href={`/races/${id}/standby`}>購入馬券確認・結果待機</Link>
                 </Button>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 text-sm text-gray-500">
-              <span>{race.surface}</span>
-              <span className="h-1 w-1 rounded-full bg-gray-300" />
-              <span>{race.distance}m</span>
-              <span className="h-1 w-1 rounded-full bg-gray-300" />
-              <span>{entries.filter((e) => e.status === 'ENTRANT').length}頭</span>
-            </div>
-          </div>
+              </>
+            }
+          />
         </div>
 
         <LoanBanner

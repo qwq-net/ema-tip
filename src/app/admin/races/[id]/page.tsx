@@ -1,4 +1,5 @@
 import { getPayoutResults } from '@/entities/race/actions';
+import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
@@ -12,7 +13,7 @@ import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { narrowToOption } from '@/shared/utils/lookup';
 import { eq } from 'drizzle-orm';
-import { ChevronLeft, ExternalLink, Info, Settings2, Trophy } from 'lucide-react';
+import { ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -36,6 +37,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         bracketNumber: raceEntries.bracketNumber,
         finishPosition: raceEntries.finishPosition,
         jockey: raceEntries.jockey,
+        status: raceEntries.status,
         horseName: horses.name,
       })
       .from(raceEntries)
@@ -72,58 +74,45 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <Link
           href="/admin/races"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </Link>
-        <div className="flex flex-1 items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-2 text-sm font-semibold text-gray-700">
-                {race.raceNumber ? `${race.raceNumber}R` : '-'}
-              </span>
-              <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
-              {race.netkeibaUrl && (
-                <a
-                  href={race.netkeibaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Netkeiba
-                </a>
-              )}
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <p>
-                {race.date.replace(/-/g, '/')} @ {race.venue?.name}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            {race.netkeibaUrl && (
-              <UpdateNetkeibaOddsButton
-                raceId={id}
-                className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
-              />
-            )}
-            <Button variant="outline" asChild>
-              <Link href={`/admin/races/${race.id}/odds`}>
-                <Trophy className="mr-2 h-4 w-4" />
-                保証オッズ設定
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={`/admin/races/${race.id}/edit`}>
-                <Settings2 className="mr-2 h-4 w-4" />
-                レース情報を編集
-              </Link>
-            </Button>
-          </div>
+        <div className="flex-1">
+          <RacePageHeader
+            venueShortName={race.venue?.shortName}
+            raceNumber={race.raceNumber}
+            name={race.name}
+            netkeibaUrl={race.netkeibaUrl}
+            surface={race.surface}
+            distance={race.distance}
+            entrantCount={entriesWithResult.filter((e) => e.status === 'ENTRANT').length}
+            actions={
+              <>
+                {race.netkeibaUrl && (
+                  <UpdateNetkeibaOddsButton
+                    raceId={id}
+                    className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
+                  />
+                )}
+                <Button variant="outline" asChild>
+                  <Link href={`/admin/races/${race.id}/odds`}>
+                    <Trophy className="mr-2 h-4 w-4" />
+                    保証オッズ設定
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href={`/admin/races/${race.id}/edit`}>
+                    <Settings2 className="mr-2 h-4 w-4" />
+                    レース情報を編集
+                  </Link>
+                </Button>
+              </>
+            }
+          />
         </div>
       </div>
 
