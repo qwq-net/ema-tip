@@ -132,6 +132,7 @@ export async function getEntriesForRace(raceId: string) {
       horseName: horses.name,
       horseGender: horses.gender,
       horseAge: horses.age,
+      horseSource: horses.source,
       finishPosition: raceEntries.finishPosition,
       status: raceEntries.status,
     })
@@ -153,13 +154,13 @@ export async function getAvailableHorses(raceId: string) {
 
   if (existingHorseIds.length === 0) {
     return db
-      .select({ id: horses.id, name: horses.name, gender: horses.gender, age: horses.age })
+      .select({ id: horses.id, name: horses.name, gender: horses.gender, age: horses.age, source: horses.source })
       .from(horses)
       .orderBy(horses.name);
   }
 
   return db
-    .select({ id: horses.id, name: horses.name, gender: horses.gender, age: horses.age })
+    .select({ id: horses.id, name: horses.name, gender: horses.gender, age: horses.age, source: horses.source })
     .from(horses)
     .where(notInArray(horses.id, existingHorseIds))
     .orderBy(horses.name);

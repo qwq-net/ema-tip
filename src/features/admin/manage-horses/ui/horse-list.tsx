@@ -1,5 +1,6 @@
 'use client';
 
+import { filterHorses, type SourceFilter } from '@/features/admin/shared/lib/filter-horses';
 import { ConfirmDeleteButton } from '@/features/admin/shared/ui/confirm-delete-button';
 import { Badge, Input, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { getGenderAge } from '@/shared/utils/gender';
@@ -7,7 +8,6 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { useState } from 'react';
 import { deleteHorse, type getHorses } from '../actions';
-import { filterHorses, type SourceFilter } from '../lib/filter-horses';
 
 type Horse = Awaited<ReturnType<typeof getHorses>>[number];
 

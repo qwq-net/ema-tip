@@ -1,7 +1,9 @@
 'use client';
 
+import type { HorseSource } from '@/entities/horse/types';
+import { filterHorses, type SourceFilter } from '@/features/admin/shared/lib/filter-horses';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
-import { Button } from '@/shared/ui';
+import { Button, Input } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
 import {
@@ -17,6 +19,7 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import clsx from 'clsx';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -27,6 +30,7 @@ type Horse = {
   name: string;
   gender: string;
   age: number | null;
+  source: HorseSource;
 };
 
 type Entry = {
@@ -35,9 +39,16 @@ type Entry = {
   horseName: string;
   horseGender: string;
   horseAge: number | null;
+  horseSource: HorseSource;
   bracketNumber: number | null;
   horseNumber: number | null;
 };
+
+const sourceFilterOptions = [
+  { value: 'ALL', label: '全て' },
+  { value: 'MANUAL', label: '手動登録' },
+  { value: 'NETKEIBA', label: 'Netkeiba経由' },
+] satisfies { value: SourceFilter; label: string }[];
 
 type Props = {
   raceId: string;
@@ -139,10 +150,16 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       name: e.horseName,
       gender: e.horseGender,
       age: e.horseAge,
+      source: e.horseSource,
     }))
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [searchWord, setSearchWord] = useState('');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('ALL');
+
+  // 絞り込みは登録馬一覧の表示のみに効かせる。available 自体は保持し、DnD の出し入れに影響させない
+  const visibleHorses = filterHorses(available, searchWord, sourceFilter);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -243,6 +260,32 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col">
           <AdminSectionTitle className="mb-3">登録馬一覧</AdminSectionTitle>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <div className="flex space-x-1 rounded-lg bg-gray-100 p-1">
+              {sourceFilterOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSourceFilter(option.value)}
+                  className={clsx(
+                    'rounded-md px-3 py-1.5 text-sm font-medium transition-all',
+                    sourceFilter === option.value
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-900'
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <Input
+              type="search"
+              value={searchWord}
+              onChange={(e) => setSearchWord(e.target.value)}
+              placeholder="馬名で検索"
+              className="min-w-40 flex-1"
+            />
+          </div>
           <div
             ref={setAvailableRef}
             id="available-list"
@@ -250,9 +293,14 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           >
             {available.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-500">すべての馬が出走登録済みです</div>
+            ) : visibleHorses.length === 0 ? (
+              <div className="py-8 text-center text-sm text-gray-500">該当する馬がいません</div>
             ) : (
-              <SortableContext items={available.map((h) => `available-${h.id}`)} strategy={verticalListSortingStrategy}>
-                {available.map((horse) => (
+              <SortableContext
+                items={visibleHorses.map((h) => `available-${h.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                {visibleHorses.map((horse) => (
                   <DraggableHorse key={horse.id} horse={horse} onClick={() => addToEntries(horse)} />
                 ))}
               </SortableContext>
