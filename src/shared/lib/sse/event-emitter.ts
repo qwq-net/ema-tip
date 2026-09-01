@@ -22,6 +22,8 @@ export type RaceEventPayload = {
   eventId?: string;
   timestamp?: number;
   mode?: string;
+  // ISO 8601 の締切時刻。null はタイマーなしの受付再開を表す
+  closingAt?: string | null;
   data?: {
     winOdds: Record<string, number>;
     placeOdds: Record<string, { min: number; max: number }>;
@@ -40,6 +42,7 @@ export const RACE_EVENTS = {
   RACE_BROADCAST: 'RACE_BROADCAST',
   RACE_CLOSED: 'RACE_CLOSED',
   RACE_REOPENED: 'RACE_REOPENED',
+  RACE_TIMER_SET: 'RACE_TIMER_SET',
   RACE_ODDS_UPDATED: 'RACE_ODDS_UPDATED',
   RANKING_UPDATED: 'RANKING_UPDATED',
   RACE_RESULT_UPDATED: 'RACE_RESULT_UPDATED',

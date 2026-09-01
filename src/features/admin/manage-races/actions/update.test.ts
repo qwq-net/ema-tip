@@ -43,6 +43,7 @@ vi.mock('@/shared/lib/sse/event-emitter', () => ({
   RACE_EVENTS: {
     RACE_CLOSED: 'RACE_CLOSED',
     RACE_REOPENED: 'RACE_REOPENED',
+    RACE_TIMER_SET: 'RACE_TIMER_SET',
   },
 }));
 
@@ -229,7 +230,10 @@ describe('reopenRace', () => {
     await reopenRace('123');
 
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
-    expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_REOPENED', expect.objectContaining({ raceId: '123' }));
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith(
+      'RACE_REOPENED',
+      expect.objectContaining({ raceId: '123', closingAt: null })
+    );
   });
 
   it('revalidatePathが呼ばれる', async () => {
@@ -294,14 +298,32 @@ describe('setClosingTime', () => {
     expect(result.closingAt).toBeDefined();
   });
 
-  it('SSEイベント RACE_REOPENED が発火される', async () => {
+  it('受付中のレースへのタイマー設定では RACE_TIMER_SET が closingAt 付きで発火される', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: '123', status: 'SCHEDULED' });
 
     await setClosingTime('123', 10);
 
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
-    expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_REOPENED', expect.objectContaining({ raceId: '123' }));
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith(
+      'RACE_TIMER_SET',
+      expect.objectContaining({ raceId: '123', closingAt: expect.any(String) })
+    );
+  });
+
+  it('締切済みのレースへのタイマー設定では RACE_REOPENED が closingAt 付きで発火される', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: '123', status: 'CLOSED' });
+
+    await setClosingTime('123', 10);
+
+    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith(
+      'RACE_REOPENED',
+      expect.objectContaining({ raceId: '123', closingAt: expect.any(String) })
+    );
   });
 });
 

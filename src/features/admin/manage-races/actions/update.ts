@@ -113,7 +113,7 @@ export async function reopenRace(raceId: string) {
   }
 
   await logAdminAction(db, session, 'race.reopen', raceId);
-  raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
+  raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, closingAt: null, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
   return { success: true };
@@ -123,6 +123,12 @@ export async function setClosingTime(raceId: string, minutes: number) {
   const session = await requireAdmin();
 
   const closingAt = new Date(Date.now() + minutes * 60 * 1000);
+
+  // 締切済みからの再開とタイマー設定のみで通知を分けるため、遷移前のステータスを読む。
+  // 更新との間に他の管理操作が挟まっても通知種別がずれるだけで、状態は下の条件付き更新が守る
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
+  });
 
   const updated = await db
     .update(raceInstances)
@@ -135,7 +141,8 @@ export async function setClosingTime(raceId: string, minutes: number) {
   }
 
   await logAdminAction(db, session, 'race.set_closing_time', raceId, { minutes });
-  raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
+  const eventType = race?.status === 'CLOSED' ? RACE_EVENTS.RACE_REOPENED : RACE_EVENTS.RACE_TIMER_SET;
+  raceEventEmitter.emit(eventType, { raceId, closingAt: closingAt.toISOString(), timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
 

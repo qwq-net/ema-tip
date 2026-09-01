@@ -4,7 +4,7 @@ import { BET_TYPES, getValidBetCombinations } from '@/entities/bet';
 import { useRaceOdds as useRaceOddsData } from '@/features/betting';
 import { placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
-import { useRaceTimer } from '@/features/betting/hooks/use-race-timer';
+import { formatRemainingTime, useRaceTimer } from '@/features/betting/hooks/use-race-timer';
 import type { getRaceOdds } from '@/features/betting/logic/odds';
 import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
@@ -14,7 +14,7 @@ import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getGenderAge } from '@/shared/utils/gender';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { AlertCircle, Lock } from 'lucide-react';
+import { AlertCircle, Clock, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -71,7 +71,7 @@ export function BetTable({
   const [isPending, startTransition] = useTransition();
   const [showBetConfirm, setShowBetConfirm] = useState(false);
 
-  const { isClosed, setIsClosed } = useRaceTimer({
+  const { isClosed, setIsClosed, remainingMs, setClosingAt } = useRaceTimer({
     initialStatus,
     closingAt,
   });
@@ -79,7 +79,11 @@ export function BetTable({
   const { odds, connectionStatus } = useRaceOddsData(raceId, initialOdds, fixedOddsMode, {
     onRaceBroadcast: () => router.push(`/races/${raceId}/standby`),
     onRaceClosed: () => setIsClosed(true),
-    onRaceReopened: () => setIsClosed(false),
+    onRaceReopened: (newClosingAt) => {
+      setIsClosed(false);
+      setClosingAt(newClosingAt);
+    },
+    onRaceTimerSet: (newClosingAt) => setClosingAt(newClosingAt),
   });
 
   const {
@@ -179,6 +183,12 @@ export function BetTable({
         <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600 ring-1 ring-red-100">
           <AlertCircle className="h-4 w-4" />
           このレースは受付を終了しました。現在、馬券を購入することはできません。
+        </div>
+      )}
+      {!isClosed && remainingMs !== null && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-700 ring-1 ring-amber-100">
+          <Clock className="h-4 w-4" />
+          締切まで残り {formatRemainingTime(remainingMs)}
         </div>
       )}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

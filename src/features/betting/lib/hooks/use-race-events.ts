@@ -10,7 +10,8 @@ interface UseRaceEventsProps {
   onRaceBroadcast?: () => void;
   onRaceOddsUpdated?: (data: SSERaceOddsUpdatedMessage) => void;
   onRaceClosed?: () => void;
-  onRaceReopened?: () => void;
+  onRaceReopened?: (closingAt: string | null) => void;
+  onRaceTimerSet?: (closingAt: string) => void;
   onRaceResultUpdated?: (results: RaceResultItem[]) => void;
 }
 
@@ -21,6 +22,7 @@ export function useRaceEvents({
   onRaceOddsUpdated,
   onRaceClosed,
   onRaceReopened,
+  onRaceTimerSet,
   onRaceResultUpdated,
 }: UseRaceEventsProps) {
   const router = useRouter();
@@ -45,7 +47,13 @@ export function useRaceEvents({
 
       if (data.type === 'RACE_REOPENED' && data.raceId === raceId) {
         toast.info('投票受付が再開されました');
-        onRaceReopened?.();
+        onRaceReopened?.(data.closingAt ?? null);
+        router.refresh();
+      }
+
+      if (data.type === 'RACE_TIMER_SET' && data.raceId === raceId) {
+        toast.info('受付時間が設定されました');
+        onRaceTimerSet?.(data.closingAt);
         router.refresh();
       }
 
@@ -59,7 +67,16 @@ export function useRaceEvents({
         onRaceResultUpdated?.(results);
       }
     },
-    [raceId, onRaceBroadcast, router, onRaceOddsUpdated, onRaceClosed, onRaceReopened, onRaceResultUpdated]
+    [
+      raceId,
+      onRaceBroadcast,
+      router,
+      onRaceOddsUpdated,
+      onRaceClosed,
+      onRaceReopened,
+      onRaceTimerSet,
+      onRaceResultUpdated,
+    ]
   );
 
   const { connectionStatus } = useSSE({

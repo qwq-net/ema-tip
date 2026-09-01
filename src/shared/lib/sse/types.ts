@@ -46,6 +46,14 @@ export type SSERaceClosedMessage = {
 export type SSERaceReopenedMessage = {
   type: 'RACE_REOPENED';
   raceId: string;
+  // 再開と同時にタイマーが設定された場合の締切時刻。手動再開では null
+  closingAt: string | null;
+};
+
+export type SSERaceTimerSetMessage = {
+  type: 'RACE_TIMER_SET';
+  raceId: string;
+  closingAt: string;
 };
 
 export type SSERaceOddsUpdatedMessage = {
@@ -73,6 +81,7 @@ export type RaceStatusSSEMessage =
   | SSERaceBroadcastMessage
   | SSERaceClosedMessage
   | SSERaceReopenedMessage
+  | SSERaceTimerSetMessage
   | SSERaceOddsUpdatedMessage
   | SSERankingUpdatedMessage
   | SSERaceResultUpdatedMessage;

@@ -11,7 +11,8 @@ type OddsData = Awaited<ReturnType<typeof getRaceOdds>>;
 interface RaceEventCallbacks {
   onRaceBroadcast?: () => void;
   onRaceClosed?: () => void;
-  onRaceReopened?: () => void;
+  onRaceReopened?: (closingAt: string | null) => void;
+  onRaceTimerSet?: (closingAt: string) => void;
 }
 
 /**
