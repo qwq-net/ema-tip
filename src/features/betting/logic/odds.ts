@@ -131,17 +131,29 @@ export async function calculateAllProvisionalOdds(raceId: string) {
 
 // 暫定オッズをレース単位で短時間キャッシュして返す。計算結果はユーザーに依存しない。
 // 締切後の結果待機ページから全ユーザーが同時に呼ぶ前提で、全ベット走査をTTLごとに1回へ抑える。
-// 締切後は新規ベットが入らないため、TTL 内の遅延が影響するのは出走取消の反映だけ
+// 締切後は新規ベットが入らないため、TTL 内の遅延が影響するのは出走取消の反映だけ。
+// このページは元々 Redis なしで動いていたため、Redis 障害時はキャッシュを素通りして計算結果を返す
 export async function getProvisionalOddsCached(raceId: string) {
   const cacheKey = `race:${raceId}:provisional_odds`;
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    // SAFETY: このキーには下で計算結果を JSON.stringify した値しか保存していない
-    return JSON.parse(cached) as Awaited<ReturnType<typeof calculateAllProvisionalOdds>>;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      // SAFETY: このキーには下で計算結果を JSON.stringify した値しか保存していない
+      return JSON.parse(cached) as Awaited<ReturnType<typeof calculateAllProvisionalOdds>>;
+    }
+  } catch (err) {
+    console.error('[Odds] Failed to read provisional odds cache:', err);
   }
 
   const odds = await calculateAllProvisionalOdds(raceId);
-  await redis.set(cacheKey, JSON.stringify(odds), 'EX', PROVISIONAL_ODDS_CACHE_SECONDS);
+
+  try {
+    await redis.set(cacheKey, JSON.stringify(odds), 'EX', PROVISIONAL_ODDS_CACHE_SECONDS);
+  } catch (err) {
+    console.error('[Odds] Failed to write provisional odds cache:', err);
+  }
+
   return odds;
 }
 

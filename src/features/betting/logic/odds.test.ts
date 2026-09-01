@@ -366,12 +366,23 @@ describe('getProvisionalOddsCached', () => {
     const result = await getProvisionalOddsCached(raceId);
 
     expect(result.win[JSON.stringify([1])]).toBe(1.1);
-    expect(redis.set).toHaveBeenCalledWith(
-      `race:${raceId}:provisional_odds`,
-      JSON.stringify(result),
-      'EX',
-      10
-    );
+    expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:provisional_odds`, JSON.stringify(result), 'EX', 10);
+  });
+
+  it('Redis障害時はキャッシュを素通りして計算結果を返す', async () => {
+    (redis.get as unknown as Mock).mockRejectedValue(new Error('redis down'));
+    (redis.set as unknown as Mock).mockRejectedValue(new Error('redis down'));
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 1000, details: { type: 'win', selections: [1] } },
+    ]);
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const result = await getProvisionalOddsCached(raceId);
+    consoleSpy.mockRestore();
+
+    expect(result.win[JSON.stringify([1])]).toBe(1.1);
   });
 });
 
