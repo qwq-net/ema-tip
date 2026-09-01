@@ -5,6 +5,15 @@ services:
       - .:/app
     command: sh -c "CI=true pnpm install && pnpm dev"
 
+  # ホストからの直接接続は開発ツール用途のみ。本番ではポートを公開しない
+  db:
+    ports:
+      - '127.0.0.1:5432:5432'
+
+  redis:
+    ports:
+      - '127.0.0.1:6379:6379'
+
   tunnel:
     image: cloudflare/cloudflared:latest
     command: tunnel run

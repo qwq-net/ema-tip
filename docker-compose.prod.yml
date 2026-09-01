@@ -1,13 +1,25 @@
 # 本番用の差分。docker-compose.yml と併せて明示指定する。task prod:* を参照。
+
+# ログの無制限肥大でディスクを埋めないよう全サービスでローテーションする
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
 services:
   app:
     restart: unless-stopped
+    <<: *logging
 
   db:
     restart: unless-stopped
+    <<: *logging
 
   redis:
     restart: unless-stopped
+    <<: *logging
 
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -15,3 +27,4 @@ services:
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     restart: unless-stopped
+    <<: *logging
