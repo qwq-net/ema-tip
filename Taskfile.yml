@@ -86,6 +86,21 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reconcile.ts
 
+  db:backup:
+    desc: 'DBをカスタム形式でダンプします（例: task db:backup > backup.dump）'
+    cmds:
+      - docker compose exec -T db pg_dump -U postgres -d webapp --format=custom
+
+  db:restore:
+    desc: 'ダンプからDBを復元します（例: task db:restore < backup.dump）。復元後は db:reconcile で整合確認を推奨'
+    cmds:
+      - docker compose exec -T db pg_restore -U postgres -d webapp --clean --if-exists
+
+  db:audit-log:
+    desc: 管理操作の監査ログを新しい順に50件表示します
+    cmds:
+      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT created_at, actor_name, action, target_id, detail FROM admin_action_log ORDER BY created_at DESC LIMIT 50;"
+
   test:e2e:
     desc: 'E2Eテストを実行します（app/db/redis が起動済みでシード投入済みであること）'
     cmds:
