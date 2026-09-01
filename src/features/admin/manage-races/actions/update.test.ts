@@ -222,7 +222,7 @@ describe('reopenRace', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('SSEイベント（RACE_REOPENED）が発火される', async () => {
+  it('SSEイベント RACE_REOPENED が発火される', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 
@@ -294,7 +294,7 @@ describe('setClosingTime', () => {
     expect(result.closingAt).toBeDefined();
   });
 
-  it('SSEイベント（RACE_REOPENED）が発火される', async () => {
+  it('SSEイベント RACE_REOPENED が発火される', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 

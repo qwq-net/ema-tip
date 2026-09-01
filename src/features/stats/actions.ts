@@ -23,7 +23,7 @@ type StatTransaction = {
   } | null;
 };
 
-// 直前の履歴ポイントと同種（type・eventId・label が一致）の取引かを判定する。
+// 直前の履歴ポイントと type・eventId・label が一致する同種の取引かを判定する。
 // true なら新規ポイントを追加せず直前ポイントへ合算する。履歴が空なら false。
 function shouldGroupGlobalHistoryPoint(
   lastPoint: AssetHistoryPoint | undefined,

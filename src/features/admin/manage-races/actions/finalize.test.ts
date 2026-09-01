@@ -124,7 +124,7 @@ describe('finalizeRace', () => {
     expect(lockArg).toContain('payout:race1');
   });
 
-  it('advisory lock 取得後にレースステータスを読み取る（ロック順序の保証）', async () => {
+  it('ロック順序を保証するため advisory lock 取得後にレースステータスを読み取る', async () => {
     await setupAdminAuth();
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.bets.findMany.mockResolvedValue([]);
@@ -243,7 +243,7 @@ describe('finalizeRace', () => {
     expect(hit3).toBeDefined();
   });
 
-  it('着順確定ではキャリーオーバーを更新しない（払戻確定で反映する）', async () => {
+  it('着順確定ではキャリーオーバーを更新せず、払戻確定で反映する', async () => {
     await setupAdminAuth();
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.bets.findMany.mockResolvedValue([
@@ -387,7 +387,7 @@ describe('finalizeRace', () => {
     expect(winCombos).toEqual([{ numbers: [1], payout: 540 }]);
   });
 
-  it('取消馬への投票はプール計算から除外される（返還は払戻確定時に実施）', async () => {
+  it('取消馬への投票はプール計算から除外され、返還は払戻確定時に実施される', async () => {
     await setupAdminAuth();
     const finishersWithScratch = [
       ...threeFinishers,

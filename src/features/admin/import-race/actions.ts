@@ -169,7 +169,7 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
     if (params.horses.length === 0) throw new Error('出走馬が0頭です');
 
     const result = await db.transaction(async (tx) => {
-      // レース名一致だけだと別会場の同名レース（3歳未勝利等）が登録できないため、netkeiba の URL で同定する。
+      // レース名一致だけだと、3歳未勝利のような別会場の同名レースが登録できないため、netkeiba の URL で同定する。
       // 二重確定の競合を防ぐため、チェックは insert と同じトランザクションで行う
       const duplicateRace = await tx.query.raceInstances.findFirst({
         where: and(eq(raceInstances.eventId, params.eventId), eq(raceInstances.netkeibaUrl, normalizedUrl)),

@@ -15,8 +15,8 @@ function keyFor(ip: string): string {
 
 /**
  * IP のログイン失敗記録を返す。未記録なら null。
- * 値が JSON として壊れている場合は削除して null を返す
- * （壊れた値を残すと該当 IP のログインが TTL まで失敗し続けるため）。
+ * 壊れた値を残すと該当 IP のログインが TTL まで失敗し続けるため、
+ * 値が JSON として壊れている場合は削除して null を返す。
  */
 export async function getLoginAttemptRecord(ip: string): Promise<LoginAttemptRecord | null> {
   const data = await redis.get(keyFor(ip));

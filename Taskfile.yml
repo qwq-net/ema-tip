@@ -13,7 +13,7 @@ tasks:
 
   # ── Docker ─────────────────────────────────────────────────────
   up:
-    desc: 開発コンテナを起動します（Cloudflare Tunnel含む）
+    desc: Cloudflare Tunnel を含む開発コンテナを起動します
     cmds:
       - docker compose --profile dev up -d
 
@@ -35,17 +35,17 @@ tasks:
 
   # ── アプリケーション ───────────────────────────────────────────
   run:
-    desc: 'コンテナ内で任意のpnpmコマンドを実行します（例: task run -- build）'
+    desc: 'コンテナ内で任意のpnpmコマンドを実行します。例: task run -- build'
     cmds:
       - docker compose exec {{.TTY}} app pnpm {{.CLI_ARGS}}
 
   test:
-    desc: 'テストを実行します（重いテストはスキップ）'
+    desc: 重いテストをスキップしてテストを実行します
     cmds:
       - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=0 pnpm test {{.CLI_ARGS}}"
 
   test:full:
-    desc: すべてのテストを実行します（重いテスト含む）
+    desc: 重いテストを含むすべてのテストを実行します
     cmds:
       - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=1 pnpm test {{.CLI_ARGS}}"
 
@@ -72,7 +72,7 @@ tasks:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reset.ts
 
   db:seed:
-    desc: シードデータを投入します（--master-only でマスタのみ）
+    desc: シードデータを投入します。--master-only を付けるとマスタのみ投入します
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts {{.CLI_ARGS}}
 
@@ -82,17 +82,17 @@ tasks:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-role.ts {{.CLI_ARGS}}
 
   db:reconcile:
-    desc: 残高と取引台帳の整合性を突合します（読み取りのみ）
+    desc: 残高と取引台帳の整合性を読み取りのみで突合します
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reconcile.ts
 
   db:backup:
-    desc: 'DBをカスタム形式でダンプします（例: task db:backup > backup.dump）'
+    desc: 'DBをカスタム形式でダンプします。例: task db:backup > backup.dump'
     cmds:
       - docker compose exec -T db pg_dump -U postgres -d webapp --format=custom
 
   db:restore:
-    desc: 'ダンプからDBを復元します（例: task db:restore < backup.dump）。復元後は db:reconcile で整合確認を推奨'
+    desc: 'ダンプからDBを復元します。復元後は db:reconcile で整合確認を推奨。例: task db:restore < backup.dump'
     cmds:
       - docker compose exec -T db pg_restore -U postgres -d webapp --clean --if-exists
 
@@ -102,20 +102,20 @@ tasks:
       - docker compose exec -T db psql -U postgres -d webapp -c "SELECT created_at, actor_name, action, target_id, detail FROM admin_action_log ORDER BY created_at DESC LIMIT 50;"
 
   test:e2e:
-    desc: 'E2Eテストを実行します（app/db/redis が起動済みでシード投入済みであること）'
+    desc: E2Eテストを実行します。app/db/redis が起動済みでシード投入済みであることが前提です
     cmds:
       - docker compose run --rm e2e
 
-  # ── 本番環境（VM上で実行） ────────────────────────────────────
+  # ── 本番環境: VM上で実行 ──────────────────────────────────────
   prod:up:
-    desc: 本番環境を起動・更新します（VM上で実行）
+    desc: VM上で本番環境を起動・更新します
     cmds:
       - git pull origin main
       - '{{.PROD}} build app'
       - '{{.PROD}} up -d --remove-orphans'
 
   prod:migrate:
-    desc: 本番環境のDBマイグレーションを実行します（VM上で実行）。実行前に backups/ へダンプを保存します
+    desc: VM上で本番環境のDBマイグレーションを実行します。実行前に backups/ へダンプを保存します
     cmds:
       # drizzle-kit push はカラム削除を伴い得るため、直前のダンプを保険として残す
       - mkdir -p backups
@@ -123,6 +123,6 @@ tasks:
       - '{{.PROD}} run --rm app pnpm drizzle-kit push'
 
   prod:down:
-    desc: 本番環境のコンテナを停止します（VM上で実行）
+    desc: VM上で本番環境のコンテナを停止します
     cmds:
       - '{{.PROD}} down'

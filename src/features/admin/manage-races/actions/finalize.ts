@@ -19,8 +19,8 @@ import { ActionError, requireAdmin, revalidateRacePaths, runAction } from '@/sha
 import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq, sql, SQL } from 'drizzle-orm';
 
-// 着順を確定して払戻を計算する。未締切・確定済みなどの想定内エラーは throw せず
-// { success: false, error } で返す（本番では throw のメッセージがマスクされるため）。
+// 着順を確定して払戻を計算する。本番では throw のメッセージがマスクされるため、
+// 未締切・確定済みなどの想定内エラーは throw せず { success: false, error } で返す。
 export async function finalizeRace(
   raceId: string,
   results: { entryId: string; finishPosition: number }[],

@@ -222,7 +222,7 @@ describe('finalizePayout', () => {
     expect(updatedRace?.status).toBe('FINALIZED');
   });
 
-  it('処理済み（PENDING以外）のベットは再処理されず、二重払戻が発生しない', async () => {
+  it('PENDING以外の処理済みベットは再処理されず、二重払戻が発生しない', async () => {
     const { bet: processedBet } = await createBet({ type: 'win', selections: [1], amount: 100 });
     await db.update(bets).set({ status: 'HIT', payout: 250, odds: '2.5' }).where(eq(bets.id, processedBet.id));
 

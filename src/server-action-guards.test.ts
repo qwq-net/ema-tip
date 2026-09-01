@@ -48,7 +48,7 @@ describe('Server Action の認可ガード', () => {
     return head.startsWith("'use server'") || head.startsWith('"use server"');
   });
 
-  it("'use server' ファイルが存在する（収集ロジックの自壊検知）", () => {
+  it("収集ロジックの自壊検知として 'use server' ファイルの存在を確認する", () => {
     expect(actionFiles.length).toBeGreaterThan(10);
   });
 

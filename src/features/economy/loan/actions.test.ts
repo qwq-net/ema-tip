@@ -142,7 +142,7 @@ describe('borrowLoan', () => {
     expect(lockArg).toContain(walletId);
   });
 
-  it('advisory lock取得後にイベントとウォレットを再読み込みする（競合対策）', async () => {
+  it('競合対策としてadvisory lock取得後にイベントとウォレットを再読み込みする', async () => {
     const callOrder: string[] = [];
     mockTx.execute.mockImplementation(async () => {
       callOrder.push('lock');
@@ -163,19 +163,19 @@ describe('borrowLoan', () => {
     expect(callOrder[2]).toBe('readWallet');
   });
 
-  it('ロック後にイベントが非ACTIVEになっていた場合はエラーをスローする（競合シナリオ）', async () => {
+  it('競合シナリオでロック後にイベントが非ACTIVEになっていた場合はエラーをスローする', async () => {
     mockTx.query.events.findFirst.mockResolvedValue({ ...mockEvent, status: 'FINISHED' });
 
     await expect(borrowLoan(eventId)).rejects.toThrow('このイベントは現在開催中ではありません');
   });
 
-  it('ロック後にウォレットがnullの場合はエラーをスローする（競合シナリオ）', async () => {
+  it('競合シナリオでロック後にウォレットがnullの場合はエラーをスローする', async () => {
     mockTx.query.wallets.findFirst.mockResolvedValue(null);
 
     await expect(borrowLoan(eventId)).rejects.toThrow('ウォレットが見つかりません');
   });
 
-  it('ロック後に残高が増えて閾値以上になった場合は借入できない（競合シナリオ）', async () => {
+  it('競合シナリオでロック後に残高が増えて閾値以上になった場合は借入できない', async () => {
     mockTx.query.wallets.findFirst.mockResolvedValue({
       ...mockWallet,
       balance: 7000,
@@ -184,7 +184,7 @@ describe('borrowLoan', () => {
     await expect(borrowLoan(eventId)).rejects.toThrow('現在の残高では借り入れできません');
   });
 
-  it('ロック後に既に借入済みになっていた場合は二重借入を防止する（競合シナリオ）', async () => {
+  it('競合シナリオでロック後に既に借入済みになっていた場合は二重借入を防止する', async () => {
     mockTx.query.wallets.findFirst.mockResolvedValue({
       ...mockWallet,
       totalLoaned: 5000,

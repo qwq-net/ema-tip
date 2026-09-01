@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-// E2E は起動済みの docker compose 環境（app / db / redis）へ外から接続する。
+// E2E は app / db / redis からなる起動済みの docker compose 環境へ外から接続する。
 // ブラウザはリポジトリの node_modules ではなく Playwright 公式イメージ側のものを使うため、
 // @playwright/test のバージョンと docker-compose.override.yml のイメージタグは一致させること
 export default defineConfig({

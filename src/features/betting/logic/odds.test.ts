@@ -142,7 +142,7 @@ describe('calculateOdds', () => {
       expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:update_scheduled`, 'true', 'EX', 6, 'NX');
     });
 
-    it('既にスケジュール済み（NX=null）の場合は重複スケジュールしない', async () => {
+    it('NX=null で既にスケジュール済みの場合は重複スケジュールしない', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
       (redis.get as unknown as Mock).mockResolvedValue('true');
       (redis.ttl as unknown as Mock).mockResolvedValue(5);
@@ -253,7 +253,7 @@ describe('calculateAllProvisionalOdds', () => {
     expect(result.win[JSON.stringify([2])]).toBe(3.0);
   });
 
-  it('保証オッズが適用される（計算値が保証オッズを下回る場合）', async () => {
+  it('計算値が保証オッズを下回る場合は保証オッズが適用される', async () => {
     (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
       { amount: 900, details: { type: 'win', selections: [1] } },
       { amount: 100, details: { type: 'win', selections: [2] } },

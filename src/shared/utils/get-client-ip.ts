@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
  * 本番はオリジンを 127.0.0.1 にバインドし Cloudflare Tunnel 経由でのみ到達するため、
  * Cloudflare が付け直す cf-connecting-ip だけを信頼する。
  * x-forwarded-for 等はクライアントが偽装でき、レート制限の回避に使えるため見ない。
- * ヘッダがない場合（ローカル開発の直アクセス）は '127.0.0.1' を返す。
+ * ローカル開発の直アクセスなどヘッダがない場合は '127.0.0.1' を返す。
  */
 export async function getClientIp(): Promise<string> {
   const headersList = await headers();

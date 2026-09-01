@@ -141,7 +141,7 @@ describe('claimEvent', () => {
     expect(txData.amount).toBe(10000);
   });
 
-  it('イベントステータスがトランザクション外でのみチェックされる（注意: ロック後に再チェックなし）', async () => {
+  it('イベントステータスはトランザクション外でのみチェックされ、ロック後の再チェックは行われない', async () => {
     const callOrder: string[] = [];
     mockTx.execute.mockImplementation(async () => {
       callOrder.push('lock');

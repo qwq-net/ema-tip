@@ -19,7 +19,7 @@ export function useBetSelections({ entries }: UseBetSelectionsProps) {
 
   const columnCount = getBetTypeColumnCount(betType);
 
-  // 取消馬を数えるとゾロ目枠連（同枠2頭以上が前提）が誤って有効になるため、出走中のみ集計する
+  // ゾロ目枠連は同枠に2頭以上いることが前提で、取消馬を数えると誤って有効になるため、出走中のみ集計する
   const bracketHorseCount = new Map<number, number>();
   entries.forEach((entry) => {
     const bracket = entry.bracketNumber;
@@ -28,7 +28,7 @@ export function useBetSelections({ entries }: UseBetSelectionsProps) {
     }
   });
 
-  // 選択後に取消となった馬（枠）を選択状態から取り除く。
+  // 選択後に取消となった馬や枠を選択状態から取り除く。
   // 表示のチェックだけ消すと、見えない選択が残って購入全体が原因不明のエラーになる
   const selectableNumbers = new Set<number>();
   for (const entry of entries) {

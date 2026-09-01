@@ -108,7 +108,7 @@ describe('resetRaceResults', () => {
     expect(lockArg).toContain('pg_advisory_xact_lock');
   });
 
-  it('advisory lock のキーに raceId が含まれる（payout と同じキー）', async () => {
+  it('advisory lock のキーに payout と同じく raceId が含まれる', async () => {
     await setupAdminAuth();
 
     await resetRaceResults(raceId);
@@ -117,7 +117,7 @@ describe('resetRaceResults', () => {
     expect(lockArg).toContain(`payout:${raceId}`);
   });
 
-  it('ロック取得後にステータスを再チェックする（競合対策）', async () => {
+  it('競合対策としてロック取得後にステータスを再チェックする', async () => {
     await setupAdminAuth();
 
     const callOrder: string[] = [];
@@ -135,7 +135,7 @@ describe('resetRaceResults', () => {
     expect(callOrder[1]).toBe('readRace');
   });
 
-  it('ロック後にレースが FINALIZED になっていた場合はエラーをスローする（競合シナリオ）', async () => {
+  it('競合シナリオでロック後にレースが FINALIZED になっていた場合はエラーをスローする', async () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: raceId, status: 'FINALIZED' });
 
@@ -159,7 +159,7 @@ describe('resetRaceResults', () => {
     expect(mockTx.delete).toHaveBeenCalled();
   });
 
-  it('リセット完了後にSSEイベント（RACE_RESULT_UPDATED）が空の結果で発火される', async () => {
+  it('リセット完了後にSSEイベント RACE_RESULT_UPDATED が空の結果で発火される', async () => {
     await setupAdminAuth();
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
 

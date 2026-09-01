@@ -5,7 +5,7 @@ describe('Loan Logic', () => {
   describe('isEligibleForLoan', () => {
     const distributeAmount = 10000;
 
-    it('残高が閾値（分配額の60%）未満かつ未ローンの場合、trueを返すこと', () => {
+    it('残高が分配額の60%の閾値未満かつ未ローンの場合、trueを返すこと', () => {
       expect(isEligibleForLoan(5999, distributeAmount, false)).toBe(true);
       expect(isEligibleForLoan(0, distributeAmount, false)).toBe(true);
     });

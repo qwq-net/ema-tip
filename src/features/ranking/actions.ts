@@ -35,7 +35,7 @@ async function fetchRankedWallets(eventId: string, orderByNet: boolean) {
 }
 
 /**
- * 直前と同じ基準額なら同じ順位を返す（同額同順位、次の順位は人数分飛ぶ方式）。
+ * 直前と同じ基準額なら同じ順位を返す。同額は同順位とし、次の順位は人数分飛ぶ方式。
  * 呼び出し側は基準額の降順で並んだ配列を index 順に処理すること。
  */
 function createCompetitionRanker() {

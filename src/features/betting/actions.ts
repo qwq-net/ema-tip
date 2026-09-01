@@ -20,8 +20,8 @@ type PlaceBetsArgs = {
   amountPerBet: number;
 };
 
-// 馬券を購入する。締切・残高不足などの想定内エラーは throw せず
-// { success: false, error } で返す（本番では throw のメッセージがマスクされるため）。
+// 馬券を購入する。本番では throw のメッセージがマスクされるため、
+// 締切・残高不足などの想定内エラーは throw せず { success: false, error } で返す。
 export async function placeBets(args: PlaceBetsArgs) {
   return runAction(() => placeBetsInner(args));
 }

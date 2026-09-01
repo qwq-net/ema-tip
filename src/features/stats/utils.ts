@@ -88,7 +88,7 @@ const JST_ISO_DATE = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
-// サーバー（コンテナ）は UTC のため、ローカル TZ 依存の date-fns format は使わず JST 固定で整形する
+// サーバーが動くコンテナは UTC のため、ローカル TZ 依存の date-fns format は使わず JST 固定で整形する
 export function formatTransactionDate(date: Date): string {
   return `${JST_DATE.format(date)} ${JST_TIME.format(date)}`;
 }

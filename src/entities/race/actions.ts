@@ -10,7 +10,7 @@ const BET_TYPE_SET = new Set<string>(Object.values(BET_TYPES));
 
 /**
  * レースの払戻結果を返す。combinations が jsonb のためここで型を確定させる境界。
- * type が馬券種別として不正な行（シードのダミー等）は除外する。
+ * シードのダミーなど、type が馬券種別として不正な行は除外する。
  */
 export async function getPayoutResults(raceId: string) {
   await requireUser();

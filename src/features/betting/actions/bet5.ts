@@ -67,8 +67,8 @@ export async function updateBet5InitialPotAction(bet5EventId: string, eventId: s
   return updated;
 }
 
-// BET5 の投票を行う。締切済み・残高不足などの想定内エラーは throw せず
-// { success: false, error } で返す（本番では throw のメッセージがマスクされるため）。
+// BET5 の投票を行う。本番では throw のメッセージがマスクされるため、
+// 締切済み・残高不足などの想定内エラーは throw せず { success: false, error } で返す。
 export async function placeBet5BetAction({
   bet5EventId,
   eventId,

@@ -124,7 +124,7 @@ describe('calculateBet5Payout', () => {
     expect(lockArg).toContain(bet5EventId);
   });
 
-  it('advisory lock 取得後に bet5Event を読み取る（ロック順序の保証）', async () => {
+  it('ロック順序を保証するため advisory lock 取得後に bet5Event を読み取る', async () => {
     const callOrder: string[] = [];
     mockTx.execute.mockImplementation(async () => {
       callOrder.push('lock');
@@ -146,7 +146,7 @@ describe('calculateBet5Payout', () => {
     await expect(calculateBet5Payout(bet5EventId)).rejects.toThrow('Event not found');
   });
 
-  it('すでに FINALIZED の場合は success:false を返す（二重処理ガード）', async () => {
+  it('二重処理ガードとしてすでに FINALIZED の場合は success:false を返す', async () => {
     mockTx.query.bet5Events.findFirst.mockResolvedValue({ ...baseBet5Event, status: 'FINALIZED' });
 
     const result = await calculateBet5Payout(bet5EventId);

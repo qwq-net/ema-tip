@@ -33,7 +33,7 @@ Winning Post などのプレイデータをもとに、仲間内で仮想の競�
 
 利用可能なコマンドの一覧は `task --list` で確認できます。コンテナ内で任意の pnpm コマンドを実行したい場合は `task run -- <コマンド>` を使います。
 
-### Cloudflare Tunnel（外部公開・実機確認）
+### Cloudflare Tunnel による外部公開と実機確認
 
 Cloudflare Zero Trust でトンネルを作成し、`.env` に `TUNNEL_TOKEN` を設定すると、`task docker:up` で `tunnel` コンテナも起動して外部からアクセスできます。トンネルの稼働状況は `task docker:logs:tunnel` で確認します。
 
@@ -53,16 +53,16 @@ Cloudflare Zero Trust でトンネルを作成し、`.env` に `TUNNEL_TOKEN` �
 
 ```bash
 task prod:up       # 起動・更新
-task prod:migrate  # DBマイグレーション（スキーマ変更時のみ）
+task prod:migrate  # スキーマ変更時のみ実行するDBマイグレーション
 task prod:down     # 停止
 ```
 
 ### アーキテクチャメモ: Cloudflare環境下でのSSE
 
-Cloudflare を経由する通信は、100秒間無通信が続くと強制切断（HTTP 524）されます。本アプリはリアルタイム通信にSSEを使うため、以下の対策を実装済みです。
+Cloudflare を経由する通信は、100秒間無通信が続くと HTTP 524 として強制切断されます。本アプリはリアルタイム通信にSSEを使うため、以下の対策を実装済みです。
 
-1. Keep-Alive Ping: サーバー側（`src/app/api/events/race-status/route.ts`）から約30秒間隔で ping を送信。
-2. 自動再接続: クライアント（`src/shared/hooks/use-sse.ts`）で40秒以上 ping がない場合はソケットを破棄して再接続。
+1. Keep-Alive Ping: サーバー側の `src/app/api/events/race-status/route.ts` から約30秒間隔で ping を送信。
+2. 自動再接続: クライアントの `src/shared/hooks/use-sse.ts` で40秒以上 ping がない場合はソケットを破棄して再接続。
 
 SSE接続のタイムアウトが問題になる場合は、該当ファイルのパラメータを調整してください。
 
@@ -71,6 +71,6 @@ SSE接続のタイムアウトが問題になる場合は、該当ファイル�
 Feature-Sliced Design (FSD) をベースにしています。
 
 - `src/app`: App Router のページとAPIルート
-- `src/features`: 機能モジュール（betting, economy, ranking, admin など）
-- `src/entities`: ドメインモデルとロジック（bet の払戻・オッズ計算など）
+- `src/features`: betting, economy, ranking, admin などの機能モジュール
+- `src/entities`: bet の払戻・オッズ計算などのドメインモデルとロジック
 - `src/shared`: 共有UI・ユーティリティ・DB・設定

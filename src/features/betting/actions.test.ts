@@ -179,7 +179,7 @@ describe('placeBets', () => {
     });
   });
 
-  it('組み合わせ数が上限（1000）を超える場合は INVALID_INPUT エラーをスローする', async () => {
+  it('組み合わせ数が上限の1000を超える場合は INVALID_INPUT エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
@@ -244,7 +244,7 @@ describe('placeBets', () => {
     ).resolves.toMatchObject({ success: true });
   });
 
-  it('枠連のゾロ目は枠内の出走中が1頭（取消で頭数割れ）なら拒否する', async () => {
+  it('枠連のゾロ目は取消の頭数割れで枠内の出走中が1頭なら拒否する', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([
@@ -317,7 +317,7 @@ describe('placeBets', () => {
     expect(lockArg).toContain(walletId);
   });
 
-  it('ロック取得後にトランザクション内でレースとウォレットを再読み込みする（競合対策）', async () => {
+  it('競合対策としてロック取得後にトランザクション内でレースとウォレットを再読み込みする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
@@ -343,7 +343,7 @@ describe('placeBets', () => {
     expect(callOrder[3]).toBe('readWallet');
   });
 
-  it('ロック後にレースが CLOSED になっていた場合は RACE_CLOSED エラーをスローする（競合シナリオ）', async () => {
+  it('競合シナリオでロック後にレースが CLOSED になっていた場合は RACE_CLOSED エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ ...mockRace, status: 'CLOSED' });
@@ -351,7 +351,7 @@ describe('placeBets', () => {
     await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.RACE_CLOSED });
   });
 
-  it('ロック後にレースの締切時刻を超えていた場合は DEADLINE_EXCEEDED エラーをスローする（競合シナリオ）', async () => {
+  it('競合シナリオでロック後にレースの締切時刻を超えていた場合は DEADLINE_EXCEEDED エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     mockTx.query.raceInstances.findFirst.mockResolvedValue({
@@ -362,7 +362,7 @@ describe('placeBets', () => {
     await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.DEADLINE_EXCEEDED });
   });
 
-  it('トランザクション内の残高チェックで不足の場合は INSUFFICIENT_BALANCE エラーをスローする（競合シナリオ）', async () => {
+  it('競合シナリオでトランザクション内の残高チェックで不足の場合は INSUFFICIENT_BALANCE エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
     (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, balance: 10000 });

@@ -28,7 +28,7 @@ describe('parseNetkeibaResult', () => {
     expect(result!.finishOrder).toEqual([3]);
   });
 
-  it('複勝の複数行を正しくパースする（<br>区切りの金額 + 複数span）', () => {
+  it('複勝の<br>区切りの金額と複数spanからなる複数行を正しくパースする', () => {
     const html = buildPayoutTable(buildRow('Fukusho', spans(3, 5, 8), '180<br>220<br>350'));
     const result = parseNetkeibaResult(html);
 
@@ -66,7 +66,7 @@ describe('parseNetkeibaResult', () => {
     expect(result!.payouts[BET_TYPES.EXACTA]).toEqual([{ numbers: [3, 1], payout: 2840 }]);
   });
 
-  it('ワイドの複数組み合わせを正しくパースする（<br>区切り）', () => {
+  it('ワイドの<br>区切りの複数組み合わせを正しくパースする', () => {
     const html = buildPayoutTable(buildRow('Wide', spans(1, 3, 1, 5, 3, 5), '420<br>780<br>1,200'));
     const result = parseNetkeibaResult(html);
 

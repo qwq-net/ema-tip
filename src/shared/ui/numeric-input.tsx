@@ -56,7 +56,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
     const isComposing = useRef(false);
     const isFocused = useRef(false);
     // この入力自身が onChange で親へ通知した最後の値。
-    // これと異なる value が来たら外部起点の変更（キーパッド・リセット等）なので、フォーカス中でも表示へ反映する
+    // これと異なる value が来たらキーパッドやリセットなど外部起点の変更なので、フォーカス中でも表示へ反映する
     const lastEmitted = useRef(value);
 
     const [localValue, setLocalValue] = React.useState(
