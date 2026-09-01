@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { calculateAllProvisionalOdds, calculateOdds, getRaceOdds } from './odds';
+import { calculateAllProvisionalOdds, calculateOdds, getProvisionalOddsCached, getRaceOdds } from './odds';
 
 vi.mock('@/shared/db', () => ({
   db: {
@@ -14,7 +14,7 @@ vi.mock('@/shared/db', () => ({
 }));
 
 vi.mock('@/shared/db/schema', () => ({
-  bets: { raceId: 'bets.raceId' },
+  bets: { raceId: 'bets.raceId', details: 'bets.details' },
   raceInstances: { id: 'raceInstances.id' },
   raceEntries: { raceId: 'raceEntries.raceId' },
   raceOdds: { raceId: 'raceOdds.raceId' },
@@ -334,6 +334,44 @@ describe('calculateAllProvisionalOdds', () => {
     const result = await calculateAllProvisionalOdds(raceId);
 
     expect(result).toEqual({});
+  });
+});
+
+describe('getProvisionalOddsCached', () => {
+  const raceId = 'race-789';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('キャッシュヒット時はDBを照会せずキャッシュ内容を返す', async () => {
+    const cachedOdds = { win: { '[1]': 2.5 } };
+    (redis.get as unknown as Mock).mockResolvedValue(JSON.stringify(cachedOdds));
+
+    const result = await getProvisionalOddsCached(raceId);
+
+    expect(result).toEqual(cachedOdds);
+    expect(db.query.bets.findMany).not.toHaveBeenCalled();
+    expect(redis.set).not.toHaveBeenCalled();
+  });
+
+  it('キャッシュミス時は計算結果をTTL付きで保存して返す', async () => {
+    (redis.get as unknown as Mock).mockResolvedValue(null);
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 1000, details: { type: 'win', selections: [1] } },
+    ]);
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
+
+    const result = await getProvisionalOddsCached(raceId);
+
+    expect(result.win[JSON.stringify([1])]).toBe(1.1);
+    expect(redis.set).toHaveBeenCalledWith(
+      `race:${raceId}:provisional_odds`,
+      JSON.stringify(result),
+      'EX',
+      10
+    );
   });
 });
 

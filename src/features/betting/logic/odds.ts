@@ -3,11 +3,12 @@ import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { aggregateOddsPool, BET_TYPES, calculateProvisionalOdds } from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
+const PROVISIONAL_ODDS_CACHE_SECONDS = 10;
 
 export async function calculateOdds(raceId: string) {
   const race = await db.query.raceInstances.findFirst({
@@ -17,8 +18,11 @@ export async function calculateOdds(raceId: string) {
 
   if (race?.fixedOddsMode) return;
 
+  // 購入のたびに呼ばれるホットパス。単勝オッズにしか使わないため、
+  // SQL側で単勝ベットに絞り、必要な2カラムだけ取得して転送量を抑える
   const raceBets = await db.query.bets.findMany({
-    where: eq(bets.raceId, raceId),
+    where: and(eq(bets.raceId, raceId), sql`${bets.details}->>'type' = 'win'`),
+    columns: { details: true, amount: true },
   });
 
   const winBets = raceBets.filter((bet) => bet.details.type === 'win');
@@ -93,6 +97,7 @@ export async function calculateAllProvisionalOdds(raceId: string) {
   const [raceBetsRaw, race, entriesInRace] = await Promise.all([
     db.query.bets.findMany({
       where: eq(bets.raceId, raceId),
+      columns: { details: true, amount: true },
     }),
     db.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),
@@ -122,6 +127,22 @@ export async function calculateAllProvisionalOdds(raceId: string) {
 
   const pool = aggregateOddsPool(raceBets);
   return calculateProvisionalOdds(pool, race?.guaranteedOdds || undefined);
+}
+
+// 暫定オッズをレース単位で短時間キャッシュして返す。計算結果はユーザーに依存しない。
+// 締切後の結果待機ページから全ユーザーが同時に呼ぶ前提で、全ベット走査をTTLごとに1回へ抑える。
+// 締切後は新規ベットが入らないため、TTL 内の遅延が影響するのは出走取消の反映だけ
+export async function getProvisionalOddsCached(raceId: string) {
+  const cacheKey = `race:${raceId}:provisional_odds`;
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    // SAFETY: このキーには下で計算結果を JSON.stringify した値しか保存していない
+    return JSON.parse(cached) as Awaited<ReturnType<typeof calculateAllProvisionalOdds>>;
+  }
+
+  const odds = await calculateAllProvisionalOdds(raceId);
+  await redis.set(cacheKey, JSON.stringify(odds), 'EX', PROVISIONAL_ODDS_CACHE_SECONDS);
+  return odds;
 }
 
 export async function getRaceOdds(raceId: string) {

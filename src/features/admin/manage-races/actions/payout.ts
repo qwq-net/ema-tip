@@ -13,7 +13,7 @@ import {
 } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {
   await requireAdmin();
@@ -168,6 +168,15 @@ export async function finalizePayout(raceId: string) {
     const walletEntries = [...walletPayouts.entries()].filter(([, amount]) => amount > 0);
     if (walletEntries.length > 0) {
       const walletIds = walletEntries.map(([id]) => id);
+
+      // 複数レースの同時確定が同じウォレット集合を別順で更新するとデッドロックしうるため、
+      // 一括更新の前に id 昇順で行ロックを取り、取得順序を全経路で揃える
+      await tx
+        .select({ id: wallets.id })
+        .from(wallets)
+        .where(inArray(wallets.id, walletIds))
+        .orderBy(asc(wallets.id))
+        .for('update');
       const payoutCase = sql<number>`CASE ${sql.join(
         walletEntries.map(([id, amount]) => sql`WHEN ${wallets.id} = ${id} THEN ${amount}`),
         sql` `

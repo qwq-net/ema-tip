@@ -7,7 +7,7 @@ import { betGroups, bets, events, raceEntries, raceInstances, transactions, wall
 import { ActionError, ADMIN_ERRORS, requireUser, runAction } from '@/shared/utils/admin';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { calculateAllProvisionalOdds, calculateOdds } from './logic/odds';
+import { calculateOdds, getProvisionalOddsCached } from './logic/odds';
 
 const BATCH_SIZE = 100;
 const MAX_COMBINATIONS = 1000;
@@ -55,20 +55,27 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
     throw new ActionError(ADMIN_ERRORS.DEADLINE_EXCEEDED);
   }
 
+  // 事前検証用の3照会は互いに依存しないため並列で取得する。整合性はロック後の再検証で担保する
+  const [event, entries, wallet] = await Promise.all([
+    db.query.events.findFirst({
+      where: eq(events.id, race.eventId),
+      columns: { id: true, status: true },
+    }),
+    db.query.raceEntries.findMany({
+      where: eq(raceEntries.raceId, raceId),
+      columns: { horseNumber: true, bracketNumber: true, status: true },
+    }),
+    db.query.wallets.findFirst({
+      where: eq(wallets.id, walletId),
+    }),
+  ]);
+
   // イベント終了後に SCHEDULED のまま残ったレースへのベットで順位確定後の残高が動くのを防ぐ
-  const event = await db.query.events.findFirst({
-    where: eq(events.id, race.eventId),
-    columns: { id: true, status: true },
-  });
   if (!event || event.status !== 'ACTIVE') {
     throw new ActionError(ADMIN_ERRORS.RACE_CLOSED);
   }
 
   // 組み合わせの中身はクライアント任せにせず、要素数・整数性・実在番号・重複をここで検証する
-  const entries = await db.query.raceEntries.findMany({
-    where: eq(raceEntries.raceId, raceId),
-    columns: { horseNumber: true, bracketNumber: true, status: true },
-  });
   const isBracket = betType === BET_TYPES.BRACKET_QUINELLA;
   const validNumbers = new Set(
     entries
@@ -101,10 +108,6 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
       throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
     }
   }
-
-  const wallet = await db.query.wallets.findFirst({
-    where: eq(wallets.id, walletId),
-  });
 
   if (!wallet) {
     throw new ActionError(ADMIN_ERRORS.NOT_FOUND);
@@ -218,7 +221,7 @@ export async function getUserBetGroupsForRace(raceId: string) {
   });
 
   if (race?.status === 'CLOSED') {
-    const provisionalOdds = await calculateAllProvisionalOdds(raceId);
+    const provisionalOdds = await getProvisionalOddsCached(raceId);
 
     return groups.map((group) => ({
       ...group,

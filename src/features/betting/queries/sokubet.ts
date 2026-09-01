@@ -25,7 +25,8 @@ export async function getSokubetDashboardData(userId: string) {
       with: {
         event: true,
         venue: true,
-        entries: true,
+        // UIは頭数と着順入力済みかしか使わないため、entries はそのカラムだけ返す
+        entries: { columns: { finishPosition: true } },
       },
     }),
     db.query.bet5Events.findMany({

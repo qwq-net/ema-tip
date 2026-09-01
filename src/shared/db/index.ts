@@ -17,7 +17,8 @@ declare global {
   var __dbConn: postgres.Sql | undefined;
 }
 
-const conn = globalThis.__dbConn ?? postgres(connectionString, { prepare: false });
+// PgBouncer 等を挟まない直結構成のため prepared statements は既定の有効のままにする
+const conn = globalThis.__dbConn ?? postgres(connectionString, { max: 10 });
 
 if (process.env.NODE_ENV !== 'production') globalThis.__dbConn = conn;
 

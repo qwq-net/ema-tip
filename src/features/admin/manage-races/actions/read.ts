@@ -23,7 +23,8 @@ export async function getRaces() {
     with: {
       event: true,
       venue: true,
-      entries: true,
+      // UIは着順入力済みかの判定にしか使わないため、entries はそのカラムだけ返す
+      entries: { columns: { finishPosition: true } },
     },
   });
 }

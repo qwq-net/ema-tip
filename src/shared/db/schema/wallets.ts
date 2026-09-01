@@ -47,9 +47,8 @@ export const transactions = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    referenceIdx: index('transaction_reference_idx').on(table.referenceId),
-    walletIdx: index('transaction_wallet_idx').on(table.walletId),
+    // walletId 単独の照会・カスケード削除も複合の先頭列で賄う。
+    // referenceId と createdAt 単独で引くクエリは存在しないためインデックスは持たない
     walletCreatedIdx: index('transaction_wallet_created_idx').on(table.walletId, table.createdAt),
-    createdIdx: index('transaction_created_idx').on(table.createdAt),
   })
 );

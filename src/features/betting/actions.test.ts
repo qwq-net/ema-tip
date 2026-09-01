@@ -62,7 +62,7 @@ vi.mock('@/shared/lib/sse/event-emitter', () => ({
 
 vi.mock('@/shared/db/schema', () => ({
   betGroups: { id: 'betGroups.id' },
-  bets: { id: 'bets.id', raceId: 'bets.raceId' },
+  bets: { id: 'bets.id', raceId: 'bets.raceId', details: 'bets.details' },
   raceInstances: { id: 'raceInstances.id', status: 'status' },
   events: { id: 'events.id', status: 'events.status' },
   raceEntries: { raceId: 'raceEntries.raceId' },

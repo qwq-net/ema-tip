@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { HORSE_TAG_TYPES, HORSE_TYPES } from '../../constants/horse';
 
 export const horseTypeEnum = pgEnum('horse_type', HORSE_TYPES);
@@ -23,15 +23,22 @@ export const horses = pgTable('horse', {
     .$onUpdate(() => new Date()),
 });
 
-export const horseTags = pgTable('horse_tag', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  horseId: uuid('horse_id')
-    .notNull()
-    .references(() => horses.id, { onDelete: 'cascade' }),
-  type: horseTagTypeEnum('type').notNull(),
-  content: text('content').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+export const horseTags = pgTable(
+  'horse_tag',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    horseId: uuid('horse_id')
+      .notNull()
+      .references(() => horses.id, { onDelete: 'cascade' }),
+    type: horseTagTypeEnum('type').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    // タグは horseId で引く。馬削除時のカスケードもこの索引を使う
+    horseIdx: index('horse_tag_horse_idx').on(table.horseId),
+  })
+);
 
 export const horseTagMaster = pgTable('horse_tag_master', {
   id: uuid('id').defaultRandom().primaryKey(),

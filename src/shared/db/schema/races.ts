@@ -100,7 +100,7 @@ export const raceEntries = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => ({
-    raceIdx: index('race_entry_race_idx').on(table.raceId),
+    // raceId 単独の照会は race_pos_idx の先頭列で賄えるため単独インデックスは持たない
     racePosIdx: index('race_entry_race_pos_idx').on(table.raceId, table.finishPosition),
     horseIdx: index('race_entry_horse_idx').on(table.horseId),
     raceHorseUniqueIdx: uniqueIndex('race_entry_race_horse_unique_idx').on(table.raceId, table.horseId),
@@ -137,7 +137,7 @@ export const payoutResults = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    raceIdx: index('payout_result_race_idx').on(table.raceId),
+    // raceId 単独の照会は複合ユニークの先頭列で賄う
     raceTypeUniqueIdx: uniqueIndex('payout_result_race_type_unique_idx').on(table.raceId, table.type),
   })
 );

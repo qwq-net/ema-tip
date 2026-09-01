@@ -5,7 +5,7 @@ import { horses, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ActionError, requireAdmin, runAction, type ActionResult } from '@/shared/utils/admin';
 import { lookup } from '@/shared/utils/lookup';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { inflateSync } from 'zlib';
 import { parseNetkeibaResult } from './lib/parse-result';
@@ -177,23 +177,33 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
       });
       if (duplicateRace) throw new Error('このレースは既に同じイベントへ取り込み済みです');
 
+      // 馬は名前で同定する。1頭ずつ照会せず、既存分の一括取得と不足分の一括insertで済ませる
+      const existingHorses = await tx.query.horses.findMany({
+        where: inArray(
+          horses.name,
+          params.horses.map((h) => h.name)
+        ),
+        columns: { id: true, name: true },
+      });
+      const horseIdByName = new Map(existingHorses.map((h) => [h.name, h.id]));
+
+      // 同名馬が同一レースに重複していても1頭として登録する
+      const newHorses = [
+        ...new Map(
+          params.horses.filter((h) => !horseIdByName.has(h.name)).map((h) => [h.name, h])
+        ).values(),
+      ];
+      if (newHorses.length > 0) {
+        const inserted = await tx
+          .insert(horses)
+          .values(newHorses.map((h) => ({ name: h.name, gender: h.gender, age: h.age })))
+          .returning({ id: horses.id, name: horses.name });
+        for (const h of inserted) horseIdByName.set(h.name, h.id);
+      }
+
       const horseIds: Record<number, string> = {};
-
-      for (const horse of params.horses) {
-        const existing = await tx.query.horses.findFirst({
-          where: eq(horses.name, horse.name),
-          columns: { id: true },
-        });
-
-        if (existing) {
-          horseIds[horse.horseNumber] = existing.id;
-        } else {
-          const [inserted] = await tx
-            .insert(horses)
-            .values({ name: horse.name, gender: horse.gender, age: horse.age })
-            .returning({ id: horses.id });
-          horseIds[horse.horseNumber] = inserted.id;
-        }
+      for (const h of params.horses) {
+        horseIds[h.horseNumber] = horseIdByName.get(h.name)!;
       }
 
       const [race] = await tx

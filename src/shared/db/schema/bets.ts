@@ -38,8 +38,9 @@ export const betGroups = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    raceIdx: index('bet_group_race_idx').on(table.raceId),
-    userIdx: index('bet_group_user_idx').on(table.userId),
+    // 照会は常に userId と raceId の組。raceId 単独で引く経路はないため複合1本に集約する
+    userRaceIdx: index('bet_group_user_race_idx').on(table.userId, table.raceId),
+    // ユーザー削除時のカスケードが betGroups を walletId で辿るため残す
     walletIdx: index('bet_group_wallet_idx').on(table.walletId),
   })
 );

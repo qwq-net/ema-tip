@@ -40,7 +40,8 @@ export async function getAdminRaceGroups() {
       races: {
         with: {
           venue: true,
-          entries: true,
+          // UIは着順入力済みかの判定にしか使わないため、entries はそのカラムだけ返す
+          entries: { columns: { finishPosition: true } },
         },
         orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
       },

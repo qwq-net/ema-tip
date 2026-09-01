@@ -2,7 +2,7 @@ import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from '@/entit
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, transactions, wallets } from '@/shared/db/schema';
 import { ActionError } from '@/shared/utils/action-result';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 export const Bet5SelectionSchema = z.object({
@@ -333,6 +333,14 @@ export async function calculateBet5Payout(bet5EventId: string) {
 
       const walletEntries = [...walletPayouts.entries()];
       const walletIds = walletEntries.map(([id]) => id);
+
+      // 払戻確定と同時に走った場合のデッドロックを防ぐため、一括更新前に id 昇順で行ロックを取る
+      await tx
+        .select({ id: wallets.id })
+        .from(wallets)
+        .where(inArray(wallets.id, walletIds))
+        .orderBy(asc(wallets.id))
+        .for('update');
       const walletPayoutCase = sql<number>`CASE ${sql.join(
         walletEntries.map(([id, amount]) => sql`WHEN ${wallets.id} = ${id} THEN ${amount}`),
         sql` `

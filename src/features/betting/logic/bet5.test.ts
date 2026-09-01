@@ -75,6 +75,13 @@ describe('calculateBet5Payout', () => {
 
   const createMockTx = () => {
     const updateChain = makeUpdateChain();
+    // ウォレット行ロック取得の select().from().where().orderBy().for('update') を受ける連鎖
+    const selectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      for: vi.fn().mockResolvedValue([]),
+    };
     return {
       execute: vi.fn().mockResolvedValue(undefined),
       query: {
@@ -82,6 +89,7 @@ describe('calculateBet5Payout', () => {
         raceEntries: { findMany: vi.fn().mockResolvedValue(allWinnerRows) },
         bet5Tickets: { findMany: vi.fn().mockResolvedValue([winningTicket]) },
       },
+      select: vi.fn().mockReturnValue(selectChain),
       update: vi.fn().mockReturnValue(updateChain),
       insert: vi.fn().mockReturnValue(makeInsertChain()),
       _updateChain: updateChain,

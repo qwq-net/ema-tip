@@ -14,6 +14,7 @@ import { eq } from 'drizzle-orm';
 import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Discord from 'next-auth/providers/discord';
+import { cache } from 'react';
 import { z } from 'zod';
 
 class RateLimitError extends CredentialsSignin {
@@ -48,7 +49,7 @@ class InvalidUsernameError extends CredentialsSignin {
   code = 'InvalidUsername';
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const { handlers, auth: authUncached, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: schema.users,
     accountsTable: schema.accounts,
@@ -217,6 +218,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token;
     },
+    // 毎回 users を照会して失効・権限変更を即時反映する。頻度は下の cache ラップで抑える
     async session({ session, token }) {
       if (token.sub) {
         try {
@@ -249,3 +251,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+// session コールバックが users を照会するため、同一リクエスト内の auth() を1回に束ねる。
+// requireLoginPage と各 Server Action が個別に呼んでも DB 照会は1度で済む
+const auth = cache(authUncached);
+
+export { auth, handlers, signIn, signOut };
