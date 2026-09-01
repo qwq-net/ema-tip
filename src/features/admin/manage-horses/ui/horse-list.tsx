@@ -1,6 +1,6 @@
 'use client';
 
-import { HorseTypeBadge } from '@/entities/horse';
+import { HorseSourceBadge, HorseTypeBadge } from '@/entities/horse';
 import {
   filterHorses,
   SOURCE_FILTER_OPTIONS,
@@ -47,32 +47,31 @@ export function HorseList({ horses }: { horses: Horse[] }) {
         />
       </div>
 
-      <TableShell className="min-w-[700px]">
+      <TableShell>
         <TableHead>
-          <Th>馬名/種別</Th>
+          <Th>馬名</Th>
           <Th>タグ</Th>
           <Th>産地</Th>
+          <Th>登録元</Th>
+          <Th>種別</Th>
           <Th>性齢</Th>
           <Th>備考</Th>
           <Th className="w-32 text-right">操作</Th>
         </TableHead>
         <TableBody>
-          {horses.length === 0 && <TableEmptyRow colSpan={6}>登録されている馬はありません</TableEmptyRow>}
+          {horses.length === 0 && <TableEmptyRow colSpan={8}>登録されている馬はありません</TableEmptyRow>}
           {horses.length > 0 && filteredHorses.length === 0 && (
-            <TableEmptyRow colSpan={6}>該当する馬がいません</TableEmptyRow>
+            <TableEmptyRow colSpan={8}>該当する馬がいません</TableEmptyRow>
           )}
           {filteredHorses.map((horse) => (
             <TableRow key={horse.id}>
               <Td className="font-semibold text-gray-900">
-                <div className="flex items-center gap-2">
-                  <HorseTypeBadge type={horse.type} />
-                  <Link
-                    href={`/admin/horses/${horse.id}`}
-                    className="text-primary hover:text-primary/80 transition-colors hover:underline"
-                  >
-                    {horse.name}
-                  </Link>
-                </div>
+                <Link
+                  href={`/admin/horses/${horse.id}`}
+                  className="text-primary hover:text-primary/80 transition-colors hover:underline"
+                >
+                  {horse.name}
+                </Link>
               </Td>
               <Td>
                 <div className="flex max-w-[200px] flex-wrap gap-1">
@@ -87,6 +86,12 @@ export function HorseList({ horses }: { horses: Horse[] }) {
               </Td>
               <Td>
                 <Badge label={originLabels[horse.origin] || '不明'} variant="origin" />
+              </Td>
+              <Td>
+                <HorseSourceBadge source={horse.source} />
+              </Td>
+              <Td>
+                <HorseTypeBadge type={horse.type} />
               </Td>
               <Td>
                 <Badge label={getGenderAge(horse.gender, horse.age)} variant="gender" />

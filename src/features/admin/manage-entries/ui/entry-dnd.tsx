@@ -1,6 +1,6 @@
 'use client';
 
-import { HorseTypeBadge, type HorseSource, type HorseType } from '@/entities/horse';
+import { HorseSourceBadge, HorseTypeBadge, type HorseSource, type HorseType } from '@/entities/horse';
 import {
   filterHorses,
   SOURCE_FILTER_OPTIONS,
@@ -102,6 +102,7 @@ function SortableEntry({
         {horseNumber}
       </span>
       <span className="flex-1 font-medium text-gray-900">{horse.name}</span>
+      <HorseSourceBadge source={horse.source} />
       <HorseTypeBadge type={horse.type} />
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
@@ -138,6 +139,7 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       className="flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
       <span className="flex-1 text-sm font-medium text-gray-900">{horse.name}</span>
+      <HorseSourceBadge source={horse.source} />
       <HorseTypeBadge type={horse.type} />
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
@@ -265,42 +267,42 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col">
-          <AdminSectionTitle className="mb-3">登録馬一覧</AdminSectionTitle>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <SegmentedControl options={SOURCE_FILTER_OPTIONS} value={sourceFilter} onChange={setSourceFilter} />
-            <SegmentedControl options={TYPE_FILTER_OPTIONS} value={typeFilter} onChange={setTypeFilter} />
-            <Input
-              type="search"
-              value={searchWord}
-              onChange={(e) => setSearchWord(e.target.value)}
-              placeholder="馬名で検索"
-              className="min-w-40 flex-1"
-            />
+          <div className="mb-3 flex min-h-8 items-center">
+            <AdminSectionTitle>登録馬一覧</AdminSectionTitle>
           </div>
-          <div
-            ref={setAvailableRef}
-            id="available-list"
-            className="h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4"
-          >
-            {available.length === 0 ? (
-              <div className="py-8 text-center text-sm text-gray-500">すべての馬が出走登録済みです</div>
-            ) : visibleHorses.length === 0 ? (
-              <div className="py-8 text-center text-sm text-gray-500">該当する馬がいません</div>
-            ) : (
-              <SortableContext
-                items={visibleHorses.map((h) => `available-${h.id}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                {visibleHorses.map((horse) => (
-                  <DraggableHorse key={horse.id} horse={horse} onClick={() => addToEntries(horse)} />
-                ))}
-              </SortableContext>
-            )}
+          <div className="flex h-[calc(100vh-320px)] min-h-[500px] flex-col rounded-lg border border-dashed border-gray-300 bg-gray-50">
+            <div className="flex flex-wrap items-center gap-2 border-b border-dashed border-gray-300 p-3">
+              <SegmentedControl options={SOURCE_FILTER_OPTIONS} value={sourceFilter} onChange={setSourceFilter} />
+              <SegmentedControl options={TYPE_FILTER_OPTIONS} value={typeFilter} onChange={setTypeFilter} />
+              <Input
+                type="search"
+                value={searchWord}
+                onChange={(e) => setSearchWord(e.target.value)}
+                placeholder="馬名で検索"
+                className="min-w-40 flex-1"
+              />
+            </div>
+            <div ref={setAvailableRef} id="available-list" className="flex-1 space-y-2 overflow-y-auto p-4">
+              {available.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">すべての馬が出走登録済みです</div>
+              ) : visibleHorses.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">該当する馬がいません</div>
+              ) : (
+                <SortableContext
+                  items={visibleHorses.map((h) => `available-${h.id}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {visibleHorses.map((horse) => (
+                    <DraggableHorse key={horse.id} horse={horse} onClick={() => addToEntries(horse)} />
+                  ))}
+                </SortableContext>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex flex-col">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex min-h-8 items-center justify-between">
             <AdminSectionTitle>出走馬一覧 ({entries.length}頭)</AdminSectionTitle>
             {entries.length > 0 && (
               <Button
@@ -343,6 +345,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
         {activeHorse && (
           <div className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white p-3 shadow-lg">
             <span className="font-medium text-gray-900">{activeHorse.name}</span>
+            <HorseSourceBadge source={activeHorse.source} />
             <HorseTypeBadge type={activeHorse.type} />
             <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(activeHorse.gender)}`}>
               {getGenderAge(activeHorse.gender, activeHorse.age)}
