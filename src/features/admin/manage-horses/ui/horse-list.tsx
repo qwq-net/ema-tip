@@ -1,10 +1,16 @@
 'use client';
 
-import { filterHorses, type SourceFilter } from '@/features/admin/shared/lib/filter-horses';
+import {
+  filterHorses,
+  SOURCE_FILTER_OPTIONS,
+  TYPE_FILTER_OPTIONS,
+  type SourceFilter,
+  type TypeFilter,
+} from '@/features/admin/shared/lib/filter-horses';
 import { ConfirmDeleteButton } from '@/features/admin/shared/ui/confirm-delete-button';
+import { SegmentedControl } from '@/features/admin/shared/ui/segmented-control';
 import { Badge, Input, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { getGenderAge } from '@/shared/utils/gender';
-import clsx from 'clsx';
 import Link from 'next/link';
 import { useState } from 'react';
 import { deleteHorse, type getHorses } from '../actions';
@@ -17,34 +23,19 @@ const originLabels = {
   FOREIGN_TRAINED: '外来馬',
 } satisfies Record<string, string>;
 
-const sourceFilterOptions = [
-  { value: 'ALL', label: '全て' },
-  { value: 'MANUAL', label: '手動登録' },
-  { value: 'NETKEIBA', label: 'Netkeiba経由' },
-] satisfies { value: SourceFilter; label: string }[];
-
 export function HorseList({ horses }: { horses: Horse[] }) {
   const [searchWord, setSearchWord] = useState('');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('ALL');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
 
-  const filteredHorses = filterHorses(horses, searchWord, sourceFilter);
+  const filteredHorses = filterHorses(horses, searchWord, sourceFilter, typeFilter);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex space-x-1 rounded-lg bg-gray-100 p-1">
-          {sourceFilterOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setSourceFilter(option.value)}
-              className={clsx(
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-all',
-                sourceFilter === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <SegmentedControl options={SOURCE_FILTER_OPTIONS} value={sourceFilter} onChange={setSourceFilter} />
+          <SegmentedControl options={TYPE_FILTER_OPTIONS} value={typeFilter} onChange={setTypeFilter} />
         </div>
         <Input
           type="search"

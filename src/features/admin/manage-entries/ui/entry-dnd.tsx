@@ -1,7 +1,14 @@
 'use client';
 
-import type { HorseSource } from '@/entities/horse/types';
-import { filterHorses, type SourceFilter } from '@/features/admin/shared/lib/filter-horses';
+import type { HorseSource, HorseType } from '@/entities/horse/types';
+import {
+  filterHorses,
+  SOURCE_FILTER_OPTIONS,
+  TYPE_FILTER_OPTIONS,
+  type SourceFilter,
+  type TypeFilter,
+} from '@/features/admin/shared/lib/filter-horses';
+import { SegmentedControl } from '@/features/admin/shared/ui/segmented-control';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Button, Input } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor } from '@/shared/utils/bracket';
@@ -19,7 +26,6 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import clsx from 'clsx';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -31,6 +37,7 @@ type Horse = {
   gender: string;
   age: number | null;
   source: HorseSource;
+  type: HorseType;
 };
 
 type Entry = {
@@ -40,15 +47,10 @@ type Entry = {
   horseGender: string;
   horseAge: number | null;
   horseSource: HorseSource;
+  horseType: HorseType;
   bracketNumber: number | null;
   horseNumber: number | null;
 };
-
-const sourceFilterOptions = [
-  { value: 'ALL', label: '全て' },
-  { value: 'MANUAL', label: '手動登録' },
-  { value: 'NETKEIBA', label: 'Netkeiba経由' },
-] satisfies { value: SourceFilter; label: string }[];
 
 type Props = {
   raceId: string;
@@ -151,15 +153,17 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       gender: e.horseGender,
       age: e.horseAge,
       source: e.horseSource,
+      type: e.horseType,
     }))
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [searchWord, setSearchWord] = useState('');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('ALL');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
 
   // 絞り込みは登録馬一覧の表示のみに効かせる。available 自体は保持し、DnD の出し入れに影響させない
-  const visibleHorses = filterHorses(available, searchWord, sourceFilter);
+  const visibleHorses = filterHorses(available, searchWord, sourceFilter, typeFilter);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -261,23 +265,8 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
         <div className="flex flex-col">
           <AdminSectionTitle className="mb-3">登録馬一覧</AdminSectionTitle>
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <div className="flex space-x-1 rounded-lg bg-gray-100 p-1">
-              {sourceFilterOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSourceFilter(option.value)}
-                  className={clsx(
-                    'rounded-md px-3 py-1.5 text-sm font-medium transition-all',
-                    sourceFilter === option.value
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-900'
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl options={SOURCE_FILTER_OPTIONS} value={sourceFilter} onChange={setSourceFilter} />
+            <SegmentedControl options={TYPE_FILTER_OPTIONS} value={typeFilter} onChange={setTypeFilter} />
             <Input
               type="search"
               value={searchWord}
