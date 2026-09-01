@@ -81,6 +81,11 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-role.ts {{.CLI_ARGS}}
 
+  db:reconcile:
+    desc: 残高と取引台帳の整合性を突合します（読み取りのみ）
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reconcile.ts
+
   # ── 本番環境（VM上で実行） ────────────────────────────────────
   prod:up:
     desc: 本番環境を起動・更新します（VM上で実行）

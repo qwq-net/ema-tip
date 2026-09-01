@@ -13,10 +13,11 @@ import {
 } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
@@ -37,6 +38,9 @@ export async function finalizePayout(raceId: string) {
     if (race.status !== 'CLOSED') {
       throw new Error('レースが締切状態ではありません');
     }
+
+    // トランザクションが巻き戻ればログも消えるため、検証通過時点で記録してよい
+    await logAdminAction(tx, session, 'race.finalize_payout', raceId);
 
     const results = await tx.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
     if (results.length === 0) {

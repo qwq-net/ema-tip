@@ -4,11 +4,12 @@ import { db } from '@/shared/db';
 import { payoutResults, raceEntries, raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireAdmin } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function resetRaceResults(raceId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
@@ -41,6 +42,8 @@ export async function resetRaceResults(raceId: string) {
     if (finalizedBet5) {
       throw new Error('BET5精算済みのイベントに含まれるレースはリセットできません');
     }
+
+    await logAdminAction(tx, session, 'race.reset_results', raceId);
 
     await tx.update(raceEntries).set({ finishPosition: null }).where(eq(raceEntries.raceId, raceId));
 

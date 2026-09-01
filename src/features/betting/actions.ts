@@ -128,6 +128,10 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
   await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${walletId}`}))`);
 
+    // 締切・再開の UPDATE と直列化する共有ロック。これがないと、
+    // 下の状態チェック通過後に締切がコミットされ、締切済みレースへのベットが混入しうる
+    await tx.execute(sql`SELECT 1 FROM race_instance WHERE id = ${raceId} FOR SHARE`);
+
     const lockedRace = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),
     });

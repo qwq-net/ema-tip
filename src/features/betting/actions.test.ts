@@ -300,9 +300,11 @@ describe('placeBets', () => {
 
     await placeBets(defaultArgs);
 
-    expect(mockTx.execute).toHaveBeenCalledTimes(1);
+    expect(mockTx.execute).toHaveBeenCalledTimes(2);
     const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
+    const shareLockArg = JSON.stringify(mockTx.execute.mock.calls[1][0]);
+    expect(shareLockArg).toContain('FOR SHARE');
   });
 
   it('advisory lock のキーに walletId が含まれる', async () => {
@@ -334,9 +336,11 @@ describe('placeBets', () => {
 
     await placeBets(defaultArgs);
 
+    // execute は advisory lock と FOR SHARE の2回。どちらも再読込より先に走ること
     expect(callOrder[0]).toBe('lock');
-    expect(callOrder[1]).toBe('readRace');
-    expect(callOrder[2]).toBe('readWallet');
+    expect(callOrder[1]).toBe('lock');
+    expect(callOrder[2]).toBe('readRace');
+    expect(callOrder[3]).toBe('readWallet');
   });
 
   it('ロック後にレースが CLOSED になっていた場合は RACE_CLOSED エラーをスローする（競合シナリオ）', async () => {

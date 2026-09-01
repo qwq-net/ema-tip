@@ -183,6 +183,9 @@ export async function placeBet5Bet({
 
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${wallet.id}`}))`);
 
+    // 締切の UPDATE と直列化する共有ロック。状態チェック通過後の締切コミットによる購入混入を防ぐ
+    await tx.execute(sql`SELECT 1 FROM bet5_event WHERE id = ${bet5EventId} FOR SHARE`);
+
     const lockedEvent = await tx.query.bet5Events.findFirst({
       where: eq(bet5Events.id, bet5EventId),
     });

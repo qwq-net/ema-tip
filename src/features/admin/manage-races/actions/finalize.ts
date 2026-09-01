@@ -16,6 +16,7 @@ import { db } from '@/shared/db';
 import { bets, payoutResults as payoutResultsTable, raceEntries, raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ActionError, requireAdmin, revalidateRacePaths, runAction } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq, sql, SQL } from 'drizzle-orm';
 
 // 着順を確定して払戻を計算する。未締切・確定済みなどの想定内エラーは throw せず
@@ -33,7 +34,7 @@ async function finalizeRaceInner(
   results: { entryId: string; finishPosition: number }[],
   netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
 ) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   let rankingPayload: {
     finishPosition: number;
@@ -61,6 +62,9 @@ async function finalizeRaceInner(
     if (raceInstance.status !== 'CLOSED') {
       throw new ActionError('レースが締切状態ではありません');
     }
+
+    // トランザクションが巻き戻ればログも消えるため、検証通過時点で記録してよい
+    await logAdminAction(tx, session, 'race.finalize_results', raceId);
 
     if (results.length > 0) {
       const sqlChunks: SQL[] = [];

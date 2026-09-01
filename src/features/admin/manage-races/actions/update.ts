@@ -4,6 +4,7 @@ import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { and, eq, inArray } from 'drizzle-orm';
 import { raceSchema } from '../model/validation';
@@ -76,7 +77,7 @@ export async function updateRace(id: string, formData: FormData) {
 }
 
 export async function closeRace(raceId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const updated = await db
     .update(raceInstances)
@@ -91,6 +92,7 @@ export async function closeRace(raceId: string) {
     throw new Error('受付中のレースのみ締め切れます');
   }
 
+  await logAdminAction(db, session, 'race.close', raceId);
   raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -98,7 +100,7 @@ export async function closeRace(raceId: string) {
 }
 
 export async function reopenRace(raceId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const updated = await db
     .update(raceInstances)
@@ -110,6 +112,7 @@ export async function reopenRace(raceId: string) {
     throw new Error('締切済みのレースのみ再開できます');
   }
 
+  await logAdminAction(db, session, 'race.reopen', raceId);
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -117,7 +120,7 @@ export async function reopenRace(raceId: string) {
 }
 
 export async function setClosingTime(raceId: string, minutes: number) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const closingAt = new Date(Date.now() + minutes * 60 * 1000);
 
@@ -131,6 +134,7 @@ export async function setClosingTime(raceId: string, minutes: number) {
     throw new Error('払戻確定済みのレースには締切時刻を設定できません');
   }
 
+  await logAdminAction(db, session, 'race.set_closing_time', raceId, { minutes });
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);

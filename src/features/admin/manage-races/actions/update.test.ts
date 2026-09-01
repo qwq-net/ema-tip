@@ -12,6 +12,10 @@ vi.mock('@/shared/utils/admin', async () => {
   };
 });
 
+vi.mock('@/shared/utils/admin-audit', () => ({
+  logAdminAction: vi.fn(),
+}));
+
 vi.mock('@/shared/config/auth', () => ({
   auth: vi.fn(),
   signIn: vi.fn(),

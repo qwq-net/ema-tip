@@ -4,6 +4,7 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Tickets } from '@/shared/db/schema';
 import { ActionError, runAction } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -49,6 +50,7 @@ export async function closeBet5EventAction(bet5EventId: string, eventId: string)
   }
 
   const updated = await closeBet5Event(bet5EventId);
+  await logAdminAction(db, session, 'bet5.close', bet5EventId);
   revalidatePath(`/admin/events/${eventId}`);
   return updated;
 }
@@ -60,6 +62,7 @@ export async function updateBet5InitialPotAction(bet5EventId: string, eventId: s
   }
 
   const updated = await updateBet5InitialPot(bet5EventId, initialPot);
+  await logAdminAction(db, session, 'bet5.update_initial_pot', bet5EventId, { initialPot });
   revalidatePath(`/admin/events/${eventId}`);
   return updated;
 }
@@ -112,6 +115,13 @@ export async function calculateBet5PayoutAction(bet5EventId: string, eventId: st
   }
 
   const result = await calculateBet5Payout(bet5EventId);
+  // 締切状態でない等の不成立時は状態が変わらないため、確定した場合のみ記録する
+  if (result.success) {
+    await logAdminAction(db, session, 'bet5.finalize_payout', bet5EventId, {
+      winCount: result.winCount ?? 0,
+      dividend: result.dividend ?? 0,
+    });
+  }
   revalidatePath(`/admin/events/${eventId}`);
   return result;
 }

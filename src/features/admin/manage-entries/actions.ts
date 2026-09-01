@@ -1,8 +1,9 @@
 'use server';
 
+import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
-import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { requireAdmin, requireUser, revalidateRacePaths } from '@/shared/utils/admin';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
 import { count, eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -104,7 +105,12 @@ export async function getHorsesForSelect() {
   return db.select({ id: horses.id, name: horses.name }).from(horses).orderBy(horses.name);
 }
 
+// 未ログインには null を返す。throw すると generateMetadata 経由の呼び出しが
+// ログインページへの redirect より先に 500 になるため、レース不在と同じ扱いに落とす
 export async function getRaceById(raceId: string) {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
   return db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),
     with: {
@@ -115,6 +121,8 @@ export async function getRaceById(raceId: string) {
 }
 
 export async function getEntriesForRace(raceId: string) {
+  await requireUser();
+
   return db
     .select({
       id: raceEntries.id,
@@ -134,6 +142,8 @@ export async function getEntriesForRace(raceId: string) {
 }
 
 export async function getAvailableHorses(raceId: string) {
+  await requireAdmin();
+
   const existingEntries = await db
     .select({ horseId: raceEntries.horseId })
     .from(raceEntries)

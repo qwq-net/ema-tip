@@ -1,6 +1,7 @@
 import { type BetType } from '@/entities/bet';
 import { db } from '@/shared/db';
 import {
+  adminActionLogs,
   betGroups,
   bets,
   events,
@@ -18,7 +19,8 @@ const runSlowTests = process.env.RUN_SLOW_TESTS === '1';
 const itSlow = runSlowTests ? it : it.skip;
 
 vi.mock('@/shared/utils/admin', () => ({
-  requireAdmin: vi.fn(),
+  // 監査ログが実テーブルへ挿入されるため、actor を持つセッション形状を返す
+  requireAdmin: vi.fn().mockResolvedValue({ user: { id: 'test-admin', name: 'test-admin' } }),
   revalidateRacePaths: vi.fn(),
   ADMIN_ERRORS: {
     NOT_FOUND: 'NOT_FOUND',
@@ -103,6 +105,7 @@ describe('finalizePayout', () => {
     await db.delete(bets).where(inArray(bets.id, createdBetIds));
     await db.delete(betGroups).where(inArray(betGroups.id, createdBetGroupIds));
     if (raceId) {
+      await db.delete(adminActionLogs).where(eq(adminActionLogs.targetId, raceId));
       await db.delete(payoutResults).where(eq(payoutResults.raceId, raceId));
       await db.delete(raceInstances).where(eq(raceInstances.id, raceId));
     }
