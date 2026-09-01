@@ -1,6 +1,7 @@
 'use client';
 
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Button } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useState, useTransition } from 'react';
@@ -35,7 +36,7 @@ export function RaceGuaranteedOddsForm({ raceId, initialOdds, hideHeader = false
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         {!hideHeader && (
           <>
-            <h3 className="mb-4 text-base font-semibold text-gray-900">保証オッズ設定</h3>
+            <AdminSectionTitle className="mb-4">保証オッズ設定</AdminSectionTitle>
             <p className="mb-6 text-sm text-gray-500">
               このレースに適用する保証オッズを設定します。設定された値より配当が低くなることはありません。
             </p>

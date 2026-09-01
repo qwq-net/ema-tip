@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Button } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
@@ -241,7 +242,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col">
-          <h3 className="mb-3 font-semibold text-gray-900">登録馬一覧</h3>
+          <AdminSectionTitle className="mb-3">登録馬一覧</AdminSectionTitle>
           <div
             ref={setAvailableRef}
             id="available-list"
@@ -261,7 +262,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
         <div className="flex flex-col">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">出走馬一覧 ({entries.length}頭)</h3>
+            <AdminSectionTitle>出走馬一覧 ({entries.length}頭)</AdminSectionTitle>
             {entries.length > 0 && (
               <Button
                 type="button"

@@ -2,6 +2,7 @@
 
 import { fetchNetkeibaRaceResult } from '@/features/admin/import-race/actions';
 import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/types';
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -25,6 +26,7 @@ import {
   ExternalLink,
   GripVertical,
   Info,
+  ListOrdered,
   Loader2,
   RotateCcw,
   Settings2,
@@ -360,28 +362,29 @@ export function RaceResultForm({
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <div className="space-y-4 lg:col-span-2">
-        {!race.fixedOddsMode && (
-          <div className="flex items-end justify-between px-1">
-            <div className="flex items-center gap-3">
-              <div className="mb-0.5 flex items-center gap-1.5 text-sm font-semibold text-gray-400">
-                <Info className="h-4 w-4" />
-                ドラッグして着順を並び替えてください
-              </div>
-            </div>
-            {isChanged && (
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
+        <div className="mb-4 border-b border-gray-50 pb-4">
+          <div className="flex items-center justify-between gap-2">
+            <AdminSectionTitle icon={ListOrdered}>着順設定</AdminSectionTitle>
+            {!race.fixedOddsMode && isChanged && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleReset}
-                className="mb-0.5 h-auto p-0 font-semibold text-gray-400 hover:bg-transparent hover:text-gray-600"
+                className="h-auto p-0 font-semibold text-gray-400 hover:bg-transparent hover:text-gray-600"
               >
                 <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                 リセット
               </Button>
             )}
           </div>
-        )}
+          {!race.fixedOddsMode && race.status === 'CLOSED' && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-400">
+              <Info className="h-3.5 w-3.5" />
+              ドラッグして着順を並び替えてください
+            </p>
+          )}
+        </div>
 
         {race.fixedOddsMode && race.status === 'CLOSED' ? (
           <div className="space-y-6">
@@ -471,9 +474,8 @@ export function RaceResultForm({
         )}
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-2 flex items-center gap-2 border-b border-gray-50 pb-4 text-sm">
-            <Settings2 className="h-4 w-4 text-gray-400" />
-            <h4 className="font-semibold text-gray-900">レース情報</h4>
+          <div className="mb-2 border-b border-gray-50 pb-4">
+            <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
           </div>
 
           <div className="divide-y divide-gray-50 text-sm">

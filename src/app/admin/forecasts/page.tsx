@@ -1,5 +1,5 @@
 import { getRaces } from '@/features/admin/manage-races/actions/read';
-import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminLoadingCard, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { ForecastRaceAccordion } from '@/features/forecasts/components/ForecastRaceAccordion';
 import { CircleHelp } from 'lucide-react';
 import { Suspense } from 'react';
@@ -41,7 +41,7 @@ export default async function ForecastsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-gray-900">開催一覧</h2>
+            <AdminSectionTitle>開催一覧</AdminSectionTitle>
             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
               <CircleHelp className="h-4 w-4 text-gray-500" />
               <span>レース名をクリックすると予想入力画面へ移動します。</span>

@@ -2,6 +2,7 @@ import { getPayoutResults } from '@/entities/race/actions';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { RACE_CONDITIONS, RACE_SURFACES } from '@/shared/constants/race';
 import { db } from '@/shared/db';
 import { bet5Events, horses, raceEntries, raceOdds } from '@/shared/db/schema';
@@ -135,7 +136,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
                     <Trophy className="h-4 w-4" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">確定済み結果</h2>
+                  <AdminSectionTitle>確定済み結果</AdminSectionTitle>
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
@@ -248,9 +249,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         {race.status === 'FINALIZED' && (
           <div className="space-y-6">
             <Card className="border-none shadow-sm">
-              <CardHeader className="flex flex-row items-center gap-2 border-b border-gray-50 pb-4">
-                <Settings2 className="h-4 w-4 text-gray-400" />
-                <h2 className="text-sm font-semibold text-gray-900">レース情報</h2>
+              <CardHeader className="border-b border-gray-50 pb-4">
+                <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-6 text-sm">
                 <div className="flex items-center justify-between border-b border-gray-50 pb-2">

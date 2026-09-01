@@ -1,6 +1,7 @@
 'use client';
 
 import { HorseTagType } from '@/entities/horse';
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import {
   Button,
@@ -75,7 +76,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
           return (
             <Card key={type}>
               <CardHeader className="pb-3">
-                <h3 className="text-lg font-semibold">{HORSE_TAG_CATEGORIES[type]}</h3>
+                <AdminSectionTitle>{HORSE_TAG_CATEGORIES[type]}</AdminSectionTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">

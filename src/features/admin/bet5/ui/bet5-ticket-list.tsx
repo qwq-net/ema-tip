@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 
 interface Bet5Ticket {
@@ -57,7 +58,7 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">購入されたBET5一覧 ({tickets.length}件)</h3>
+      <AdminSectionTitle>購入されたBET5一覧 ({tickets.length}件)</AdminSectionTitle>
       <TableShell>
         <TableHead>
           <Th>購入日時</Th>

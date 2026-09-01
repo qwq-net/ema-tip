@@ -1,5 +1,5 @@
 import { updateSystemDefaultOdds } from '@/features/admin/manage-settings/actions';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { redirect } from 'next/navigation';
@@ -39,7 +39,7 @@ export default async function DefaultOddsSettingsPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-lg font-semibold text-gray-900">保証オッズ設定値</h2>
+          <AdminSectionTitle>保証オッズ設定値</AdminSectionTitle>
           <p className="text-sm text-gray-500">
             新規に作成されるレースに適用されるデフォルトの保証オッズを設定します。
             <br />※ 既に作成済みのレースの保証オッズは変更されません。個別に変更してください。

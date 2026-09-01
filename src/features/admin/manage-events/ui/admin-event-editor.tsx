@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
 import { Button, Card, CardContent } from '@/shared/ui';
 import { Pause, Play, RefreshCw, Square } from 'lucide-react';
@@ -36,7 +37,7 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
       <EventForm initialData={event} onSuccess={onSuccess} />
 
       <div className="border-t border-gray-100 pt-6">
-        <h3 className="mb-4 text-sm font-medium text-gray-900">アクション</h3>
+        <AdminSectionTitle className="mb-4">アクション</AdminSectionTitle>
 
         <div className="space-y-4">
           <Card className="bg-gray-50">
