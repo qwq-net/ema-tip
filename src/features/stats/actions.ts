@@ -92,6 +92,8 @@ export async function getGlobalStats() {
     };
   }
 
+  // p資産推移チャートのため全取引を上限なしで取得する。最大30人・低頻度開催の
+  // 想定では実害がないため意図的にこのままとする。重くなったらイベント単位の遅延読み込みへ
   const allTransactions = await db.query.transactions.findMany({
     where: inArray(transactions.walletId, walletIds),
     // 一括ベットは createdAt が完全一致するため、id で並びを安定させる

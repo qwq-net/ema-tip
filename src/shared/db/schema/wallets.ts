@@ -34,6 +34,8 @@ export const wallets = pgTable(
   })
 );
 
+// 取引はベット1点ごとに1行の粒度で記録する。1回の大量購入で数百行入る書き込み増幅は、
+// 最大30人・低頻度開催の想定では問題にならないため、グループ単位への集約は行わないと判断済み
 export const transactions = pgTable(
   'transaction',
   {
