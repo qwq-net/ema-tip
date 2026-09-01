@@ -17,6 +17,9 @@ import Discord from 'next-auth/providers/discord';
 import { cache } from 'react';
 import { z } from 'zod';
 
+// ユーザー不存在時のダミー照合に使う固定ハッシュ。平文は 'timing-equalizer' で、照合成功する値ではない
+const DUMMY_PASSWORD_HASH = '$2b$10$r0Wxh.puvVznam.0yam8y.iNKmj67M6lmfdefoMEouce9ND/5Rjti';
+
 class RateLimitError extends CredentialsSignin {
   code = 'RateLimitExceeded';
 }
@@ -29,16 +32,14 @@ class UsernameTakenError extends CredentialsSignin {
   code = 'UsernameTaken';
 }
 
-class UserNotFoundError extends CredentialsSignin {
-  code = 'UserNotFound';
+// ユーザー不存在とパスワード不一致は同一コードで返す。
+// 分けるとレスポンスからユーザー名の存在有無を列挙できてしまう
+class InvalidCredentialsError extends CredentialsSignin {
+  code = 'InvalidCredentials';
 }
 
 class UserSetupIncompleteError extends CredentialsSignin {
   code = 'UserSetupIncomplete';
-}
-
-class InvalidPasswordError extends CredentialsSignin {
-  code = 'InvalidPassword';
 }
 
 class AccountDisabledError extends CredentialsSignin {
@@ -177,8 +178,10 @@ const {
 
             if (!existingUser) {
               console.warn(`Login failed: user not found ${username}`);
+              // 応答時間の差からユーザー名の存在有無を判別されないよう、不存在でもダミー照合を行う
+              await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
               await recordFailure();
-              throw new UserNotFoundError();
+              throw new InvalidCredentialsError();
             }
 
             if (!existingUser.password) {
@@ -191,7 +194,7 @@ const {
             if (!isPasswordValid) {
               console.warn('Invalid password attempt');
               await recordFailure();
-              throw new InvalidPasswordError();
+              throw new InvalidCredentialsError();
             }
 
             if (existingUser.disabledAt) {

@@ -53,6 +53,7 @@ const nextConfig = (phase: string): NextConfig => {
   const securityHeaders = buildSecurityHeaders(phase === PHASE_DEVELOPMENT_SERVER);
 
   return {
+    poweredByHeader: false,
     turbopack: {
       root: process.cwd(),
     },

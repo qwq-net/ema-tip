@@ -7,8 +7,7 @@ const COMMON_ERROR_MESSAGES = {
 /** ゲストログインの signIn エラーコードに対応する日本語メッセージ。 */
 export const LOGIN_ERROR_MESSAGES = {
   ...COMMON_ERROR_MESSAGES,
-  UserNotFound: WRONG_CREDENTIALS,
-  InvalidPassword: WRONG_CREDENTIALS,
+  InvalidCredentials: WRONG_CREDENTIALS,
   CredentialsSignin: WRONG_CREDENTIALS,
   UserSetupIncomplete: 'アカウント設定が完了していません。管理者にお問い合わせください。',
   AccountDisabled: 'このアカウントは無効化されています。',
