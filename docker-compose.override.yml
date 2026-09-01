@@ -12,3 +12,24 @@ services:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     profiles:
       - dev
+
+  # E2E 実行用。ブラウザはこのイメージ同梱のものを使うため、
+  # タグは package.json の @playwright/test のバージョンと一致させること
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    working_dir: /app
+    volumes:
+      - .:/app
+    # Chromium の HTTPS 自動昇格を避けるため app と同一ネットワーク名前空間にし、
+    # localhost:3000 でアプリへ到達する。db へはこの名前空間の DNS 経由で届く
+    network_mode: service:app
+    environment:
+      - E2E_BASE_URL=http://localhost:3000
+      - E2E_DATABASE_URL=postgresql://postgres:password@db:5432/webapp
+      - CI=true
+    depends_on:
+      - app
+      - db
+    profiles:
+      - e2e
+    command: npx playwright test

@@ -86,6 +86,11 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reconcile.ts
 
+  test:e2e:
+    desc: 'E2Eテストを実行します（app/db/redis が起動済みでシード投入済みであること）'
+    cmds:
+      - docker compose run --rm e2e
+
   # ── 本番環境（VM上で実行） ────────────────────────────────────
   prod:up:
     desc: 本番環境を起動・更新します（VM上で実行）

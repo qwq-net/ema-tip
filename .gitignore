@@ -42,3 +42,7 @@ next-env.d.ts
 
 # temporary
 tmp/
+
+# playwright
+/test-results/
+/playwright-report/
