@@ -1,7 +1,8 @@
 import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { HORSE_TAG_TYPES, HORSE_TYPES } from '../../constants/horse';
+import { HORSE_SOURCES, HORSE_TAG_TYPES, HORSE_TYPES } from '../../constants/horse';
 
 export const horseTypeEnum = pgEnum('horse_type', HORSE_TYPES);
+export const horseSourceEnum = pgEnum('horse_source', HORSE_SOURCES);
 export const horseTagTypeEnum = pgEnum('horse_tag_type', HORSE_TAG_TYPES);
 export const horseGenderEnum = pgEnum('horse_gender', ['MARE', 'FILLY', 'HORSE', 'COLT', 'GELDING']);
 export const horseOriginEnum = pgEnum('horse_origin', ['DOMESTIC', 'FOREIGN_BRED', 'FOREIGN_TRAINED']);
@@ -13,6 +14,7 @@ export const horses = pgTable('horse', {
   age: integer('age'),
   type: horseTypeEnum('type').default('REAL').notNull(),
   origin: horseOriginEnum('origin').default('DOMESTIC').notNull(),
+  source: horseSourceEnum('source').default('MANUAL').notNull(),
   notes: text('notes'),
   sireId: uuid('sire_id'),
   damId: uuid('dam_id'),

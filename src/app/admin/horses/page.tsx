@@ -1,4 +1,5 @@
 import { HorseList } from '@/features/admin/manage-horses';
+import { getHorses } from '@/features/admin/manage-horses/actions';
 import { AdminLoadingCard, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Button } from '@/shared/ui';
 import { Plus } from 'lucide-react';
@@ -9,6 +10,12 @@ import { Suspense } from 'react';
 export const metadata: Metadata = {
   title: '馬マスタ管理',
 };
+
+// 一覧の絞り込みはクライアント側で行うため、データ取得だけをサーバー側で担う
+async function HorseListSection() {
+  const horses = await getHorses();
+  return <HorseList horses={horses} />;
+}
 
 export default async function HorsesPage() {
   return (
@@ -30,7 +37,7 @@ export default async function HorsesPage() {
         </div>
 
         <Suspense fallback={<AdminLoadingCard />}>
-          <HorseList />
+          <HorseListSection />
         </Suspense>
       </div>
     </div>

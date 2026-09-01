@@ -194,7 +194,7 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
       if (newHorses.length > 0) {
         const inserted = await tx
           .insert(horses)
-          .values(newHorses.map((h) => ({ name: h.name, gender: h.gender, age: h.age })))
+          .values(newHorses.map((h) => ({ name: h.name, gender: h.gender, age: h.age, source: 'NETKEIBA' as const })))
           .returning({ id: horses.id, name: horses.name });
         for (const h of inserted) horseIdByName.set(h.name, h.id);
       }
