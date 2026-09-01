@@ -189,9 +189,7 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
 
       // 同名馬が同一レースに重複していても1頭として登録する
       const newHorses = [
-        ...new Map(
-          params.horses.filter((h) => !horseIdByName.has(h.name)).map((h) => [h.name, h])
-        ).values(),
+        ...new Map(params.horses.filter((h) => !horseIdByName.has(h.name)).map((h) => [h.name, h])).values(),
       ];
       if (newHorses.length > 0) {
         const inserted = await tx

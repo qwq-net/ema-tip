@@ -49,7 +49,12 @@ class InvalidUsernameError extends CredentialsSignin {
   code = 'InvalidUsername';
 }
 
-const { handlers, auth: authUncached, signIn, signOut } = NextAuth({
+const {
+  handlers,
+  auth: authUncached,
+  signIn,
+  signOut,
+} = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: schema.users,
     accountsTable: schema.accounts,
