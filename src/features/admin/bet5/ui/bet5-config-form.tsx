@@ -1,7 +1,7 @@
 'use client';
 
 import { createBet5EventAction } from '@/features/betting';
-import { Button, Card, CardContent, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -16,10 +16,11 @@ type Race = {
 
 interface Bet5ConfigFormProps {
   eventId: string;
+  eventName: string;
   races: Race[];
 }
 
-export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
+export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [initialPot, setInitialPot] = useState(0);
@@ -72,6 +73,7 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
     <Card>
       <CardHeader>
         <CardTitle>BET5設定</CardTitle>
+        <CardDescription>対象イベント: {eventName}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">

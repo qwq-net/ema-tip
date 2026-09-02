@@ -149,7 +149,11 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
       </div>
 
       {!bet5Event ? (
-        <Bet5ConfigForm eventId={id} races={races.map((r) => ({ id: r.id, raceNumber: r.raceNumber, name: r.name }))} />
+        <Bet5ConfigForm
+          eventId={id}
+          eventName={event.name}
+          races={races.map((r) => ({ id: r.id, raceNumber: r.raceNumber, name: r.name }))}
+        />
       ) : (
         <div className="space-y-8">
           <Bet5ManageCard
