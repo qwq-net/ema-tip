@@ -64,7 +64,7 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
 
             <div className="space-y-2">
               <h4 className="text-text-sub text-sm font-medium">取引履歴</h4>
-              <div className="max-h-[300px] overflow-y-auto rounded-md border">
+              <div className="rounded-control max-h-[300px] overflow-y-auto border">
                 <HistoryList logs={event.logs} />
               </div>
             </div>

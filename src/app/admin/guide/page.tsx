@@ -134,11 +134,11 @@ function StepCard({ step, tone }: { step: Step; tone: keyof typeof TONES }) {
   const Icon = step.icon;
 
   return (
-    <Card className={`overflow-hidden border-l-4 border-gray-100 transition-all hover:shadow-md ${TONES[tone].stripe}`}>
+    <Card className={`overflow-hidden border-l-4 border-gray-100 transition ${TONES[tone].stripe}`}>
       <div className="flex h-full flex-col">
         <div className="flex-1 p-5">
           <div className="mb-3 flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${TONES[tone].chip}`}>
+            <div className={`rounded-control flex h-9 w-9 items-center justify-center ${TONES[tone].chip}`}>
               <Icon className="h-5 w-5" />
             </div>
             <h3 className="text-secondary font-semibold">{step.title}</h3>

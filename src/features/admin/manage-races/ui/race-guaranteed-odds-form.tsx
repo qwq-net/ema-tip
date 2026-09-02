@@ -33,7 +33,7 @@ export function RaceGuaranteedOddsForm({ raceId, initialOdds, hideHeader = false
 
   return (
     <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-control border border-gray-200 bg-white p-6">
         {!hideHeader && (
           <>
             <AdminSectionTitle className="mb-4">保証オッズ設定</AdminSectionTitle>

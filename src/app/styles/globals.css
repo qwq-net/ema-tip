@@ -62,6 +62,12 @@
   --color-success: #15803d; /* 白地 5.02:1 */
   --color-error: #b91c1c; /* 白地 5.94:1 */
 
+  /* 角丸スケール。操作系は control、容器系は surface、小型データチップは chip、
+     ステータスピルは rounded-full。この4種以外は使わない。radius-scale.test.ts が検証する */
+  --radius-control: 0.5rem;
+  --radius-surface: 0.75rem;
+  --radius-chip: 0.25rem;
+
   --animate-spin-slow: spin 3s linear infinite;
 }
 

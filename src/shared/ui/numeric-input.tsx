@@ -182,7 +182,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         placeholder={placeholder ?? '0'}
         name={name}
         className={cn(
-          'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-base transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm',
+          'focus:ring-primary/20 focus:border-primary rounded-control w-full border border-gray-300 px-3 py-2 text-base transition focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm',
           suffix && 'pr-12',
           className
         )}

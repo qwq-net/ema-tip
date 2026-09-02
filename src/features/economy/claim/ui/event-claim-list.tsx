@@ -31,13 +31,15 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
   };
 
   if (events.length === 0) {
-    return <div className="rounded bg-gray-50 p-4 text-center text-gray-500">現在参加可能なイベントはありません。</div>;
+    return (
+      <div className="rounded-chip bg-gray-50 p-4 text-center text-gray-500">現在参加可能なイベントはありません。</div>
+    );
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {events.map((event) => (
-        <Card key={event.id} className="flex flex-col transition-shadow hover:shadow-md">
+        <Card key={event.id} className="flex flex-col transition-shadow">
           <CardHeader>
             <div className="flex items-start justify-between">
               <h3 className="text-lg font-semibold">{event.name}</h3>

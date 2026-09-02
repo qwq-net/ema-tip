@@ -55,7 +55,7 @@ export function PersistedAccordion({ storageKey, allIds, emptyState, children }:
 
   if (allIds.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white py-12 text-center text-gray-500 shadow-sm">
+      <div className="rounded-surface border border-gray-100 bg-white py-12 text-center text-gray-500">
         {emptyState}
       </div>
     );
@@ -77,7 +77,7 @@ export function PersistedAccordion({ storageKey, allIds, emptyState, children }:
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="rounded-surface overflow-x-auto border border-gray-100 bg-white">
         <Accordion.Root type="multiple" value={openItems} onValueChange={handleValueChange} className="w-full">
           {children}
         </Accordion.Root>

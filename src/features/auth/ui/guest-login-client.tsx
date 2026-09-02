@@ -81,7 +81,7 @@ export function GuestLoginClient() {
           </Link>
         </div>
 
-        <div className="space-y-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <div className="rounded-surface space-y-6 border border-gray-200 bg-white p-6">
           <GuestAuthTabs activeTab="login" />
 
           <div className="text-center">
@@ -132,7 +132,7 @@ export function GuestLoginClient() {
                 ignorePasswordManager={false}
               />
 
-              <div className="mb-4 flex min-h-[50px] items-center justify-center rounded-lg border border-gray-200 bg-gray-100 p-3 text-center text-xl tracking-widest">
+              <div className="rounded-control mb-4 flex min-h-[50px] items-center justify-center border border-gray-200 bg-gray-100 p-3 text-center text-xl tracking-widest">
                 {password || <span className="text-text-sub text-xl font-normal tracking-normal">絵文字を選択</span>}
               </div>
 
@@ -140,7 +140,7 @@ export function GuestLoginClient() {
             </div>
 
             {error && (
-              <div role="alert" className="rounded-md bg-red-50 p-4">
+              <div role="alert" className="rounded-control bg-red-50 p-4">
                 <div className="flex">
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-red-800">ログインエラー</h3>

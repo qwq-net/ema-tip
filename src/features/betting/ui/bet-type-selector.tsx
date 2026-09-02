@@ -8,7 +8,7 @@ interface BetTypeSelectorProps {
 
 export function BetTypeSelector({ betType, onBetTypeChange }: BetTypeSelectorProps) {
   return (
-    <div className="flex flex-wrap gap-2 rounded-xl bg-gray-100 p-2">
+    <div className="rounded-surface flex flex-wrap gap-2 bg-gray-100 p-2">
       {BET_TYPE_ORDER.map((type) => (
         <Button
           key={type}
@@ -16,8 +16,8 @@ export function BetTypeSelector({ betType, onBetTypeChange }: BetTypeSelectorPro
           onClick={() => onBetTypeChange(type)}
           aria-pressed={betType === type}
           variant={betType === type ? 'primary' : 'ghost'}
-          className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
-            betType === type ? 'shadow-md' : 'bg-white text-gray-700 hover:bg-gray-50'
+          className={`rounded-control px-4 py-2 text-sm font-medium transition ${
+            betType === type ? '' : 'bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
           {BET_TYPE_LABELS[type]}

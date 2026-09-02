@@ -45,7 +45,7 @@ export function RankingList({
 
   return (
     <div className="w-full space-y-4">
-      <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
+      <div className="rounded-control flex items-center justify-between bg-gray-50 p-4">
         <div className="flex items-center gap-2">
           <Badge variant="status" label={getStatusLabel()} className={getStatusColor()} />
           <span className="text-sm text-gray-500">{published ? '現在の順位' : '結果発表までお待ちください'}</span>
@@ -53,7 +53,7 @@ export function RankingList({
         <LiveConnectionStatus status={connectionStatus} showText={false} />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="rounded-surface overflow-hidden border border-gray-200 bg-white">
         <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
           <div className="flex items-center gap-2">
             <Trophy className={`h-5 w-5 ${published ? 'text-amber-500' : 'text-text-sub'}`} />

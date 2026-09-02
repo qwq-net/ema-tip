@@ -97,7 +97,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
             ].map((t) => (
               <label
                 key={t.value}
-                className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border px-2 py-2 text-sm font-medium transition-all ${
+                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-medium transition ${
                   type === t.value
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -125,7 +125,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
             {['牡', '牝', 'セン'].map((g) => (
               <label
                 key={g}
-                className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border px-2 py-2 text-sm font-medium transition-all ${
+                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-medium transition ${
                   gender === g
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -166,7 +166,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
         <Label className="mb-2 block">
           タグ <span className="text-text-sub font-normal">(任意)</span>
         </Label>
-        <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50/50 p-4">
+        <div className="rounded-control space-y-4 border border-gray-200 bg-gray-50/50 p-4">
           {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((cat) => {
             const masterTags = categorizedMasterTags[cat];
             if (!masterTags || masterTags.length === 0) return null;
@@ -183,9 +183,9 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                         type="button"
                         onClick={() => toggleTag(masterTag)}
                         className={cn(
-                          'rounded-md border px-2.5 py-1 text-sm font-medium transition-all select-none',
+                          'rounded-control border px-2.5 py-1 text-sm font-medium transition select-none',
                           isActive
-                            ? 'border-primary bg-primary text-white shadow-sm'
+                            ? 'border-primary bg-primary text-white'
                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                         )}
                       >
@@ -206,7 +206,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
               {tags.map((tag, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm shadow-sm ring-1 ring-gray-200"
+                  className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm ring-1 ring-gray-200"
                 >
                   <span className="mr-1 text-sm font-semibold text-gray-500">{HORSE_TAG_CATEGORIES[tag.type]}:</span>
                   <span className="text-gray-700">{tag.content}</span>
@@ -242,9 +242,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
         />
       </div>
 
-      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
-        {initialData ? '更新する' : '登録する'}
-      </SubmitButton>
+      <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>
   );
 }

@@ -16,7 +16,7 @@ const CELL_CLASS = 'p-4 align-middle';
 
 export function HistoryList({ logs }: HistoryListProps) {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-control border">
       <div className="relative w-full overflow-auto">
         <table className="w-full text-sm">
           <thead>

@@ -10,7 +10,7 @@ export function BracketBadge({ bracketNumber, className }: BracketBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex h-6 w-6 items-center justify-center rounded text-sm font-semibold',
+        'rounded-chip inline-flex h-6 w-6 items-center justify-center text-sm font-semibold',
         getBracketColor(bracketNumber),
         className
       )}

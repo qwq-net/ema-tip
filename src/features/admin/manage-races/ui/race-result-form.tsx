@@ -107,13 +107,13 @@ function EntryBadges({ entry }: { entry: Entry }) {
     <div className="flex items-center gap-2">
       <span
         className={cn(
-          'flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1 ring-black/5',
+          'rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold ring-1 ring-black/5',
           getBracketColor(entry.bracketNumber)
         )}
       >
         {entry.bracketNumber || '?'}
       </span>
-      <span className="text-primary bg-primary/10 ring-primary/10 flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1">
+      <span className="text-primary bg-primary/10 ring-primary/10 rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold ring-1">
         {entry.horseNumber || '?'}
       </span>
     </div>
@@ -124,7 +124,10 @@ function ReadOnlyEntryList({ entries }: { entries: Entry[] }) {
   return (
     <div className="space-y-2">
       {entries.map((entry) => (
-        <div key={entry.id} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-2">
+        <div
+          key={entry.id}
+          className="rounded-surface flex items-center gap-3 border border-gray-100 bg-gray-50/50 p-2"
+        >
           <EntryBadges entry={entry} />
           <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
             <HorseInfo horseName={entry.horseName} jockey={entry.jockey} odds={entry.odds} />
@@ -153,13 +156,13 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
       {...attributes}
       {...listeners}
       className={cn(
-        'group relative flex cursor-grab items-center gap-3 rounded-xl border border-gray-200 bg-white p-2 ring-offset-2 transition-all duration-200 select-none active:cursor-grabbing',
+        'group rounded-surface relative flex cursor-grab items-center gap-3 border border-gray-200 bg-white p-2 ring-offset-2 transition duration-200 select-none active:cursor-grabbing',
         isDragging ? 'ring-primary/40 opacity-0 ring-2' : 'hover:border-gray-300 hover:bg-gray-50'
       )}
     >
       <div
         className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-lg font-semibold transition-colors',
+          'rounded-control flex h-8 w-8 shrink-0 items-center justify-center border text-lg font-semibold transition-colors',
           getRankStyles(position)
         )}
       >
@@ -358,7 +361,7 @@ export function RaceResultForm({
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
+      <div className="rounded-surface border border-gray-100 bg-white p-6 lg:col-span-2">
         <div className="mb-4 border-b border-gray-50 pb-4">
           <div className="flex items-center justify-between gap-2">
             <AdminSectionTitle icon={ListOrdered}>着順設定</AdminSectionTitle>
@@ -412,10 +415,10 @@ export function RaceResultForm({
 
             <DragOverlay adjustScale={false}>
               {activeEntry && (
-                <div className="border-primary ring-primary/10 flex scale-105 items-center gap-3 rounded-xl border-2 bg-white p-2 shadow-xl ring-4">
+                <div className="border-primary ring-primary/10 rounded-surface flex items-center gap-3 border-2 bg-white p-2 ring-4">
                   <div
                     className={cn(
-                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-lg font-semibold',
+                      'rounded-control flex h-8 w-8 shrink-0 items-center justify-center border text-lg font-semibold',
                       getRankStyles(activePosition)
                     )}
                   >
@@ -454,7 +457,7 @@ export function RaceResultForm({
 
       <div className="space-y-6">
         {showBet5CloseReminder && (
-          <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+          <div className="rounded-surface flex items-center justify-between gap-2 border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
             <div className="flex items-center font-medium text-amber-800">
               <Info className="mr-1.5 h-4 w-4 shrink-0" />
               出走前にBET5を締め切ってください。
@@ -469,7 +472,7 @@ export function RaceResultForm({
           </div>
         )}
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-surface border border-gray-100 bg-white p-6">
           <div className="mb-2 border-b border-gray-50 pb-4">
             <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
           </div>
@@ -546,13 +549,13 @@ export function RaceResultForm({
                 {race.fixedOddsMode ? (
                   <>
                     {!canFinalizePayout && (
-                      <div className="bg-turf-50 text-turf-800 ring-turf-100 flex items-start gap-1.5 rounded-lg px-3 py-2 text-sm font-medium ring-1">
+                      <div className="bg-turf-50 text-turf-800 ring-turf-100 rounded-control flex items-start gap-1.5 px-3 py-2 text-sm font-medium ring-1">
                         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                         Netkeiba上で結果が確定するまで確定はできません
                       </div>
                     )}
                     <Button
-                      className="shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]"
+                      className="relative w-full py-6 text-lg font-semibold active:scale-[0.98]"
                       onClick={handleFetchNetkeibaResult}
                       disabled={isPending || isPayoutMoving || canFinalizePayout}
                     >
@@ -580,7 +583,7 @@ export function RaceResultForm({
                       description={
                         <>
                           Netkeibaの実際の払い戻しオッズで計算されます。
-                          <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                          <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                             {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
                               const labels = ['1着', '2着', '3着'];
                               const colors = ['text-amber-600', 'text-slate-500', 'text-orange-600'];
@@ -605,7 +608,7 @@ export function RaceResultForm({
                     trigger={
                       <Button
                         className={cn(
-                          'shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]',
+                          'relative w-full py-6 text-lg font-semibold active:scale-[0.98]',
                           isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
                         )}
                         disabled={isPending || isPayoutMoving || canFinalizePayout}
@@ -625,7 +628,7 @@ export function RaceResultForm({
                     description={
                       <>
                         この操作を行うと、投票された馬券の払い戻し計算が実行されます。
-                        <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                        <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                           <div className="flex justify-between py-1">
                             <span className="text-amber-600">1着</span>
                             <span>{sortedEntries[0]?.horseName}</span>
@@ -652,7 +655,7 @@ export function RaceResultForm({
             {canFinalizePayout && (
               <div className="space-y-3">
                 <Button
-                  className="relative w-full border-2 border-amber-500 bg-white py-6 text-lg font-semibold text-amber-600 shadow-lg shadow-amber-200 hover:bg-amber-50"
+                  className="relative w-full border-2 border-amber-500 bg-white py-6 text-lg font-semibold text-amber-600 hover:bg-amber-50"
                   onClick={handlePayoutFinalize}
                   disabled={isPayoutMoving || isPending}
                 >

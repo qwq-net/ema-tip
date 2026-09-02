@@ -17,7 +17,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-50 min-w-32 overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-950 shadow-md',
+        'rounded-control z-50 min-w-32 overflow-hidden border border-gray-200 bg-white p-1 text-gray-950 shadow-md',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
         className
       )}
@@ -37,7 +37,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors outline-none select-none focus:bg-gray-100 data-disabled:pointer-events-none data-disabled:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0',
+      'rounded-chip relative flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm transition-colors outline-none select-none focus:bg-gray-100 data-disabled:pointer-events-none data-disabled:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0',
       variant === 'destructive' && 'text-red-600 focus:bg-red-50 focus:text-red-600',
       variant === 'warning' && 'text-amber-600 focus:bg-amber-50 focus:text-amber-600',
       variant === 'success' && 'text-green-600 focus:bg-green-50 focus:text-green-600',

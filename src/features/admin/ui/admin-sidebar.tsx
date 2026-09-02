@@ -104,7 +104,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </div>
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
+            className="rounded-control p-2 text-gray-500 transition-colors hover:bg-gray-100"
             aria-label="メニューを開閉"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -148,8 +148,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                      isActive ? 'bg-white/15 text-white shadow-sm' : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                      'rounded-control flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors',
+                      isActive ? 'bg-white/15 text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white'
                     )}
                   >
                     <Icon className={cn('h-4.5 w-4.5', isActive ? 'opacity-100' : 'opacity-70')} />
@@ -184,7 +184,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           <Link
             href="/mypage"
             onClick={() => setIsOpen(false)}
-            className="mb-2 flex w-full items-center justify-center gap-2 rounded-md border border-gray-600 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+            className="rounded-control mb-2 flex w-full items-center justify-center gap-2 border border-gray-600 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
           >
             <ExternalLink className="h-4 w-4" />
             マイページ

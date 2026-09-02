@@ -17,7 +17,7 @@ export default async function LoginPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <div className="rounded-surface w-full max-w-md space-y-6 border border-gray-200 bg-white p-6">
         <div className="text-center">
           <div className="mb-4">
             <h1 className="text-primary text-2xl font-semibold tracking-tight">Paper Tipster</h1>
@@ -30,7 +30,7 @@ export default async function LoginPage() {
           <TermsAgreement />
         </div>
 
-        <div className="mt-8 rounded-lg bg-gray-50/50 p-4 ring-1 ring-gray-100">
+        <div className="rounded-control mt-8 border border-gray-200 bg-gray-50/50 p-4">
           <div className="flex flex-col gap-2">
             <div className="text-primary flex items-center gap-2">
               <CircleHelp className="h-4 w-4" />

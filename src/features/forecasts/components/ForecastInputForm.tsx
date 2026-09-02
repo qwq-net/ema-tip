@@ -37,7 +37,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-12 text-center shadow-sm">
+      <div className="rounded-surface border border-gray-100 bg-white p-12 text-center">
         <div className="mb-4 flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
             <Info className="h-8 w-8" />
@@ -74,14 +74,10 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
   };
 
   return (
-    <div className="space-y-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="rounded-surface space-y-6 border border-gray-100 bg-white p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">予想入力</h2>
-        <Button
-          onClick={handleSubmit}
-          disabled={isPending}
-          className="from-primary to-primary/80 hover:to-primary bg-linear-to-r shadow-md transition-all hover:shadow-lg active:scale-95"
-        >
+        <Button onClick={handleSubmit} disabled={isPending}>
           {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           保存する
         </Button>

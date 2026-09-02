@@ -126,7 +126,7 @@ export default async function AdminPage() {
     <div className="max-w-5xl space-y-8">
       <AdminPageHeader title="ダッシュボード" />
 
-      <Card className="border-turf-100 bg-turf-50/70 hover:bg-turf-50 shadow-sm transition-all">
+      <Card className="border-turf-100 bg-turf-50/70 hover:bg-turf-50 transition">
         <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
           <div className="flex items-center gap-4">
             <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
@@ -141,7 +141,7 @@ export default async function AdminPage() {
           </div>
           <Link
             href="/admin/guide"
-            className="text-primary flex shrink-0 items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-gray-200 transition-all hover:bg-gray-50 active:scale-95"
+            className="text-primary rounded-control flex shrink-0 items-center gap-2 border border-gray-200 bg-white px-4 py-2 text-sm font-semibold transition hover:bg-gray-50 active:scale-[.96]"
           >
             使い方を見る
             <ArrowRight className="h-4 w-4" />
@@ -202,12 +202,12 @@ function ActionLink({
   return (
     <Link
       href={action.href}
-      className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+      className="group rounded-control flex items-center justify-between border border-gray-100 p-4 transition hover:border-gray-200 hover:bg-gray-50"
     >
       <div className="flex items-center gap-4">
         <div
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white',
+            'rounded-control flex h-10 w-10 items-center justify-center transition-colors group-hover:text-white',
             colors.qaBg,
             colors.qaText,
             colors.qaHoverBg

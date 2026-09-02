@@ -25,10 +25,7 @@ export default async function HorsesPage() {
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
           <h2 className="text-xl font-semibold text-gray-900">登録済みの馬</h2>
-          <Button
-            asChild
-            className="flex items-center gap-2 font-semibold shadow-sm transition-all hover:shadow-md active:scale-95"
-          >
+          <Button asChild className="flex items-center gap-2 font-semibold transition active:scale-[.96]">
             <Link href="/admin/horses/new">
               <Plus className="h-4 w-4" />
               新規馬登録

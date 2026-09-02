@@ -80,7 +80,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
             const points = selectionsByRace.reduce((total, horseIds) => total * horseIds.length, 1);
 
             return (
-              <div key={ticket.id} className="space-y-3 rounded-xl border border-gray-200 p-4">
+              <div key={ticket.id} className="rounded-surface space-y-3 border border-gray-200 p-4">
                 <p className="text-sm font-semibold text-gray-500">チケット {ticketIndex + 1}</p>
                 {races.map((race, raceIndex) => {
                   const horseIds = selectionsByRace[raceIndex] || [];
@@ -97,10 +97,10 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                         {selectedHorses.map((entry) => (
                           <div
                             key={entry.id}
-                            className="flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
+                            className="rounded-chip flex items-center gap-1 border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
                           >
                             <span
-                              className={`inline-flex h-4 w-4 items-center justify-center rounded text-sm font-semibold shadow-sm ${getBracketColor(entry.bracketNumber || 0)}`}
+                              className={`rounded-chip inline-flex h-4 w-4 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber || 0)}`}
                             >
                               {entry.bracketNumber || '-'}
                             </span>
@@ -112,7 +112,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                     </div>
                   );
                 })}
-                <div className="flex justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+                <div className="rounded-control flex justify-between bg-gray-50 px-3 py-2 text-sm">
                   <span className="text-gray-500">{points}点</span>
                   <span className="text-turf-700 font-semibold">{ticket.amount.toLocaleString('ja-JP')}円</span>
                 </div>

@@ -77,7 +77,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
       <div className="flex items-start gap-4">
         <Link
           href="/admin/races"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </Link>
@@ -120,10 +120,10 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
       <div className={race.status === 'FINALIZED' ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={race.status === 'FINALIZED' ? 'lg:col-span-2' : ''}>
           {race.status === 'FINALIZED' ? (
-            <Card className="border-none shadow-sm">
+            <Card className="border-none">
               <CardHeader className="flex flex-row items-center justify-between border-b border-gray-50 pb-4">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
+                  <div className="rounded-control flex h-8 w-8 items-center justify-center bg-amber-50 text-amber-500">
                     <Trophy className="h-4 w-4" />
                   </div>
                   <AdminSectionTitle>確定済み結果</AdminSectionTitle>
@@ -134,11 +134,11 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                   {entriesWithResult.map((entry, index) => (
                     <div
                       key={entry.id}
-                      className="group flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-3 transition-all hover:border-gray-200 hover:shadow-sm"
+                      className="group rounded-surface flex items-center gap-4 border border-gray-100 bg-white p-3 transition hover:border-gray-200"
                     >
                       <div
                         className={cn(
-                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-xl font-semibold transition-colors',
+                          'rounded-control flex h-10 w-10 shrink-0 items-center justify-center border text-xl font-semibold transition-colors',
                           index === 0
                             ? 'border-amber-200 bg-amber-100 text-amber-700'
                             : index === 1
@@ -154,13 +154,13 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                       <div className="flex items-center gap-3">
                         <span
                           className={cn(
-                            'flex h-7 w-7 items-center justify-center rounded text-sm font-semibold ring-1 ring-black/5',
+                            'rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1 ring-black/5',
                             getBracketColor(entry.bracketNumber)
                           )}
                         >
                           {entry.bracketNumber || '?'}
                         </span>
-                        <span className="text-primary bg-primary/10 ring-primary/10 flex h-7 w-7 items-center justify-center rounded text-sm font-semibold ring-1">
+                        <span className="text-primary bg-primary/10 ring-primary/10 rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1">
                           {entry.horseNumber || '?'}
                         </span>
                       </div>
@@ -217,7 +217,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
               }}
             />
           ) : (
-            <Card className="border-none shadow-sm">
+            <Card className="border-none">
               <CardContent className="py-16 text-center">
                 <div className="mb-4 flex justify-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
@@ -236,7 +236,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
         {race.status === 'FINALIZED' && (
           <div className="space-y-6">
-            <Card className="border-none shadow-sm">
+            <Card className="border-none">
               <CardHeader className="border-b border-gray-50 pb-4">
                 <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
               </CardHeader>

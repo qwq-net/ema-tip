@@ -84,7 +84,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                     typeTags.map((tag) => (
                       <div
                         key={tag.id}
-                        className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-sm shadow-xs"
+                        className="rounded-control flex items-center gap-1 border border-gray-200 bg-gray-50 px-2 py-1 text-sm"
                       >
                         <span className="font-medium text-gray-700">{tag.content}</span>
                         <div className="ml-2 flex items-center gap-1">

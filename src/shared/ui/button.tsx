@@ -11,7 +11,7 @@ type ButtonProps = ComponentProps<'button'> & {
 export function Button({ className, variant = 'primary', size = 'md', asChild = false, ...props }: ButtonProps) {
   const Comp = asChild ? Slot : 'button';
   const baseStyles =
-    'inline-flex items-center justify-center rounded-lg font-semibold transition-all disabled:opacity-50 disabled:pointer-events-none active:scale-95';
+    'inline-flex items-center justify-center rounded-control font-semibold transition disabled:opacity-50 disabled:pointer-events-none active:scale-[.96]';
 
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed',

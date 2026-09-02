@@ -34,7 +34,7 @@ export function RacePageHeader({
       <div className="flex items-center gap-2">
         {venueShortName && <span className="text-sm font-semibold text-gray-500">{venueShortName}</span>}
         {raceNumber && (
-          <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
+          <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
             {raceNumber}R
           </span>
         )}
@@ -53,7 +53,7 @@ export function RacePageHeader({
               href={netkeibaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
+              className="rounded-control inline-flex items-center gap-1 bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
             >
               <ExternalLink className="h-3 w-3" />
               Netkeiba

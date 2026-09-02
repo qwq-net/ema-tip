@@ -30,7 +30,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {wallets.map((wallet) => (
-          <Card key={wallet.id} className="p-6 transition-all hover:shadow-md">
+          <Card key={wallet.id} className="p-6 transition">
             <div className="mb-4 flex items-start justify-between">
               <div className="bg-primary/10 text-primary rounded-full p-2">
                 <Wallet size={20} />

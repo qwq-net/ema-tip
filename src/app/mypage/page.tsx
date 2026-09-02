@@ -53,7 +53,7 @@ export default async function MyPage() {
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
-        <Card className="border-none bg-white shadow-sm ring-1 ring-gray-100">
+        <Card>
           <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
             <EditableUserProfile user={session.user} />
             <div className="flex shrink-0 items-center gap-4">
@@ -74,11 +74,9 @@ export default async function MyPage() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} className="group h-full">
-              <Card className="h-full border-none transition-all duration-300 hover:shadow-xl hover:ring-2 hover:ring-gray-200 active:scale-[0.98]">
+              <Card className="hover:border-turf-400 h-full transition active:scale-[0.98]">
                 <CardContent className="flex flex-col items-center justify-center p-10 text-center">
-                  <div
-                    className={`mb-6 flex h-20 w-20 items-center justify-center rounded-4xl transition-all duration-500 group-hover:scale-110 group-hover:rounded-2xl ${item.color}`}
-                  >
+                  <div className={`rounded-surface mb-6 flex h-20 w-20 items-center justify-center ${item.color}`}>
                     {item.icon}
                   </div>
                   <h3 className="text-2xl leading-tight font-semibold text-gray-900">{item.title}</h3>

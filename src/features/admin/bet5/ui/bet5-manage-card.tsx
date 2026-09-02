@@ -118,13 +118,13 @@ export function Bet5ManageCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {bet5Event.status === 'SCHEDULED' && (
-          <div className="flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+          <div className="rounded-control flex items-center border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
             <Info className="mr-2 h-4 w-4 shrink-0" />
             設定済みレースが出走する前にBET5を締め切ってください。
           </div>
         )}
 
-        <div className="rounded-lg bg-gray-50 p-4">
+        <div className="rounded-control bg-gray-50 p-4">
           <div className="mb-4 grid gap-4 sm:grid-cols-3">
             <div>
               <p className="font-medium text-gray-900">ステータス</p>
@@ -166,7 +166,7 @@ export function Bet5ManageCard({
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-100 bg-white p-4">
+        <div className="rounded-control border border-gray-100 bg-white p-4">
           <p className="mb-2 font-medium text-gray-900">設定済み対象レース</p>
           <ul className="space-y-1.5 text-sm text-gray-700">
             {targetRaces.map((race) => {
@@ -174,7 +174,7 @@ export function Bet5ManageCard({
               return (
                 <li
                   key={race.id}
-                  className="flex items-center gap-2 rounded-md border border-gray-100 bg-gray-50 px-3 py-2"
+                  className="rounded-control flex items-center gap-2 border border-gray-100 bg-gray-50 px-3 py-2"
                 >
                   <span className="font-semibold">{race.raceNumber ? `${race.raceNumber}R` : '-'}</span>
                   <span className="text-gray-300">|</span>

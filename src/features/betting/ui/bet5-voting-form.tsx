@@ -130,7 +130,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   return (
     <>
       <div className="space-y-6 pb-32">
-        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="rounded-surface divide-y divide-gray-100 overflow-hidden border border-gray-200 bg-white">
           {races.map((race, index) => {
             const selectionCount = selections[race.id]?.length || 0;
             return (
@@ -201,7 +201,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             </h2>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50/50">
                 <tr className="border-b border-gray-100">
@@ -227,7 +227,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                     >
                       <td className="px-4 py-3 text-center">
                         <span
-                          className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-semibold shadow-sm ${getBracketColor(entry.bracketNumber || 0)}`}
+                          className={`rounded-chip inline-flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber || 0)}`}
                         >
                           {entry.bracketNumber || '-'}
                         </span>
@@ -236,7 +236,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                       <td className="px-4 py-3 font-medium">
                         {entry.horse.name}
                         {isScratched && (
-                          <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                          <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
                             取消
                           </span>
                         )}
@@ -262,7 +262,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
 
         <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg md:relative md:border-none md:bg-transparent md:p-0 md:pb-0 md:shadow-none">
           <div className="container mx-auto max-w-4xl space-y-2 md:px-0">
-            <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+            <div className="rounded-control flex items-center justify-between bg-gray-50 px-3 py-2 text-sm">
               <span className="font-semibold text-gray-600">{activeRace.raceNumber}R 選択馬:</span>
               {activeRaceSelections.length > 0 ? (
                 <span className="text-turf-700 font-semibold">
@@ -314,10 +314,10 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                       {selectedHorses.map((entry) => (
                         <span
                           key={entry.id}
-                          className="flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
+                          className="rounded-chip flex items-center gap-1 border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
                         >
                           <span
-                            className={`inline-flex h-4 w-4 items-center justify-center rounded text-sm font-semibold shadow-sm ${getBracketColor(entry.bracketNumber || 0)}`}
+                            className={`rounded-chip inline-flex h-4 w-4 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber || 0)}`}
                           >
                             {entry.bracketNumber || '-'}
                           </span>
@@ -331,7 +331,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 );
               })}
             </span>
-            <span className="mt-4 block space-y-2 rounded-lg bg-gray-50 p-4 text-left">
+            <span className="rounded-control mt-4 block space-y-2 bg-gray-50 p-4 text-left">
               <span className="flex justify-between text-sm">
                 <span className="text-gray-500">点数</span>
                 <span className="font-semibold">{points}点</span>

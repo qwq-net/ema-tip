@@ -66,7 +66,7 @@ export function AdminRankingManager({
         <AdminPageHeader title="ランキング管理" description={`${eventName} のランキング確認と公開設定`} />
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="rounded-surface border border-gray-100 bg-white p-6">
         <AdminSectionTitle className="mb-4">公開設定</AdminSectionTitle>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -119,7 +119,7 @@ export function AdminRankingManager({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="rounded-surface overflow-hidden border border-gray-100 bg-white">
         <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
           <AdminSectionTitle icon={Trophy}>ランキング一覧 (管理者ビュー)</AdminSectionTitle>
         </div>

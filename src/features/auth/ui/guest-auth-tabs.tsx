@@ -9,13 +9,13 @@ interface GuestAuthTabsProps {
 
 export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1.5">
+    <div className="rounded-control mb-6 grid grid-cols-2 gap-2 bg-gray-100 p-1.5">
       <Link
         href="/signup/guest"
         className={cn(
-          'flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-all',
+          'rounded-control flex items-center justify-center px-4 py-2.5 text-sm font-semibold transition',
           activeTab === 'signup'
-            ? 'bg-white text-gray-900 shadow-sm'
+            ? 'bg-white text-gray-900'
             : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
         )}
       >
@@ -24,9 +24,9 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
       <Link
         href="/login/guest"
         className={cn(
-          'flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-all',
+          'rounded-control flex items-center justify-center px-4 py-2.5 text-sm font-semibold transition',
           activeTab === 'login'
-            ? 'bg-white text-gray-900 shadow-sm'
+            ? 'bg-white text-gray-900'
             : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
         )}
       >

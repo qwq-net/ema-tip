@@ -95,7 +95,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         <div>
           <Label>開催日</Label>
           <div className="relative">
-            <div className="focus-within:ring-primary/20 focus-within:border-primary flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus-within:ring-2 focus-within:outline-none">
+            <div className="focus-within:ring-primary/20 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
               <Calendar className="text-text-sub h-4 w-4" />
               <span className="text-gray-900">{date.replace(/-/g, '/')}</span>
             </div>

@@ -123,7 +123,9 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
               </div>
               <div className="flex min-w-32 items-center justify-end gap-2">
                 {row.guaranteed && (
-                  <span className="bg-turf-900 text-turf-200 rounded px-1.5 py-0.5 text-sm font-semibold">保証</span>
+                  <span className="bg-turf-900 text-turf-200 rounded-chip px-1.5 py-0.5 text-sm font-semibold">
+                    保証
+                  </span>
                 )}
                 <span className="text-right font-mono text-xl font-semibold">
                   {row.payout.toLocaleString('ja-JP')}円

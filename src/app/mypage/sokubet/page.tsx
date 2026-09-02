@@ -37,7 +37,7 @@ export default async function SokubetPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="bg-turf-100 text-turf-800 flex h-12 w-12 items-center justify-center rounded-xl">
+          <div className="bg-turf-100 text-turf-800 rounded-surface flex h-12 w-12 items-center justify-center">
             <Zap size={28} />
           </div>
           <div>
@@ -94,7 +94,7 @@ export default async function SokubetPage() {
                         </div>
                         <p className="text-text-sub mt-1 text-sm font-semibold">{event.date}</p>
                       </div>
-                      <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
+                      <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
                         <Wallet size={16} className="text-text-sub" />
                         <span className="text-sm font-semibold text-nowrap text-gray-500">投票可能残高</span>
                         <span className="flex-1 text-right text-lg font-semibold text-gray-900 sm:flex-none">
@@ -106,11 +106,11 @@ export default async function SokubetPage() {
                     {bet5Id && bet5Open && (
                       <div className="mb-4">
                         <Link href={`/events/${event.id}/bet5`}>
-                          <Card className="bg-turf-950 cursor-pointer border-0 p-4 text-white shadow-md transition-opacity hover:opacity-90">
+                          <Card className="bg-turf-950 cursor-pointer border-0 p-4 text-white transition-opacity hover:opacity-90">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                  <span className="bg-gold text-turf-950 rounded px-2 py-0.5 text-sm font-semibold">
+                                  <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">
                                     BET5
                                   </span>
                                   5レース的中・一攫千金チャンス！
@@ -143,13 +143,13 @@ export default async function SokubetPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       {races.map((race) => (
                         <Link key={race.id} href={`/races/${race.id}`}>
-                          <Card className="hover:border-primary p-6 transition-all hover:shadow-lg">
+                          <Card className="hover:border-primary p-6 transition">
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="mb-1 flex items-center gap-2">
                                   <span className="text-sm font-semibold text-gray-500">{race.venue?.shortName}</span>
                                   {race.raceNumber && (
-                                    <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
+                                    <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
                                       {race.raceNumber}R
                                     </span>
                                   )}

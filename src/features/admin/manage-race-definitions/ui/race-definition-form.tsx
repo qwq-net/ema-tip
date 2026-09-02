@@ -164,9 +164,7 @@ export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefin
         <p className="mt-1 text-sm text-gray-500">選択した会場の方向が自動選択されます</p>
       </div>
 
-      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
-        {initialData ? '更新する' : '登録する'}
-      </SubmitButton>
+      <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>
   );
 }

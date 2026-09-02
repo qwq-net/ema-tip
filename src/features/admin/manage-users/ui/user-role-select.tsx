@@ -34,7 +34,7 @@ export function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
       disabled={
         isPending || currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
       }
-      className={`w-32 rounded border px-2 py-1 text-sm ${ROLE_COLORS[currentRole]} ${
+      className={`rounded-chip w-32 border px-2 py-1 text-sm ${ROLE_COLORS[currentRole]} ${
         currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
           ? 'cursor-not-allowed appearance-none opacity-80'
           : ''

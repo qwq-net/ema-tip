@@ -95,17 +95,17 @@ function SortableEntry({
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex cursor-grab items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm active:cursor-grabbing ${isDragging ? 'ring-primary/50 z-10 ring-2' : ''}`}
+      className={`rounded-control flex cursor-grab items-center gap-2 border border-gray-200 bg-white p-3 active:cursor-grabbing ${isDragging ? 'ring-primary/50 z-10 ring-2' : ''}`}
     >
       <div className="text-text-sub">
         <GripVertical className="h-4 w-4" />
       </div>
       <span
-        className={`flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ${getBracketColor(bracketNumber)}`}
+        className={`rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(bracketNumber)}`}
       >
         {bracketNumber || '?'}
       </span>
-      <span className="text-primary bg-primary/10 flex h-6 w-6 items-center justify-center rounded text-sm font-semibold">
+      <span className="text-primary bg-primary/10 rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold">
         {horseNumber}
       </span>
       <span className="flex-1 font-medium text-gray-900">{horse.name}</span>
@@ -117,7 +117,7 @@ function SortableEntry({
       <button
         type="button"
         onClick={() => onRemove(horse.id)}
-        className="text-text-sub rounded p-1 transition-colors hover:bg-red-50 hover:text-red-500"
+        className="text-text-sub rounded-chip p-1 transition-colors hover:bg-red-50 hover:text-red-500"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -143,7 +143,7 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
+      className="rounded-control flex cursor-grab items-center gap-3 border border-gray-200 bg-white p-3 transition hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
       <span className="flex-1 text-sm font-medium text-gray-900">{horse.name}</span>
       <HorseSourceBadge source={horse.source} />
@@ -286,7 +286,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           <div className="mb-3 flex min-h-8 items-center">
             <AdminSectionTitle>登録馬一覧</AdminSectionTitle>
           </div>
-          <div className="flex h-[calc(100vh-320px)] min-h-[500px] flex-col rounded-lg border border-dashed border-gray-300 bg-gray-50">
+          <div className="rounded-control flex h-[calc(100vh-320px)] min-h-[500px] flex-col border border-dashed border-gray-300 bg-gray-50">
             <div className="flex flex-wrap items-center gap-2 border-b border-dashed border-gray-300 p-3">
               <SegmentedControl options={SOURCE_FILTER_OPTIONS} value={sourceFilter} onChange={setSourceFilter} />
               <SegmentedControl options={TYPE_FILTER_OPTIONS} value={typeFilter} onChange={setTypeFilter} />
@@ -336,7 +336,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           <div
             ref={setEntriesRef}
             id="entries-list"
-            className="h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto rounded-lg border border-gray-300 bg-white p-4"
+            className="rounded-control h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto border border-gray-300 bg-white p-4"
           >
             {entries.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-500">左から馬をドラッグまたはクリックして追加</div>
@@ -359,7 +359,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
       <DragOverlay>
         {activeHorse && (
-          <div className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white p-3 shadow-lg">
+          <div className="rounded-control flex items-center gap-3 border border-gray-300 bg-white p-3 shadow-lg">
             <span className="font-medium text-gray-900">{activeHorse.name}</span>
             <HorseSourceBadge source={activeHorse.source} />
             <HorseTypeBadge type={activeHorse.type} />
@@ -375,7 +375,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="from-primary to-primary/80 hover:to-primary w-full rounded-md bg-linear-to-r px-4 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+          className="hover:bg-primary-hover rounded-control bg-primary w-full px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? '保存中...' : `登録する (${entries.length}頭)`}
         </button>

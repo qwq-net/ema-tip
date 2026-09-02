@@ -95,7 +95,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                 return (
                   <div
                     key={race.id}
-                    className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-gray-50 ${
+                    className={`rounded-control cursor-pointer border p-3 transition hover:bg-gray-50 ${
                       legNumber > 0 ? 'border-turf-500 bg-turf-50 ring-turf-500 ring-1' : 'border-gray-200'
                     }`}
                     onClick={() => handleRaceSelection(race.id)}

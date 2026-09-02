@@ -132,9 +132,9 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
     <div className="relative inline-block" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
+        className={`rounded-control inline-flex items-center gap-2 border px-4 py-2 text-sm font-semibold transition hover:scale-105 active:scale-[.96] ${
           shownTimeLeft && shownTimeLeft > 0
-            ? 'animate-pulse border-orange-200 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+            ? 'animate-pulse border-orange-200 bg-orange-50 text-orange-600'
             : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
         }`}
       >
@@ -147,7 +147,7 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in slide-in-from-top-2 absolute top-full left-1/2 z-50 mt-2 min-w-[200px] -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-xl">
+        <div className="animate-in fade-in slide-in-from-top-2 rounded-control absolute top-full left-1/2 z-50 mt-2 min-w-[200px] -translate-x-1/2 border border-gray-200 bg-white p-3 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
               <Timer className="text-primary h-4 w-4" />

@@ -58,7 +58,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
           alt={user.name || 'User Avatar'}
           width={48}
           height={48}
-          className="rounded-full border border-gray-100 shadow-sm"
+          className="rounded-full border border-gray-100"
         />
       ) : (
         <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-100">
@@ -67,7 +67,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
       )}
       <div className="flex flex-col">
         <span
-          className={`mb-0.5 w-fit rounded border px-1.5 py-0.5 text-sm font-medium ${lookup(RoleColor, user.role ?? '') ?? ''}`}
+          className={`rounded-chip mb-0.5 w-fit border px-1.5 py-0.5 text-sm font-medium ${lookup(RoleColor, user.role ?? '') ?? ''}`}
         >
           {lookup(RoleLabel, user.role ?? '') ?? user.role}
         </span>

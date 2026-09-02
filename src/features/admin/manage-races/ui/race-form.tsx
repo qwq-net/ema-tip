@@ -126,7 +126,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
         <div>
           <Label>開催日</Label>
           <div className="relative">
-            <div className="focus-within:ring-primary/20 focus-within:border-primary flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus-within:ring-2 focus-within:outline-none">
+            <div className="focus-within:ring-primary/20 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
               <Calendar className="text-text-sub h-4 w-4" />
               <span className="text-gray-900">{date.replace(/-/g, '/')}</span>
             </div>
@@ -234,7 +234,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
             {['芝', 'ダート'].map((s) => (
               <label
                 key={s}
-                className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition-all ${
+                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-4 py-2 text-sm font-medium transition ${
                   surface === s
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -261,7 +261,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
           {['良', '稍重', '重', '不良'].map((c) => (
             <label
               key={c}
-              className={`flex flex-1 cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-all ${
+              className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-3 py-2 text-sm font-medium transition ${
                 condition === c
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -281,9 +281,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
         </div>
       </div>
 
-      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
-        {initialData ? '更新する' : '登録する'}
-      </SubmitButton>
+      <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>
   );
 }

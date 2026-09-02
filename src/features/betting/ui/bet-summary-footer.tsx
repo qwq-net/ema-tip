@@ -77,7 +77,7 @@ export function BetSummaryFooter({
   }, [showKeypad]);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 shadow-sm md:p-6">
+    <div className="rounded-surface border border-gray-200 bg-gray-50/50 p-4 md:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4 lg:flex lg:items-center lg:gap-8 lg:border-none lg:pb-0">
           <div className="flex flex-col gap-1 lg:items-start">

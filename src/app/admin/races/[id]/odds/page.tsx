@@ -31,7 +31,7 @@ export default async function RaceOddsPage({ params }: { params: Promise<{ id: s
       <div className="flex items-center gap-4">
         <Link
           href={`/admin/races/${id}`}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </Link>

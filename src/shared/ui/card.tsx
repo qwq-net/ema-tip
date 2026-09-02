@@ -2,15 +2,7 @@ import { cn } from '@/shared/utils/cn';
 import { type ComponentProps } from 'react';
 
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return (
-    <div
-      className={cn(
-        'bg-surface rounded-xl border border-gray-100 shadow-sm transition-shadow hover:shadow-md',
-        className
-      )}
-      {...props}
-    />
-  );
+  return <div className={cn('bg-surface rounded-surface border border-gray-200', className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {

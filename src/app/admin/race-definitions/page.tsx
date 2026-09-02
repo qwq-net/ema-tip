@@ -21,10 +21,7 @@ export default async function RaceDefinitionsPage() {
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
           <AdminSectionTitle>登録済みのレース定義</AdminSectionTitle>
-          <Button
-            asChild
-            className="flex items-center gap-2 font-semibold shadow-sm transition-all hover:shadow-md active:scale-95"
-          >
+          <Button asChild className="flex items-center gap-2 font-semibold transition active:scale-[.96]">
             <Link href="/admin/race-definitions/new">
               <Plus className="h-4 w-4" />
               新規登録

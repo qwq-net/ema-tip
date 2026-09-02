@@ -159,7 +159,7 @@ export function BetTable({
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
           <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
         </div>
-        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-gray-200 bg-gray-50 py-16 text-center">
+        <div className="rounded-surface flex flex-col items-center justify-center gap-4 border border-gray-200 bg-gray-50 py-16 text-center">
           <div className="rounded-full bg-gray-100 p-3">
             <AlertCircle className="text-text-sub h-8 w-8" />
           </div>
@@ -182,13 +182,13 @@ export function BetTable({
         <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
       </div>
       {isClosed && (
-        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
+        <div className="rounded-control flex items-center gap-2 bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
           <AlertCircle className="h-4 w-4" />
           このレースは受付を終了しました。現在、馬券を購入することはできません。
         </div>
       )}
       {!isClosed && remainingMs !== null && (
-        <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-700 tabular-nums ring-1 ring-amber-100">
+        <div className="rounded-control flex items-center gap-2 bg-amber-50 p-3 text-sm font-semibold text-amber-700 tabular-nums ring-1 ring-amber-100">
           <Clock className="h-4 w-4" />
           締切まで残り {formatRemainingTime(remainingMs)}
         </div>
@@ -215,7 +215,7 @@ export function BetTable({
           </div>
         )}
       </div>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
@@ -254,7 +254,7 @@ export function BetTable({
                         <td className="px-2 py-2 text-sm font-semibold">
                           {entry.horseName}
                           {isScratched && (
-                            <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                            <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
                               取消
                             </span>
                           )}
@@ -300,7 +300,7 @@ export function BetTable({
                       <td className="px-2 py-2 text-sm font-semibold">
                         {entry.horseName}
                         {isScratched && (
-                          <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                          <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
                             取消
                           </span>
                         )}

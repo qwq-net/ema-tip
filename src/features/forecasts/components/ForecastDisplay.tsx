@@ -48,7 +48,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
   }
 
   return (
-    <div className="mt-8 space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="rounded-control mt-8 space-y-4 border border-gray-200 bg-white p-6">
       <h3 className="border-b pb-2 text-lg font-semibold text-gray-900">予想・見解</h3>
 
       <div className="overflow-x-auto">
@@ -111,7 +111,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
         {forecasts.map(
           (forecast) =>
             forecast.comment && (
-              <div key={forecast.id} className="rounded-md bg-gray-50 p-4">
+              <div key={forecast.id} className="rounded-control bg-gray-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <UserAvatar
                     src={forecast.user.image}

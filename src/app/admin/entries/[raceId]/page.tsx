@@ -29,7 +29,7 @@ export default async function RaceEntryPage({ params }: Props) {
       <div className="flex items-start gap-4">
         <Link
           href="/admin/entries"
-          className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+          className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </Link>

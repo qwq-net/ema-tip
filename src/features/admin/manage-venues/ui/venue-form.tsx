@@ -85,9 +85,7 @@ export function VenueForm({ initialData, onSuccess }: VenueFormProps) {
         </div>
       </div>
 
-      <SubmitButton className="from-primary to-primary/80 hover:to-primary w-full bg-linear-to-r shadow-md transition-all hover:shadow-lg">
-        {initialData ? '更新する' : '登録する'}
-      </SubmitButton>
+      <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>
   );
 }

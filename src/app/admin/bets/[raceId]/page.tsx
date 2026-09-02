@@ -94,7 +94,7 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
         </TableBody>
       </TableShell>
 
-      <div className="rounded-lg bg-gray-50 p-4">
+      <div className="rounded-control bg-gray-50 p-4">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-sm text-gray-500">総馬券数</div>

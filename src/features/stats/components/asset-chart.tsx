@@ -76,7 +76,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                     // SAFETY: この Tooltip は AssetHistoryPoint[] を data に持つチャート専用
                     const data = payload[0].payload as AssetHistoryPoint;
                     return (
-                      <div className="rounded-lg border bg-white p-3 text-sm shadow-md">
+                      <div className="rounded-control border bg-white p-3 text-sm shadow-md">
                         <div className="mb-1 font-semibold text-gray-900">{data.label || '不明な操作'}</div>
                         <div className="flex flex-col gap-0.5">
                           <div

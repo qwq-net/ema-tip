@@ -42,7 +42,7 @@ interface PurchasedTicketListProps {
 export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: PurchasedTicketListProps) {
   if (ticketGroups.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center shadow-sm">
+      <div className="rounded-surface border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center">
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
           <span className="text-xl">🎫</span>
         </div>
@@ -59,7 +59,7 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="rounded-surface flex items-center justify-between border border-gray-100 bg-white p-4">
         <div>
           <div className="mb-1 text-sm font-semibold text-gray-500">購入合計</div>
           <div className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</div>
@@ -151,7 +151,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md">
+    <div className="rounded-surface overflow-hidden border border-gray-100 bg-white transition">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -159,7 +159,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white ring-1 ring-gray-200">
             {isOpen ? (
               <ChevronUp size={20} className="text-gray-500" />
             ) : (
@@ -194,7 +194,9 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
             hasProvisional && (
               <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
                 {hasGuaranteedProvisional && (
-                  <span className="bg-turf-100 text-turf-800 rounded px-1.5 py-0.5 text-sm font-semibold">保証</span>
+                  <span className="bg-turf-100 text-turf-800 rounded-chip px-1.5 py-0.5 text-sm font-semibold">
+                    保証
+                  </span>
                 )}
                 <span className="tabular-nums">
                   想定払戻:{' '}
@@ -225,7 +227,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
   return (
     <div
       className={cn(
-        'relative flex items-center gap-3 overflow-x-auto rounded-lg px-3 py-3',
+        'rounded-control relative flex items-center gap-3 overflow-x-auto px-3 py-3',
         row.hasHit ? 'bg-red-50 ring-1 ring-red-200 ring-inset' : 'bg-gray-50 ring-1 ring-gray-100 ring-inset'
       )}
     >
@@ -249,7 +251,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
                 <div
                   key={num}
                   className={cn(
-                    'flex h-7 w-8 items-center justify-center rounded font-mono text-sm font-semibold shadow-sm ring-1 ring-black/5',
+                    'rounded-chip flex h-7 w-8 items-center justify-center font-mono text-sm font-semibold ring-1 ring-black/5',
                     getBracketColor(horseToBracket.get(num) ?? null)
                   )}
                 >

@@ -110,7 +110,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
 
         <Suspense
           fallback={
-            <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+            <div className="rounded-control flex items-center justify-center border border-gray-200 bg-white p-8">
               <Loader2 className="text-text-sub h-6 w-6 animate-spin" />
               <span className="ml-2 text-sm text-gray-500">予想・見解を読み込み中...</span>
             </div>

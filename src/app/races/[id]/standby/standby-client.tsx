@@ -132,13 +132,15 @@ export function StandbyClient({
       <div className="mb-8 flex items-center justify-between border-b border-gray-100 pb-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className={`rounded px-2 py-0.5 text-sm font-semibold text-white ${getStatusColor(displayStatus)}`}>
+            <span
+              className={`rounded-chip px-2 py-0.5 text-sm font-semibold text-white ${getStatusColor(displayStatus)}`}
+            >
               {lookup(RACE_STATUS_LABELS, displayStatus) || RACE_STATUS_LABELS[baseStatus]}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-500">{race.location}</span>
               {race.raceNumber && (
-                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
+                <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
                   {race.raceNumber}R
                 </span>
               )}
@@ -164,7 +166,7 @@ export function StandbyClient({
       </div>
 
       {ranking.length > 0 && (
-        <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className="rounded-surface mb-8 overflow-hidden border border-gray-100 bg-white">
           <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-3">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
@@ -177,7 +179,7 @@ export function StandbyClient({
             {ranking.map((result) => (
               <div key={result.horseNumber} className="flex items-center px-6 py-3">
                 <div
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-sm font-semibold ring-1 ring-inset ${getRankColor(
+                  className={`rounded-chip flex h-6 w-6 shrink-0 items-center justify-center text-sm font-semibold ring-1 ring-inset ${getRankColor(
                     result.finishPosition
                   )}`}
                 >
@@ -185,7 +187,7 @@ export function StandbyClient({
                 </div>
                 <div className="ml-4 flex items-center gap-3">
                   <div
-                    className={`flex h-6 w-6 items-center justify-center rounded text-sm font-semibold shadow-xs ${getBracketColor(
+                    className={`rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(
                       result.bracketNumber
                     )}`}
                   >
@@ -200,7 +202,7 @@ export function StandbyClient({
       )}
 
       {!initialIsFinalized && !hasTickets && (
-        <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className="rounded-surface mb-8 overflow-hidden border border-gray-100 bg-white">
           <div className={`border-b border-gray-100 px-6 py-4 ${isClosed ? 'bg-gray-50' : 'bg-turf-50'}`}>
             <div className="flex items-center gap-2">
               {isClosed ? (
@@ -229,7 +231,7 @@ export function StandbyClient({
       )}
 
       {initialIsFinalized && !hasTickets && (
-        <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className="rounded-surface mb-8 overflow-hidden border border-gray-100 bg-white">
           <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
             <div className="flex items-center gap-2 text-gray-500">
               <Badge variant="status" label="情報" className="bg-gray-100 text-gray-600" />
@@ -259,7 +261,7 @@ export function StandbyClient({
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           <button
             onClick={toggleAudio}
-            className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
+            className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition ${
               isAudioEnabled
                 ? 'bg-turf-600 hover:bg-turf-700 text-white'
                 : 'bg-gray-800/80 text-gray-400 hover:text-white'

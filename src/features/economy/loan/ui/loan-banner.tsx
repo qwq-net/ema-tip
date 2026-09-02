@@ -42,7 +42,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
 
   if (showConfirm) {
     return (
-      <Card className="border-0 bg-amber-400 p-4 text-orange-950 shadow-md">
+      <Card className="border-0 bg-amber-400 p-4 text-orange-950">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
@@ -80,13 +80,13 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
   return (
     <button
       type="button"
-      className="block w-full rounded-xl border-0 bg-amber-400 p-4 text-left text-orange-950 shadow-md transition-opacity hover:opacity-90"
+      className="rounded-surface block w-full border-0 bg-amber-400 p-4 text-left text-orange-950 transition-opacity hover:opacity-90"
       onClick={() => setShowConfirm(true)}
     >
       <span className="flex items-center justify-between">
         <span>
           <span className="flex items-center gap-2 text-lg font-semibold">
-            <span className="rounded bg-white px-2 py-0.5 text-sm text-orange-700">特別提案</span>
+            <span className="rounded-chip bg-white px-2 py-0.5 text-sm text-orange-700">特別提案</span>
             資金が少し不足していませんか？
           </span>
           <span className="mt-1 block text-sm">

@@ -7,7 +7,7 @@ import type { ComponentProps, ReactNode } from 'react';
  */
 export function TableShell({ className, children, ...props }: ComponentProps<'table'>) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
       <table className={cn('w-full min-w-[800px] border-collapse', className)} {...props}>
         {children}
       </table>

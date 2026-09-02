@@ -106,10 +106,10 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
         </div>
 
-        <Card className="bg-turf-950 border-0 p-6 text-white shadow-md">
+        <Card className="bg-turf-950 border-0 p-6 text-white">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="bg-gold text-turf-950 rounded px-2 py-0.5 text-sm font-semibold">BET5</span>
+              <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">BET5</span>
               <h2 className="text-lg font-semibold">5レース的中・一攫千金チャンス！</h2>
             </div>
             {isOpen ? (
@@ -153,12 +153,12 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
         ) : (
           <div className="space-y-4">
             {hasClosedRace && bet5Event.status === 'SCHEDULED' && (
-              <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
+              <div className="rounded-control flex items-center gap-2 bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 対象レースが既に締め切られているため、BET5の投票受付は終了しました。
               </div>
             )}
-            <div className="rounded-lg bg-gray-50 p-8 text-center">
+            <div className="rounded-control bg-gray-50 p-8 text-center">
               <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
               <p className="text-text-sub mt-2 text-sm">
                 対象レース: {orderedRaces.map((race) => `${race.raceNumber}R`).join(' ▶ ')}

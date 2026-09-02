@@ -63,7 +63,7 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-control border border-gray-200 bg-white p-6">
         <h3 className="mb-4 text-lg font-semibold text-gray-900">新規ゲストコード発行</h3>
         <div className="flex gap-4">
           <Input
@@ -73,7 +73,7 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
             onChange={(e) => setTitle(e.target.value)}
             className="max-w-lg"
           />
-          <Button onClick={handleGenerate} disabled={isGenerating || !title} className="shadow-sm disabled:opacity-50">
+          <Button onClick={handleGenerate} disabled={isGenerating || !title} className="disabled:opacity-50">
             {isGenerating ? '発行中...' : 'コード発行'}
           </Button>
         </div>
