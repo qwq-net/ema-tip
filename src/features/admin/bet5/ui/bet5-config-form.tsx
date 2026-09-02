@@ -1,11 +1,19 @@
 'use client';
 
 import { createBet5EventAction } from '@/features/betting';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
-import { preventEnterSubmit } from '@/shared/utils/form';
-import { Loader2 } from 'lucide-react';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  ConfirmDialog,
+  Label,
+  NumericInput,
+} from '@/shared/ui';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 type Race = {
@@ -22,7 +30,6 @@ interface Bet5ConfigFormProps {
 
 export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const [initialPot, setInitialPot] = useState(0);
   const [selectedRaces, setSelectedRaces] = useState<string[]>([]);
 
@@ -42,9 +49,7 @@ export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProp
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleCreate = async () => {
     if (selectedRaces.length !== 5) {
       toast.error('5つのレースを選択してください');
       return;
@@ -52,21 +57,21 @@ export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProp
 
     const sortedSelectedIds = selectedInRaceOrder.map((race) => race.id);
 
-    startTransition(async () => {
-      try {
-        await createBet5EventAction({
-          eventId,
-          // SAFETY: handleSubmit 冒頭のガードで選択数が 5 件ちょうどであることを確認済み
-          raceIds: sortedSelectedIds as [string, string, string, string, string],
-          initialPot,
-        });
-        toast.success('BET5を作成しました');
-        router.refresh();
-      } catch (error) {
-        toast.error('作成に失敗しました');
-        console.error(error);
-      }
-    });
+    try {
+      await createBet5EventAction({
+        eventId,
+        // SAFETY: handleCreate 冒頭のガードで選択数が 5 件ちょうどであることを確認済み
+        raceIds: sortedSelectedIds as [string, string, string, string, string],
+        initialPot,
+      });
+      toast.success('BET5を作成しました');
+      router.refresh();
+    } catch (error) {
+      toast.error('作成に失敗しました');
+      console.error(error);
+      // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
+      throw error;
+    }
   };
 
   return (
@@ -76,7 +81,7 @@ export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProp
         <CardDescription>対象イベント: {eventName}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label>対象レース選択</Label>
             <p className="text-sm text-gray-500">
@@ -119,11 +124,30 @@ export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProp
             <p className="text-sm text-gray-500">売上によるプール金額とは別に、今回特別に設定するボーナス金額です。</p>
           </div>
 
-          <Button type="submit" disabled={isPending || selectedRaces.length !== 5}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            BET5を作成する
-          </Button>
-        </form>
+          <ConfirmDialog
+            trigger={
+              <Button type="button" disabled={selectedRaces.length !== 5}>
+                BET5を作成する
+              </Button>
+            }
+            title="BET5を作成しますか？"
+            description={
+              <>
+                作成後は対象レースと初期プールを変更できません。
+                <span className="mt-3 block space-y-1">
+                  {selectedInRaceOrder.map((race, index) => (
+                    <span key={race.id} className="block">
+                      第{index + 1}戦 {raceLabel(race)}
+                    </span>
+                  ))}
+                </span>
+                <span className="mt-3 block">初期プール: {initialPot.toLocaleString()}</span>
+              </>
+            }
+            confirmLabel="作成する"
+            onConfirm={handleCreate}
+          />
+        </div>
       </CardContent>
     </Card>
   );
