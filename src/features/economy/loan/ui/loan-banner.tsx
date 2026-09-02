@@ -2,10 +2,10 @@
 
 import { isEligibleForLoan } from '@/entities/wallet';
 import { toast } from '@/shared/lib/toast';
-import { Button, Card } from '@/shared/ui';
-import { AlertTriangle, Banknote } from 'lucide-react';
+import { ConfirmDialog } from '@/shared/ui';
+import { Banknote, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { borrowLoan } from '../actions';
 
 interface LoanBannerProps {
@@ -16,86 +16,80 @@ interface LoanBannerProps {
   hasLoaned: boolean;
 }
 
+/**
+ * 残高が少ないユーザーにだけ現れる特別融資の案内バナー。押すと条件つきの確認モーダルを開き、
+ * 確定で借入して残高へ即時反映する。対象外のユーザーと借入済み・借入完了後は何も描画しない。
+ */
 export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, hasLoaned }: LoanBannerProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [showConfirm, setShowConfirm] = useState(false);
   const [completed, setCompleted] = useState(false);
 
   const shouldShow = isEligibleForLoan(balance, distributeAmount, hasLoaned) && !completed;
 
   if (!shouldShow) return null;
 
-  const handleBorrow = () => {
-    startTransition(async () => {
-      try {
-        await borrowLoan(eventId);
-        setCompleted(true);
-        setShowConfirm(false);
-        router.refresh();
-      } catch {
-        setShowConfirm(false);
-        toast.error('融資の処理に失敗しました');
-      }
-    });
+  const handleBorrow = async () => {
+    try {
+      await borrowLoan(eventId);
+    } catch (error) {
+      toast.error('融資の処理に失敗しました');
+      throw error;
+    }
+    toast.success(`${loanAmount.toLocaleString('ja-JP')}円を借り入れました`);
+    setCompleted(true);
+    router.refresh();
   };
 
-  if (showConfirm) {
-    return (
-      <Card className="border-0 bg-amber-400 p-4 text-orange-950">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            <h3 className="font-semibold">逆転への招待状</h3>
-          </div>
-          <p className="text-sm">
-            勝利まであと一歩かもしれません。今ここで諦めるのはもったいない。
-            <span className="font-semibold">{loanAmount.toLocaleString('ja-JP')}円</span> の特別融資で、栄光をその手に。
-            手続きは一瞬、夢は永遠です。借り入れはイベントにつき1回のみ可能です。
-          </p>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              disabled={isPending}
-              onClick={handleBorrow}
-              className="bg-white font-semibold text-orange-700 hover:bg-orange-50"
-            >
-              {isPending ? '処理中...' : '栄光を掴みに行く'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={isPending}
-              onClick={() => setShowConfirm(false)}
-              className="text-orange-950 hover:bg-white/20"
-            >
-              今は見送る
-            </Button>
-          </div>
-        </div>
-      </Card>
-    );
-  }
-
   return (
-    <button
-      type="button"
-      className="rounded-surface block w-full border-0 bg-amber-400 p-4 text-left text-orange-950 transition-opacity hover:opacity-90"
-      onClick={() => setShowConfirm(true)}
-    >
-      <span className="flex items-center justify-between">
-        <span>
-          <span className="flex items-center gap-2 text-lg font-semibold">
-            <span className="rounded-chip bg-white px-2 py-0.5 text-sm text-orange-700">特別提案</span>
-            資金が少し不足していませんか？
+    <ConfirmDialog
+      trigger={
+        <button
+          type="button"
+          className="rounded-surface block w-full bg-amber-400 p-4 text-left text-orange-950 transition-opacity hover:opacity-90"
+        >
+          <span className="flex items-center justify-between gap-4">
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-lg font-semibold">
+                <span className="rounded-chip bg-white px-2 py-0.5 text-sm text-orange-700">特別提案</span>
+                資金が少し不足していませんか？
+              </span>
+              <span className="mt-1 block text-sm">
+                <span className="font-semibold tabular-nums">{loanAmount.toLocaleString('ja-JP')}円</span>{' '}
+                の特別融資をご用意しています。
+              </span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-orange-700">
+              詳しく見る
+              <ChevronRight className="h-4 w-4" />
+            </span>
           </span>
-          <span className="mt-1 block text-sm">
-            <span className="font-semibold">{loanAmount.toLocaleString('ja-JP')}円</span>{' '}
-            の追加資金で、大きな夢を掴みましょう。
-          </span>
+        </button>
+      }
+      icon={
+        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+          <Banknote className="h-6 w-6" />
         </span>
-        <Banknote className="h-8 w-8 shrink-0 text-orange-900" />
-      </span>
-    </button>
+      }
+      title="逆転への招待状"
+      description={
+        <>
+          勝利まであと一歩かもしれません。今ここで諦めるのはもったいない。特別融資で栄光をその手に。
+          手続きは一瞬、夢は永遠です。
+          <span className="rounded-control mt-4 block space-y-2 bg-gray-50 p-4 text-left">
+            <span className="flex justify-between text-sm">
+              <span className="text-gray-500">融資額</span>
+              <span className="font-semibold text-gray-900 tabular-nums">{loanAmount.toLocaleString('ja-JP')}円</span>
+            </span>
+            <span className="flex justify-between text-sm">
+              <span className="text-gray-500">借入回数</span>
+              <span className="font-semibold text-gray-900">イベントにつき1回まで</span>
+            </span>
+          </span>
+        </>
+      }
+      confirmLabel={`${loanAmount.toLocaleString('ja-JP')}円を借りる`}
+      confirmVariant="primary"
+      onConfirm={handleBorrow}
+    />
   );
 }
