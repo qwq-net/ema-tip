@@ -9,6 +9,7 @@ interface Race {
   id: string;
   name: string;
   raceNumber: number | null;
+  status: string;
 }
 
 interface Bet5Event {
@@ -41,14 +42,15 @@ export function Bet5EventList({ events }: { events: Event[] }) {
         <Th>開催日</Th>
         <Th>ステータス</Th>
         <Th>対象レース構成</Th>
-        <Th>登録レース数</Th>
+        <Th>受付中レース数</Th>
         <Th className="w-48 text-right">操作</Th>
       </TableHead>
       <TableBody>
         {events.map((event) => {
-          const raceCount = event.races.length;
+          // BET5に設定できるのは締め切られていないレースのみ
+          const openRaceCount = event.races.filter((race) => race.status === 'SCHEDULED').length;
           const isConfigured = !!event.bet5Event;
-          const isReady = raceCount >= 5;
+          const isReady = openRaceCount >= 5;
 
           return (
             <TableRow key={event.id}>
@@ -74,13 +76,15 @@ export function Bet5EventList({ events }: { events: Event[] }) {
               </Td>
               <Td>
                 <div className="flex items-center gap-2">
-                  <span className={cn('font-semibold', isReady ? 'text-green-600' : 'text-gray-500')}>{raceCount}</span>
+                  <span className={cn('font-semibold', isReady ? 'text-green-600' : 'text-gray-500')}>
+                    {openRaceCount}
+                  </span>
                   <span className="text-gray-400">/ 5</span>
                 </div>
               </Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  {isReady ? (
+                  {isConfigured || isReady ? (
                     <Button
                       size="sm"
                       asChild

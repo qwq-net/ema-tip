@@ -1,24 +1,27 @@
 import { db } from '@/shared/db';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import { calculateBet5Payout, closeBet5Event, resolveBet5Winners } from './bet5';
+import { calculateBet5Payout, closeBet5Event, createBet5Event, resolveBet5Winners } from './bet5';
 
 vi.mock('@/shared/db', () => ({
   db: {
     transaction: vi.fn(),
     query: {
       bet5Events: { findFirst: vi.fn() },
+      raceInstances: { findMany: vi.fn() },
     },
     update: vi.fn(),
+    insert: vi.fn(),
   },
 }));
 
 vi.mock('@/shared/db/schema', () => ({
-  bet5Events: { id: 'bet5Events.id' },
+  bet5Events: { id: 'bet5Events.id', eventId: 'bet5Events.eventId' },
   bet5Tickets: { id: 'bet5Tickets.id', bet5EventId: 'bet5Tickets.bet5EventId' },
   events: { id: 'events.id', carryoverAmount: 'events.carryoverAmount' },
   wallets: { id: 'wallets.id', balance: 'wallets.balance' },
   transactions: {},
   raceEntries: { raceId: 'raceEntries.raceId', finishPosition: 'raceEntries.finishPosition' },
+  raceInstances: { id: 'raceInstances.id', eventId: 'raceInstances.eventId', status: 'raceInstances.status' },
 }));
 
 const makeUpdateChain = () => {
@@ -384,5 +387,69 @@ describe('closeBet5Event', () => {
     (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue(null);
 
     await expect(closeBet5Event('nonexistent')).rejects.toThrow('BET5 event not found');
+  });
+});
+
+describe('createBet5Event', () => {
+  const eventId = 'event-1';
+  const raceIds: [string, string, string, string, string] = ['race-1', 'race-2', 'race-3', 'race-4', 'race-5'];
+  const scheduledRaces = raceIds.map((id) => ({ id, eventId, status: 'SCHEDULED' }));
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue(undefined);
+    (db.query.raceInstances.findMany as unknown as Mock).mockResolvedValue(scheduledRaces);
+    const insertReturning = vi.fn().mockResolvedValue([{ id: 'bet5-1' }]);
+    (db.insert as unknown as Mock).mockReturnValue({
+      values: vi.fn().mockReturnValue({ returning: insertReturning }),
+    });
+  });
+
+  it('締め切られていない同一イベントの5レースなら作成できること', async () => {
+    const result = await createBet5Event({ eventId, raceIds, initialPot: 1000 });
+
+    expect(result).toEqual({ id: 'bet5-1' });
+    expect(db.insert).toHaveBeenCalled();
+  });
+
+  it('同じレースを複数回選択した場合は拒否すること', async () => {
+    const duplicated: typeof raceIds = ['race-1', 'race-1', 'race-2', 'race-3', 'race-4'];
+
+    await expect(createBet5Event({ eventId, raceIds: duplicated, initialPot: 0 })).rejects.toThrow('複数回');
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it('既にBET5が設定済みのイベントでは拒否すること', async () => {
+    (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue({ id: 'bet5-existing' });
+
+    await expect(createBet5Event({ eventId, raceIds, initialPot: 0 })).rejects.toThrow('既に');
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it('締め切られたレースが含まれる場合は拒否すること', async () => {
+    (db.query.raceInstances.findMany as unknown as Mock).mockResolvedValue([
+      ...scheduledRaces.slice(0, 4),
+      { id: 'race-5', eventId, status: 'CLOSED' },
+    ]);
+
+    await expect(createBet5Event({ eventId, raceIds, initialPot: 0 })).rejects.toThrow('締め切られていない');
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it('別イベントのレースが含まれる場合は拒否すること', async () => {
+    (db.query.raceInstances.findMany as unknown as Mock).mockResolvedValue([
+      ...scheduledRaces.slice(0, 4),
+      { id: 'race-5', eventId: 'other-event', status: 'SCHEDULED' },
+    ]);
+
+    await expect(createBet5Event({ eventId, raceIds, initialPot: 0 })).rejects.toThrow('不正');
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it('存在しないレースが含まれる場合は拒否すること', async () => {
+    (db.query.raceInstances.findMany as unknown as Mock).mockResolvedValue(scheduledRaces.slice(0, 4));
+
+    await expect(createBet5Event({ eventId, raceIds, initialPot: 0 })).rejects.toThrow('不正');
+    expect(db.insert).not.toHaveBeenCalled();
   });
 });

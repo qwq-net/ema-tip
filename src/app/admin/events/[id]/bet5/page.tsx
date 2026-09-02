@@ -134,6 +134,9 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
     })
     .filter((stat): stat is NonNullable<typeof stat> => stat !== null);
 
+  // BET5に設定できるのは締め切られていないレースのみ
+  const selectableRaces = races.filter((race) => race.status === 'SCHEDULED');
+
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <div>
@@ -149,12 +152,21 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
       </div>
 
       {!bet5Event ? (
-        <Bet5ConfigForm
-          eventId={id}
-          eventName={event.name}
-          defaultInitialPot={event.distributeAmount * 10}
-          races={races.map((r) => ({ id: r.id, raceNumber: r.raceNumber, name: r.name }))}
-        />
+        selectableRaces.length >= 5 ? (
+          <Bet5ConfigForm
+            eventId={id}
+            eventName={event.name}
+            defaultInitialPot={event.distributeAmount * 10}
+            races={selectableRaces.map((r) => ({ id: r.id, raceNumber: r.raceNumber, name: r.name }))}
+          />
+        ) : (
+          <div className="rounded-lg bg-gray-50 p-8 text-center">
+            <p className="text-lg font-semibold text-gray-500">BET5を設定できません</p>
+            <p className="mt-2 text-sm text-gray-500">
+              BET5の設定には締め切られていないレースが5件以上必要です。現在は {selectableRaces.length} 件です。
+            </p>
+          </div>
+        )
       ) : (
         <div className="space-y-8">
           <Bet5ManageCard

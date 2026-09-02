@@ -1,6 +1,6 @@
 import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from '@/entities/bet';
 import { db } from '@/shared/db';
-import { bet5Events, bet5Tickets, events, transactions, wallets } from '@/shared/db/schema';
+import { bet5Events, bet5Tickets, events, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ActionError } from '@/shared/utils/action-result';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
@@ -42,6 +42,10 @@ export function resolveBet5Winners(races: string[], winnerRows: Bet5WinnerRow[])
   return winners;
 }
 
+/**
+ * BET5イベントを作成する。対象は同一イベント内の締め切られていないレース5件に限る。
+ * 重複レース選択・イベント跨ぎ・締切済みレース・既存BET5がある場合は ActionError を投げる。
+ */
 export async function createBet5Event({
   eventId,
   raceIds,
@@ -51,6 +55,29 @@ export async function createBet5Event({
   raceIds: [string, string, string, string, string];
   initialPot: number;
 }) {
+  if (new Set(raceIds).size !== 5) {
+    throw new ActionError('同じレースを複数回選択することはできません');
+  }
+
+  const existing = await db.query.bet5Events.findFirst({
+    where: eq(bet5Events.eventId, eventId),
+    columns: { id: true },
+  });
+  if (existing) {
+    throw new ActionError('このイベントには既にBET5が設定されています');
+  }
+
+  const targetRaces = await db.query.raceInstances.findMany({
+    where: inArray(raceInstances.id, [...raceIds]),
+    columns: { id: true, eventId: true, status: true },
+  });
+  if (targetRaces.length !== 5 || targetRaces.some((race) => race.eventId !== eventId)) {
+    throw new ActionError('対象レースが不正です');
+  }
+  if (targetRaces.some((race) => race.status !== 'SCHEDULED')) {
+    throw new ActionError('締め切られていないレースのみBET5に設定できます');
+  }
+
   const [bet5Event] = await db
     .insert(bet5Events)
     .values({
