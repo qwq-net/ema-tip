@@ -16,6 +16,8 @@ type Event = {
   distributeAmount: number;
   date: string;
   loanAmount: number | null;
+  loanEnabled: boolean;
+  loanThresholdPercent: number;
 };
 
 interface AdminEventEditorProps {

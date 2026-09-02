@@ -94,6 +94,8 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           distributeAmount={race.event?.distributeAmount ?? 0}
           loanAmount={race.event?.loanAmount ?? race.event?.distributeAmount ?? 0}
           hasLoaned={wallet.totalLoaned > 0}
+          loanEnabled={race.event?.loanEnabled ?? false}
+          loanThresholdPercent={race.event?.loanThresholdPercent ?? 30}
         />
 
         <BetTable

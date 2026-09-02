@@ -27,6 +27,10 @@ export async function borrowLoan(eventId: string) {
     throw new Error('このイベントは現在開催中ではありません');
   }
 
+  if (!event.loanEnabled) {
+    throw new Error('このイベントでは借入機能が無効です');
+  }
+
   const wallet = await db.query.wallets.findFirst({
     where: and(eq(wallets.userId, userId), eq(wallets.eventId, eventId)),
   });
@@ -35,7 +39,7 @@ export async function borrowLoan(eventId: string) {
     throw new Error('ウォレットが見つかりません');
   }
 
-  if (!isEligibleForLoan(wallet.balance, event.distributeAmount, wallet.totalLoaned > 0)) {
+  if (!isEligibleForLoan(wallet.balance, event.distributeAmount, wallet.totalLoaned > 0, event.loanThresholdPercent)) {
     if (wallet.totalLoaned > 0) {
       throw new Error('既に借り入れ済みです');
     }
@@ -54,6 +58,10 @@ export async function borrowLoan(eventId: string) {
       throw new Error('このイベントは現在開催中ではありません');
     }
 
+    if (!lockedEvent.loanEnabled) {
+      throw new Error('このイベントでは借入機能が無効です');
+    }
+
     const loanAmount = lockedEvent.loanAmount ?? lockedEvent.distributeAmount;
 
     const lockedWallet = await tx.query.wallets.findFirst({
@@ -64,7 +72,14 @@ export async function borrowLoan(eventId: string) {
       throw new Error('ウォレットが見つかりません');
     }
 
-    if (!isEligibleForLoan(lockedWallet.balance, lockedEvent.distributeAmount, lockedWallet.totalLoaned > 0)) {
+    if (
+      !isEligibleForLoan(
+        lockedWallet.balance,
+        lockedEvent.distributeAmount,
+        lockedWallet.totalLoaned > 0,
+        lockedEvent.loanThresholdPercent
+      )
+    ) {
       if (lockedWallet.totalLoaned > 0) {
         throw new Error('既に借り入れ済みです');
       }

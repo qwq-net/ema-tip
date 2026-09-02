@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from '@/shared/lib/toast';
-import { Input, Label, NumericInput, SubmitButton, Textarea } from '@/shared/ui';
+import { Checkbox, Input, Label, NumericInput, SubmitButton, Textarea } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
@@ -15,6 +15,8 @@ interface EventFormProps {
     description: string | null;
     distributeAmount: number;
     loanAmount: number | null;
+    loanEnabled: boolean;
+    loanThresholdPercent: number;
     date: string;
   };
   onSuccess?: () => void;
@@ -25,10 +27,14 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
   const [date, setDate] = useState(initialData?.date || todayJST());
   const [distributeAmount, setDistributeAmount] = useState(initialData?.distributeAmount ?? 100000);
   const [loanAmount, setLoanAmount] = useState<number | null>(initialData?.loanAmount ?? null);
+  const [loanEnabled, setLoanEnabled] = useState(initialData?.loanEnabled ?? true);
+  const [loanThresholdPercent, setLoanThresholdPercent] = useState(initialData?.loanThresholdPercent ?? 30);
 
   async function handleSubmit(formData: FormData) {
     try {
       formData.set('distributeAmount', distributeAmount.toString());
+      formData.set('loanEnabled', String(loanEnabled));
+      formData.set('loanThresholdPercent', loanThresholdPercent.toString());
       if (loanAmount !== null) {
         formData.set('loanAmount', loanAmount.toString());
       }
@@ -90,6 +96,35 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             <span className="text-text-sub absolute top-2 right-3 text-sm">円</span>
           </div>
           <p className="mt-1 text-sm text-gray-500">空欄の場合は配布金額と同額</p>
+        </div>
+
+        <div>
+          <Label htmlFor="loanEnabled">借入機能</Label>
+          <label
+            htmlFor="loanEnabled"
+            className="rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm"
+          >
+            <Checkbox id="loanEnabled" checked={loanEnabled} onCheckedChange={setLoanEnabled} />
+            借入機能を有効にする
+          </label>
+          <p className="mt-1 text-sm text-gray-500">無効にすると融資の案内が一切出ません</p>
+        </div>
+
+        <div>
+          <Label htmlFor="loanThresholdPercent">融資の発生条件</Label>
+          <div className="relative">
+            <NumericInput
+              id="loanThresholdPercent"
+              value={loanThresholdPercent}
+              onChange={setLoanThresholdPercent}
+              min={0}
+              max={100}
+              disabled={!loanEnabled}
+              className="pr-8"
+            />
+            <span className="text-text-sub absolute top-2 right-3 text-sm">%</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-500">残高が配布金額のこの割合以下になると案内します</p>
         </div>
 
         <div>

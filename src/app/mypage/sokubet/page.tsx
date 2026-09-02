@@ -137,6 +137,8 @@ export default async function SokubetPage() {
                           distributeAmount={event.distributeAmount}
                           loanAmount={event.loanAmount ?? event.distributeAmount}
                           hasLoaned={totalLoaned > 0}
+                          loanEnabled={event.loanEnabled}
+                          loanThresholdPercent={event.loanThresholdPercent}
                         />
                       </div>
                     )}

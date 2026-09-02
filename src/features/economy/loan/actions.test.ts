@@ -47,6 +47,8 @@ describe('borrowLoan', () => {
     status: 'ACTIVE',
     distributeAmount: 10000,
     loanAmount: 5000,
+    loanEnabled: true,
+    loanThresholdPercent: 30,
   };
 
   const mockWallet = {

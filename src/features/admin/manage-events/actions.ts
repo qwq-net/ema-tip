@@ -13,6 +13,8 @@ const eventSchema = z.object({
   description: z.string().optional(),
   distributeAmount: z.coerce.number().min(0, '金額は0以上である必要があります'),
   loanAmount: z.coerce.number().min(0).optional().nullable(),
+  loanEnabled: z.string().transform((value) => value === 'true'),
+  loanThresholdPercent: z.coerce.number().int().min(0, '0〜100で入力してください').max(100, '0〜100で入力してください'),
   date: z.string(),
 });
 
@@ -24,6 +26,8 @@ export async function createEvent(formData: FormData) {
     description: formData.get('description')?.toString() || undefined,
     distributeAmount: formData.get('distributeAmount'),
     loanAmount: formData.get('loanAmount') || undefined,
+    loanEnabled: formData.get('loanEnabled'),
+    loanThresholdPercent: formData.get('loanThresholdPercent'),
     date: formData.get('date'),
   });
 
@@ -47,6 +51,8 @@ export async function createEvent(formData: FormData) {
       status: 'SCHEDULED',
       carryoverAmount: carryover,
       loanAmount: parse.data.loanAmount ?? null,
+      loanEnabled: parse.data.loanEnabled,
+      loanThresholdPercent: parse.data.loanThresholdPercent,
     });
 
     if (lastEvent && carryover > 0) {
@@ -65,6 +71,8 @@ export async function updateEvent(id: string, formData: FormData) {
     description: formData.get('description')?.toString() || undefined,
     distributeAmount: formData.get('distributeAmount'),
     loanAmount: formData.get('loanAmount') || undefined,
+    loanEnabled: formData.get('loanEnabled'),
+    loanThresholdPercent: formData.get('loanThresholdPercent'),
     date: formData.get('date'),
   });
 
@@ -79,6 +87,8 @@ export async function updateEvent(id: string, formData: FormData) {
       description: parse.data.description ?? null,
       distributeAmount: parse.data.distributeAmount,
       loanAmount: parse.data.loanAmount ?? null,
+      loanEnabled: parse.data.loanEnabled,
+      loanThresholdPercent: parse.data.loanThresholdPercent,
       date: parse.data.date,
     })
     .where(eq(events.id, id));

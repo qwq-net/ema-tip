@@ -1,9 +1,17 @@
-export const LOAN_THRESHOLD_RATIO = 0.6;
+export const DEFAULT_LOAN_THRESHOLD_PERCENT = 30;
 
-/** 残高が配布額の一定割合を下回っていて、まだ借入していない場合のみ融資を受けられる。 */
-export function isEligibleForLoan(balance: number, distributeAmount: number, hasLoaned: boolean): boolean {
+/**
+ * 融資対象の判定。残高が配布額の thresholdPercent 割合以下で、まだ借入していないときだけ true。
+ * thresholdPercent は 0〜100 の整数で、イベント設定の値を渡す。未指定は既定の30。
+ */
+export function isEligibleForLoan(
+  balance: number,
+  distributeAmount: number,
+  hasLoaned: boolean,
+  thresholdPercent: number = DEFAULT_LOAN_THRESHOLD_PERCENT
+): boolean {
   if (hasLoaned) return false;
-  return balance < distributeAmount * LOAN_THRESHOLD_RATIO;
+  return balance <= (distributeAmount * thresholdPercent) / 100;
 }
 
 /** 表示用の純資産。残高から借入額を差し引いた値を返す。 */

@@ -1,4 +1,16 @@
-import { bigint, date, index, numeric, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  bigint,
+  boolean,
+  date,
+  index,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'COMPLETED']);
 export const rankingDisplayModeEnum = pgEnum('ranking_display_mode', ['HIDDEN', 'ANONYMOUS', 'FULL', 'FULL_WITH_LOAN']);
@@ -11,6 +23,9 @@ export const events = pgTable(
     description: text('description'),
     distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
     loanAmount: bigint('loan_amount', { mode: 'number' }),
+    loanEnabled: boolean('loan_enabled').default(true).notNull(),
+    // 融資バナーの発生条件。残高が配布額のこの割合以下になると対象になる
+    loanThresholdPercent: integer('loan_threshold_percent').default(30).notNull(),
     carryoverAmount: bigint('carryover_amount', { mode: 'number' }).default(0).notNull(),
     status: eventStatusEnum('status').default('SCHEDULED').notNull(),
     rankingDisplayMode: rankingDisplayModeEnum('ranking_display_mode').default('HIDDEN').notNull(),

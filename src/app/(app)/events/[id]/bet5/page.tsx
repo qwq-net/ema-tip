@@ -146,6 +146,8 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           distributeAmount={event.distributeAmount}
           loanAmount={event.loanAmount ?? event.distributeAmount}
           hasLoaned={wallet.totalLoaned > 0}
+          loanEnabled={event.loanEnabled}
+          loanThresholdPercent={event.loanThresholdPercent}
         />
 
         {isOpen ? (

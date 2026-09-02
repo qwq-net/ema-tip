@@ -14,17 +14,30 @@ interface LoanBannerProps {
   distributeAmount: number;
   loanAmount: number;
   hasLoaned: boolean;
+  /** イベント設定の借入機能フラグ。false なら何も描画しない。 */
+  loanEnabled: boolean;
+  /** 発生条件。残高が配布額のこの割合以下で対象になる。0〜100。 */
+  loanThresholdPercent: number;
 }
 
 /**
  * 残高が少ないユーザーにだけ現れる特別融資の案内バナー。押すと条件つきの確認モーダルを開き、
  * 確定で借入して残高へ即時反映する。対象外のユーザーと借入済み・借入完了後は何も描画しない。
  */
-export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, hasLoaned }: LoanBannerProps) {
+export function LoanBanner({
+  eventId,
+  balance,
+  distributeAmount,
+  loanAmount,
+  hasLoaned,
+  loanEnabled,
+  loanThresholdPercent,
+}: LoanBannerProps) {
   const router = useRouter();
   const [completed, setCompleted] = useState(false);
 
-  const shouldShow = isEligibleForLoan(balance, distributeAmount, hasLoaned) && !completed;
+  const shouldShow =
+    loanEnabled && isEligibleForLoan(balance, distributeAmount, hasLoaned, loanThresholdPercent) && !completed;
 
   if (!shouldShow) return null;
 
