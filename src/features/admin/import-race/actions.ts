@@ -44,7 +44,7 @@ function isNarUrl(url: string): boolean {
 
 async function fetchNetkeibaHtml(url: string): Promise<string> {
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PaperTipster/1.0)' },
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EmaTip/1.0)' },
     signal: AbortSignal.timeout(10000),
     cache: 'no-store',
   });
@@ -69,7 +69,7 @@ const NETKEIBA_SCRATCHED_ODDS = 999.9;
 async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, number>> {
   const apiUrl = `https://race.netkeiba.com/api/api_get_jra_odds.html?race_id=${raceId}&type=1&action=init&output=jsonp&callback=cb`;
   const res = await fetch(apiUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PaperTipster/1.0)' },
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EmaTip/1.0)' },
     signal: AbortSignal.timeout(10000),
     cache: 'no-store',
   });

@@ -100,7 +100,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <div className="flex items-center justify-between">
           <div className="text-secondary flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
-            <span className="text-lg font-semibold">Paper Tipster Admin</span>
+            <span className="text-lg font-semibold">えまちっぷ Admin</span>
           </div>
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -125,9 +125,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <div className="border-b border-gray-800 p-6">
           <div className="text-turf-400 flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
-            <h1 className="text-xl font-semibold tracking-tight text-white">PT Admin</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-white">えまちっぷ Admin</h1>
           </div>
-          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">Paper Tipster Admin</p>
+          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">ema-tip admin</p>
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto p-4 py-6">

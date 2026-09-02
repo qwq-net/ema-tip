@@ -13,7 +13,7 @@ export function Footer() {
           </Link>
         </div>
         <div>
-          <p>&copy; {new Date().getFullYear()} Paper Tipster. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} えまちっぷ. All rights reserved.</p>
         </div>
       </div>
     </footer>

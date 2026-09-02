@@ -7,6 +7,7 @@ export * from './dialog';
 export * from './dropdown-menu';
 export * from './forms';
 export { LiveConnectionStatus } from './live-connection-status';
+export { LogoMark } from './logo';
 export { NumericInput } from './numeric-input';
 export * from './submit-button';
 export * from './table';

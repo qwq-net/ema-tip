@@ -1,4 +1,4 @@
-# Paper Tipster
+# えまちっぷ (ema-tip)
 
 ## 概要
 

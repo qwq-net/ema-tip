@@ -1,5 +1,5 @@
 {
-  "name": "paper-tipster-web",
+  "name": "ema-tip-web",
   "private": true,
   "packageManager": "pnpm@10.29.1",
   "scripts": {

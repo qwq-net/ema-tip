@@ -1,5 +1,6 @@
 import { LoginButton, TermsAgreement } from '@/features/auth';
 import { auth } from '@/shared/config/auth';
+import { LogoMark } from '@/shared/ui';
 import { CircleHelp } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
@@ -20,7 +21,8 @@ export default async function LoginPage() {
       <div className="rounded-surface w-full max-w-md space-y-6 border border-gray-200 bg-white p-6">
         <div className="text-center">
           <div className="mb-8">
-            <h1 className="text-primary text-2xl font-semibold tracking-tight">Paper Tipster</h1>
+            <LogoMark size={56} className="mx-auto mb-3" />
+            <h1 className="text-primary text-2xl font-semibold tracking-tight">えまちっぷ</h1>
             <p className={`text-center text-sm text-gray-500`}>オンライン馬券投票ごっこシステム</p>
           </div>
           <LoginButton />
