@@ -1,11 +1,12 @@
+import { Bet5MyTicketsDialog } from '@/features/betting/ui/bet5-my-tickets-dialog';
 import { Bet5VotingForm } from '@/features/betting/ui/bet5-voting-form';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { bet5Events, events, raceInstances } from '@/shared/db/schema';
+import { bet5Events, bet5Tickets, events, raceInstances } from '@/shared/db/schema';
 import { Card } from '@/shared/ui';
-import { eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { AlertCircle, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
@@ -61,17 +62,23 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
 
   const targetRaceIds = [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id];
 
-  const races = await db.query.raceInstances.findMany({
-    where: inArray(raceInstances.id, targetRaceIds),
-    with: {
-      entries: {
-        with: {
-          horse: true,
+  const [races, myTickets] = await Promise.all([
+    db.query.raceInstances.findMany({
+      where: inArray(raceInstances.id, targetRaceIds),
+      with: {
+        entries: {
+          with: {
+            horse: true,
+          },
+          orderBy: (entries, { asc }) => [asc(entries.horseNumber)],
         },
-        orderBy: (entries, { asc }) => [asc(entries.horseNumber)],
       },
-    },
-  });
+    }),
+    db.query.bet5Tickets.findMany({
+      where: and(eq(bet5Tickets.bet5EventId, bet5Event.id), eq(bet5Tickets.userId, session.user.id)),
+      orderBy: [desc(bet5Tickets.createdAt)],
+    }),
+  ]);
 
   // 表示順・選択スロット・的中判定はすべて bet5Event の race1..race5 の定義順で揃える。
   // raceNumber 順に並べると同番号レース混在時に選択が別レースのスロットへ保存されてしまう
@@ -130,6 +137,8 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
             5つのレース全ての1着馬を予想してください。1口100円から投票できます。
           </p>
         </Card>
+
+        <Bet5MyTicketsDialog tickets={myTickets} races={orderedRaces} />
 
         <LoanBanner
           eventId={id}

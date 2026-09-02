@@ -58,7 +58,7 @@ export function ConfirmDialog({
       {trigger && <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>}
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm duration-200" />
-        <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl duration-200">
+        <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl duration-200">
           <div className="flex flex-col items-center text-center">
             {icon}
             <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">{title}</AlertDialog.Title>

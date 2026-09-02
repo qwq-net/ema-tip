@@ -1,19 +1,9 @@
 'use client';
 
 import { BetSummaryFooter, placeBet5BetAction } from '@/features/betting';
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui';
+import { Checkbox, ConfirmDialog } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
-import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -22,6 +12,8 @@ interface RaceWithEntries {
   id: string;
   raceNumber: number | null;
   name: string;
+  surface: string;
+  distance: number;
   entries: {
     id: string;
     horseNumber: number | null;
@@ -101,34 +93,35 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
     setShowConfirm(true);
   };
 
-  const handleConfirmSubmit = () => {
-    startTransition(async () => {
-      try {
-        const raceIds = races.map((r) => r.id);
+  const handleConfirmSubmit = async () => {
+    try {
+      const raceIds = races.map((r) => r.id);
 
-        const result = await placeBet5BetAction({
-          bet5EventId,
-          eventId,
-          unitAmount: amount,
-          selections: {
-            race1: selections[raceIds[0]] || [],
-            race2: selections[raceIds[1]] || [],
-            race3: selections[raceIds[2]] || [],
-            race4: selections[raceIds[3]] || [],
-            race5: selections[raceIds[4]] || [],
-          },
-        });
-        if (!result.success) {
-          toast.error(result.error);
-          return;
-        }
-        toast.success('投票を受け付けました！');
-        router.push('/mypage/sokubet');
-      } catch (error) {
-        toast.error('投票に失敗しました');
-        console.error(error);
+      const result = await placeBet5BetAction({
+        bet5EventId,
+        eventId,
+        unitAmount: amount,
+        selections: {
+          race1: selections[raceIds[0]] || [],
+          race2: selections[raceIds[1]] || [],
+          race3: selections[raceIds[2]] || [],
+          race4: selections[raceIds[3]] || [],
+          race5: selections[raceIds[4]] || [],
+        },
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
-    });
+      toast.success('投票を受け付けました！');
+      // 遷移が完了するまで isPending でフッターを無効化したいので、push のみ transition に載せる
+      startTransition(() => {
+        router.push('/mypage/sokubet');
+      });
+    } catch (error) {
+      toast.error('投票に失敗しました');
+      console.error(error);
+    }
   };
 
   const activeRace = races[activeTab];
@@ -152,7 +145,13 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
               >
                 <span className="shrink-0 text-sm font-semibold text-gray-400">第{index + 1}戦</span>
                 <span className="shrink-0 font-semibold text-gray-700">{race.raceNumber}R</span>
-                <span className="truncate font-medium text-gray-900">{race.name}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-gray-900">{race.name}</span>
+                  <span className="block text-sm text-gray-400">
+                    {race.surface}
+                    {race.distance}m・{race.entries.length}頭
+                  </span>
+                </span>
                 <span
                   className={cn(
                     'ml-auto shrink-0 text-sm font-semibold',
@@ -288,15 +287,14 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
         </div>
       </div>
 
-      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>投票内容の確認</DialogTitle>
-            <DialogDescription>以下の内容で投票します。よろしいですか？</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-3">
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="投票内容の確認"
+        description={
+          <>
+            以下の内容で投票します。よろしいですか？
+            <span className="mt-4 block space-y-3 text-left">
               {races.map((race) => {
                 const raceSelections = selections[race.id] || [];
                 const selectedHorses = race.entries
@@ -304,13 +302,13 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                   .sort((a, b) => (a.horseNumber || 0) - (b.horseNumber || 0));
 
                 return (
-                  <div key={race.id} className="flex flex-col gap-1 border-b border-gray-100 pb-2 last:border-0">
-                    <div className="text-sm font-semibold text-gray-600">
+                  <span key={race.id} className="flex flex-col gap-1 border-b border-gray-100 pb-2 last:border-0">
+                    <span className="text-sm font-semibold text-gray-600">
                       {race.raceNumber}R {race.name}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pl-2">
+                    </span>
+                    <span className="flex flex-wrap gap-1.5 pl-2">
                       {selectedHorses.map((entry) => (
-                        <div
+                        <span
                           key={entry.id}
                           className="flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
                         >
@@ -321,42 +319,34 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                           </span>
                           <span className="font-mono font-semibold text-gray-900">{entry.horseNumber}</span>
                           <span className="text-sm text-gray-600">{entry.horse.name}</span>
-                        </div>
+                        </span>
                       ))}
                       {selectedHorses.length === 0 && <span className="text-sm text-red-500">未選択</span>}
-                    </div>
-                  </div>
+                    </span>
+                  </span>
                 );
               })}
-            </div>
-
-            <div className="space-y-2 rounded-lg bg-gray-50 p-4">
-              <div className="flex justify-between text-sm">
+            </span>
+            <span className="mt-4 block space-y-2 rounded-lg bg-gray-50 p-4 text-left">
+              <span className="flex justify-between text-sm">
                 <span className="text-gray-500">点数</span>
                 <span className="font-semibold">{points}点</span>
-              </div>
-              <div className="flex justify-between text-sm">
+              </span>
+              <span className="flex justify-between text-sm">
                 <span className="text-gray-500">1点あたり</span>
                 <span className="font-semibold">{amount}円</span>
-              </div>
-              <div className="flex justify-between border-t border-gray-200 pt-2 text-lg font-semibold">
+              </span>
+              <span className="flex justify-between border-t border-gray-200 pt-2 text-lg font-semibold text-gray-900">
                 <span>合計金額</span>
                 <span className="text-indigo-600">{totalCost.toLocaleString('ja-JP')}円</span>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowConfirm(false)}>
-              キャンセル
-            </Button>
-            <Button onClick={handleConfirmSubmit} disabled={isPending} className="w-full sm:w-auto">
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              投票を確定する
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </span>
+            </span>
+          </>
+        }
+        confirmLabel="投票を確定する"
+        confirmVariant="primary"
+        onConfirm={handleConfirmSubmit}
+      />
     </>
   );
 }
