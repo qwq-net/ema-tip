@@ -35,6 +35,7 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
 
       <Card className="p-6">
         <HorseForm
+          key={horse.updatedAt.toISOString()}
           initialData={{
             ...horse,
             gender: GENDER_TO_FORM[horse.gender],

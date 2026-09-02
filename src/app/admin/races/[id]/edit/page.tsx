@@ -39,6 +39,7 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
 
       <Card className="p-6">
         <RaceForm
+          key={race.updatedAt.toISOString()}
           initialData={{
             ...race,
             raceNumber: race.raceNumber,

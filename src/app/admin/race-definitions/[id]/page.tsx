@@ -26,6 +26,7 @@ export default async function EditRaceDefinitionPage({ params }: { params: Promi
 
       <Card className="p-6">
         <RaceDefinitionForm
+          key={JSON.stringify(raceDefinition)}
           initialData={{
             ...raceDefinition,
             code: raceDefinition.code || undefined,
