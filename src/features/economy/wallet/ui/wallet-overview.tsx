@@ -48,7 +48,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
               </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-end border-t pt-4">
+            <div className="mt-6 flex items-center justify-end border-t border-gray-100 pt-4">
               <button
                 onClick={() => setSelectedWallet({ id: wallet.id, name: wallet.event.name })}
                 className="hover:text-primary text-text-sub flex items-center gap-1.5 text-sm font-semibold transition-colors"

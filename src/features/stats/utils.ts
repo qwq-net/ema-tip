@@ -1,3 +1,5 @@
+import type { Transaction } from '@/entities/wallet/ui/transaction-list';
+
 export type AssetHistoryPoint = {
   date: string;
   timestamp: number;
@@ -9,14 +11,6 @@ export type AssetHistoryPoint = {
   raceName?: string;
 };
 
-export type TransactionLog = {
-  id: string;
-  date: string;
-  type: string;
-  amount: number;
-  description: string;
-};
-
 export type EventStats = {
   id: string;
   name: string;
@@ -24,7 +18,7 @@ export type EventStats = {
   loan: number;
   net: number;
   history: AssetHistoryPoint[];
-  logs: TransactionLog[];
+  logs: Transaction[];
 };
 
 export type TransactionWithDetails = {
@@ -67,12 +61,6 @@ export function getTransactionDescription(tx: TransactionWithDetails): string {
   }
 }
 
-const JST_DATE = new Intl.DateTimeFormat('ja-JP', {
-  timeZone: 'Asia/Tokyo',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 const JST_MONTH_DAY = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit' });
 const JST_TIME = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -89,10 +77,6 @@ const JST_ISO_DATE = new Intl.DateTimeFormat('en-CA', {
 });
 
 // サーバーが動くコンテナは UTC のため、ローカル TZ 依存の date-fns format は使わず JST 固定で整形する
-export function formatTransactionDate(date: Date): string {
-  return `${JST_DATE.format(date)} ${JST_TIME.format(date)}`;
-}
-
 export function formatChartDate(date: Date, global: boolean = false): string {
   return global
     ? `${JST_ISO_DATE.format(date)} ${JST_TIME.format(date)}`

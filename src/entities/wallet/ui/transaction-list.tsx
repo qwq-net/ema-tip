@@ -41,9 +41,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
             className="rounded-control flex items-center justify-between border border-gray-100 bg-white p-4"
           >
             <div className="flex items-center gap-3">
-              <div
-                className={`rounded-full p-2 ${isExpense ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}
-              >
+              <div className={`rounded-full p-2 ${isExpense ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
                 {isExpense ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
               </div>
               <div>
@@ -64,7 +62,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
               </div>
             </div>
 
-            <div className={`text-lg font-semibold ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
+            <div className={`text-lg font-semibold tabular-nums ${isExpense ? 'text-red-600' : 'text-blue-600'}`}>
               {isExpense ? '' : '+'}
               {tx.amount.toLocaleString('ja-JP')}
             </div>

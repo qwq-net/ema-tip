@@ -49,7 +49,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
 
   return (
     <div className="rounded-control mt-8 space-y-4 border border-gray-200 bg-white p-6">
-      <h3 className="border-b pb-2 text-lg font-semibold text-gray-900">予想・見解</h3>
+      <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">予想・見解</h3>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

@@ -42,6 +42,8 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
   };
 
   const off = gradientOffset();
+  // 取引が多いイベントでは全点ドットが団子になるため、点数が少ないときだけ描画する
+  const showDots = data.length <= 30;
 
   return (
     <Card>
@@ -62,11 +64,19 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                   <stop offset={off} stopColor="var(--color-error)" stopOpacity={0.3} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="date" hide />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-gray-200)" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
+                tickLine={false}
+                axisLine={{ stroke: 'var(--color-gray-200)' }}
+                minTickGap={48}
+              />
               <YAxis
                 tickFormatter={(value) => `¥${value.toLocaleString('ja-JP')}`}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
+                tickLine={false}
+                axisLine={false}
                 width={80}
               />
               <ReferenceLine y={0} stroke="var(--color-text-sub)" strokeDasharray="3 3" />
@@ -76,9 +86,10 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                     // SAFETY: この Tooltip は AssetHistoryPoint[] を data に持つチャート専用
                     const data = payload[0].payload as AssetHistoryPoint;
                     return (
-                      <div className="rounded-control border bg-white p-3 text-sm shadow-md">
+                      <div className="rounded-control border border-gray-200 bg-white p-3 text-sm shadow-md">
+                        <div className="text-text-sub text-sm">{data.date}</div>
                         <div className="mb-1 font-semibold text-gray-900">{data.label || '不明な操作'}</div>
-                        <div className="flex flex-col gap-0.5">
+                        <div className="flex flex-col gap-0.5 tabular-nums">
                           <div
                             className={`text-lg font-semibold ${
                               data.amount > 0 ? 'text-blue-600' : data.amount < 0 ? 'text-red-600' : 'text-gray-600'
@@ -101,21 +112,25 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                 stroke={`url(#${chartId}-splitColor)`}
                 fill={`url(#${chartId}-splitFill)`}
                 strokeWidth={2}
-                dot={(props) => {
-                  const { cx, cy, payload } = props;
-                  const isPositive = payload.balance >= 0;
-                  return (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={4}
-                      fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
-                      stroke={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
-                      fillOpacity={1}
-                      strokeWidth={1}
-                    />
-                  );
-                }}
+                dot={
+                  showDots
+                    ? (props) => {
+                        const { cx, cy, payload } = props;
+                        const isPositive = payload.balance >= 0;
+                        return (
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                            stroke={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                            fillOpacity={1}
+                            strokeWidth={1}
+                          />
+                        );
+                      }
+                    : false
+                }
                 activeDot={(props) => {
                   const { cx, cy, payload } = props;
                   const isPositive = payload.balance >= 0;

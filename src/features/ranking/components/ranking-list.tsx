@@ -110,7 +110,7 @@ export function RankingList({
                     {user.balance !== '???' && (
                       <div
                         className={`text-sm font-medium ${
-                          user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
+                          user.balance - distributeAmount >= 0 ? 'text-blue-600' : 'text-red-600'
                         }`}
                       >
                         ({user.balance - distributeAmount >= 0 ? '+' : ''}

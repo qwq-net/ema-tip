@@ -4,7 +4,7 @@ import { db } from '@/shared/db';
 import { transactions, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
 import { asc, desc, eq, inArray } from 'drizzle-orm';
-import { formatChartDate, formatTransactionDate, getActionName, getTransactionDescription } from './utils';
+import { formatChartDate, getActionName, getTransactionDescription } from './utils';
 
 import type { AssetHistoryPoint, EventStats } from './utils';
 
@@ -183,7 +183,7 @@ export async function getGlobalStats() {
 
       eventData.logs.push({
         id: transaction.id,
-        date: formatTransactionDate(transaction.createdAt),
+        createdAt: transaction.createdAt,
         type: transaction.type,
         amount: transaction.amount,
         description: getTransactionDescription(transaction),

@@ -1,7 +1,7 @@
 'use client';
 
+import { TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { AssetChart } from '@/features/stats/components/asset-chart';
-import { HistoryList } from '@/features/stats/components/history-list';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
@@ -49,7 +49,7 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="space-y-4 border-t px-4 py-4">
+          <div className="space-y-4 border-t border-gray-100 px-4 py-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1">
                 <span className="text-text-sub text-sm">借入総額</span>
@@ -64,8 +64,8 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
 
             <div className="space-y-2">
               <h4 className="text-text-sub text-sm font-medium">取引履歴</h4>
-              <div className="rounded-control max-h-[300px] overflow-y-auto border">
-                <HistoryList logs={event.logs} />
+              <div className="max-h-[320px] overflow-y-auto">
+                <TransactionList transactions={event.logs} />
               </div>
             </div>
           </div>

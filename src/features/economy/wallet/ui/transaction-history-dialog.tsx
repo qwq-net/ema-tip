@@ -1,9 +1,9 @@
 'use client';
 
+import { Transaction, TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui';
 import { useEffect, useState } from 'react';
 import { getWalletTransactions } from '../queries';
-import { Transaction, TransactionList } from './transaction-list';
 
 interface TransactionHistoryDialogProps {
   walletId: string;
@@ -77,7 +77,7 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[80vh] min-h-[50vh] flex-col gap-0 p-0">
-        <DialogHeader className="border-b p-4">
+        <DialogHeader className="border-b border-gray-100 p-4">
           <DialogTitle>取引履歴</DialogTitle>
           <DialogDescription>{eventName}</DialogDescription>
         </DialogHeader>
