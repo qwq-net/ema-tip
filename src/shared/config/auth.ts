@@ -56,11 +56,10 @@ const {
   signIn,
   signOut,
 } = NextAuth({
+  // strategy jwt のため session / verificationToken テーブルは使われず、テーブルごと廃止済み
   adapter: DrizzleAdapter(db, {
     usersTable: schema.users,
     accountsTable: schema.accounts,
-    sessionsTable: schema.sessions,
-    verificationTokensTable: schema.verificationTokens,
   }),
   session: {
     strategy: 'jwt',

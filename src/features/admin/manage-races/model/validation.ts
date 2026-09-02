@@ -1,4 +1,4 @@
-import { VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { RACE_CONDITIONS, RACE_SURFACES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { z } from 'zod';
 
 export const raceSchema = z.object({
@@ -7,8 +7,8 @@ export const raceSchema = z.object({
   name: z.string().min(1, 'レース名を入力してください'),
   raceNumber: z.coerce.number().optional(),
   distance: z.coerce.number().min(100, '距離は100m以上で入力してください'),
-  surface: z.string(),
-  condition: z.string().optional(),
+  surface: z.enum(RACE_SURFACES),
+  condition: z.enum(RACE_CONDITIONS).optional(),
   closingAt: z.string().optional(),
   venueId: z.string().min(1, '開催場所を選択してください'),
   raceDefinitionId: z.string().optional(),

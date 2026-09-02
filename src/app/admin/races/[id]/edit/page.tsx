@@ -4,9 +4,7 @@ import { getEvents } from '@/features/admin/manage-races/actions';
 import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
-import { RACE_CONDITIONS, RACE_SURFACES } from '@/shared/constants/race';
 import { Card } from '@/shared/ui';
-import { narrowToOption } from '@/shared/utils/lookup';
 import { notFound, redirect } from 'next/navigation';
 
 export default async function EditRacePage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,8 +41,8 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
           initialData={{
             ...race,
             raceNumber: race.raceNumber,
-            condition: narrowToOption(RACE_CONDITIONS, race.condition),
-            surface: narrowToOption(RACE_SURFACES, race.surface) ?? '芝',
+            condition: race.condition,
+            surface: race.surface,
             venueId: race.venueId || undefined,
             direction: race.direction || undefined,
           }}

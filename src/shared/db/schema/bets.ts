@@ -1,4 +1,4 @@
-import { BET_TYPE_ORDER, type BetDetail } from '@/entities/bet/constants';
+import { type BetDetail } from '@/entities/bet/constants';
 import {
   bigint,
   boolean,
@@ -13,11 +13,11 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { users } from './auth';
+import { betTypeEnum } from './bet-type';
 import { events } from './events';
 import { raceInstances, raceStatusEnum } from './races';
 import { wallets } from './wallets';
 
-export const betTypeEnum = pgEnum('bet_type', BET_TYPE_ORDER);
 export const betStatusEnum = pgEnum('bet_status', ['PENDING', 'HIT', 'LOST', 'REFUNDED']);
 
 export const betGroups = pgTable(

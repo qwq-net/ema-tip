@@ -1,3 +1,5 @@
+import type { BetType } from '@/entities/bet';
+
 export type ScrapedHorse = {
   horseNumber: number;
   bracketNumber: number;
@@ -13,9 +15,9 @@ export type ScrapedHorse = {
 export type ScrapedRaceInfo = {
   raceName: string;
   distance: number;
-  surface: string;
+  surface: '芝' | 'ダート';
   direction: 'RIGHT' | 'LEFT' | null;
-  condition: string | null;
+  condition: '良' | '稍重' | '重' | '不良' | null;
   raceNumber: number;
   netkeibaVenueCode: string;
 };
@@ -43,5 +45,5 @@ export type NetkeibaPayoutEntry = {
 
 export type NetkeibaRaceResult = {
   finishOrder: number[];
-  payouts: Partial<Record<string, NetkeibaPayoutEntry[]>>;
+  payouts: Partial<Record<BetType, NetkeibaPayoutEntry[]>>;
 };

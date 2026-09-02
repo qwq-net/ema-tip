@@ -1,4 +1,5 @@
-import { lookup } from '@/shared/utils/lookup';
+import { RACE_CONDITIONS } from '@/shared/constants/race';
+import { lookup, narrowToOption } from '@/shared/utils/lookup';
 import { parse } from 'node-html-parser';
 import type { RacePreviewData, ScrapedHorse, ScrapedRaceInfo } from '../model/types';
 
@@ -29,7 +30,7 @@ function parseRaceInfo(root: ReturnType<typeof parse>, raceId: string): ScrapedR
   else if (raceData01.includes('左')) direction = 'LEFT';
 
   const conditionMatch = raceData01.match(/(良|稍重|重|不良)/);
-  const condition = conditionMatch ? conditionMatch[1] : null;
+  const condition = conditionMatch ? (narrowToOption(RACE_CONDITIONS, conditionMatch[1]) ?? null) : null;
 
   const raceNumber = parseInt(raceId.slice(10, 12));
   const netkeibaVenueCode = raceId.slice(4, 6);

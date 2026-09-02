@@ -1,6 +1,7 @@
 export * from './audit';
 export * from './auth';
 export * from './bet-restrictions';
+export * from './bet-type';
 export * from './bets';
 export * from './events';
 export * from './forecasts';

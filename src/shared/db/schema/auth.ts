@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', [
@@ -32,7 +33,8 @@ export const users = pgTable(
     emailVerified: timestamp('email_verified', { mode: 'date', withTimezone: true }),
     image: text('image'),
     role: roleEnum('role').default('USER').notNull(),
-    guestCodeId: text('guest_code_id'),
+    // guestCodes は createdBy で users を参照するため相互参照になる。型の循環を断つ AnyPgColumn 注釈が必須
+    guestCodeId: text('guest_code_id').references((): AnyPgColumn => guestCodes.code),
     password: text('password'),
     isOnboardingCompleted: boolean('is_onboarding_completed').default(false).notNull(),
     disabledAt: timestamp('disabled_at', { withTimezone: true }),
@@ -69,34 +71,6 @@ export const accounts = pgTable(
   (account) => ({
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
-    }),
-  })
-);
-
-export const sessions = pgTable(
-  'session',
-  {
-    sessionToken: text('session_token').primaryKey(),
-    userId: text('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    expires: timestamp('expires', { mode: 'date', withTimezone: true }).notNull(),
-  },
-  (table) => ({
-    userIdx: index('session_user_idx').on(table.userId),
-  })
-);
-
-export const verificationTokens = pgTable(
-  'verificationToken',
-  {
-    identifier: text('identifier').notNull(),
-    token: text('token').notNull(),
-    expires: timestamp('expires', { mode: 'date', withTimezone: true }).notNull(),
-  },
-  (verificationToken) => ({
-    compositePk: primaryKey({
-      columns: [verificationToken.identifier, verificationToken.token],
     }),
   })
 );

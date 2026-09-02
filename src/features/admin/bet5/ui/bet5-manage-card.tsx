@@ -23,7 +23,7 @@ import { useState, useTransition } from 'react';
 interface Bet5Event {
   id: string;
   eventId: string;
-  status: 'SCHEDULED' | 'CLOSED' | 'FINALIZED' | 'CANCELLED';
+  status: 'SCHEDULED' | 'CLOSED' | 'FINALIZED';
   initialPot: number;
 }
 

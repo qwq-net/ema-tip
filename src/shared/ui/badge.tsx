@@ -61,11 +61,8 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
           case 'COMPLETED':
           case '終了':
             return 'bg-gray-100 text-gray-800';
-          case 'CANCELLED':
-          case 'キャンセル':
           case 'Disabled':
           case '無効':
-          case '中止':
             return 'bg-red-100 text-red-800';
           default:
             return 'bg-gray-100 text-gray-800';

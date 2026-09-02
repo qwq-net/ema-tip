@@ -1,5 +1,5 @@
 import { pgTable, primaryKey, uuid } from 'drizzle-orm/pg-core';
-import { betTypeEnum } from './bets';
+import { betTypeEnum } from './bet-type';
 import { events } from './events';
 import { raceInstances } from './races';
 

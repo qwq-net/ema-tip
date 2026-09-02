@@ -11,14 +11,17 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { RACE_GRADES, RACE_TYPES } from '../../constants/race';
+import { RACE_CONDITIONS, RACE_GRADES, RACE_SURFACES, RACE_TYPES } from '../../constants/race';
+import { betTypeEnum } from './bet-type';
 import { events } from './events';
 import { horses } from './horses';
 import { venueDirectionEnum, venues } from './venues';
 
 export const raceGradeEnum = pgEnum('race_grade', RACE_GRADES);
 export const raceTypeEnum = pgEnum('race_type', RACE_TYPES);
-export const raceStatusEnum = pgEnum('race_status', ['SCHEDULED', 'CLOSED', 'FINALIZED', 'CANCELLED']);
+export const raceSurfaceEnum = pgEnum('race_surface', RACE_SURFACES);
+export const raceConditionEnum = pgEnum('race_condition', RACE_CONDITIONS);
+export const raceStatusEnum = pgEnum('race_status', ['SCHEDULED', 'CLOSED', 'FINALIZED']);
 export const raceEntryStatusEnum = pgEnum('race_entry_status', ['ENTRANT', 'SCRATCHED', 'EXCLUDED']);
 
 export const raceDefinitions = pgTable('race_definition', {
@@ -32,7 +35,7 @@ export const raceDefinitions = pgTable('race_definition', {
   defaultVenueId: uuid('default_venue_id')
     .notNull()
     .references(() => venues.id),
-  defaultSurface: text('default_surface').notNull(),
+  defaultSurface: raceSurfaceEnum('default_surface').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -51,11 +54,9 @@ export const raceInstances = pgTable(
     name: text('name').notNull(),
     raceNumber: integer('race_number'),
     distance: integer('distance').notNull(),
-    surface: text('surface').notNull(),
-    condition: text('condition'),
-    grade: raceGradeEnum('grade'),
+    surface: raceSurfaceEnum('surface').notNull(),
+    condition: raceConditionEnum('condition'),
     direction: venueDirectionEnum('direction'),
-    type: raceTypeEnum('type').default('REAL').notNull(),
     status: raceStatusEnum('status').default('SCHEDULED').notNull(),
     closingAt: timestamp('closing_at', { withTimezone: true }),
     finalizedAt: timestamp('finalized_at', { withTimezone: true }),
@@ -90,7 +91,6 @@ export const raceEntries = pgTable(
     bracketNumber: integer('bracket_number'),
     horseNumber: integer('horse_number'),
     jockey: text('jockey'),
-    weight: integer('weight'),
     finishPosition: integer('finish_position'),
     status: raceEntryStatusEnum('status').default('ENTRANT').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -132,7 +132,7 @@ export const payoutResults = pgTable(
     raceId: uuid('race_id')
       .notNull()
       .references(() => raceInstances.id, { onDelete: 'cascade' }),
-    type: text('type').notNull(),
+    type: betTypeEnum('type').notNull(),
     // guaranteed は保証オッズで倍率が引き上げられた組み合わせにのみ true を格納する
     combinations: jsonb('combinations')
       .$type<{ numbers: number[]; payout: number; popularity?: number; guaranteed?: boolean }[]>()
@@ -142,25 +142,5 @@ export const payoutResults = pgTable(
   (table) => ({
     // raceId 単独の照会は複合ユニークの先頭列で賄う
     raceTypeUniqueIdx: uniqueIndex('payout_result_race_type_unique_idx').on(table.raceId, table.type),
-  })
-);
-
-export const horseWins = pgTable(
-  'horse_win',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    horseId: uuid('horse_id')
-      .notNull()
-      .references(() => horses.id, { onDelete: 'cascade' }),
-    raceInstanceId: uuid('race_instance_id').references(() => raceInstances.id, { onDelete: 'set null' }),
-    raceDefinitionId: uuid('race_definition_id').references(() => raceDefinitions.id, {
-      onDelete: 'set null',
-    }),
-    title: text('title').notNull(),
-    date: date('date'),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    horseIdx: index('horse_win_horse_idx').on(table.horseId),
   })
 );

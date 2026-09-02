@@ -28,12 +28,6 @@ vi.mock('@/shared/db', () => ({
   },
 }));
 
-vi.mock('@/shared/constants/race', () => ({
-  VENUE_DIRECTIONS: ['LEFT', 'RIGHT', 'STRAIGHT'] as const,
-  RACE_GRADES: ['G1', 'G2', 'G3', 'L', 'OP', '3_WIN', '2_WIN', '1_WIN', 'MAIDEN', 'NEWCOMER'] as const,
-  RACE_TYPES: ['REAL', 'FICTIONAL'] as const,
-}));
-
 describe('updateRace', () => {
   const mockUpdate = vi.fn();
   const mockSet = vi.fn();
@@ -328,7 +322,7 @@ describe('updateRace ステータス遷移', () => {
       venueId: 'venue-1',
       name: 'テストレース',
       distance: '2000',
-      surface: 'turf',
+      surface: '芝',
     } satisfies Record<string, string>;
     const merged = { ...defaults, ...overrides };
     const fd = new FormData();

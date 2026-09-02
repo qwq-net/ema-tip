@@ -1,36 +1,20 @@
-import { sql } from 'drizzle-orm';
+import { getTableName, is, sql } from 'drizzle-orm';
+import { PgTable } from 'drizzle-orm/pg-core';
 import { db } from './index';
+import * as schema from './schema';
 
+// スキーマの export から全テーブルを動的に導出する。
+// 固定リストだとテーブル追加のたびに陳腐化し、FK を持たないテーブルが消え残る
 async function main() {
   console.log('--- Resetting Database (Truncating all tables) ---');
 
-  const tableNames = [
-    'payout_result',
-    'race_odds',
-    'race_entry',
-    'bet',
-    'horse_win',
-    'horse_tag',
-    'horse_tag_master',
-    'race_instance',
-    'race_definition',
-    'venue',
-    'transaction',
-    'wallet',
-    'horse',
-    'event',
-    'guest_code',
-    'verificationToken',
-    'session',
-    'account',
-    'user',
-  ];
+  const tableNames = Object.values(schema)
+    .filter((value) => is(value, PgTable))
+    .map((table) => `"${getTableName(table)}"`);
 
   try {
-    for (const tableName of tableNames) {
-      console.log(`Truncating ${tableName}...`);
-      await db.execute(sql.raw(`TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE`));
-    }
+    console.log(`Truncating ${tableNames.length} tables...`);
+    await db.execute(sql.raw(`TRUNCATE TABLE ${tableNames.join(', ')} RESTART IDENTITY CASCADE`));
     console.log('--- Database Reset Completed ---');
   } catch (err) {
     console.error('Reset failed:', err);

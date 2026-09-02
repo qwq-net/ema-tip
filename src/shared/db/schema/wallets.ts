@@ -3,14 +3,7 @@ import { bigint, check, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uu
 import { users } from './auth';
 import { events } from './events';
 
-export const transactionTypeEnum = pgEnum('transaction_type', [
-  'DISTRIBUTION',
-  'BET',
-  'PAYOUT',
-  'REFUND',
-  'ADJUSTMENT',
-  'LOAN',
-]);
+export const transactionTypeEnum = pgEnum('transaction_type', ['DISTRIBUTION', 'BET', 'PAYOUT', 'REFUND', 'LOAN']);
 
 export const wallets = pgTable(
   'wallet',

@@ -30,7 +30,7 @@ interface RaceFormProps {
     name: string;
     grade: string;
     defaultDistance: number;
-    defaultSurface: string;
+    defaultSurface: '芝' | 'ダート';
     defaultVenueId: string;
     defaultDirection: string;
   }>;
@@ -59,7 +59,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
     if (def) {
       setName(def.name);
       setDistance(def.defaultDistance);
-      setSurface(narrowToOption(RACE_SURFACES, def.defaultSurface) ?? '芝');
+      setSurface(def.defaultSurface);
 
       if (def.defaultVenueId) {
         setVenueId(def.defaultVenueId);

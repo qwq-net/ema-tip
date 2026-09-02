@@ -4,7 +4,7 @@ import { bet5Events, bet5Tickets, betGroups, bets } from './bets';
 import { events } from './events';
 import { forecasts } from './forecasts';
 import { horses, horseTags } from './horses';
-import { horseWins, raceDefinitions, raceEntries, raceInstances, raceOdds } from './races';
+import { raceDefinitions, raceEntries, raceInstances, raceOdds } from './races';
 import { venues } from './venues';
 import { transactions, wallets } from './wallets';
 
@@ -124,7 +124,6 @@ export const raceOddsRelations = relations(raceOdds, ({ one }) => ({
 export const horseRelations = relations(horses, ({ many }) => ({
   tags: many(horseTags),
   entries: many(raceEntries),
-  wins: many(horseWins),
 }));
 
 export const horseTagRelations = relations(horseTags, ({ one }) => ({

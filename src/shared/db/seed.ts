@@ -1,7 +1,9 @@
+import { BET_TYPES, type BetType } from '@/entities/bet';
 import type { HorseTagType, HorseType } from '@/entities/horse';
 import { ROLES } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
-import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { RACE_CONDITIONS, RACE_GRADES, RACE_SURFACES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import bcrypt from 'bcryptjs';
 import { and, eq } from 'drizzle-orm';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
@@ -22,7 +24,7 @@ interface RaceSeedData {
   name: string;
   grade: (typeof RACE_GRADES)[number];
   venue: string;
-  surface: string;
+  surface: (typeof RACE_SURFACES)[number];
   distance: number;
   direction: (typeof VENUE_DIRECTIONS)[number];
 }
@@ -33,7 +35,6 @@ interface HorseSeedData {
   age: number | null;
   type?: HorseType;
   tags?: { type: HorseTagType; content: string }[];
-  wins?: { title: string; date: string }[];
 }
 
 // SAFETY: seeds/*.json は手管理のマスタ。列挙値の妥当性は SeedData interface の union で表現している
@@ -63,6 +64,11 @@ function generateDummyPlaceOdds(entryCount: number) {
   return odds;
 }
 
+// 全シードユーザー共通のログインパスワード。絵文字キーパッドで入力できる3文字
+const SEED_PASSWORD = '🐶🐶🐶';
+// 新規登録の動作確認に使うゲストコード
+const SEED_GUEST_CODE = 'WELCOME1';
+
 const usersToCreate = [
   { name: '武豊', role: ROLES.ADMIN, email: 'admin@example.com' },
   { name: 'ルメール', role: ROLES.USER, email: 'user@example.com' },
@@ -72,34 +78,49 @@ const usersToCreate = [
   { name: '[AI] 福永祐一', role: ROLES.AI_USER, email: 'ai_user@example.com' },
 ];
 
-const eventTemplates = [
+interface EventTemplate {
+  name: string;
+  description: string;
+  distributeAmount: number;
+  date: string;
+  status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED';
+  // イベント全体のデフォルト購入可能種別。null は制限なし
+  allowedBetTypes: BetType[] | null;
+}
+
+const eventTemplates: EventTemplate[] = [
   {
     name: '第334回 拠り所杯',
     description: '第334回 拠り所杯 馬刺しになるのは誰だ！',
     distributeAmount: 100000,
     date: '2026-02-15',
-    status: 'SCHEDULED' as const,
+    status: 'SCHEDULED',
+    // イベントデフォルト制限の動作確認用
+    allowedBetTypes: [BET_TYPES.WIN, BET_TYPES.PLACE],
   },
   {
     name: '第335回 新春記念',
     description: '新春を祝う伝統の一戦',
     distributeAmount: 150000,
     date: '2026-02-01',
-    status: 'ACTIVE' as const,
+    status: 'ACTIVE',
+    allowedBetTypes: null,
   },
   {
     name: '第336回 冬記王者決定戦',
     description: '冬の王者を決める熱戦',
     distributeAmount: 200000,
     date: '2026-01-25',
-    status: 'COMPLETED' as const,
+    status: 'COMPLETED',
+    allowedBetTypes: null,
   },
   {
     name: '第337回 年末グランプリ',
     description: '年末を締めくくる大一番',
     distributeAmount: 180000,
     date: '2025-12-28',
-    status: 'COMPLETED' as const,
+    status: 'COMPLETED',
+    allowedBetTypes: null,
   },
 ];
 
@@ -282,34 +303,6 @@ async function main() {
     }
     if (createdHorseCount === 0) console.log('Horses: all exist, skipped');
 
-    for (const horseData of horsesData) {
-      if (!horseData.wins || horseData.wins.length === 0) continue;
-
-      const cleanedName = horseData.name.replace(/^外 /, '');
-      const horse = await tx.query.horses.findFirst({
-        where: (h, { eq }) => eq(h.name, cleanedName),
-      });
-      if (!horse) continue;
-
-      let winsCreated = 0;
-      for (const t of horseData.wins) {
-        const existing = await tx.query.horseWins.findFirst({
-          where: (hw, { and, eq }) => and(eq(hw.horseId, horse.id), eq(hw.title, t.title)),
-        });
-        if (!existing) {
-          await tx.insert(schema.horseWins).values({
-            horseId: horse.id,
-            title: t.title,
-            date: t.date,
-          });
-          winsCreated++;
-        }
-      }
-      if (winsCreated > 0) {
-        console.log(`Horse wins seeded: ${cleanedName} (${winsCreated} titles)`);
-      }
-    }
-
     if (isMasterOnly) {
       console.log('Skipping dummy data seeding (--master-only)');
       return;
@@ -317,6 +310,7 @@ async function main() {
 
     let createdUserCount = 0;
     const allUsers: Array<{ id: string; name: string | null; role: string }> = [];
+    const passwordHash = bcrypt.hashSync(SEED_PASSWORD, 10);
 
     for (const userData of usersToCreate) {
       const existing = await tx.query.users.findFirst({
@@ -324,6 +318,10 @@ async function main() {
       });
 
       if (existing) {
+        // 旧シードで作られたパスワード無しユーザーもログインできるよう補完する
+        if (!existing.password) {
+          await tx.update(schema.users).set({ password: passwordHash }).where(eq(schema.users.id, existing.id));
+        }
         allUsers.push(existing);
       } else {
         const [user] = await tx
@@ -332,6 +330,7 @@ async function main() {
             name: userData.name,
             email: userData.email,
             role: userData.role,
+            password: passwordHash,
             isOnboardingCompleted: true,
           })
           .returning();
@@ -341,13 +340,32 @@ async function main() {
       }
     }
     if (createdUserCount === 0) console.log('Users: all exist, skipped');
+    console.log(`Login password for all seeded users: ${SEED_PASSWORD}`);
+
+    const adminUser = allUsers.find((u) => u.role === ROLES.ADMIN);
+    if (adminUser) {
+      const existingCode = await tx.query.guestCodes.findFirst({
+        where: (c, { eq }) => eq(c.code, SEED_GUEST_CODE),
+      });
+      if (!existingCode) {
+        await tx.insert(schema.guestCodes).values({
+          code: SEED_GUEST_CODE,
+          title: '動作確認用コード',
+          createdBy: adminUser.id,
+        });
+        console.log(`Guest code created: ${SEED_GUEST_CODE}`);
+      }
+    }
 
     const racesPerEvent = 5;
     const raceDefinitionNames = racesData.map((d) => d.name);
     const createdEventIds: Array<{ id: string; status: string; distributeAmount: number }> = [];
+    // 開催中イベントの受付中レース。あとで購入済み馬券のシードに使う
+    let betsTarget: { eventId: string; raceId: string; horseNumbers: number[] } | null = null;
 
     for (let eventIndex = 0; eventIndex < eventTemplates.length; eventIndex++) {
       const eventTemplate = eventTemplates[eventIndex];
+      const { allowedBetTypes: defaultAllowedBetTypes, ...eventValues } = eventTemplate;
       const existingEvent = await tx.query.events.findFirst({
         where: (e, { eq }) => eq(e.name, eventTemplate.name),
       });
@@ -356,7 +374,7 @@ async function main() {
       if (existingEvent) {
         eventId = existingEvent.id;
       } else {
-        const [event] = await tx.insert(schema.events).values(eventTemplate).returning();
+        const [event] = await tx.insert(schema.events).values(eventValues).returning();
         console.log(`Event created: ${event.name} (${event.status})`);
         eventId = event.id;
       }
@@ -366,11 +384,21 @@ async function main() {
         distributeAmount: eventTemplate.distributeAmount,
       });
 
+      if (defaultAllowedBetTypes) {
+        await tx
+          .insert(schema.eventDefaultAllowedBetTypes)
+          .values(defaultAllowedBetTypes.map((betType) => ({ eventId, betType })))
+          .onConflictDoNothing();
+        console.log(`  Event default bet types: ${defaultAllowedBetTypes.join(', ')}`);
+      }
+
       const startIndex = (eventIndex * racesPerEvent) % raceDefinitionNames.length;
       const selectedDefNames: string[] = [];
       for (let i = 0; i < racesPerEvent; i++) {
         selectedDefNames.push(raceDefinitionNames[(startIndex + i) % raceDefinitionNames.length]);
       }
+
+      const eventRaceIds: string[] = [];
 
       for (let i = 0; i < selectedDefNames.length; i++) {
         const defName = selectedDefNames[i];
@@ -386,7 +414,10 @@ async function main() {
           where: (ri, { and, eq }) => and(eq(ri.eventId, eventId), eq(ri.raceDefinitionId, def.id)),
         });
 
-        if (existingInstance) continue;
+        if (existingInstance) {
+          eventRaceIds.push(existingInstance.id);
+          continue;
+        }
 
         const raceStatus = i < 2 ? 'FINALIZED' : i === 2 ? 'CLOSED' : 'SCHEDULED';
 
@@ -402,15 +433,29 @@ async function main() {
             distance: def.defaultDistance,
             surface: def.defaultSurface,
             direction: def.defaultDirection,
-            grade: defInfo.grade,
             condition: getRandomCondition(),
             status: raceStatus,
-            type: 'REAL',
             guaranteedOdds: DEFAULT_GUARANTEED_ODDS,
           })
           .returning();
+        eventRaceIds.push(race.id);
 
         console.log(`Race Instance created: ${race.name} (Event: ${eventTemplate.name})`);
+
+        // 開催中イベントの4Rはレース個別の種別制限、5Rは予想と購入済み馬券のシード対象にする
+        const isActiveEvent = eventTemplate.status === 'ACTIVE';
+        if (isActiveEvent && i === 3) {
+          await tx
+            .insert(schema.raceAllowedBetTypes)
+            .values(
+              [BET_TYPES.WIN, BET_TYPES.BRACKET_QUINELLA, BET_TYPES.TRIFECTA].map((betType) => ({
+                raceId: race.id,
+                betType,
+              }))
+            )
+            .onConflictDoNothing();
+          console.log(`  Race bet types restricted: ${race.name}`);
+        }
 
         const shuffledHorses = [...allHorses].sort(() => Math.random() - 0.5);
         const numEntries = Math.min(shuffledHorses.length, 12 + Math.floor(Math.random() * 6));
@@ -426,6 +471,31 @@ async function main() {
         }));
         await tx.insert(schema.raceEntries).values(entryValues);
         console.log(`  Entries: ${numEntries} horses registered`);
+
+        if (isActiveEvent && i === 4) {
+          betsTarget = {
+            eventId,
+            raceId: race.id,
+            horseNumbers: entryValues.slice(0, 3).map((e) => e.horseNumber),
+          };
+
+          const forecastSymbols = ['◎', '◯', '▲'];
+          const forecastUsers = allUsers.filter((u) => u.role === ROLES.TIPSTER || u.role === ROLES.AI_TIPSTER);
+          for (const forecastUser of forecastUsers) {
+            await tx
+              .insert(schema.forecasts)
+              .values({
+                raceId: race.id,
+                userId: forecastUser.id,
+                comment: '軸は堅実に、相手は展開次第で手広く狙います。',
+                selections: Object.fromEntries(
+                  entryValues.slice(0, 3).map((e, idx) => [e.horseId, forecastSymbols[idx]])
+                ),
+              })
+              .onConflictDoNothing();
+          }
+          console.log(`  Forecasts: ${forecastUsers.length} tipsters`);
+        }
 
         const existingOdds = await tx.query.raceOdds.findFirst({
           where: (o, { eq }) => eq(o.raceId, race.id),
@@ -468,6 +538,25 @@ async function main() {
           }
         }
       }
+
+      if (eventTemplate.status === 'ACTIVE' && eventRaceIds.length === racesPerEvent) {
+        const existingBet5 = await tx.query.bet5Events.findFirst({
+          where: (b, { eq }) => eq(b.eventId, eventId),
+        });
+        if (!existingBet5) {
+          await tx.insert(schema.bet5Events).values({
+            eventId,
+            race1Id: eventRaceIds[0],
+            race2Id: eventRaceIds[1],
+            race3Id: eventRaceIds[2],
+            race4Id: eventRaceIds[3],
+            race5Id: eventRaceIds[4],
+            initialPot: 50000,
+            status: 'SCHEDULED',
+          });
+          console.log('  BET5 event created');
+        }
+      }
     }
 
     let walletCount = 0;
@@ -503,6 +592,70 @@ async function main() {
       console.log(`Wallets created: ${walletCount} (with DISTRIBUTION transactions)`);
     } else {
       console.log('Wallets: all exist, skipped');
+    }
+
+    // 開催中イベントの受付中レースへ、一般ユーザーの購入済み馬券を入れる。
+    // 残高と取引台帳の不変条件を守るため、bet ごとの取引行と残高減算をセットで書く
+    if (betsTarget) {
+      const bettors = allUsers.filter((u) => u.role === ROLES.USER || u.role === ROLES.GUEST);
+      const amountPerBet = 100;
+
+      for (const bettor of bettors) {
+        const existingGroup = await tx.query.betGroups.findFirst({
+          where: (bg, { and, eq }) => and(eq(bg.userId, bettor.id), eq(bg.raceId, betsTarget!.raceId)),
+        });
+        if (existingGroup) continue;
+
+        const wallet = await tx.query.wallets.findFirst({
+          where: (w, { and, eq }) => and(eq(w.userId, bettor.id), eq(w.eventId, betsTarget!.eventId)),
+        });
+        if (!wallet) continue;
+
+        const combinations = betsTarget.horseNumbers.map((n) => [n]);
+        const totalAmount = combinations.length * amountPerBet;
+
+        const [group] = await tx
+          .insert(schema.betGroups)
+          .values({
+            userId: bettor.id,
+            raceId: betsTarget.raceId,
+            walletId: wallet.id,
+            type: BET_TYPES.WIN,
+            totalAmount,
+          })
+          .returning();
+
+        const insertedBets = await tx
+          .insert(schema.bets)
+          .values(
+            combinations.map((selections) => ({
+              userId: bettor.id,
+              raceId: betsTarget!.raceId,
+              walletId: wallet.id,
+              betGroupId: group.id,
+              details: { type: BET_TYPES.WIN, selections },
+              amount: amountPerBet,
+              status: 'PENDING' as const,
+            }))
+          )
+          .returning({ id: schema.bets.id });
+
+        await tx.insert(schema.transactions).values(
+          insertedBets.map((bet) => ({
+            walletId: wallet.id,
+            type: 'BET' as const,
+            amount: -amountPerBet,
+            referenceId: bet.id,
+          }))
+        );
+
+        await tx
+          .update(schema.wallets)
+          .set({ balance: wallet.balance - totalAmount })
+          .where(eq(schema.wallets.id, wallet.id));
+
+        console.log(`Bets seeded: ${bettor.name} (${combinations.length} win bets)`);
+      }
     }
   });
 

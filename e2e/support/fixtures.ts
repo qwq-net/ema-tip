@@ -90,8 +90,10 @@ async function cleanupWith(sql: postgres.Sql) {
     WHERE actor_id IN (SELECT id FROM "user" WHERE name = ${E2E.adminName})
   `;
   await sql`DELETE FROM event WHERE name = ${E2E.eventName}`;
-  await sql`DELETE FROM guest_code WHERE code = ${E2E.guestCode}`;
+  // user.guest_code_id が guest_code を参照するため、参照元のユーザーを先に消す。
+  // 管理者の削除カスケードで guest_code も消えるが、単体で残るケースに備えて明示的にも消す
   await sql`DELETE FROM "user" WHERE name IN (${E2E.adminName}, ${E2E.guestName})`;
+  await sql`DELETE FROM guest_code WHERE code = ${E2E.guestCode}`;
 }
 
 export async function cleanupFixtures() {

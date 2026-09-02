@@ -145,9 +145,9 @@ type ImportRaceParams = {
   raceName: string;
   raceNumber: number;
   distance: number;
-  surface: string;
+  surface: '芝' | 'ダート';
   direction: 'RIGHT' | 'LEFT' | null;
-  condition: string | null;
+  condition: '良' | '稍重' | '重' | '不良' | null;
   fixedOddsMode: boolean;
   horses: Array<{
     horseNumber: number;

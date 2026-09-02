@@ -7,7 +7,6 @@ import { RaceBetTypesForm } from '@/features/admin/manage-races/ui/race-bet-type
 import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
-import { RACE_CONDITIONS, RACE_SURFACES } from '@/shared/constants/race';
 import { db } from '@/shared/db';
 import {
   bet5Events,
@@ -21,7 +20,6 @@ import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
-import { narrowToOption } from '@/shared/utils/lookup';
 import { eq } from 'drizzle-orm';
 import { ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -236,9 +234,9 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 name: race.name,
                 raceNumber: race.raceNumber,
                 status: race.status,
-                surface: narrowToOption(RACE_SURFACES, race.surface) ?? '芝',
+                surface: race.surface,
                 distance: race.distance,
-                condition: narrowToOption(RACE_CONDITIONS, race.condition),
+                condition: race.condition,
                 closingAt: race.closingAt ? race.closingAt.toISOString() : null,
                 netkeibaUrl: race.netkeibaUrl ?? null,
                 fixedOddsMode: race.fixedOddsMode,

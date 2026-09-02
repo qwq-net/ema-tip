@@ -80,7 +80,7 @@ describe('finalizePayout', () => {
         name: 'Test Race',
         date: new Date().toISOString().split('T')[0],
         distance: 2000,
-        surface: 'TURF',
+        surface: '芝',
         status: 'CLOSED',
       })
       .returning();
@@ -354,11 +354,6 @@ describe('finalizePayout', () => {
 
   it('SCHEDULED状態のレースは払戻確定できない', async () => {
     await db.update(raceInstances).set({ status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
-    await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
-  });
-
-  it('CANCELLED状態のレースは払戻確定できない', async () => {
-    await db.update(raceInstances).set({ status: 'CANCELLED' }).where(eq(raceInstances.id, raceId));
     await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
   });
 

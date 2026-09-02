@@ -11,7 +11,6 @@ export const RACE_STATUS_LABELS = {
   CLOSED: '締切済み',
   RANKING_CONFIRMED: '着順確定',
   FINALIZED: '払戻確定',
-  CANCELLED: '中止',
 } as const;
 
 export type RaceStatus = keyof typeof RACE_STATUS_LABELS;
@@ -20,7 +19,6 @@ export const BET5_STATUS_LABELS = {
   SCHEDULED: '受付中',
   CLOSED: '締切済み',
   FINALIZED: '払戻完了',
-  CANCELLED: '中止',
 } as const;
 
 export type Bet5Status = keyof typeof BET5_STATUS_LABELS;

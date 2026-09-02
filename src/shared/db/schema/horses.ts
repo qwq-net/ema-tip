@@ -16,8 +16,6 @@ export const horses = pgTable('horse', {
   origin: horseOriginEnum('origin').default('DOMESTIC').notNull(),
   source: horseSourceEnum('source').default('MANUAL').notNull(),
   notes: text('notes'),
-  sireId: uuid('sire_id'),
-  damId: uuid('dam_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()

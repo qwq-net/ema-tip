@@ -1,6 +1,6 @@
 'use server';
 
-import { RACE_GRADES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { db } from '@/shared/db';
 import { raceDefinitions } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
@@ -16,7 +16,7 @@ const raceDefinitionSchema = z.object({
   direction: z.enum(VENUE_DIRECTIONS),
   defaultDistance: z.coerce.number().min(100, '距離は100m以上で入力してください'),
   defaultVenueId: z.string().min(1, '開催会場は必須です'),
-  defaultSurface: z.string().min(1, '馬場状態は必須です'),
+  defaultSurface: z.enum(RACE_SURFACES),
 });
 
 export async function createRaceDefinition(formData: FormData) {

@@ -200,8 +200,9 @@ async function finalizeRaceInner(
 
     await tx.delete(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
 
-    for (const [type, combinations] of Object.entries(payoutCalculationsByType)) {
-      if (combinations.length > 0) {
+    for (const type of Object.values(BET_TYPES)) {
+      const combinations = payoutCalculationsByType[type];
+      if (combinations && combinations.length > 0) {
         await tx.insert(payoutResultsTable).values({
           raceId,
           type,
