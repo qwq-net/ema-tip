@@ -27,21 +27,16 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
     );
   }
 
-  const gradientOffset = () => {
-    const dataMax = Math.max(...data.map((i) => i.balance));
-    const dataMin = Math.min(...data.map((i) => i.balance));
+  const balances = data.map((point) => point.balance);
+  const dataMax = Math.max(...balances);
+  const dataMin = Math.min(...balances);
 
-    if (dataMax <= 0) {
-      return 0;
-    }
-    if (dataMin >= 0) {
-      return 1;
-    }
+  // 分割グラデーションはゼロを跨ぐときだけ使う。全点が同符号でオフセットが 1.0 や 0 に
+  // 張り付くと、同一オフセットの後勝ち規則で境界の線分へ逆側の色が滲むため
+  const crossesZero = dataMin < 0 && dataMax > 0;
+  const off = crossesZero ? dataMax / (dataMax - dataMin) : 1;
+  const solidColor = dataMax <= 0 ? 'var(--color-error)' : 'var(--color-primary)';
 
-    return dataMax / (dataMax - dataMin);
-  };
-
-  const off = gradientOffset();
   // 取引が多いイベントでは全点ドットが団子になるため、点数が少ないときだけ描画する
   const showDots = data.length <= 30;
 
@@ -54,16 +49,18 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <defs>
-                <linearGradient id={`${chartId}-splitColor`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset={off} stopColor="var(--color-primary)" stopOpacity={1} />
-                  <stop offset={off} stopColor="var(--color-error)" stopOpacity={1} />
-                </linearGradient>
-                <linearGradient id={`${chartId}-splitFill`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0.3} />
-                  <stop offset={off} stopColor="var(--color-error)" stopOpacity={0.3} />
-                </linearGradient>
-              </defs>
+              {crossesZero && (
+                <defs>
+                  <linearGradient id={`${chartId}-splitColor`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset={off} stopColor="var(--color-primary)" stopOpacity={1} />
+                    <stop offset={off} stopColor="var(--color-error)" stopOpacity={1} />
+                  </linearGradient>
+                  <linearGradient id={`${chartId}-splitFill`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0.3} />
+                    <stop offset={off} stopColor="var(--color-error)" stopOpacity={0.3} />
+                  </linearGradient>
+                </defs>
+              )}
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-gray-200)" />
               <XAxis
                 dataKey="date"
@@ -109,8 +106,9 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
               <Area
                 type="monotone"
                 dataKey="balance"
-                stroke={`url(#${chartId}-splitColor)`}
-                fill={`url(#${chartId}-splitFill)`}
+                stroke={crossesZero ? `url(#${chartId}-splitColor)` : solidColor}
+                fill={crossesZero ? `url(#${chartId}-splitFill)` : solidColor}
+                fillOpacity={crossesZero ? undefined : 0.3}
                 strokeWidth={2}
                 dot={
                   showDots
