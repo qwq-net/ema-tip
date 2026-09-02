@@ -22,4 +22,6 @@ const conn = globalThis.__dbConn ?? postgres(connectionString, { max: 10 });
 
 if (process.env.NODE_ENV !== 'production') globalThis.__dbConn = conn;
 
-export const db = drizzle(conn, { schema });
+// DB_LOG=1 を .env に設定して再起動すると全クエリを標準出力へ流す。
+// 1操作あたりのクエリ数の確認用で、常用はしない
+export const db = drizzle(conn, { schema, logger: process.env.DB_LOG === '1' });

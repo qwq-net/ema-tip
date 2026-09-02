@@ -18,6 +18,9 @@ services:
 
   db:
     image: postgres:15-alpine
+    # pg_stat_statements でクエリ別統計を常時収集し、100ms超のクエリをログに残す。
+    # 参照は task perf:stats、リセットは task perf:stats:reset
+    command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c log_min_duration_statement=100
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password

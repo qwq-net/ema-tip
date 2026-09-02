@@ -101,6 +101,44 @@ tasks:
     cmds:
       - docker compose exec -T db psql -U postgres -d webapp -c "SELECT created_at, actor_name, action, target_id, detail FROM admin_action_log ORDER BY created_at DESC LIMIT 50;"
 
+  # ── パフォーマンス計測 ─────────────────────────────────────────
+  perf:stats:
+    desc: クエリ別の実行統計を合計時間の降順で表示します
+    cmds:
+      - docker compose exec -T db psql -U postgres -d webapp -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT calls, round(total_exec_time::numeric, 1) AS total_ms, round(mean_exec_time::numeric, 2) AS mean_ms, round(max_exec_time::numeric, 1) AS max_ms, rows, left(regexp_replace(query, E'\\s+', ' ', 'g'), 100) AS query FROM pg_stat_statements WHERE query NOT ILIKE '%pg_stat_statements%' ORDER BY total_exec_time DESC LIMIT 25;"
+
+  perf:stats:reset:
+    desc: クエリ統計をリセットします。計測シナリオの直前に実行します
+    cmds:
+      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT pg_stat_statements_reset();"
+
+  perf:setup:
+    desc: 負荷計測用のユーザー30人・イベント・レース・ウォレットを作り直します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx tools/perf/setup.ts
+
+  perf:load:
+    desc: '負荷シナリオを実行します。例: task perf:load -- bets sse pages payout'
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx tools/perf/load.ts {{.CLI_ARGS}}
+
+  perf:clean:
+    desc: 負荷計測用のデータを削除します
+    cmds:
+      - docker compose exec -T db psql -U postgres -d webapp -c "DELETE FROM event WHERE name = 'PERF検証イベント'; DELETE FROM \"user\" WHERE name = 'PERF管理者' OR name LIKE 'PERF利用者%';"
+
+  # 本番イメージは tools/ を含まないため、リポジトリの tools/ をマウントして実行する
+  perf:setup:prod:
+    desc: VM上の本番構成で負荷計測フィクスチャを作ります
+    cmds:
+      - '{{.PROD}} run --rm -v ./tools:/app/tools app pnpm tsx tools/perf/setup.ts'
+
+  perf:load:prod:
+    desc: 'VM上の本番構成で負荷シナリオを実行します。例: task perf:load:prod -- bets sse pages payout'
+    cmds:
+      - '{{.PROD}} run --rm -v ./tools:/app/tools -e PERF_BASE_URL=http://app:3000 app pnpm tsx tools/perf/load.ts {{.CLI_ARGS}}'
+
   test:e2e:
     desc: E2Eテストを実行します。app/db/redis が起動済みでシード投入済みであることが前提です
     cmds:
