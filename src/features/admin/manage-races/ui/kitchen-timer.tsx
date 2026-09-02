@@ -1,9 +1,9 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import { Button } from '@/shared/ui';
 import { Clock, Loader2, Timer, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { toast } from 'sonner';
 import { closeRace, setClosingTime } from '../actions/update';
 
 const emptySubscribe = () => () => {};
@@ -157,7 +157,7 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(false)}
-              className="h-6 w-6 text-gray-400 hover:text-gray-600"
+              className="text-text-sub h-6 w-6 hover:text-gray-600"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -178,7 +178,7 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
           </div>
 
           <div className="mt-3 border-t border-gray-100 pt-2 text-center">
-            <p className="text-sm leading-tight text-gray-400">
+            <p className="text-text-sub text-sm leading-tight">
               設定すると締切時刻が上書きされます。
               <br />
               0になると自動的に締切処理が走ります。

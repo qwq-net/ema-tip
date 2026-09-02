@@ -63,7 +63,7 @@ export function ForecastRaceAccordion({ events }: ForecastRaceAccordionProps) {
                 href={`/races/${race.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-600"
+                className="text-text-sub hover:text-gray-600"
                 title="投票ページを開く"
               >
                 <ExternalLink className="h-4 w-4" />

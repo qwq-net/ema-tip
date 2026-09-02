@@ -21,11 +21,11 @@ export function WalletMissingCard({
           <h2 className="mb-2 text-xl font-semibold">ウォレットが見つかりません</h2>
           <p className="text-gray-500">{description}</p>
           <div className="mt-6 flex flex-col gap-3">
-            <Link href="/mypage/claim">
-              <Button className="w-full">お小遣いを貰いに行く</Button>
-            </Link>
+            <Button asChild className="w-full">
+              <Link href="/mypage/claim">お小遣いを貰いに行く</Link>
+            </Button>
             {showBackLink && (
-              <Link href="/mypage/sokubet" className="text-sm text-gray-400 hover:underline">
+              <Link href="/mypage/sokubet" className="text-text-sub text-sm hover:underline">
                 即BETトップへ戻る
               </Link>
             )}

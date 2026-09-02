@@ -18,7 +18,7 @@ interface TransactionListProps {
 
 export function TransactionList({ transactions }: TransactionListProps) {
   if (transactions.length === 0) {
-    return <div className="py-8 text-center text-gray-400">取引履歴はありません。</div>;
+    return <div className="text-text-sub py-8 text-center">取引履歴はありません。</div>;
   }
 
   // キーは transactionTypeEnum の値に一致させること
@@ -50,7 +50,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                 <div className="font-semibold text-gray-900">
                   {tx.description || lookup(typeLabels, tx.type) || tx.type}
                 </div>
-                <div className="text-sm text-gray-400">
+                <div className="text-text-sub text-sm">
                   <FormattedDate
                     date={tx.createdAt}
                     options={{
@@ -72,7 +72,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
         );
       })}
       {transactions.length >= 200 && (
-        <div className="py-2 text-center text-sm text-gray-400">直近200件のみ表示しています</div>
+        <div className="text-text-sub py-2 text-center text-sm">直近200件のみ表示しています</div>
       )}
     </div>
   );

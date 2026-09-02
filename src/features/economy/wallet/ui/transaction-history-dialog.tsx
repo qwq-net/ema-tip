@@ -82,7 +82,7 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
           <DialogDescription>{eventName}</DialogDescription>
         </DialogHeader>
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />

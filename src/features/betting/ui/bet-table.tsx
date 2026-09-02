@@ -10,6 +10,7 @@ import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
+import { toast } from '@/shared/lib/toast';
 import { Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
@@ -17,7 +18,6 @@ import { getGenderAge } from '@/shared/utils/gender';
 import { AlertCircle, Clock, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface Entry {
   id: string;
@@ -161,7 +161,7 @@ export function BetTable({
         </div>
         <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-gray-200 bg-gray-50 py-16 text-center">
           <div className="rounded-full bg-gray-100 p-3">
-            <AlertCircle className="h-8 w-8 text-gray-400" />
+            <AlertCircle className="text-text-sub h-8 w-8" />
           </div>
           <div className="space-y-1">
             <h3 className="text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
@@ -182,13 +182,13 @@ export function BetTable({
         <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
       </div>
       {isClosed && (
-        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600 ring-1 ring-red-100">
+        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
           <AlertCircle className="h-4 w-4" />
           このレースは受付を終了しました。現在、馬券を購入することはできません。
         </div>
       )}
       {!isClosed && remainingMs !== null && (
-        <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-700 ring-1 ring-amber-100">
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-700 tabular-nums ring-1 ring-amber-100">
           <Clock className="h-4 w-4" />
           締切まで残り {formatRemainingTime(remainingMs)}
         </div>
@@ -215,7 +215,7 @@ export function BetTable({
           </div>
         )}
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
@@ -241,7 +241,7 @@ export function BetTable({
                         key={entry.id}
                         className={
                           isScratched
-                            ? 'border-b border-gray-300 bg-red-50/50 text-gray-400 line-through last:border-0'
+                            ? 'text-text-sub border-b border-gray-300 bg-red-50/50 line-through last:border-0'
                             : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
                         }
                       >
@@ -262,7 +262,7 @@ export function BetTable({
                         <td className="px-2 py-2">
                           <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                         </td>
-                        <td className="px-2 py-2 text-center text-sm font-medium">
+                        <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
                           {isScratched ? '-' : (odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-')}
                         </td>
 
@@ -289,7 +289,7 @@ export function BetTable({
                       key={entry.id}
                       className={
                         isScratched
-                          ? 'border-b border-gray-300 bg-red-50/50 text-gray-400 line-through last:border-0'
+                          ? 'text-text-sub border-b border-gray-300 bg-red-50/50 line-through last:border-0'
                           : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
                       }
                     >
@@ -308,7 +308,7 @@ export function BetTable({
                       <td className="px-2 py-2">
                         <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                       </td>
-                      <td className="px-2 py-2 text-center text-sm font-medium">
+                      <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
                         {isScratched ? '-' : (odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-')}
                       </td>
 

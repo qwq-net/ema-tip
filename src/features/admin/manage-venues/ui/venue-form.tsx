@@ -1,10 +1,10 @@
 'use client';
 
 import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
-import { toast } from 'sonner';
 import { createVenue, updateVenue } from '../actions';
 
 interface VenueFormProps {

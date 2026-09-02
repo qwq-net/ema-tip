@@ -1,11 +1,11 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import { Button } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
-import { toast } from 'sonner';
 import { updateOddsFromNetkeiba } from '../actions';
 
 export function UpdateNetkeibaOddsButton({ raceId, className }: { raceId: string; className?: string }) {

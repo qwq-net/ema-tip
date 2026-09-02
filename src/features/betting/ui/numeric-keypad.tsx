@@ -20,7 +20,8 @@ export function NumericKeypad({ onDigit, onBackspace, onClear, onClose }: Numeri
         <button
           onClick={onClose}
           onMouseDown={preventFocusSteal}
-          className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          aria-label="キーパッドを閉じる"
+          className="text-text-sub rounded-full p-1 transition-colors hover:bg-gray-100 hover:text-gray-600"
         >
           <X className="h-4 w-4" />
         </button>
@@ -54,6 +55,7 @@ export function NumericKeypad({ onDigit, onBackspace, onClear, onClose }: Numeri
         <button
           onClick={onBackspace}
           onMouseDown={preventFocusSteal}
+          aria-label="1文字削除"
           className="flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-gray-600 transition-all hover:bg-gray-100 active:scale-95"
         >
           <Delete className="h-5 w-5" />

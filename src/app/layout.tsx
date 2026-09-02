@@ -28,12 +28,16 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className="antialiased">
-        <NextTopLoader color="#3b82f6" showSpinner={false} shadow="0 0 10px #3b82f6,0 0 5px #3b82f6" />
+        <NextTopLoader
+          color="var(--color-primary)"
+          showSpinner={false}
+          shadow="0 0 10px var(--color-primary),0 0 5px var(--color-primary)"
+        />
         <ClientLayoutWrapper>
           {children}
           {modal}
         </ClientLayoutWrapper>
-        <Toaster position="top-center" richColors />
+        <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
   );

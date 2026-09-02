@@ -182,7 +182,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         placeholder={placeholder ?? '0'}
         name={name}
         className={cn(
-          'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+          'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-base transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm',
           suffix && 'pr-12',
           className
         )}
@@ -194,7 +194,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
       return (
         <div className="relative flex items-center">
           {inputElement}
-          <span className="pointer-events-none absolute right-3 text-sm font-semibold text-gray-400">{suffix}</span>
+          <span className="text-text-sub pointer-events-none absolute right-3 text-sm font-semibold">{suffix}</span>
         </div>
       );
     }

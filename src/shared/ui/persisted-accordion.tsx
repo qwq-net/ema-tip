@@ -131,7 +131,7 @@ export function PersistedAccordionItem({ value, header, children }: PersistedAcc
       <Accordion.Header className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-base font-semibold hover:bg-gray-100">
         <Accordion.Trigger className="group flex w-full items-center justify-between">
           {header}
-          <ChevronDown className="h-5 w-5 shrink-0 text-gray-400 transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
+          <ChevronDown className="text-text-sub h-5 w-5 shrink-0 transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
         </Accordion.Trigger>
       </Accordion.Header>
       <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">

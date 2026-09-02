@@ -1,9 +1,9 @@
 'use client';
 
 import { ROLES, ROLE_COLORS, ROLE_LABELS, type Role } from '@/entities/user';
+import { toast } from '@/shared/lib/toast';
 import { narrowToOption } from '@/shared/utils/lookup';
 import { useTransition } from 'react';
-import { toast } from 'sonner';
 import { updateUserRole } from '../actions';
 
 interface UserRoleSelectProps {

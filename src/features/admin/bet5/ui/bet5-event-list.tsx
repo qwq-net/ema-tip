@@ -64,7 +64,7 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                 ) : isReady ? (
                   <Badge label="設定可能" className="border-green-200 bg-green-100 text-green-700" />
                 ) : (
-                  <Badge label="レース不足" variant="outline" className="text-gray-400" />
+                  <Badge label="レース不足" variant="outline" className="text-text-sub" />
                 )}
               </Td>
               <Td className="font-medium text-gray-600">
@@ -79,7 +79,7 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                   <span className={cn('font-semibold', isReady ? 'text-green-600' : 'text-gray-500')}>
                     {openRaceCount}
                   </span>
-                  <span className="text-gray-400">/ 5</span>
+                  <span className="text-text-sub">/ 5</span>
                 </div>
               </Td>
               <Td className="text-right">

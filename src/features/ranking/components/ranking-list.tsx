@@ -56,7 +56,7 @@ export function RankingList({
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
           <div className="flex items-center gap-2">
-            <Trophy className={`h-5 w-5 ${published ? 'text-amber-500' : 'text-gray-400'}`} />
+            <Trophy className={`h-5 w-5 ${published ? 'text-amber-500' : 'text-text-sub'}`} />
             <h2 className="font-semibold text-gray-900">ランキング</h2>
           </div>
         </div>

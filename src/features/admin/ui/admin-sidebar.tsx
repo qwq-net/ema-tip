@@ -105,7 +105,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
-            aria-label="Toggle menu"
+            aria-label="メニューを開閉"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>

@@ -212,7 +212,7 @@ export default async function AdminGuidePage() {
             <BookOpen className="h-5 w-5" />
           </div>
           <h2 className="text-secondary text-xl font-semibold">【準備編】マスタデータを登録する</h2>
-          <p className="ml-auto hidden text-sm font-normal text-gray-400 md:block">初回や新要素追加時のみ必要です</p>
+          <p className="text-text-sub ml-auto hidden text-sm font-normal md:block">初回や新要素追加時のみ必要です</p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {MASTER_STEPS.map((step, idx) => (
@@ -227,7 +227,7 @@ export default async function AdminGuidePage() {
             <Calendar className="h-5 w-5" />
           </div>
           <h2 className="text-secondary text-xl font-semibold">【運用編】イベントを開催する</h2>
-          <p className="ml-auto hidden text-sm font-normal text-gray-400 md:block">イベントごとに毎回行うフローです</p>
+          <p className="text-text-sub ml-auto hidden text-sm font-normal md:block">イベントごとに毎回行うフローです</p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {FLOW_STEPS.map((step, idx) => (
@@ -242,7 +242,7 @@ export default async function AdminGuidePage() {
             <Settings className="h-5 w-5" />
           </div>
           <h2 className="text-secondary text-xl font-semibold">【その他】システム管理</h2>
-          <p className="ml-auto hidden text-sm font-normal text-gray-400 md:block">環境設定やユーザー情報の管理です</p>
+          <p className="text-text-sub ml-auto hidden text-sm font-normal md:block">環境設定やユーザー情報の管理です</p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {OTHER_STEPS.map((step, idx) => (

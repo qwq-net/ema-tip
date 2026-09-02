@@ -1,11 +1,11 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import { Badge, Button, ConfirmDialog, Input, TableBody, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { Ban, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { generateGuestCode, invalidateGuestCode, invalidateUsersByCode } from '../actions/guest-actions';
 
 type GuestCode = {

@@ -1,8 +1,8 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import { Button, ConfirmDialog } from '@/shared/ui';
 import { Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface ConfirmDeleteButtonProps {
   /** ダイアログの見出し。例: 「馬の削除」 */
@@ -21,7 +21,7 @@ export function ConfirmDeleteButton({ title, itemName, onDelete }: ConfirmDelete
   return (
     <ConfirmDialog
       trigger={
-        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-600" title="削除">
+        <Button variant="ghost" size="icon" className="text-text-sub hover:text-red-600" title="削除">
           <Trash2 size={18} />
         </Button>
       }

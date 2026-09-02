@@ -3,6 +3,7 @@
 import { HorseTagType } from '@/entities/horse';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
+import { toast } from '@/shared/lib/toast';
 import {
   Button,
   Card,
@@ -17,7 +18,6 @@ import {
 } from '@/shared/ui';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { deleteHorseTag } from '../actions';
 import { HorseTagForm } from './horse-tag-form';
 
@@ -90,13 +90,13 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                         <div className="ml-2 flex items-center gap-1">
                           <button
                             onClick={() => setEditingTag(tag)}
-                            className="text-gray-400 transition-colors hover:text-blue-500"
+                            className="text-text-sub transition-colors hover:text-blue-500"
                           >
                             <Edit className="h-3 w-3" />
                           </button>
                           <ConfirmDialog
                             trigger={
-                              <button className="text-gray-400 transition-colors hover:text-red-500">
+                              <button className="text-text-sub transition-colors hover:text-red-500">
                                 <Trash2 className="h-3 w-3" />
                               </button>
                             }
@@ -109,7 +109,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                       </div>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-400 italic">登録なし</span>
+                    <span className="text-text-sub text-sm italic">登録なし</span>
                   )}
                 </div>
               </CardContent>

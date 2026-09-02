@@ -2,6 +2,7 @@
 
 import { isValidUserName, MAX_NAME_LENGTH, RoleColor, RoleLabel } from '@/entities/user';
 import { updateUserName } from '@/features/user/actions/user-actions';
+import { toast } from '@/shared/lib/toast';
 import { Button, Input } from '@/shared/ui';
 import { lookup } from '@/shared/utils/lookup';
 import { Check, Loader2, Pencil, X } from 'lucide-react';
@@ -9,7 +10,6 @@ import type { Session } from 'next-auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface EditableUserProfileProps {
   user: Session['user'];
@@ -62,7 +62,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
         />
       ) : (
         <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-100">
-          <span className="text-lg font-semibold text-gray-400">?</span>
+          <span className="text-text-sub text-lg font-semibold">?</span>
         </div>
       )}
       <div className="flex flex-col">
@@ -82,6 +82,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
             <Button
               size="icon"
               variant="ghost"
+              aria-label="ユーザー名を保存"
               className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
               onClick={handleSave}
               disabled={isPending}
@@ -91,6 +92,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
             <Button
               size="icon"
               variant="ghost"
+              aria-label="編集をキャンセル"
               className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
               onClick={handleCancel}
               disabled={isPending}
@@ -100,10 +102,10 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
           </div>
         ) : (
           <div className="group flex items-center gap-2">
-            <span className="text-lg leading-tight font-semibold text-gray-900">{user.name || 'Unknown Racer'}</span>
+            <span className="text-lg leading-tight font-semibold text-gray-900">{user.name || '名称未設定'}</span>
             <button
               onClick={() => setIsEditing(true)}
-              className="text-gray-400 transition-colors hover:text-gray-600"
+              className="text-text-sub transition-colors hover:text-gray-600"
               aria-label="名前を変更"
             >
               <Pencil className="h-4 w-4" />

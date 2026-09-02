@@ -1,11 +1,11 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import { Input, Label, NumericInput, SubmitButton, Textarea } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { createEvent, updateEvent } from '../actions';
 
 interface EventFormProps {
@@ -72,7 +72,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
           <Label>配布金額</Label>
           <div className="relative">
             <NumericInput value={distributeAmount} onChange={setDistributeAmount} min={0} className="pr-8" />
-            <span className="absolute top-2 right-3 text-sm text-gray-400">円</span>
+            <span className="text-text-sub absolute top-2 right-3 text-sm">円</span>
           </div>
           <p className="mt-1 text-sm text-gray-500">初期資金として配布されます</p>
         </div>
@@ -87,7 +87,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
               className="pr-8"
               placeholder="配布金額と同額"
             />
-            <span className="absolute top-2 right-3 text-sm text-gray-400">円</span>
+            <span className="text-text-sub absolute top-2 right-3 text-sm">円</span>
           </div>
           <p className="mt-1 text-sm text-gray-500">空欄の場合は配布金額と同額</p>
         </div>
@@ -96,7 +96,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
           <Label>開催日</Label>
           <div className="relative">
             <div className="focus-within:ring-primary/20 focus-within:border-primary flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus-within:ring-2 focus-within:outline-none">
-              <Calendar className="h-4 w-4 text-gray-400" />
+              <Calendar className="text-text-sub h-4 w-4" />
               <span className="text-gray-900">{date.replace(/-/g, '/')}</span>
             </div>
 

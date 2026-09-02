@@ -1,11 +1,11 @@
 'use client';
 
 import { isEligibleForLoan } from '@/entities/wallet';
+import { toast } from '@/shared/lib/toast';
 import { Button, Card } from '@/shared/ui';
 import { AlertTriangle, Banknote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 import { borrowLoan } from '../actions';
 
 interface LoanBannerProps {
@@ -42,13 +42,13 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
 
   if (showConfirm) {
     return (
-      <Card className="border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-white shadow-md">
+      <Card className="border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-orange-950 shadow-md">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
             <h3 className="font-semibold">逆転への招待状</h3>
           </div>
-          <p className="text-sm text-orange-50">
+          <p className="text-sm">
             勝利まであと一歩かもしれません。今ここで諦めるのはもったいない。
             <span className="font-semibold">{loanAmount.toLocaleString('ja-JP')}円</span> の特別融資で、栄光をその手に。
             手続きは一瞬、夢は永遠です。借り入れはイベントにつき1回のみ可能です。
@@ -58,7 +58,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
               size="sm"
               disabled={isPending}
               onClick={handleBorrow}
-              className="bg-white font-semibold text-orange-600 hover:bg-orange-50"
+              className="bg-white font-semibold text-orange-700 hover:bg-orange-50"
             >
               {isPending ? '処理中...' : '栄光を掴みに行く'}
             </Button>
@@ -67,7 +67,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
               variant="ghost"
               disabled={isPending}
               onClick={() => setShowConfirm(false)}
-              className="text-white hover:bg-white/20"
+              className="text-orange-950 hover:bg-white/20"
             >
               今は見送る
             </Button>
@@ -78,23 +78,24 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
   }
 
   return (
-    <Card
-      className="cursor-pointer border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-white shadow-md transition-opacity hover:opacity-90"
+    <button
+      type="button"
+      className="block w-full rounded-xl border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-left text-orange-950 shadow-md transition-opacity hover:opacity-90"
       onClick={() => setShowConfirm(true)}
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold">
-            <span className="rounded bg-white px-2 py-0.5 text-sm text-orange-600">特別提案</span>
+      <span className="flex items-center justify-between">
+        <span>
+          <span className="flex items-center gap-2 text-lg font-semibold">
+            <span className="rounded bg-white px-2 py-0.5 text-sm text-orange-700">特別提案</span>
             資金が少し不足していませんか？
-          </h3>
-          <p className="mt-1 text-sm text-orange-100">
+          </span>
+          <span className="mt-1 block text-sm">
             <span className="font-semibold">{loanAmount.toLocaleString('ja-JP')}円</span>{' '}
             の追加資金で、大きな夢を掴みましょう。
-          </p>
-        </div>
-        <Banknote className="h-8 w-8 text-orange-200" />
-      </div>
-    </Card>
+          </span>
+        </span>
+        <Banknote className="h-8 w-8 shrink-0 text-orange-900" />
+      </span>
+    </button>
   );
 }

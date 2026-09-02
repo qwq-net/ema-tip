@@ -4,6 +4,7 @@ import { upsertForecast } from '@/features/forecasts/actions';
 
 import { FORECAST_SYMBOLS } from '@/features/forecasts/constants';
 import { ForecastSelection } from '@/features/forecasts/types';
+import { toast } from '@/shared/lib/toast';
 import { Button, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
 import { Badge } from '@/shared/ui/badge';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
@@ -11,7 +12,6 @@ import { cn } from '@/shared/utils/cn';
 import { getGenderAge } from '@/shared/utils/gender';
 import { Info, Loader2, Save } from 'lucide-react';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface ForecastInputFormProps {
   raceId: string;

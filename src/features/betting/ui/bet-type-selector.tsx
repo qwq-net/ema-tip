@@ -14,6 +14,7 @@ export function BetTypeSelector({ betType, onBetTypeChange }: BetTypeSelectorPro
           key={type}
           type="button"
           onClick={() => onBetTypeChange(type)}
+          aria-pressed={betType === type}
           variant={betType === type ? 'primary' : 'ghost'}
           className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
             betType === type ? 'shadow-md' : 'bg-white text-gray-700 hover:bg-gray-50'

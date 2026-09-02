@@ -1,12 +1,12 @@
 'use client';
 
 import { BetSummaryFooter, placeBet5BetAction } from '@/features/betting';
+import { toast } from '@/shared/lib/toast';
 import { Checkbox, ConfirmDialog } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface RaceWithEntries {
   id: string;
@@ -138,16 +138,17 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 key={race.id}
                 type="button"
                 onClick={() => setActiveTab(index)}
+                aria-current={index === activeTab || undefined}
                 className={cn(
                   'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50',
                   index === activeTab && 'bg-indigo-50/50'
                 )}
               >
-                <span className="shrink-0 text-sm font-semibold text-gray-400">第{index + 1}戦</span>
+                <span className="text-text-sub shrink-0 text-sm font-semibold">第{index + 1}戦</span>
                 <span className="shrink-0 font-semibold text-gray-700">{race.raceNumber}R</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-gray-900">{race.name}</span>
-                  <span className="block text-sm text-gray-400">
+                  <span className="text-text-sub block text-sm">
                     {race.surface}
                     {race.distance}m・{race.entries.length}頭
                   </span>
@@ -155,7 +156,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 <span
                   className={cn(
                     'ml-auto shrink-0 text-sm font-semibold',
-                    selectionCount > 0 ? 'text-indigo-600' : 'text-gray-300'
+                    selectionCount > 0 ? 'text-indigo-600' : 'text-text-sub'
                   )}
                 >
                   {selectionCount > 0 ? `${selectionCount}頭選択` : '未選択'}
@@ -172,10 +173,12 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             return (
               <button
                 key={race.id}
+                type="button"
                 onClick={() => setActiveTab(index)}
+                aria-current={isSelected || undefined}
                 className={cn(
-                  'relative flex min-w-[80px] flex-1 flex-col items-center justify-center gap-1 px-4 py-3 text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-none',
-                  isSelected ? 'text-primary border-b-2 border-indigo-600 bg-indigo-50/50' : 'text-gray-500'
+                  'relative flex min-w-[80px] flex-1 flex-col items-center justify-center gap-1 px-4 py-3 text-sm font-medium transition-colors hover:bg-gray-50',
+                  isSelected ? 'border-b-2 border-indigo-600 bg-indigo-50/50' : 'text-gray-500'
                 )}
               >
                 <span className={cn('text-sm whitespace-nowrap', isSelected && 'font-semibold text-indigo-700')}>
@@ -198,7 +201,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             </h2>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50/50">
                 <tr className="border-b border-gray-100">
@@ -217,7 +220,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                       key={entry.id}
                       className={
                         isScratched
-                          ? 'bg-red-50/50 text-gray-400 line-through'
+                          ? 'text-text-sub bg-red-50/50 line-through'
                           : `cursor-pointer transition-colors hover:bg-gray-50 ${isSelected ? 'bg-indigo-50/50 hover:bg-indigo-50' : ''}`
                       }
                       onClick={() => !isScratched && toggleSelection(activeRace.id, entry.horse.id)}
@@ -244,6 +247,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                             checked={isSelected}
                             onCheckedChange={() => toggleSelection(activeRace.id, entry.horse.id)}
                             disabled={isScratched}
+                            aria-label={`${entry.horseNumber ?? '-'}番 ${entry.horse.name}を選択`}
                             className="h-5 w-5 border-gray-300 data-[state=checked]:border-indigo-600 data-[state=checked]:bg-indigo-600"
                           />
                         </div>
@@ -256,7 +260,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white p-4 shadow-lg md:relative md:border-none md:bg-transparent md:p-0 md:shadow-none">
+        <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg md:relative md:border-none md:bg-transparent md:p-0 md:pb-0 md:shadow-none">
           <div className="container mx-auto max-w-4xl space-y-2 md:px-0">
             <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
               <span className="font-semibold text-gray-600">{activeRace.raceNumber}R 選択馬:</span>
@@ -270,7 +274,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                   番
                 </span>
               ) : (
-                <span className="text-gray-400">なし</span>
+                <span className="text-text-sub">なし</span>
               )}
             </div>
             <BetSummaryFooter

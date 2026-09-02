@@ -61,7 +61,7 @@ export function PayoutResultModal({ raceName, raceDate, results, open, onOpenCha
           <div className="flex items-center gap-4">
             <span className="text-xl font-semibold tracking-widest">払戻金</span>
             <DialogClose asChild>
-              <button className="text-gray-400 hover:text-white">
+              <button aria-label="閉じる" className="text-gray-400 hover:text-white">
                 <X size={28} />
               </button>
             </DialogClose>

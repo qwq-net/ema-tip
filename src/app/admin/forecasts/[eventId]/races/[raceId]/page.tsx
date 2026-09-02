@@ -25,11 +25,11 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href={`/admin/forecasts`}>
-            <Button variant="outline" size="icon">
+          <Button asChild variant="outline" size="icon" aria-label="予想管理へ戻る">
+            <Link href={`/admin/forecasts`}>
               <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{race.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">

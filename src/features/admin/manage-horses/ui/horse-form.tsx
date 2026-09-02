@@ -1,13 +1,13 @@
 'use client';
 import { HORSE_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES, HorseTagType } from '@/shared/constants/horse-tags';
+import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton, Textarea } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { narrowToOption } from '@/shared/utils/lookup';
 import { X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { createHorse, updateHorse } from '../actions';
 
 const GENDER_INPUTS = ['牡', '牝', 'セン'] as const;
@@ -147,7 +147,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
 
         <div>
           <Label>
-            年齢 <span className="font-normal text-gray-400">(任意)</span>
+            年齢 <span className="text-text-sub font-normal">(任意)</span>
           </Label>
           <Input name="age" type="number" min="2" max="20" defaultValue={initialData?.age ?? ''} placeholder="例: 4" />
         </div>
@@ -164,7 +164,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
 
       <div>
         <Label className="mb-2 block">
-          タグ <span className="font-normal text-gray-400">(任意)</span>
+          タグ <span className="text-text-sub font-normal">(任意)</span>
         </Label>
         <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50/50 p-4">
           {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((cat) => {
@@ -218,7 +218,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                         content: tag.content,
                       })
                     }
-                    className="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-red-500"
+                    className="text-text-sub ml-1 rounded-full p-0.5 hover:bg-gray-100 hover:text-red-500"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -231,7 +231,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
 
       <div>
         <Label>
-          備考 <span className="font-normal text-gray-400">(任意)</span>
+          備考 <span className="text-text-sub font-normal">(任意)</span>
         </Label>
         <Textarea
           name="notes"

@@ -21,7 +21,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-muted-foreground flex h-[300px] items-center justify-center">データがありません</div>
+          <div className="text-text-sub flex h-[300px] items-center justify-center">データがありません</div>
         </CardContent>
       </Card>
     );
@@ -69,7 +69,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                 tick={{ fontSize: 12 }}
                 width={80}
               />
-              <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+              <ReferenceLine y={0} stroke="var(--color-text-sub)" strokeDasharray="3 3" />
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {

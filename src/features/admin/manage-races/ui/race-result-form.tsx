@@ -3,6 +3,7 @@
 import { fetchNetkeibaRaceResult } from '@/features/admin/import-race/actions';
 import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/types';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { toast } from '@/shared/lib/toast';
 import { Badge, Button, ConfirmDialog } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -33,7 +34,6 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 import { closeRace, finalizePayout, finalizeRace, reopenRace } from '../actions';
 import { resetRaceResults } from '../actions/revert';
 import { KitchenTimer } from './kitchen-timer';
@@ -78,7 +78,7 @@ const getRankStyles = (position: number) => {
     case 3:
       return 'bg-orange-100 text-orange-700 ring-orange-200 border-orange-200';
     default:
-      return 'bg-gray-100 text-gray-400 border-gray-100';
+      return 'bg-gray-100 text-text-sub border-gray-100';
   }
 };
 
@@ -88,13 +88,13 @@ function HorseInfo({ horseName, jockey, odds }: { horseName: string; jockey?: st
       <span className="truncate text-sm font-semibold text-gray-900">{horseName}</span>
       {jockey && (
         <>
-          <span className="shrink-0 text-sm text-gray-400">/</span>
+          <span className="text-text-sub shrink-0 text-sm">/</span>
           <span className="shrink-0 text-sm text-gray-500">{jockey}</span>
         </>
       )}
       {odds != null && (
         <>
-          <span className="shrink-0 text-sm text-gray-400">/</span>
+          <span className="text-text-sub shrink-0 text-sm">/</span>
           <span className="shrink-0 text-sm font-semibold text-gray-600">オッズ: {odds.toFixed(1)}倍</span>
         </>
       )}
@@ -367,7 +367,7 @@ export function RaceResultForm({
                 variant="ghost"
                 size="sm"
                 onClick={handleReset}
-                className="h-auto p-0 font-semibold text-gray-400 hover:bg-transparent hover:text-gray-600"
+                className="text-text-sub h-auto p-0 font-semibold hover:bg-transparent hover:text-gray-600"
               >
                 <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                 リセット
@@ -375,7 +375,7 @@ export function RaceResultForm({
             )}
           </div>
           {!race.fixedOddsMode && race.status === 'CLOSED' && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-400">
+            <p className="text-text-sub mt-2 flex items-center gap-1.5 text-xs font-semibold">
               <Info className="h-3.5 w-3.5" />
               ドラッグして着順を並び替えてください
             </p>
@@ -384,7 +384,7 @@ export function RaceResultForm({
 
         {race.fixedOddsMode && race.status === 'CLOSED' ? (
           <div className="space-y-6">
-            <div className="flex flex-col items-center justify-center pt-6 pb-2 text-center text-gray-400">
+            <div className="text-text-sub flex flex-col items-center justify-center pt-6 pb-2 text-center">
               <Loader2 className="mb-4 h-10 w-10 animate-spin opacity-20" />
               <p className="text-sm font-semibold">
                 Netkeibaの実際のレース結果が確定するまでお待ちください。
@@ -432,7 +432,7 @@ export function RaceResultForm({
           </DndContext>
         ) : (
           <div className="space-y-6">
-            <div className="flex flex-col items-center justify-center pt-6 pb-2 text-center text-gray-400">
+            <div className="text-text-sub flex flex-col items-center justify-center pt-6 pb-2 text-center">
               <Settings2 className="mb-4 h-12 w-12 opacity-20" />
               <p className="text-sm font-semibold">
                 受付が終了すると着順の操作が可能になります。
@@ -662,7 +662,7 @@ export function RaceResultForm({
                   trigger={
                     <Button
                       variant="ghost"
-                      className="w-full text-sm font-semibold text-gray-400 hover:text-red-500"
+                      className="text-text-sub w-full text-sm font-semibold hover:text-red-500"
                       disabled={isPayoutMoving || isPending}
                     >
                       着順設定をリセットする

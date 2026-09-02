@@ -3,11 +3,11 @@
 import { HorseTagType } from '@/entities/horse';
 import { HORSE_TAG_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
+import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { narrowToOption } from '@/shared/utils/lookup';
 import { useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { createHorseTag, updateHorseTag } from '../actions';
 
 interface HorseTagFormProps {

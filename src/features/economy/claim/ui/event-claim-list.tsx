@@ -1,9 +1,9 @@
 'use client';
 
 import { type EventStatus } from '@/shared/constants/status';
+import { toast } from '@/shared/lib/toast';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { useTransition } from 'react';
-import { toast } from 'sonner';
 import { claimEvent } from '../actions';
 
 type AvailableEvent = {

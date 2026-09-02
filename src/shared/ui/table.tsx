@@ -30,7 +30,7 @@ export function Th({ className, ...props }: ComponentProps<'th'>) {
   return (
     <th
       className={cn(
-        'px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase',
+        'text-text-sub px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap uppercase',
         className
       )}
       {...props}
@@ -54,7 +54,7 @@ export function Td({ className, ...props }: ComponentProps<'td'>) {
 export function TableEmptyRow({ colSpan, children }: { colSpan: number; children: ReactNode }) {
   return (
     <tr>
-      <td colSpan={colSpan} className="px-6 py-12 text-center text-sm font-medium text-gray-400">
+      <td colSpan={colSpan} className="text-text-sub px-6 py-12 text-center text-sm font-medium">
         {children}
       </td>
     </tr>

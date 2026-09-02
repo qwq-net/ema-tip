@@ -80,7 +80,7 @@ export default async function SokubetPage() {
                                     label={bet5Open ? 'BET5 開催中' : 'BET5 締切済み'}
                                     className={
                                       bet5Open
-                                        ? 'cursor-pointer border-0 bg-green-500 text-white hover:bg-green-600'
+                                        ? 'cursor-pointer border-0 bg-green-700 text-white hover:bg-green-800'
                                         : 'cursor-pointer border-0 bg-gray-500 text-white hover:bg-gray-600'
                                     }
                                   />
@@ -92,21 +92,21 @@ export default async function SokubetPage() {
                             </div>
                           )}
                         </div>
-                        <p className="mt-1 text-sm font-semibold text-gray-400">{event.date}</p>
+                        <p className="text-text-sub mt-1 text-sm font-semibold">{event.date}</p>
                       </div>
                       <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
-                        <Wallet size={16} className="text-gray-400" />
+                        <Wallet size={16} className="text-text-sub" />
                         <span className="text-sm font-semibold text-nowrap text-gray-500">投票可能残高</span>
                         <span className="flex-1 text-right text-lg font-semibold text-gray-900 sm:flex-none">
                           {Math.floor(balance).toLocaleString('ja-JP')}
-                          <span className="ml-0.5 text-sm font-semibold text-gray-400">円</span>
+                          <span className="text-text-sub ml-0.5 text-sm font-semibold">円</span>
                         </span>
                       </div>
                     </div>
                     {bet5Id && bet5Open && (
                       <div className="mb-4">
                         <Link href={`/events/${event.id}/bet5`}>
-                          <Card className="cursor-pointer border-0 bg-linear-to-r from-indigo-500 to-purple-600 p-4 text-white shadow-md transition-opacity hover:opacity-90">
+                          <Card className="cursor-pointer border-0 bg-linear-to-r from-indigo-600 to-purple-700 p-4 text-white shadow-md transition-opacity hover:opacity-90">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h3 className="flex items-center gap-2 text-lg font-semibold">

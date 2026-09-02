@@ -35,8 +35,8 @@ export default async function ResultsPage() {
             <div className="mb-4 rounded-full bg-gray-100 p-6 text-gray-300">
               <Trophy size={48} />
             </div>
-            <p className="text-xl font-semibold text-gray-400">現在、戦績の集計機能は準備中です</p>
-            <p className="mt-2 text-sm text-gray-400">今後のアップデートをお楽しみに！</p>
+            <p className="text-text-sub text-xl font-semibold">現在、戦績の集計機能は準備中です</p>
+            <p className="text-text-sub mt-2 text-sm">今後のアップデートをお楽しみに！</p>
           </CardContent>
         </Card>
       </div>

@@ -2,10 +2,10 @@
 
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { toast } from '@/shared/lib/toast';
 import { Button } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 import { updateGuaranteedOdds } from '../actions/update-odds';
 
 interface RaceGuaranteedOddsFormProps {

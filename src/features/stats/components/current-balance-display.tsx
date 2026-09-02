@@ -17,7 +17,7 @@ export function CurrentBalanceDisplay({ amount }: CurrentBalanceDisplayProps) {
         <div className={cn('text-2xl font-semibold', amount < 0 ? 'text-red-600' : 'text-amber-700')}>
           ¥{amount.toLocaleString('ja-JP')}
         </div>
-        <p className="text-muted-foreground text-sm">全イベントの合計所持金</p>
+        <p className="text-text-sub text-sm">全イベントの合計所持金</p>
       </CardContent>
     </Card>
   );

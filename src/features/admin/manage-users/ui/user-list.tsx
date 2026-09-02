@@ -106,13 +106,13 @@ export function UserList({ users, currentUserId }: UserListProps) {
                         className="rounded-full shadow-sm ring-1 ring-gray-200"
                       />
                     ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-sm font-semibold text-gray-400">
+                      <div className="text-text-sub flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-sm font-semibold">
                         ?
                       </div>
                     )}
                     <div>
                       <div className="font-medium text-gray-900">{user.name || '名前なし'}</div>
-                      <div className="text-sm text-gray-400">{user.accounts[0]?.provider || 'credential'}</div>
+                      <div className="text-text-sub text-sm">{user.accounts[0]?.provider || 'credential'}</div>
                     </div>
                   </div>
                 </Td>

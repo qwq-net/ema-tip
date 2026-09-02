@@ -1,13 +1,13 @@
 'use client';
 
 import { DIRECTION_LABELS, RACE_CONDITIONS, RACE_SURFACES, VENUE_DIRECTIONS } from '@/shared/constants/race';
+import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { lookup, narrowToOption } from '@/shared/utils/lookup';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { createRace, updateRace } from '../actions';
 
 interface RaceFormProps {
@@ -127,7 +127,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
           <Label>開催日</Label>
           <div className="relative">
             <div className="focus-within:ring-primary/20 focus-within:border-primary flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus-within:ring-2 focus-within:outline-none">
-              <Calendar className="h-4 w-4 text-gray-400" />
+              <Calendar className="text-text-sub h-4 w-4" />
               <span className="text-gray-900">{date.replace(/-/g, '/')}</span>
             </div>
             <input

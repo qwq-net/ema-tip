@@ -18,7 +18,7 @@ export function EmojiKeypad({ onEmojiClick, onBackspace, onClear }: EmojiKeypadP
             type="button"
             onClick={() => onEmojiClick(emoji)}
             className="flex aspect-square items-center justify-center rounded-xl text-3xl transition-colors hover:bg-gray-100 active:scale-95"
-            aria-label={`Type ${emoji}`}
+            aria-label={`${emoji} を入力`}
           >
             {emoji}
           </button>

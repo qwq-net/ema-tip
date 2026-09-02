@@ -46,7 +46,7 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
           <span className="text-xl">🎫</span>
         </div>
-        <p className="text-sm font-semibold text-gray-400">購入した馬券はありません</p>
+        <p className="text-text-sub text-sm font-semibold">購入した馬券はありません</p>
       </div>
     );
   }
@@ -152,59 +152,63 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md">
-      <div
-        className="flex cursor-pointer items-center justify-between bg-gray-50/50 p-4"
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between bg-gray-50/50 p-4 text-left"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+        <span className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200">
             {isOpen ? (
               <ChevronUp size={20} className="text-gray-500" />
             ) : (
               <ChevronDown size={20} className="text-gray-500" />
             )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-gray-900">{BET_TYPE_LABELS[group.type]}</span>
-              {getGroupStatusBadge()}
-              {hasGuaranteedHit && (
-                <Badge variant="status" label="保証オッズ適用" className="bg-emerald-100 text-emerald-800" />
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-sm font-semibold text-gray-900">
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="font-semibold text-gray-900">{BET_TYPE_LABELS[group.type]}</span>
+            {getGroupStatusBadge()}
+            {hasGuaranteedHit && (
+              <Badge variant="status" label="保証オッズ適用" className="bg-emerald-100 text-emerald-800" />
+            )}
+          </span>
+        </span>
+        <span className="text-right">
+          <span className="block text-sm font-semibold text-gray-900 tabular-nums">
             {unitAmount.toLocaleString('ja-JP')}円 × {betCount}点 = {group.totalAmount.toLocaleString('ja-JP')}円
-          </div>
+          </span>
           {groupPayout > 0 ? (
             isAllRefunded ? (
-              <div className="text-sm font-semibold text-gray-500">返還 {groupPayout.toLocaleString('ja-JP')}円</div>
+              <span className="block text-sm font-semibold text-gray-500 tabular-nums">
+                返還 {groupPayout.toLocaleString('ja-JP')}円
+              </span>
             ) : (
-              <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString('ja-JP')}円</div>
+              <span className="block text-sm font-semibold text-red-600 tabular-nums">
+                +{groupPayout.toLocaleString('ja-JP')}円
+              </span>
             )
           ) : fixedOddsMode ? (
-            <div className="mt-0.5 text-sm text-gray-400">Netkeibaオッズで払戻</div>
+            <span className="text-text-sub mt-0.5 block text-sm">Netkeibaオッズで払戻</span>
           ) : (
             hasProvisional && (
-              <div className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
+              <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
                 {hasGuaranteedProvisional && (
                   <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-sm font-semibold text-emerald-700">
                     保証
                   </span>
                 )}
-                <span>
+                <span className="tabular-nums">
                   想定払戻:{' '}
                   {minProvisional === maxProvisional
                     ? `${minProvisional.toLocaleString('ja-JP')}円`
                     : `${minProvisional.toLocaleString('ja-JP')}〜${maxProvisional.toLocaleString('ja-JP')}円`}
                 </span>
-              </div>
+              </span>
             )
           )}
-        </div>
-      </div>
+        </span>
+      </button>
 
       {isOpen && (
         <div className="border-t border-gray-100 p-4">
@@ -230,7 +234,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
       <div className="flex shrink-0 items-center gap-2">
         {row.positions.map((posGroup, posIdx) => (
           <div key={posIdx} className="flex items-center gap-2">
-            {posIdx > 0 && <Play size={10} className="text-gray-400" fill="currentColor" />}
+            {posIdx > 0 && <Play size={10} className="text-text-sub" fill="currentColor" />}
             <div
               className={cn(
                 'grid gap-1',
@@ -265,7 +269,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
             的中
           </span>
         )}
-        <span className="text-sm font-medium whitespace-nowrap text-gray-400">{row.betCount}点</span>
+        <span className="text-text-sub text-sm font-medium whitespace-nowrap">{row.betCount}点</span>
       </div>
     </div>
   );

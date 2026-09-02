@@ -3,10 +3,10 @@
 import { type RankingData } from '@/entities/ranking';
 import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { type RankingDisplayMode, updateRankingDisplayMode } from '@/features/ranking';
+import { toast } from '@/shared/lib/toast';
 import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
 import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface AdminRankingManagerProps {
   eventId: string;

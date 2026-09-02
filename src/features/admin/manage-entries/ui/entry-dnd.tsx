@@ -10,6 +10,7 @@ import {
 } from '@/features/admin/shared/lib/filter-horses';
 import { SegmentedControl } from '@/features/admin/shared/ui/segmented-control';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { toast } from '@/shared/lib/toast';
 import { Button, Input } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
@@ -19,16 +20,22 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  KeyboardSensor,
   PointerSensor,
   useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 import { saveEntries } from '../actions';
 
 type Horse = {
@@ -90,7 +97,7 @@ function SortableEntry({
       {...listeners}
       className={`flex cursor-grab items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm active:cursor-grabbing ${isDragging ? 'ring-primary/50 z-10 ring-2' : ''}`}
     >
-      <div className="text-gray-400">
+      <div className="text-text-sub">
         <GripVertical className="h-4 w-4" />
       </div>
       <span
@@ -110,7 +117,7 @@ function SortableEntry({
       <button
         type="button"
         onClick={() => onRemove(horse.id)}
-        className="rounded p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+        className="text-text-sub rounded p-1 transition-colors hover:bg-red-50 hover:text-red-500"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -169,7 +176,11 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
   // 絞り込みは登録馬一覧の表示のみに効かせる。available 自体は保持し、DnD の出し入れに影響させない
   const visibleHorses = filterHorses(available, searchWord, sourceFilter, typeFilter);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  // キーボードでも並び替え可能にする。行にフォーカスして Space で持ち上げ、矢印キーで移動する
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(String(event.active.id));

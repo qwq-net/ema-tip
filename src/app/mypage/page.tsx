@@ -58,11 +58,13 @@ export default async function MyPage() {
             <EditableUserProfile user={session.user} />
             <div className="flex shrink-0 items-center gap-4">
               {session.user.role === 'ADMIN' && (
-                <Link href="/admin">
-                  <Button variant="outline" className="border-primary text-primary hover:bg-primary/5 font-semibold">
-                    管理者パネル
-                  </Button>
-                </Link>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-primary text-primary hover:bg-primary/5 font-semibold"
+                >
+                  <Link href="/admin">管理者パネル</Link>
+                </Button>
               )}
               <LogoutButton />
             </div>
@@ -80,7 +82,7 @@ export default async function MyPage() {
                     {item.icon}
                   </div>
                   <h3 className="text-2xl leading-tight font-semibold text-gray-900">{item.title}</h3>
-                  <p className="mt-3 text-sm font-semibold text-gray-400">{item.description}</p>
+                  <p className="text-text-sub mt-3 text-sm font-semibold">{item.description}</p>
                 </CardContent>
               </Card>
             </Link>

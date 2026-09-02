@@ -52,18 +52,18 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
           <div className="space-y-4 border-t px-4 py-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1">
-                <span className="text-muted-foreground text-sm">借入総額</span>
-                <div className="text-destructive text-lg font-semibold">¥{event.loan.toLocaleString('ja-JP')}</div>
+                <span className="text-text-sub text-sm">借入総額</span>
+                <div className="text-error text-lg font-semibold">¥{event.loan.toLocaleString('ja-JP')}</div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-muted-foreground text-sm font-medium">資産推移</h4>
+              <h4 className="text-text-sub text-sm font-medium">資産推移</h4>
               <AssetChart data={event.history} title="" />
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-muted-foreground text-sm font-medium">取引履歴</h4>
+              <h4 className="text-text-sub text-sm font-medium">取引履歴</h4>
               <div className="max-h-[300px] overflow-y-auto rounded-md border">
                 <HistoryList logs={event.logs} />
               </div>

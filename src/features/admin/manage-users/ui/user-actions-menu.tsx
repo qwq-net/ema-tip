@@ -1,9 +1,9 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import { Button, ConfirmDialog } from '@/shared/ui';
 import { Ban, Trash2, Undo } from 'lucide-react';
 import { useTransition } from 'react';
-import { toast } from 'sonner';
 import { deleteUser, toggleUserStatus } from '../actions';
 
 interface UserActionsMenuProps {

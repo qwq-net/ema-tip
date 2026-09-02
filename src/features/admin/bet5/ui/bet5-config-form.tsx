@@ -1,6 +1,7 @@
 'use client';
 
 import { createBet5EventAction } from '@/features/betting';
+import { toast } from '@/shared/lib/toast';
 import {
   Button,
   Card,
@@ -14,7 +15,6 @@ import {
 } from '@/shared/ui';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 type Race = {
   id: string;

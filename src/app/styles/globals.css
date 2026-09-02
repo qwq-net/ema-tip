@@ -1,16 +1,31 @@
 @import 'tailwindcss';
 
+/* ============================================================
+   カラーシステム
+   ブランドカラー・文字色・状態色はすべてこの @theme で管理する。
+   ここの値を変えると bg-primary / text-text-sub 等の全ユーティリティへ波及する。
+   値を変えるときは白文字・白地との組み合わせで WCAG AA 4.5:1 を保つこと。
+   コンポーネント側では gray-400 等の生パレットを文字色ロールに使わず、
+   text-main / text-sub / success / error のロールトークンを使う。
+   ============================================================ */
 @theme {
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
+  /* ブランドカラー。白文字を載せる前提の濃度に固定する */
+  --color-primary: #2563eb; /* 白文字 5.17:1 */
+  --color-primary-hover: #1d4ed8; /* 白文字 6.70:1 */
   --color-secondary: #0f172a;
-  --color-accent: #f59e0b;
+
+  /* 文字色ロール */
+  --color-text-main: #1e293b; /* 本文 */
+  --color-text-sub: #64748b; /* 補助テキスト。白地 4.76:1・gray-50 上 4.55:1 */
+
+  /* 地色 */
   --color-background: #f8fafc;
   --color-surface: #ffffff;
-  --color-text-main: #1e293b;
-  --color-text-sub: #64748b;
-  --color-success: #22c55e;
-  --color-error: #ef4444;
+
+  /* 状態色。文字色として白地に載せても AA を満たす濃度 */
+  --color-success: #15803d; /* 白地 5.02:1 */
+  --color-error: #b91c1c; /* 白地 5.94:1 */
+
   --animate-spin-slow: spin 3s linear infinite;
 }
 
@@ -34,12 +49,25 @@ body {
   }
 }
 
+/* OS の視差効果減の設定時は、常時アニメーション（LIVE の ping・スピナー等）と
+   演出トランジションを実質停止する。個別コンポーネントでの対応漏れを防ぐ全体既定 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+  /* 画面下端に固定する要素の下パディング。ホームインジケーター分を確保しつつ最低 1rem を保つ */
   .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
 

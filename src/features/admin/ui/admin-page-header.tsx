@@ -38,7 +38,7 @@ export function AdminSectionTitle({
         className
       )}
     >
-      {Icon && <Icon className="h-5 w-5 shrink-0 text-gray-400" />}
+      {Icon && <Icon className="text-text-sub h-5 w-5 shrink-0" />}
       {children}
     </Tag>
   );

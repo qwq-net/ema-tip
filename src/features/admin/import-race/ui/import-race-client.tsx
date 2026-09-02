@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from '@/shared/lib/toast';
 import {
   Badge,
   Button,
@@ -17,7 +18,6 @@ import {
 import { lookup } from '@/shared/utils/lookup';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 import { fetchRacePreview, importRace } from '../actions';
 import type { RacePreviewWithHorseStatus } from '../model/types';
 
@@ -231,7 +231,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                 </TableHead>
                 <TableBody>
                   {preview.horses.map((h) => (
-                    <TableRow key={h.name} className={h.scratched ? 'bg-red-50/50 text-gray-400 line-through' : ''}>
+                    <TableRow key={h.name} className={h.scratched ? 'text-text-sub bg-red-50/50 line-through' : ''}>
                       <Td>{h.bracketNumber}</Td>
                       <Td>{h.horseNumber}</Td>
                       <Td className="font-medium">{h.name}</Td>

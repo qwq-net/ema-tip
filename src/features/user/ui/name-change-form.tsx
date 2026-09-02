@@ -2,11 +2,11 @@
 
 import { isValidUserName, MAX_NAME_LENGTH } from '@/entities/user';
 import { updateUserOnboarding } from '@/features/user/actions/user-actions';
+import { toast } from '@/shared/lib/toast';
 import { Button, Input } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Loader2 } from 'lucide-react';
 import { useActionState } from 'react';
-import { toast } from 'sonner';
 
 export function NameChangeForm({ initialName }: { initialName: string }) {
   const [state, action, isPending] = useActionState(async (_: { error?: string } | null, formData: FormData) => {
@@ -15,7 +15,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
       toast.error(result.error);
       return { error: result.error };
     }
-    toast.success('Name updated successfully!');
+    toast.success('ユーザー名を設定しました');
     return null;
   }, null);
 
@@ -35,19 +35,19 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
           htmlFor="name"
           className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
-          Username
+          ユーザー名
         </label>
         <Input
           id="name"
           name="name"
           defaultValue={initialName}
           onChange={validateInput}
-          placeholder="Enter your username"
+          placeholder="ユーザー名を入力"
           required
           pattern="^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$"
           title="英数字、ひらがな、カタカナ、漢字のみ使用可能です。"
         />
-        <p className="text-muted-foreground text-sm">
+        <p className="text-text-sub text-sm">
           英数字、ひらがな、カタカナ、漢字が使用可能です。特殊記号は使用できません。
         </p>
       </div>

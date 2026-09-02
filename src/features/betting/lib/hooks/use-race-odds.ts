@@ -3,8 +3,8 @@
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import type { getRaceOdds } from '@/features/betting/logic/odds';
 import type { RaceOddsData, SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
+import { toast } from '@/shared/lib/toast';
 import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
 
 type OddsData = Awaited<ReturnType<typeof getRaceOdds>>;
 

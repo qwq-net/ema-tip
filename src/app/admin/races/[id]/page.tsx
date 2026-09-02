@@ -145,7 +145,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                               ? 'border-slate-200 bg-slate-100 text-slate-700'
                               : index === 2
                                 ? 'border-orange-200 bg-orange-100 text-orange-700'
-                                : 'border-gray-100 bg-gray-50 text-gray-400'
+                                : 'text-text-sub border-gray-100 bg-gray-50'
                         )}
                       >
                         {index + 1}
@@ -169,13 +169,13 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                         <span className="truncate text-base font-semibold text-gray-900">{entry.horseName}</span>
                         {entry.jockey && (
                           <>
-                            <span className="shrink-0 text-sm text-gray-400">/</span>
+                            <span className="text-text-sub shrink-0 text-sm">/</span>
                             <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
                           </>
                         )}
                         {oddsMap[String(entry.horseNumber)] != null && (
                           <>
-                            <span className="shrink-0 text-sm text-gray-400">/</span>
+                            <span className="text-text-sub shrink-0 text-sm">/</span>
                             <span className="shrink-0 text-sm font-semibold text-gray-600">
                               オッズ: {oddsMap[String(entry.horseNumber)].toFixed(1)}倍
                             </span>
@@ -226,11 +226,9 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 </div>
                 <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
                 <p className="text-sm text-gray-500">レース結果を確定するには、まず出走馬を登録する必要があります。</p>
-                <Link href={`/admin/entries/${race.id}`} className="mt-6 inline-block">
-                  <Button variant="outline" className="font-semibold">
-                    出走馬を登録する
-                  </Button>
-                </Link>
+                <Button asChild variant="outline" className="mt-6 font-semibold">
+                  <Link href={`/admin/entries/${race.id}`}>出走馬を登録する</Link>
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -284,7 +282,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 {oddsRecord && (
                   <div className="flex items-center justify-between pb-2">
                     <span className="font-medium text-gray-500">オッズ更新</span>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-text-sub text-sm">
                       <FormattedDate
                         date={oddsRecord.updatedAt}
                         options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}

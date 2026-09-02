@@ -1,8 +1,8 @@
 import { SSEMessage, useSSE } from '@/shared/hooks/use-sse';
 import type { RaceResultItem, SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
+import { toast } from '@/shared/lib/toast';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
 interface UseRaceEventsProps {
   raceId: string;

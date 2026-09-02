@@ -35,7 +35,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
               <div className="bg-primary/10 text-primary rounded-full p-2">
                 <Wallet size={20} />
               </div>
-              <span className="text-sm text-gray-400">{wallet.event.date}</span>
+              <span className="text-text-sub text-sm">{wallet.event.date}</span>
             </div>
 
             <div className="space-y-1">
@@ -51,7 +51,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
             <div className="mt-6 flex items-center justify-end border-t pt-4">
               <button
                 onClick={() => setSelectedWallet({ id: wallet.id, name: wallet.event.name })}
-                className="hover:text-primary flex items-center gap-1.5 text-sm font-semibold text-gray-400 transition-colors"
+                className="hover:text-primary text-text-sub flex items-center gap-1.5 text-sm font-semibold transition-colors"
               >
                 <History size={14} />
                 履歴を見る
