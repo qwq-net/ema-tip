@@ -11,7 +11,7 @@ import {
 import { SegmentedControl } from '@/features/admin/shared/ui/segmented-control';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Button, Input } from '@/shared/ui';
-import { calculateBracketNumber, getBracketColor } from '@/shared/utils/bracket';
+import { calculateBracketNumber, getBracketColor, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
 import {
   closestCenter,
@@ -212,6 +212,11 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
   // insertBeforeId のエントリの直前に挿入する。省略時は末尾に追加
   const addToEntries = (horse: Horse, insertBeforeId?: string) => {
+    if (entries.length >= MAX_HORSES_PER_RACE) {
+      toast.error(`出走馬は${MAX_HORSES_PER_RACE}頭までです`);
+      return;
+    }
+
     setAvailable((prev) => prev.filter((h) => h.id !== horse.id));
     setEntries((prev) => {
       const index = insertBeforeId ? prev.findIndex((e) => e.id === insertBeforeId) : -1;

@@ -65,6 +65,22 @@ describe('saveEntries', () => {
     expect(mockTx.insert).toHaveBeenCalled();
   });
 
+  it('19頭以上の登録は拒否し、エントリを削除しないこと', async () => {
+    const horseIds = Array.from({ length: 19 }, (_, i) => `horse-${i + 1}`);
+
+    await expect(saveEntries('race-1', horseIds)).rejects.toThrow('18頭まで');
+    expect(mockTx.delete).not.toHaveBeenCalled();
+  });
+
+  it('18頭ちょうどの登録は受け付けること', async () => {
+    mockTx.query.bets.findFirst.mockResolvedValue(undefined);
+    const horseIds = Array.from({ length: 18 }, (_, i) => `horse-${i + 1}`);
+
+    await saveEntries('race-1', horseIds);
+
+    expect(mockTx.insert).toHaveBeenCalled();
+  });
+
   it('出走前以外のレースでは保存を拒否し、エントリを削除しないこと', async () => {
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'FINALIZED' });
     mockTx.query.bets.findFirst.mockResolvedValue(undefined);

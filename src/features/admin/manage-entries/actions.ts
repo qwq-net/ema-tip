@@ -4,7 +4,7 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
 import { requireAdmin, requireUser, revalidateRacePaths } from '@/shared/utils/admin';
-import { calculateBracketNumber } from '@/shared/utils/bracket';
+import { calculateBracketNumber, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
 import { count, eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -183,6 +183,11 @@ export async function getAvailableHorses(raceId: string) {
 
 export async function saveEntries(raceId: string, horseIds: string[]) {
   await requireAdmin();
+
+  // 19頭以上は枠番を正しく割り当てられない
+  if (horseIds.length > MAX_HORSES_PER_RACE) {
+    throw new Error(`出走馬は${MAX_HORSES_PER_RACE}頭まで登録できます`);
+  }
 
   await db.transaction(async (tx) => {
     // 全削除して馬番を振り直すため、締切後・確定後のレースを触ると着順や払戻の根拠が消えてしまう
