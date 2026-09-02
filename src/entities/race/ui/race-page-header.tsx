@@ -32,7 +32,7 @@ export function RacePageHeader({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        {venueShortName && <span className="text-sm font-semibold text-gray-500">{venueShortName}</span>}
+        {venueShortName && <span className="text-sm text-gray-500">{venueShortName}</span>}
         {raceNumber && (
           <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
             {raceNumber}R
@@ -41,7 +41,7 @@ export function RacePageHeader({
         {eventName && (
           <>
             <span className="text-gray-300">/</span>
-            <span className="truncate text-sm font-semibold text-gray-500">{eventName}</span>
+            <span className="truncate text-sm text-gray-500">{eventName}</span>
           </>
         )}
       </div>

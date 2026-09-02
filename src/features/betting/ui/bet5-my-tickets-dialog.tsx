@@ -81,7 +81,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
 
             return (
               <div key={ticket.id} className="rounded-surface space-y-3 border border-gray-200 p-4">
-                <p className="text-sm font-semibold text-gray-500">チケット {ticketIndex + 1}</p>
+                <p className="text-sm text-gray-500">チケット {ticketIndex + 1}</p>
                 {races.map((race, raceIndex) => {
                   const horseIds = selectionsByRace[raceIndex] || [];
                   const selectedHorses = race.entries

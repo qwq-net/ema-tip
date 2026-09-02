@@ -144,7 +144,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                   index === activeTab && 'bg-turf-50/70'
                 )}
               >
-                <span className="text-text-sub shrink-0 text-sm font-semibold">第{index + 1}戦</span>
+                <span className="text-text-sub shrink-0 text-sm">第{index + 1}戦</span>
                 <span className="shrink-0 font-semibold text-gray-700">{race.raceNumber}R</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-gray-900">{race.name}</span>
@@ -205,10 +205,10 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50/50">
                 <tr className="border-b border-gray-100">
-                  <th className="px-4 py-2 text-center font-semibold text-gray-500">枠</th>
-                  <th className="px-4 py-2 text-center font-semibold text-gray-500">番</th>
-                  <th className="px-4 py-2 font-semibold text-gray-500">馬名</th>
-                  <th className="px-4 py-2 text-center font-semibold text-gray-500">選択</th>
+                  <th className="px-4 py-2 text-center text-gray-500">枠</th>
+                  <th className="px-4 py-2 text-center text-gray-500">番</th>
+                  <th className="px-4 py-2 text-gray-500">馬名</th>
+                  <th className="px-4 py-2 text-center text-gray-500">選択</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -263,7 +263,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
         <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg md:relative md:border-none md:bg-transparent md:p-0 md:pb-0 md:shadow-none">
           <div className="container mx-auto max-w-4xl space-y-2 md:px-0">
             <div className="rounded-control flex items-center justify-between bg-gray-50 px-3 py-2 text-sm">
-              <span className="font-semibold text-gray-600">{activeRace.raceNumber}R 選択馬:</span>
+              <span className="text-gray-600">{activeRace.raceNumber}R 選択馬:</span>
               {activeRaceSelections.length > 0 ? (
                 <span className="text-turf-700 font-semibold">
                   {activeRace.entries
@@ -286,6 +286,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
               isPending={isPending}
               onAmountChange={setAmount}
               onSubmit={handleCheck}
+              submitLabel="投票する"
             />
           </div>
         </div>

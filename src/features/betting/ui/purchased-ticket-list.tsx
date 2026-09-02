@@ -46,7 +46,7 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
           <span className="text-xl">🎫</span>
         </div>
-        <p className="text-text-sub text-sm font-semibold">購入した馬券はありません</p>
+        <p className="text-text-sub text-sm">購入した馬券はありません</p>
       </div>
     );
   }
@@ -61,12 +61,12 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
     <div className="space-y-4">
       <div className="rounded-surface flex items-center justify-between border border-gray-100 bg-white p-4">
         <div>
-          <div className="mb-1 text-sm font-semibold text-gray-500">購入合計</div>
+          <div className="mb-1 text-sm text-gray-500">購入合計</div>
           <div className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</div>
         </div>
         {totalPayout > 0 && (
           <div className="text-right">
-            <div className="mb-1 text-sm font-semibold text-gray-500">払戻合計</div>
+            <div className="mb-1 text-sm text-gray-500">払戻合計</div>
             <div className="text-xl font-semibold text-red-600">{totalPayout.toLocaleString('ja-JP')}円</div>
           </div>
         )}
@@ -180,7 +180,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
           </span>
           {groupPayout > 0 ? (
             isAllRefunded ? (
-              <span className="block text-sm font-semibold text-gray-500 tabular-nums">
+              <span className="block text-sm text-gray-500 tabular-nums">
                 返還 {groupPayout.toLocaleString('ja-JP')}円
               </span>
             ) : (

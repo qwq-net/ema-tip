@@ -16,6 +16,16 @@
    予想印の記号色・的中と払戻の赤・金銭プラスマイナスの青赤
    ============================================================ */
 @theme {
+  /* 書体。Webフォントは使わずシステム書体で描画する。Mac は Hiragino、
+     Windows は BIZ UDPGothic 優先で Meiryo へフォールバック。
+     Yu Gothic UI は 400 が細く日本語の小サイズで滲むため使わない */
+  --font-sans: 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+
+  /* UI 基本文字サイズ。日本語は 14px の weight 400 で品質が落ちるため 15px を下限にする。
+     太さは Windows システム書体が 400/700 の2ウェイトのみのため2段で運用する。
+     見出し・金額・ボタン・小型チップ = semibold、説明・補助・ラベル = normal + text-sub 色 */
+  --text-sm: 0.9375rem;
+
   /* ニュートラル。緑微バイアスの紙色 */
   --color-gray-50: #f8fbfa;
   --color-gray-100: #f1f5f4;
@@ -79,6 +89,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
   font-feature-settings: 'palt' 1;
 }
 

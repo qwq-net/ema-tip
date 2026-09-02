@@ -173,7 +173,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
 
             return (
               <div key={cat} className="space-y-2">
-                <div className="text-sm font-semibold text-gray-500">{HORSE_TAG_CATEGORIES[cat]}</div>
+                <div className="text-sm text-gray-500">{HORSE_TAG_CATEGORIES[cat]}</div>
                 <div className="flex flex-wrap gap-2">
                   {masterTags.map((masterTag) => {
                     const isActive = tags.some((t) => t.type === masterTag.type && t.content === masterTag.content);
@@ -201,14 +201,14 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
 
         {tags.length > 0 && (
           <div className="mt-4">
-            <div className="mb-2 text-sm font-semibold text-gray-500">選択中のタグ</div>
+            <div className="mb-2 text-sm text-gray-500">選択中のタグ</div>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm ring-1 ring-gray-200"
                 >
-                  <span className="mr-1 text-sm font-semibold text-gray-500">{HORSE_TAG_CATEGORIES[tag.type]}:</span>
+                  <span className="mr-1 text-sm text-gray-500">{HORSE_TAG_CATEGORIES[tag.type]}:</span>
                   <span className="text-gray-700">{tag.content}</span>
                   <button
                     type="button"

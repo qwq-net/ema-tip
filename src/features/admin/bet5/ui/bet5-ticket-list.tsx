@@ -75,19 +75,19 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
               <Td className="leading-relaxed whitespace-normal text-gray-600">
                 <div className="flex flex-col gap-1">
                   <div className="flex gap-1">
-                    <span className="text-text-sub font-semibold">R1:</span> {formatHorseIds(ticket.race1HorseIds)}
+                    <span className="text-text-sub">R1:</span> {formatHorseIds(ticket.race1HorseIds)}
                   </div>
                   <div className="flex gap-1">
-                    <span className="text-text-sub font-semibold">R2:</span> {formatHorseIds(ticket.race2HorseIds)}
+                    <span className="text-text-sub">R2:</span> {formatHorseIds(ticket.race2HorseIds)}
                   </div>
                   <div className="flex gap-1">
-                    <span className="text-text-sub font-semibold">R3:</span> {formatHorseIds(ticket.race3HorseIds)}
+                    <span className="text-text-sub">R3:</span> {formatHorseIds(ticket.race3HorseIds)}
                   </div>
                   <div className="flex gap-1">
-                    <span className="text-text-sub font-semibold">R4:</span> {formatHorseIds(ticket.race4HorseIds)}
+                    <span className="text-text-sub">R4:</span> {formatHorseIds(ticket.race4HorseIds)}
                   </div>
                   <div className="flex gap-1">
-                    <span className="text-text-sub font-semibold">R5:</span> {formatHorseIds(ticket.race5HorseIds)}
+                    <span className="text-text-sub">R5:</span> {formatHorseIds(ticket.race5HorseIds)}
                   </div>
                 </div>
               </Td>

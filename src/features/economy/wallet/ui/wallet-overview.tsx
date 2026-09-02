@@ -44,7 +44,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
               </h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-secondary text-2xl font-semibold">{wallet.balance.toLocaleString('ja-JP')}</span>
-                <span className="text-sm font-semibold text-gray-500">円</span>
+                <span className="text-sm text-gray-500">円</span>
               </div>
             </div>
 

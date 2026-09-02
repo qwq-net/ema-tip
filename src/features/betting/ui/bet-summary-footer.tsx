@@ -12,6 +12,8 @@ interface BetSummaryFooterProps {
   isPending: boolean;
   onAmountChange: (amount: number) => void;
   onSubmit: () => void;
+  /** 確定ボタンのラベル。通常馬券は既定の「購入確定」、BET5 は投票の語で渡す。 */
+  submitLabel?: string;
 }
 
 export function BetSummaryFooter({
@@ -23,6 +25,7 @@ export function BetSummaryFooter({
   isPending,
   onAmountChange,
   onSubmit,
+  submitLabel = '購入確定',
 }: BetSummaryFooterProps) {
   const [showKeypad, setShowKeypad] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -81,17 +84,17 @@ export function BetSummaryFooter({
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4 lg:flex lg:items-center lg:gap-8 lg:border-none lg:pb-0">
           <div className="flex flex-col gap-1 lg:items-start">
-            <span className="text-sm font-semibold text-gray-500">購入点数</span>
+            <span className="text-sm text-gray-500">購入点数</span>
             <span className="text-primary text-xl font-semibold tabular-nums">{betCount}点</span>
           </div>
           <div className="flex flex-col gap-1 lg:items-start">
-            <span className="text-sm font-semibold text-gray-500">合計金額</span>
+            <span className="text-sm text-gray-500">合計金額</span>
             <span className="text-xl font-semibold text-gray-900 tabular-nums">
               {totalAmount.toLocaleString('ja-JP')}円
             </span>
           </div>
           <div className="col-span-2 flex flex-col gap-2 lg:col-auto lg:flex-row lg:items-center lg:gap-3">
-            <label htmlFor="bet-unit-amount" className="text-sm font-semibold text-gray-500">
+            <label htmlFor="bet-unit-amount" className="text-sm text-gray-500">
               1点あたり
             </label>
             <div className="flex items-center gap-2">
@@ -139,7 +142,7 @@ export function BetSummaryFooter({
 
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between lg:justify-end">
           <div className="flex flex-col items-center gap-1 sm:items-end">
-            <span className="text-text-sub text-sm font-semibold">投票可能残高</span>
+            <span className="text-text-sub text-sm">投票可能残高</span>
             <span className="text-sm font-semibold text-gray-600 tabular-nums">
               {balance.toLocaleString('ja-JP')}円
             </span>
@@ -153,10 +156,10 @@ export function BetSummaryFooter({
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                購入中...
+                処理中...
               </>
             ) : (
-              '購入確定'
+              submitLabel
             )}
           </Button>
         </div>

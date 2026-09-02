@@ -194,7 +194,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
       return (
         <div className="relative flex items-center">
           {inputElement}
-          <span className="text-text-sub pointer-events-none absolute right-3 text-sm font-semibold">{suffix}</span>
+          <span className="text-text-sub pointer-events-none absolute right-3 text-sm">{suffix}</span>
         </div>
       );
     }

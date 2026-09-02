@@ -92,14 +92,14 @@ export default async function SokubetPage() {
                             </div>
                           )}
                         </div>
-                        <p className="text-text-sub mt-1 text-sm font-semibold">{event.date}</p>
+                        <p className="text-text-sub mt-1 text-sm">{event.date}</p>
                       </div>
                       <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
                         <Wallet size={16} className="text-text-sub" />
-                        <span className="text-sm font-semibold text-nowrap text-gray-500">投票可能残高</span>
+                        <span className="text-sm text-nowrap text-gray-500">投票可能残高</span>
                         <span className="flex-1 text-right text-lg font-semibold text-gray-900 sm:flex-none">
                           {Math.floor(balance).toLocaleString('ja-JP')}
-                          <span className="text-text-sub ml-0.5 text-sm font-semibold">円</span>
+                          <span className="text-text-sub ml-0.5 text-sm">円</span>
                         </span>
                       </div>
                     </div>
@@ -147,7 +147,7 @@ export default async function SokubetPage() {
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="mb-1 flex items-center gap-2">
-                                  <span className="text-sm font-semibold text-gray-500">{race.venue?.shortName}</span>
+                                  <span className="text-sm text-gray-500">{race.venue?.shortName}</span>
                                   {race.raceNumber && (
                                     <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
                                       {race.raceNumber}R

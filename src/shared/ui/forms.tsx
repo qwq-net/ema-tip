@@ -3,7 +3,7 @@ import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
 import React from 'react';
 
 export const Label = ({ children, htmlFor, className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label htmlFor={htmlFor} className={cn('mb-1.5 block text-sm font-semibold text-gray-700', className)} {...props}>
+  <label htmlFor={htmlFor} className={cn('mb-1.5 block text-sm text-gray-700', className)} {...props}>
     {children}
   </label>
 );

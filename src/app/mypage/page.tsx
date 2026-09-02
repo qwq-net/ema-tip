@@ -80,7 +80,7 @@ export default async function MyPage() {
                     {item.icon}
                   </div>
                   <h3 className="text-2xl leading-tight font-semibold text-gray-900">{item.title}</h3>
-                  <p className="text-text-sub mt-3 text-sm font-semibold">{item.description}</p>
+                  <p className="text-text-sub mt-3 text-sm">{item.description}</p>
                 </CardContent>
               </Card>
             </Link>

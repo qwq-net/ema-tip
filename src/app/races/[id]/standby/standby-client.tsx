@@ -138,7 +138,7 @@ export function StandbyClient({
               {lookup(RACE_STATUS_LABELS, displayStatus) || RACE_STATUS_LABELS[baseStatus]}
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-500">{race.location}</span>
+              <span className="text-sm text-gray-500">{race.location}</span>
               {race.raceNumber && (
                 <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
                   {race.raceNumber}R
