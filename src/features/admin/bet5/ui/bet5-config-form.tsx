@@ -133,7 +133,7 @@ export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProp
             title="BET5を作成しますか？"
             description={
               <>
-                作成後は対象レースと初期プールを変更できません。
+                作成後は対象レースを変更できません。初期プールは払戻確定まで変更できます。
                 <span className="mt-3 block space-y-1">
                   {selectedInRaceOrder.map((race, index) => (
                     <span key={race.id} className="block">
