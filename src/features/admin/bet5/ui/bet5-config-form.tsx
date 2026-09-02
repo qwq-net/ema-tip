@@ -26,13 +26,15 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
   const [selectedRaces, setSelectedRaces] = useState<string[]>([]);
 
   const sortedRaces = [...races].sort((a, b) => (a.raceNumber || 0) - (b.raceNumber || 0));
+  const selectedInRaceOrder = sortedRaces.filter((race) => selectedRaces.includes(race.id));
+  const raceLabel = (race: Race) => `${race.raceNumber ? `${race.raceNumber}R` : 'Ex'} ${race.name}`;
 
   const handleRaceSelection = (raceId: string) => {
     if (selectedRaces.includes(raceId)) {
       setSelectedRaces(selectedRaces.filter((id) => id !== raceId));
     } else {
       if (selectedRaces.length >= 5) {
-        toast.error('これ以上選択できません（5レースまで）');
+        toast.error('選択できるのは5レースまでです');
         return;
       }
       setSelectedRaces([...selectedRaces, raceId]);
@@ -47,11 +49,7 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
       return;
     }
 
-    const sortedSelectedIds = [...selectedRaces].sort((a, b) => {
-      const raceA = races.find((r) => r.id === a);
-      const raceB = races.find((r) => r.id === b);
-      return (raceA?.raceNumber || 0) - (raceB?.raceNumber || 0);
-    });
+    const sortedSelectedIds = selectedInRaceOrder.map((race) => race.id);
 
     startTransition(async () => {
       try {
@@ -78,32 +76,39 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label>対象レース選択 (5レース)</Label>
+            <Label>対象レース選択</Label>
+            <p className="text-sm text-gray-500">
+              5レースを選択してください。選択したレースはレース番号順に第1〜5戦へ割り当てられます。
+            </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {sortedRaces.map((race) => (
-                <div
-                  key={race.id}
-                  className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-gray-50 ${
-                    selectedRaces.includes(race.id)
-                      ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
-                      : 'border-gray-200'
-                  }`}
-                  onClick={() => handleRaceSelection(race.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      {race.raceNumber ? `${race.raceNumber}R` : 'Ex'} {race.name}
-                    </span>
-                    {selectedRaces.includes(race.id) && (
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-sm text-white">
-                        ✓
-                      </span>
-                    )}
+              {sortedRaces.map((race) => {
+                const legNumber = selectedInRaceOrder.findIndex((selected) => selected.id === race.id) + 1;
+                return (
+                  <div
+                    key={race.id}
+                    className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-gray-50 ${
+                      legNumber > 0 ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-gray-200'
+                    }`}
+                    onClick={() => handleRaceSelection(race.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{raceLabel(race)}</span>
+                      {legNumber > 0 && (
+                        <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-semibold text-white">
+                          第{legNumber}戦
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <p className="text-sm text-gray-500">選択済み: {selectedRaces.length} / 5</p>
+            {selectedInRaceOrder.length > 0 && (
+              <p className="text-sm font-medium text-gray-700">
+                {selectedInRaceOrder.map((race, index) => `第${index + 1}戦 ${raceLabel(race)}`).join(' → ')}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
