@@ -1,7 +1,6 @@
 import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
-import { lookup } from '@/shared/utils/lookup';
 import {
   ArrowRight,
   BookOpen,
@@ -24,66 +23,20 @@ export const metadata: Metadata = {
   title: '管理者ダッシュボード',
 };
 
+// タイル色はセクション単位の2段ルール。日常業務の運用管理は brand、
+// 低頻度のマスタデータとシステムは neutral を使う。タイル個別の色分けはしない
 const COLOR_VARIANTS = {
-  primary: {
-    qaBg: 'bg-primary/10',
-    qaText: 'text-primary',
-    qaHoverBg: 'group-hover:bg-primary',
-    qaHoverText: 'group-hover:text-primary',
-  },
-  amber: {
-    qaBg: 'bg-amber-100',
-    qaText: 'text-amber-600',
-    qaHoverBg: 'group-hover:bg-amber-600',
-    qaHoverText: 'group-hover:text-amber-600',
-  },
-  purple: {
+  brand: {
     qaBg: 'bg-turf-100',
-    qaText: 'text-turf-700',
+    qaText: 'text-turf-800',
     qaHoverBg: 'group-hover:bg-turf-600',
     qaHoverText: 'group-hover:text-turf-700',
   },
-  indigo: {
-    qaBg: 'bg-turf-100',
-    qaText: 'text-turf-700',
-    qaHoverBg: 'group-hover:bg-turf-600',
-    qaHoverText: 'group-hover:text-turf-700',
-  },
-  slate: {
-    qaBg: 'bg-slate-100',
-    qaText: 'text-slate-600',
-    qaHoverBg: 'group-hover:bg-slate-600',
-    qaHoverText: 'group-hover:text-slate-600',
-  },
-  emerald: {
-    qaBg: 'bg-turf-100',
-    qaText: 'text-turf-700',
-    qaHoverBg: 'group-hover:bg-turf-600',
-    qaHoverText: 'group-hover:text-turf-700',
-  },
-  rose: {
-    qaBg: 'bg-rose-100',
-    qaText: 'text-rose-600',
-    qaHoverBg: 'group-hover:bg-rose-600',
-    qaHoverText: 'group-hover:text-rose-600',
-  },
-  teal: {
-    qaBg: 'bg-teal-100',
-    qaText: 'text-teal-600',
-    qaHoverBg: 'group-hover:bg-teal-600',
-    qaHoverText: 'group-hover:text-teal-600',
-  },
-  sky: {
-    qaBg: 'bg-sky-100',
-    qaText: 'text-sky-600',
-    qaHoverBg: 'group-hover:bg-sky-600',
-    qaHoverText: 'group-hover:text-sky-600',
-  },
-  cyan: {
-    qaBg: 'bg-cyan-100',
-    qaText: 'text-cyan-600',
-    qaHoverBg: 'group-hover:bg-cyan-600',
-    qaHoverText: 'group-hover:text-cyan-600',
+  neutral: {
+    qaBg: 'bg-gray-100',
+    qaText: 'text-gray-600',
+    qaHoverBg: 'group-hover:bg-gray-600',
+    qaHoverText: 'group-hover:text-gray-600',
   },
 } as const;
 
@@ -93,35 +46,30 @@ const OPERATION_ACTIONS = [
     icon: Calendar,
     label: 'イベント管理',
     description: 'イベントの追加・編集・確定処理',
-    color: 'indigo',
   },
   {
     href: '/admin/races',
     icon: Trophy,
     label: 'レース管理',
     description: 'レースの作成・管理',
-    color: 'purple',
   },
   {
     href: '/admin/entries',
     icon: ClipboardList,
     label: '出走馬管理',
     description: 'レースへの競走馬の割り当て',
-    color: 'emerald',
   },
   {
     href: '/admin/bet5',
     icon: Crown,
     label: 'BET5管理',
     description: 'BET5イベントの作成・結果確定',
-    color: 'rose',
   },
   {
     href: '/admin/bets',
     icon: Ticket,
     label: '馬券管理',
     description: '購入された馬券の確認と管理',
-    color: 'cyan',
   },
 ] as const;
 
@@ -131,35 +79,30 @@ const MASTER_ACTIONS = [
     icon: MapPin,
     label: '競馬場管理',
     description: '競馬場の場所・設定',
-    color: 'slate',
   },
   {
     href: '/admin/horse-tags',
     icon: ClipboardList,
     label: '馬タグ管理',
     description: '脚質・特性マスタ',
-    color: 'teal',
   },
   {
     href: '/admin/horses',
     icon: Carrot,
     label: '馬マスタ管理',
     description: '競走馬の管理',
-    color: 'amber',
   },
   {
     href: '/admin/race-definitions',
     icon: BookOpen,
     label: 'レースマスタ管理',
     description: '重賞名・条件マスタ',
-    color: 'primary',
   },
   {
     href: '/admin/settings/odds',
     icon: Coins,
     label: '保証オッズ設定',
     description: 'デフォルト保証オッズ',
-    color: 'amber',
   },
 ] as const;
 
@@ -169,14 +112,12 @@ const SYSTEM_ACTIONS = [
     icon: Users,
     label: 'ユーザー管理',
     description: 'ユーザー確認・権限変更',
-    color: 'sky',
   },
   {
     href: '/admin/users/guests',
     icon: Key,
     label: 'ゲストコード管理',
     description: 'ログインコードの管理',
-    color: 'slate',
   },
 ] as const;
 
@@ -214,10 +155,9 @@ export default async function AdminPage() {
             <h2 className="text-secondary text-xl font-semibold">運用管理</h2>
           </CardHeader>
           <CardContent className="grid flex-1 grid-cols-1 gap-4">
-            {OPERATION_ACTIONS.map((action) => {
-              const colors = lookup(COLOR_VARIANTS, action.color) ?? COLOR_VARIANTS.slate;
-              return <ActionLink key={action.href} action={action} colors={colors} />;
-            })}
+            {OPERATION_ACTIONS.map((action) => (
+              <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.brand} />
+            ))}
           </CardContent>
         </Card>
 
@@ -226,10 +166,9 @@ export default async function AdminPage() {
             <h2 className="text-secondary text-xl font-semibold">マスタデータ</h2>
           </CardHeader>
           <CardContent className="grid flex-1 grid-cols-1 gap-4">
-            {MASTER_ACTIONS.map((action) => {
-              const colors = lookup(COLOR_VARIANTS, action.color) ?? COLOR_VARIANTS.slate;
-              return <ActionLink key={action.href} action={action} colors={colors} />;
-            })}
+            {MASTER_ACTIONS.map((action) => (
+              <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.neutral} />
+            ))}
           </CardContent>
         </Card>
       </div>
@@ -239,10 +178,9 @@ export default async function AdminPage() {
           <h2 className="text-secondary text-xl font-semibold">システム</h2>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {SYSTEM_ACTIONS.map((action) => {
-            const colors = lookup(COLOR_VARIANTS, action.color) ?? COLOR_VARIANTS.slate;
-            return <ActionLink key={action.href} action={action} colors={colors} />;
-          })}
+          {SYSTEM_ACTIONS.map((action) => (
+            <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.neutral} />
+          ))}
         </CardContent>
       </Card>
     </div>

@@ -1,5 +1,4 @@
 import { Card } from '@/shared/ui';
-import { lookup } from '@/shared/utils/lookup';
 import {
   BookOpen,
   Calendar,
@@ -30,7 +29,6 @@ const MASTER_STEPS = [
     icon: MapPin,
     href: '/admin/venues',
     points: ['名前、略称、回り方向を設定します。', 'エリア（関東・関西等）を区分します。'],
-    color: 'slate',
   },
   {
     title: '2. 馬タグ管理',
@@ -38,7 +36,6 @@ const MASTER_STEPS = [
     icon: Tag,
     href: '/admin/horse-tags',
     points: ['「逃げ」や「重馬場得意」などのタグを登録します。', '馬の個性を表現するために重要です。'],
-    color: 'teal',
   },
   {
     title: '3. 馬マスタ管理',
@@ -46,7 +43,6 @@ const MASTER_STEPS = [
     icon: Carrot,
     href: '/admin/horses',
     points: ['血統、性別、年齢などを設定します。', '先ほど作成したタグを付与できます。'],
-    color: 'amber',
   },
   {
     title: '4. レースマスタ管理',
@@ -54,7 +50,6 @@ const MASTER_STEPS = [
     icon: BookOpen,
     href: '/admin/race-definitions',
     points: ['レース名、グレード、距離を定義します。', '開催ごとの入力の手間を省けます。'],
-    color: 'primary',
   },
 ];
 
@@ -65,7 +60,6 @@ const FLOW_STEPS = [
     icon: Calendar,
     href: '/admin/events/new',
     points: ['開催日と初期配布金額を設定します。', 'ステータスを「開催中」にすると参加可能になります。'],
-    color: 'indigo',
   },
   {
     title: '2. レース作成',
@@ -73,7 +67,6 @@ const FLOW_STEPS = [
     icon: Trophy,
     href: '/admin/races/new',
     points: ['日付、会場、レース番号を選択します。', 'マスタから条件を読み込むことができます。'],
-    color: 'purple',
   },
   {
     title: '3. 出走馬登録',
@@ -81,7 +74,6 @@ const FLOW_STEPS = [
     icon: ClipboardList,
     href: '/admin/entries',
     points: ['ドラッグ＆ドロップで枠順を決定します。', 'これが完了すると馬券が購入可能になります。'],
-    color: 'emerald',
   },
   {
     title: '4. BET5設定',
@@ -89,7 +81,6 @@ const FLOW_STEPS = [
     icon: Crown,
     href: '/admin/bet5',
     points: ['5重勝の対象レースを指定します。', '一攫千金のチャンスを提供します。'],
-    color: 'rose',
   },
 ];
 
@@ -100,7 +91,6 @@ const OTHER_STEPS = [
     icon: Ticket,
     href: '/admin/bets',
     points: ['全ユーザーの購入履歴を一覧できます。', 'レースごとの詳細や的中の有無を確認します。'],
-    color: 'cyan',
   },
   {
     title: '2. 保証オッズ設定',
@@ -108,7 +98,6 @@ const OTHER_STEPS = [
     icon: Coins,
     href: '/admin/settings/odds',
     points: ['最低保証オッズのデフォルト値を設定します。', '必要に応じて個別のレースでも調整可能です。'],
-    color: 'amber',
   },
   {
     title: '3. ユーザー管理',
@@ -116,7 +105,6 @@ const OTHER_STEPS = [
     icon: Users,
     href: '/admin/users',
     points: ['Discord連携ユーザーの確認ができます。', '管理者の付与やユーザー情報の編集を行います。'],
-    color: 'sky',
   },
   {
     title: '4. ゲストコード管理',
@@ -124,22 +112,15 @@ const OTHER_STEPS = [
     icon: Key,
     href: '/admin/users/guests',
     points: ['一時的に利用可能な招待コードを発行します。', '新規参加者の招待や整理に使用します。'],
-    color: 'slate',
   },
 ];
 
-const COLOR_MAP = {
-  slate: 'bg-slate-50 text-slate-600 border-slate-100',
-  teal: 'bg-teal-50 text-teal-600 border-teal-100',
-  amber: 'bg-amber-50 text-amber-600 border-amber-100',
-  primary: 'bg-primary/10 text-primary border-primary/20',
-  indigo: 'bg-turf-50 text-turf-700 border-turf-100',
-  purple: 'bg-turf-50 text-turf-700 border-turf-100',
-  emerald: 'bg-turf-50 text-turf-700 border-turf-100',
-  rose: 'bg-rose-50 text-rose-600 border-rose-100',
-  cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100',
-  sky: 'bg-sky-50 text-sky-600 border-sky-100',
-} satisfies Record<string, string>;
+// ステップ色はダッシュボードと同じセクション単位の2段ルール。
+// 毎回行う運用フローは brand、準備とシステムは neutral を使う
+const TONES = {
+  brand: { chip: 'bg-turf-50 text-turf-700', stripe: 'border-l-turf-500' },
+  neutral: { chip: 'bg-gray-100 text-gray-600', stripe: 'border-l-gray-300' },
+} as const;
 
 type Step = {
   title: string;
@@ -147,24 +128,17 @@ type Step = {
   icon: React.ElementType;
   href: string;
   points: string[];
-  color: string;
 };
 
-function StepCard({ step }: { step: Step }) {
+function StepCard({ step, tone }: { step: Step; tone: keyof typeof TONES }) {
   const Icon = step.icon;
-  const colorClass = lookup(COLOR_MAP, step.color) ?? 'bg-gray-50 text-gray-600 border-gray-100';
 
   return (
-    <Card
-      className="overflow-hidden border-l-4 border-gray-100 transition-all hover:shadow-md"
-      style={{ borderLeftColor: `var(--${step.color === 'primary' ? 'primary' : step.color + '-500'})` }}
-    >
+    <Card className={`overflow-hidden border-l-4 border-gray-100 transition-all hover:shadow-md ${TONES[tone].stripe}`}>
       <div className="flex h-full flex-col">
         <div className="flex-1 p-5">
           <div className="mb-3 flex items-center gap-3">
-            <div
-              className={`flex h-9 w-9 items-center justify-center rounded-lg ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}
-            >
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${TONES[tone].chip}`}>
               <Icon className="h-5 w-5" />
             </div>
             <h3 className="text-secondary font-semibold">{step.title}</h3>
@@ -208,7 +182,7 @@ export default async function AdminGuidePage() {
 
       <section className="space-y-6">
         <div className="flex items-center gap-3 border-b border-gray-200 pb-2">
-          <div className="rounded-full bg-amber-100 p-2 text-amber-700">
+          <div className="rounded-full bg-gray-100 p-2 text-gray-600">
             <BookOpen className="h-5 w-5" />
           </div>
           <h2 className="text-secondary text-xl font-semibold">【準備編】マスタデータを登録する</h2>
@@ -216,7 +190,7 @@ export default async function AdminGuidePage() {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {MASTER_STEPS.map((step, idx) => (
-            <StepCard key={idx} step={step} />
+            <StepCard key={idx} step={step} tone="neutral" />
           ))}
         </div>
       </section>
@@ -231,14 +205,14 @@ export default async function AdminGuidePage() {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {FLOW_STEPS.map((step, idx) => (
-            <StepCard key={idx} step={step} />
+            <StepCard key={idx} step={step} tone="brand" />
           ))}
         </div>
       </section>
 
       <section className="space-y-6">
         <div className="flex items-center gap-3 border-b border-gray-200 pb-2">
-          <div className="rounded-full bg-slate-100 p-2 text-slate-700">
+          <div className="rounded-full bg-gray-100 p-2 text-gray-600">
             <Settings className="h-5 w-5" />
           </div>
           <h2 className="text-secondary text-xl font-semibold">【その他】システム管理</h2>
@@ -246,7 +220,7 @@ export default async function AdminGuidePage() {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {OTHER_STEPS.map((step, idx) => (
-            <StepCard key={idx} step={step} />
+            <StepCard key={idx} step={step} tone="neutral" />
           ))}
         </div>
       </section>
