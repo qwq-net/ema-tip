@@ -137,6 +137,35 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   return (
     <>
       <div className="space-y-6 pb-32">
+        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          {races.map((race, index) => {
+            const selectionCount = selections[race.id]?.length || 0;
+            return (
+              <button
+                key={race.id}
+                type="button"
+                onClick={() => setActiveTab(index)}
+                className={cn(
+                  'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50',
+                  index === activeTab && 'bg-indigo-50/50'
+                )}
+              >
+                <span className="shrink-0 text-sm font-semibold text-gray-400">第{index + 1}戦</span>
+                <span className="shrink-0 font-semibold text-gray-700">{race.raceNumber}R</span>
+                <span className="truncate font-medium text-gray-900">{race.name}</span>
+                <span
+                  className={cn(
+                    'ml-auto shrink-0 text-sm font-semibold',
+                    selectionCount > 0 ? 'text-indigo-600' : 'text-gray-300'
+                  )}
+                >
+                  {selectionCount > 0 ? `${selectionCount}頭選択` : '未選択'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex overflow-x-auto border-b border-gray-200">
           {races.map((race, index) => {
             const isSelected = index === activeTab;

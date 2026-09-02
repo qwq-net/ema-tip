@@ -4,9 +4,9 @@ import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, events, raceInstances } from '@/shared/db/schema';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
+import { Card } from '@/shared/ui';
 import { eq, inArray } from 'drizzle-orm';
-import { ChevronLeft } from 'lucide-react';
+import { AlertCircle, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
@@ -80,26 +80,55 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
     .map((raceId) => racesById.get(raceId))
     .filter((race): race is NonNullable<typeof race> => race !== undefined);
 
+  // 対象レースが1つでも締め切られていたら、BET5イベント自体が受付中でも購入不可。
+  // サーバー側でも placeBet5Bet が同条件で拒否する
+  const hasClosedRace = orderedRaces.some((race) => race.status !== 'SCHEDULED');
+  const isOpen = bet5Event.status === 'SCHEDULED' && !hasClosedRace;
+
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-4xl space-y-6">
         <div className="flex items-center gap-2">
-          <Link href="/mypage/sokubet" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+          <Link
+            href="/mypage/sokubet"
+            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+          >
             <ChevronLeft className="h-4 w-4" />
+            即BETへ戻る
           </Link>
           <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>キャリーオーバー: {bet5Event.initialPot.toLocaleString('ja-JP')}円 + α</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>5つのレース全ての1着馬を予想してください。1口100円から投票できます。</p>
-            <div className="mt-2 text-sm text-gray-500">
-              現在のステータス: {bet5Event.status === 'SCHEDULED' ? '受付中' : '受付終了'}
+        <Card className="border-0 bg-linear-to-r from-indigo-500 to-purple-600 p-6 text-white shadow-md">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-white px-2 py-0.5 text-sm font-semibold text-indigo-600">BET5</span>
+              <h2 className="text-lg font-semibold">5レース的中・一攫千金チャンス！</h2>
             </div>
-          </CardContent>
+            {isOpen ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+                </span>
+                受付中
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white/80">
+                受付終了
+              </span>
+            )}
+          </div>
+          <div className="mt-4">
+            <p className="text-sm text-indigo-100">BET5プール金額</p>
+            <p className="text-3xl font-semibold">
+              {bet5Event.initialPot.toLocaleString('ja-JP')}円
+              <span className="ml-1.5 text-base font-medium text-indigo-100">+ プレイヤーの購入金額</span>
+            </p>
+          </div>
+          <p className="mt-3 text-sm text-indigo-100">
+            5つのレース全ての1着馬を予想してください。1口100円から投票できます。
+          </p>
         </Card>
 
         <LoanBanner
@@ -110,11 +139,22 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           hasLoaned={wallet.totalLoaned > 0}
         />
 
-        {bet5Event.status === 'SCHEDULED' ? (
+        {isOpen ? (
           <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />
         ) : (
-          <div className="rounded-lg bg-gray-50 p-8 text-center">
-            <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
+          <div className="space-y-4">
+            {hasClosedRace && bet5Event.status === 'SCHEDULED' && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600 ring-1 ring-red-100">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                対象レースが既に締め切られているため、BET5の投票受付は終了しました。
+              </div>
+            )}
+            <div className="rounded-lg bg-gray-50 p-8 text-center">
+              <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
+              <p className="mt-2 text-sm text-gray-400">
+                対象レース: {orderedRaces.map((race) => `${race.raceNumber}R`).join(' ▶ ')}
+              </p>
+            </div>
           </div>
         )}
       </div>

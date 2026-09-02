@@ -35,6 +35,11 @@ export async function getSokubetDashboardData(userId: string) {
         id: true,
         eventId: true,
         status: true,
+        race1Id: true,
+        race2Id: true,
+        race3Id: true,
+        race4Id: true,
+        race5Id: true,
       },
     }),
   ]);
@@ -101,8 +106,21 @@ export async function getSokubetDashboardData(userId: string) {
 
   return Object.values(eventGroups)
     .sort((a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime())
-    .map((group) => ({
-      ...group,
-      races: group.races.sort((a, b) => (a.raceNumber || 999) - (b.raceNumber || 999)),
-    }));
+    .map((group) => {
+      // BET5 対象レースの並びと締切有無。対象レースが1つでも締め切られていたら実質購入不可として扱う
+      const bet5 = bet5ByEventId.get(group.event.id);
+      const raceById = new Map(group.races.map((race) => [race.id, race]));
+      const bet5TargetRaces = bet5
+        ? [bet5.race1Id, bet5.race2Id, bet5.race3Id, bet5.race4Id, bet5.race5Id]
+            .map((raceId) => raceById.get(raceId))
+            .filter((race): race is NonNullable<typeof race> => race !== undefined)
+        : [];
+
+      return {
+        ...group,
+        races: group.races.sort((a, b) => (a.raceNumber || 999) - (b.raceNumber || 999)),
+        bet5TargetRaceNumbers: bet5TargetRaces.map((race) => race.raceNumber),
+        bet5HasClosedRace: bet5TargetRaces.some((race) => race.status !== 'SCHEDULED'),
+      };
+    });
 }

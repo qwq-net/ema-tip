@@ -7,7 +7,7 @@ import {
   NetWorthDisplay,
 } from '@/features/stats';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import Link from 'next/link';
 
 export default async function StatsPage() {
