@@ -13,11 +13,22 @@ vi.mock('@/shared/utils/admin', () => ({
 vi.mock('@/shared/db', () => ({
   db: {
     update: vi.fn(),
+    select: vi.fn(),
+    transaction: vi.fn(),
   },
 }));
 
 vi.mock('@/shared/db/schema', () => ({
   events: { id: 'events.id' },
+  eventDefaultAllowedBetTypes: {
+    eventId: 'eventDefaultAllowedBetTypes.eventId',
+    betType: 'eventDefaultAllowedBetTypes.betType',
+  },
+}));
+
+vi.mock('@/shared/lib/sse/event-emitter', () => ({
+  raceEventEmitter: { emit: vi.fn() },
+  RACE_EVENTS: { BET_RESTRICTION_UPDATED: 'BET_RESTRICTION_UPDATED' },
 }));
 
 import { db } from '@/shared/db';
@@ -27,11 +38,28 @@ import { db } from '@/shared/db';
 describe('manage-events actions の再検証パス', () => {
   const eventId = 'event-123';
 
+  const mockTx = {
+    update: vi.fn(),
+    delete: vi.fn(),
+    insert: vi.fn(),
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     (db.update as ReturnType<typeof vi.fn>).mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
     });
+    (db.select as ReturnType<typeof vi.fn>).mockReturnValue({
+      from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
+    });
+    mockTx.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+    });
+    mockTx.delete.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+    mockTx.insert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
+    (db.transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
+      cb(mockTx)
+    );
   });
 
   it('updateEventStatus は一覧と詳細ページの両方を再検証すること', async () => {

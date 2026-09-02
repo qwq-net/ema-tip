@@ -1,12 +1,22 @@
+import { toAllowedBetTypes } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
 import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
+import { RaceBetTypesForm } from '@/features/admin/manage-races/ui/race-bet-types-form';
+import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { RACE_CONDITIONS, RACE_SURFACES } from '@/shared/constants/race';
 import { db } from '@/shared/db';
-import { bet5Events, horses, raceEntries, raceOdds } from '@/shared/db/schema';
+import {
+  bet5Events,
+  eventDefaultAllowedBetTypes,
+  horses,
+  raceAllowedBetTypes,
+  raceEntries,
+  raceOdds,
+} from '@/shared/db/schema';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -51,18 +61,30 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   ]);
   const oddsMap = oddsRecord?.winOdds ?? {};
 
-  const bet5Event = await db.query.bet5Events.findFirst({
-    where: eq(bet5Events.eventId, race.eventId),
-    columns: {
-      id: true,
-      status: true,
-      race1Id: true,
-      race2Id: true,
-      race3Id: true,
-      race4Id: true,
-      race5Id: true,
-    },
-  });
+  const [bet5Event, raceTypeRows, eventTypeRows] = await Promise.all([
+    db.query.bet5Events.findFirst({
+      where: eq(bet5Events.eventId, race.eventId),
+      columns: {
+        id: true,
+        status: true,
+        race1Id: true,
+        race2Id: true,
+        race3Id: true,
+        race4Id: true,
+        race5Id: true,
+      },
+    }),
+    db
+      .select({ betType: raceAllowedBetTypes.betType })
+      .from(raceAllowedBetTypes)
+      .where(eq(raceAllowedBetTypes.raceId, id)),
+    db
+      .select({ betType: eventDefaultAllowedBetTypes.betType })
+      .from(eventDefaultAllowedBetTypes)
+      .where(eq(eventDefaultAllowedBetTypes.eventId, race.eventId)),
+  ]);
+  const raceAllowed = toAllowedBetTypes(raceTypeRows.map((r) => r.betType));
+  const eventDefault = toAllowedBetTypes(eventTypeRows.map((r) => r.betType));
 
   const isBet5TargetRace =
     bet5Event !== undefined &&
@@ -71,6 +93,18 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
   const hasFinishPositions = entriesWithResult.some((e) => e.finishPosition !== null);
   const canFinalizePayout = payoutResults.length > 0 || (race.status === 'CLOSED' && hasFinishPositions);
+
+  const settingCards = (
+    <>
+      <RaceGuaranteedOddsForm raceId={race.id} initialOdds={race.guaranteedOdds ?? {}} />
+      <RaceBetTypesForm
+        key={JSON.stringify(raceAllowed)}
+        raceId={race.id}
+        initialTypes={raceAllowed}
+        eventDefaultTypes={eventDefault}
+      />
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -99,12 +133,6 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                     className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
                   />
                 )}
-                <Button variant="outline" asChild>
-                  <Link href={`/admin/races/${race.id}/odds`}>
-                    <Trophy className="mr-2 h-4 w-4" />
-                    保証オッズ設定
-                  </Link>
-                </Button>
                 <Button variant="outline" asChild>
                   <Link href={`/admin/races/${race.id}/edit`}>
                     <Settings2 className="mr-2 h-4 w-4" />
@@ -215,22 +243,30 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 netkeibaUrl: race.netkeibaUrl ?? null,
                 fixedOddsMode: race.fixedOddsMode,
               }}
+              sideChildren={settingCards}
             />
           ) : (
-            <Card className="border-none">
-              <CardContent className="py-16 text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
-                    <Info className="h-8 w-8" />
+            <div className="space-y-6">
+              <Card className="border-none">
+                <CardContent className="py-16 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
+                      <Info className="h-8 w-8" />
+                    </div>
                   </div>
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
-                <p className="text-sm text-gray-500">レース結果を確定するには、まず出走馬を登録する必要があります。</p>
-                <Button asChild variant="outline" className="mt-6 font-semibold">
-                  <Link href={`/admin/entries/${race.id}`}>出走馬を登録する</Link>
-                </Button>
-              </CardContent>
-            </Card>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
+                  <p className="text-sm text-gray-500">
+                    レース結果を確定するには、まず出走馬を登録する必要があります。
+                  </p>
+                  <Button asChild variant="outline" className="mt-6 font-semibold">
+                    <Link href={`/admin/entries/${race.id}`}>出走馬を登録する</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="space-y-6 lg:col-start-3">{settingCards}</div>
+              </div>
+            </div>
           )}
         </div>
 
@@ -292,6 +328,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 )}
               </CardContent>
             </Card>
+            {settingCards}
           </div>
         )}
       </div>

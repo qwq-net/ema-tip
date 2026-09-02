@@ -12,5 +12,4 @@ export async function updateGuaranteedOdds(raceId: string, guaranteedOdds: Recor
   await db.update(raceInstances).set({ guaranteedOdds }).where(eq(raceInstances.id, raceId));
 
   revalidatePath(`/admin/races/${raceId}`);
-  revalidatePath(`/admin/races/${raceId}/odds`);
 }

@@ -1,9 +1,19 @@
 'use server';
 
-import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, BetType } from '@/entities/bet';
+import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, BetType, resolveAllowedBetTypes } from '@/entities/bet';
 import { normalizeSelections } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
-import { betGroups, bets, events, raceEntries, raceInstances, transactions, wallets } from '@/shared/db/schema';
+import {
+  betGroups,
+  bets,
+  eventDefaultAllowedBetTypes,
+  events,
+  raceAllowedBetTypes,
+  raceEntries,
+  raceInstances,
+  transactions,
+  wallets,
+} from '@/shared/db/schema';
 import { ActionError, ADMIN_ERRORS, requireUser, runAction } from '@/shared/utils/admin';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -55,8 +65,8 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
     throw new ActionError(ADMIN_ERRORS.DEADLINE_EXCEEDED);
   }
 
-  // 事前検証用の3照会は互いに依存しないため並列で取得する。整合性はロック後の再検証で担保する
-  const [event, entries, wallet] = await Promise.all([
+  // 事前検証用の照会は互いに依存しないため並列で取得する。整合性はロック後の再検証で担保する
+  const [event, entries, wallet, raceTypeRows, eventTypeRows] = await Promise.all([
     db.query.events.findFirst({
       where: eq(events.id, race.eventId),
       columns: { id: true, status: true },
@@ -68,11 +78,28 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
     db.query.wallets.findFirst({
       where: eq(wallets.id, walletId),
     }),
+    db.query.raceAllowedBetTypes.findMany({
+      where: eq(raceAllowedBetTypes.raceId, raceId),
+      columns: { betType: true },
+    }),
+    db.query.eventDefaultAllowedBetTypes.findMany({
+      where: eq(eventDefaultAllowedBetTypes.eventId, race.eventId),
+      columns: { betType: true },
+    }),
   ]);
 
   // イベント終了後に SCHEDULED のまま残ったレースへのベットで順位確定後の残高が動くのを防ぐ
   if (!event || event.status !== 'ACTIVE') {
     throw new ActionError(ADMIN_ERRORS.RACE_CLOSED);
+  }
+
+  // 購入可能種別の制限。レース設定 → イベント設定の順に解決し、null は制限なし
+  const allowedBetTypes = resolveAllowedBetTypes(
+    raceTypeRows.map((r) => r.betType),
+    eventTypeRows.map((r) => r.betType)
+  );
+  if (allowedBetTypes && !allowedBetTypes.includes(betType)) {
+    throw new ActionError(ADMIN_ERRORS.BET_TYPE_NOT_ALLOWED);
   }
 
   // 組み合わせの中身はクライアント任せにせず、要素数・整数性・実在番号・重複をここで検証する

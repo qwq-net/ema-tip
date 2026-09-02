@@ -10,10 +10,12 @@ interface Entry {
 
 interface UseBetSelectionsProps {
   entries: Entry[];
+  // null は全種別購入可。配列のときは含まれる種別しか選択できない
+  allowedBetTypes?: BetType[] | null;
 }
 
-export function useBetSelections({ entries }: UseBetSelectionsProps) {
-  const [betType, setBetType] = useState<BetType>(BET_TYPES.WIN);
+export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsProps) {
+  const [betType, setBetType] = useState<BetType>(allowedBetTypes?.[0] ?? BET_TYPES.WIN);
   const [selections, setSelections] = useState<Set<number>[]>([new Set(), new Set(), new Set()]);
   const [amount, setAmount] = useState<number>(100);
 
@@ -38,6 +40,13 @@ export function useBetSelections({ entries }: UseBetSelectionsProps) {
   }
   if (selections.some((set) => [...set].some((num) => !selectableNumbers.has(num)))) {
     setSelections(selections.map((set) => new Set([...set].filter((num) => selectableNumbers.has(num)))));
+  }
+
+  // 選択中の種別が SSE 経由の制限変更で許可外になった場合、許可済みの先頭種別へ切り替える。
+  // 表示だけ無効化すると許可外の選択が残ったまま購入エラーになる
+  if (allowedBetTypes && !allowedBetTypes.includes(betType)) {
+    setBetType(allowedBetTypes[0]);
+    setSelections([new Set(), new Set(), new Set()]);
   }
 
   const selectionsArray = selections.slice(0, columnCount).map((s) => Array.from(s));

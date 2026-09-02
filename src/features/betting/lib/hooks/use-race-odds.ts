@@ -9,6 +9,8 @@ import { useCallback, useState } from 'react';
 type OddsData = Awaited<ReturnType<typeof getRaceOdds>>;
 
 interface RaceEventCallbacks {
+  // 所属イベント単位の SSE を受け取るための id。useRaceEvents へそのまま渡る
+  eventId?: string;
   onRaceBroadcast?: () => void;
   onRaceClosed?: () => void;
   onRaceReopened?: (closingAt: string | null) => void;

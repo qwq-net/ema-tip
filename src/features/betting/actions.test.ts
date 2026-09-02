@@ -33,6 +33,8 @@ vi.mock('@/shared/db', () => ({
       bets: { findMany: vi.fn() },
       raceEntries: { findMany: vi.fn() },
       raceOdds: { findFirst: vi.fn() },
+      raceAllowedBetTypes: { findMany: vi.fn() },
+      eventDefaultAllowedBetTypes: { findMany: vi.fn() },
     },
     insert: vi.fn(),
   },
@@ -69,6 +71,11 @@ vi.mock('@/shared/db/schema', () => ({
   raceOdds: { raceId: 'raceOdds.raceId' },
   transactions: {},
   wallets: { id: 'wallets.id', balance: 'wallets.balance' },
+  raceAllowedBetTypes: { raceId: 'raceAllowedBetTypes.raceId', betType: 'raceAllowedBetTypes.betType' },
+  eventDefaultAllowedBetTypes: {
+    eventId: 'eventDefaultAllowedBetTypes.eventId',
+    betType: 'eventDefaultAllowedBetTypes.betType',
+  },
 }));
 
 describe('placeBets', () => {
@@ -140,6 +147,8 @@ describe('placeBets', () => {
         status: 'ENTRANT',
       }))
     );
+    (db.query.raceAllowedBetTypes.findMany as unknown as Mock).mockResolvedValue([]);
+    (db.query.eventDefaultAllowedBetTypes.findMany as unknown as Mock).mockResolvedValue([]);
   });
 
   it('ユーザー認証がない場合はエラーをスローする', async () => {
@@ -147,6 +156,38 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
 
     await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
+  });
+
+  it('レース設定で許可されていない馬券種別は BET_TYPE_NOT_ALLOWED エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceAllowedBetTypes.findMany as unknown as Mock).mockResolvedValue([{ betType: 'trifecta' }]);
+
+    await expect(placeBets(defaultArgs)).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.BET_TYPE_NOT_ALLOWED,
+    });
+  });
+
+  it('レース設定が無い場合はイベントのデフォルト設定で検証する', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.eventDefaultAllowedBetTypes.findMany as unknown as Mock).mockResolvedValue([{ betType: 'trifecta' }]);
+
+    await expect(placeBets(defaultArgs)).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.BET_TYPE_NOT_ALLOWED,
+    });
+  });
+
+  it('レース設定がイベント設定より優先される', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceAllowedBetTypes.findMany as unknown as Mock).mockResolvedValue([{ betType: 'win' }]);
+    (db.query.eventDefaultAllowedBetTypes.findMany as unknown as Mock).mockResolvedValue([{ betType: 'trifecta' }]);
+
+    const result = await placeBets(defaultArgs);
+    expect(result.success).toBe(true);
   });
 
   it('組み合わせが空の場合は INVALID_INPUT エラーをスローする', async () => {

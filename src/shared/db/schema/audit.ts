@@ -1,7 +1,7 @@
 import { index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // 監査ログの補足情報。締切分数や配当額など、操作ごとの数値パラメータを持つ
-export type AdminActionDetail = Record<string, number>;
+export type AdminActionDetail = Record<string, number | string | boolean | null | string[]>;
 
 // 管理操作の追跡ログ。誰がいつ締切・確定・取消を行ったかを後から追うための追記専用テーブル。
 // ユーザー削除でログが消えないよう users への FK は張らず、id と名前をスナップショットで持つ

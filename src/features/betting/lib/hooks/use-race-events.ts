@@ -6,6 +6,8 @@ import { useCallback } from 'react';
 
 interface UseRaceEventsProps {
   raceId: string;
+  // 所属イベントのデフォルト設定変更を受け取るために使う。省略時はレース単位の変更のみ拾う
+  eventId?: string;
   isFinalized: boolean;
   onRaceBroadcast?: () => void;
   onRaceOddsUpdated?: (data: SSERaceOddsUpdatedMessage) => void;
@@ -17,6 +19,7 @@ interface UseRaceEventsProps {
 
 export function useRaceEvents({
   raceId,
+  eventId,
   isFinalized,
   onRaceBroadcast,
   onRaceOddsUpdated,
@@ -57,6 +60,14 @@ export function useRaceEvents({
         router.refresh();
       }
 
+      if (
+        data.type === 'BET_RESTRICTION_UPDATED' &&
+        (data.raceId === raceId || (eventId && data.eventId === eventId))
+      ) {
+        toast.info('購入できる馬券種別が変更されました');
+        router.refresh();
+      }
+
       if (data.type === 'RACE_RESULT_UPDATED' && data.raceId === raceId) {
         const results = data.results;
         if (results.length > 0) {
@@ -69,6 +80,7 @@ export function useRaceEvents({
     },
     [
       raceId,
+      eventId,
       onRaceBroadcast,
       router,
       onRaceOddsUpdated,

@@ -1,3 +1,4 @@
+import { getAllowedBetTypesForRace } from '@/entities/bet/actions';
 import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getRaceOdds } from '@/features/betting/logic/odds';
@@ -50,6 +51,8 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
+  const allowedBetTypes = await getAllowedBetTypesForRace(race.id, race.eventId);
+
   const wallet = wallets.find((w) => w.eventId === race.eventId);
 
   if (!wallet) {
@@ -100,6 +103,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
 
         <BetTable
           raceId={race.id}
+          eventId={race.eventId}
           walletId={wallet.id}
           balance={wallet.balance}
           entries={entries}
@@ -108,6 +112,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           initialOdds={initialOdds}
           fixedOddsMode={race.fixedOddsMode}
           guaranteedOdds={race.guaranteedOdds}
+          allowedBetTypes={allowedBetTypes}
         />
 
         <Suspense

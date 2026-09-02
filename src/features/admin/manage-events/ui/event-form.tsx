@@ -1,5 +1,6 @@
 'use client';
 
+import { BET_TYPE_LABELS, BET_TYPE_ORDER, BetType } from '@/entities/bet';
 import { toast } from '@/shared/lib/toast';
 import { Checkbox, Input, Label, NumericInput, SubmitButton, Textarea } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
@@ -18,6 +19,7 @@ interface EventFormProps {
     loanEnabled: boolean;
     loanThresholdPercent: number;
     date: string;
+    defaultAllowedBetTypes: BetType[] | null;
   };
   onSuccess?: () => void;
 }
@@ -29,9 +31,31 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
   const [loanAmount, setLoanAmount] = useState<number | null>(initialData?.loanAmount ?? null);
   const [loanEnabled, setLoanEnabled] = useState(initialData?.loanEnabled ?? true);
   const [loanThresholdPercent, setLoanThresholdPercent] = useState(initialData?.loanThresholdPercent ?? 30);
+  const [restrictBetTypes, setRestrictBetTypes] = useState(initialData?.defaultAllowedBetTypes != null);
+  const [allowedBetTypes, setAllowedBetTypes] = useState<Set<BetType>>(
+    new Set(initialData?.defaultAllowedBetTypes ?? BET_TYPE_ORDER)
+  );
+
+  const toggleBetType = (type: BetType) => {
+    setAllowedBetTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
 
   async function handleSubmit(formData: FormData) {
     try {
+      const types = restrictBetTypes ? BET_TYPE_ORDER.filter((t) => allowedBetTypes.has(t)) : null;
+      if (types && types.length === 0) {
+        toast.error('馬券種別を1種類以上選択してください');
+        return;
+      }
+      formData.set('allowedBetTypes', JSON.stringify(types));
       formData.set('distributeAmount', distributeAmount.toString());
       formData.set('loanEnabled', String(loanEnabled));
       formData.set('loanThresholdPercent', loanThresholdPercent.toString());
@@ -47,6 +71,8 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         setDate(todayJST());
         setDistributeAmount(100000);
         setLoanAmount(null);
+        setRestrictBetTypes(false);
+        setAllowedBetTypes(new Set(BET_TYPE_ORDER));
         toast.success('イベントを作成しました');
       }
       onSuccess?.();
@@ -145,6 +171,36 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             />
           </div>
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <Label htmlFor="restrictBetTypes">購入可能な馬券種別</Label>
+          <label
+            htmlFor="restrictBetTypes"
+            className="rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm"
+          >
+            <Checkbox id="restrictBetTypes" checked={restrictBetTypes} onCheckedChange={setRestrictBetTypes} />
+            馬券種別を制限する
+          </label>
+          <p className="mt-1 text-sm text-gray-500">
+            このイベントの全レースに適用されるデフォルトです。レース側の個別設定が優先されます
+          </p>
+        </div>
+
+        {restrictBetTypes && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {BET_TYPE_ORDER.map((type) => (
+              <label
+                key={type}
+                className="rounded-control flex items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+              >
+                <Checkbox checked={allowedBetTypes.has(type)} onCheckedChange={() => toggleBetType(type)} />
+                {BET_TYPE_LABELS[type]}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       <SubmitButton className="mt-2 w-full" size="lg">

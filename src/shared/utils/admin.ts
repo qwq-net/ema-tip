@@ -12,6 +12,7 @@ export const ADMIN_ERRORS = {
   INSUFFICIENT_BALANCE: '残高が不足しています',
   INVALID_WALLET: '不正なウォレットです',
   INVALID_AMOUNT: '金額が無効です',
+  BET_TYPE_NOT_ALLOWED: 'このレースでは購入できない馬券種別です',
 } as const;
 
 import { ActionError } from '@/shared/utils/action-result';

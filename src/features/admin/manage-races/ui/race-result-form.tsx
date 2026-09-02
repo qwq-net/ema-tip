@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type ReactNode } from 'react';
 import { closeRace, finalizePayout, finalizeRace, reopenRace } from '../actions';
 import { resetRaceResults } from '../actions/revert';
 import { KitchenTimer } from './kitchen-timer';
@@ -52,6 +52,8 @@ interface RaceResultFormProps {
   entries: Entry[];
   canFinalizePayout?: boolean;
   showBet5CloseReminder?: boolean;
+  // サイドカラムのレース情報カードの下に差し込む追加カード
+  sideChildren?: ReactNode;
   race: {
     id: string;
     eventId: string;
@@ -188,6 +190,7 @@ export function RaceResultForm({
   race,
   canFinalizePayout,
   showBet5CloseReminder,
+  sideChildren,
 }: RaceResultFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -685,6 +688,7 @@ export function RaceResultForm({
             )}
           </div>
         </div>
+        {sideChildren}
       </div>
     </div>
   );

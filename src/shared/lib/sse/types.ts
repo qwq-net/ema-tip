@@ -75,6 +75,13 @@ export type SSERaceResultUpdatedMessage = {
   timestamp: number;
 };
 
+// レース単位の変更は raceId のみ、イベントデフォルトの変更は eventId のみが入る
+export type SSEBetRestrictionUpdatedMessage = {
+  type: 'BET_RESTRICTION_UPDATED';
+  raceId?: string;
+  eventId?: string;
+};
+
 export type RaceStatusSSEMessage =
   | SSEConnectedMessage
   | SSERaceFinalizedMessage
@@ -84,4 +91,5 @@ export type RaceStatusSSEMessage =
   | SSERaceTimerSetMessage
   | SSERaceOddsUpdatedMessage
   | SSERankingUpdatedMessage
-  | SSERaceResultUpdatedMessage;
+  | SSERaceResultUpdatedMessage
+  | SSEBetRestrictionUpdatedMessage;

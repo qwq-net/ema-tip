@@ -1,5 +1,6 @@
 'use client';
 
+import type { BetType } from '@/entities/bet';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
 import { Button, Card, CardContent } from '@/shared/ui';
@@ -19,6 +20,7 @@ type Event = {
   loanEnabled: boolean;
   loanThresholdPercent: number;
   updatedAt: Date;
+  defaultAllowedBetTypes: BetType[] | null;
 };
 
 interface AdminEventEditorProps {

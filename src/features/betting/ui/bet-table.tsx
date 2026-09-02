@@ -1,6 +1,6 @@
 'use client';
 
-import { BET_TYPES, getValidBetCombinations } from '@/entities/bet';
+import { BET_TYPE_LABELS, BET_TYPES, BetType, getValidBetCombinations } from '@/entities/bet';
 import { useRaceOdds as useRaceOddsData } from '@/features/betting';
 import { placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
@@ -15,7 +15,7 @@ import { Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/u
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getGenderAge } from '@/shared/utils/gender';
-import { AlertCircle, Clock, Lock } from 'lucide-react';
+import { AlertCircle, Clock, Info, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
@@ -48,6 +48,7 @@ function validateBetSubmission(betCount: number, amount: number, totalAmount: nu
 
 interface BetTableProps {
   raceId: string;
+  eventId: string;
   walletId: string;
   balance: number;
   entries: Entry[];
@@ -56,10 +57,13 @@ interface BetTableProps {
   initialOdds: Awaited<ReturnType<typeof getRaceOdds>>;
   fixedOddsMode?: boolean;
   guaranteedOdds?: Record<string, number> | null;
+  // null は全種別購入可
+  allowedBetTypes: BetType[] | null;
 }
 
 export function BetTable({
   raceId,
+  eventId,
   walletId,
   balance,
   entries,
@@ -68,6 +72,7 @@ export function BetTable({
   initialOdds,
   fixedOddsMode = false,
   guaranteedOdds,
+  allowedBetTypes,
 }: BetTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -79,6 +84,7 @@ export function BetTable({
   });
 
   const { odds, connectionStatus } = useRaceOddsData(raceId, initialOdds, fixedOddsMode, {
+    eventId,
     onRaceBroadcast: () => router.push(`/races/${raceId}/standby`),
     onRaceClosed: () => setIsClosed(true),
     onRaceReopened: (newClosingAt) => {
@@ -101,7 +107,7 @@ export function BetTable({
     handleBetTypeChange,
     handleCheckboxChange,
     resetSelections,
-  } = useBetSelections({ entries });
+  } = useBetSelections({ entries, allowedBetTypes });
 
   const columnLabels = getBetTypeColumnLabels(betType);
 
@@ -193,8 +199,14 @@ export function BetTable({
           締切まで残り {formatRemainingTime(remainingMs)}
         </div>
       )}
+      {allowedBetTypes && (
+        <div className="rounded-control bg-primary/5 text-primary ring-primary/10 flex items-center gap-2 p-3 text-sm font-semibold ring-1">
+          <Info className="h-4 w-4 shrink-0" />
+          このレースで購入できるのは {allowedBetTypes.map((t) => BET_TYPE_LABELS[t]).join('・')} です
+        </div>
+      )}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <BetTypeSelector betType={betType} onBetTypeChange={handleBetTypeChange} />
+        <BetTypeSelector betType={betType} onBetTypeChange={handleBetTypeChange} allowedBetTypes={allowedBetTypes} />
         {fixedOddsMode ? (
           <span className="text-primary flex w-full items-center justify-end gap-1 text-sm font-semibold sm:w-auto">
             <Lock className="h-3.5 w-3.5" />
