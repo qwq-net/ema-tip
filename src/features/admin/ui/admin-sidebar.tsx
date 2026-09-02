@@ -134,7 +134,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           {filteredGroups.map((group, groupIdx) => (
             <div key={groupIdx} className="space-y-1">
               {group.label && (
-                <p className="mb-2 px-4 text-sm font-semibold tracking-widest text-gray-500 uppercase">{group.label}</p>
+                <p className="mb-2 px-4 text-sm font-semibold tracking-widest text-gray-400 uppercase">{group.label}</p>
               )}
               {group.items.map((item) => {
                 const Icon = item.icon;

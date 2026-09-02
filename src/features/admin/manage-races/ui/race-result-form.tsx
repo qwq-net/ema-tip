@@ -78,7 +78,7 @@ const getRankStyles = (position: number) => {
     case 3:
       return 'bg-orange-100 text-orange-700 ring-orange-200 border-orange-200';
     default:
-      return 'bg-gray-100 text-text-sub border-gray-100';
+      return 'bg-gray-100 text-gray-600 border-gray-100';
   }
 };
 
