@@ -3,9 +3,9 @@ import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
 import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
-import { Badge, Card } from '@/shared/ui';
+import { Badge, Button, Card } from '@/shared/ui';
 import { requireLoginPage } from '@/shared/utils/admin';
-import { ChevronLeft, Wallet, Zap } from 'lucide-react';
+import { ChevronLeft, Crown, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -76,16 +76,12 @@ export default async function SokubetPage() {
                           {(bet5Id || hasPurchasedBet5) && (
                             <div className="flex items-center gap-2">
                               {bet5Id && (
-                                <Link href={`/events/${event.id}/bet5`}>
-                                  <Badge
-                                    label={bet5Open ? 'BET5 開催中' : 'BET5 締切済み'}
-                                    className={
-                                      bet5Open
-                                        ? 'cursor-pointer border-0 bg-green-700 text-white hover:bg-green-800'
-                                        : 'cursor-pointer border-0 bg-gray-500 text-white hover:bg-gray-600'
-                                    }
-                                  />
-                                </Link>
+                                <Button variant="outline" size="sm" asChild>
+                                  <Link href={`/events/${event.id}/bet5`}>
+                                    <Crown className="mr-2 h-4 w-4" />
+                                    BET5
+                                  </Link>
+                                </Button>
                               )}
                               {hasPurchasedBet5 && (
                                 <Badge label="BET5 購入済み" className="bg-turf-600 border-0 text-white" />
