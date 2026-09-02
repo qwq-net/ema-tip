@@ -18,8 +18,10 @@ const PERF = {
   eventName: 'PERF検証イベント',
   raceName: 'PERF検証レース',
   password: '🐶🐶🐶',
-  balance: 100_000,
-  horseCount: 8,
+  // bets シナリオ消化後も bulk の三連単1000点×100円を買い切れる残高にしておく
+  balance: 200_000,
+  // 実戦のフルゲート想定。三連単4,896点となり、1リクエスト上限1000点の一括購入を検証できる
+  horseCount: 18,
 } as const;
 
 async function main() {
@@ -30,6 +32,7 @@ async function main() {
   try {
     await sql`DELETE FROM event WHERE name = ${PERF.eventName}`;
     await sql`DELETE FROM "user" WHERE name = ${PERF.adminName} OR name LIKE ${PERF.userPrefix + '%'}`;
+    await sql`DELETE FROM horse WHERE name LIKE 'PERF馬%'`;
 
     const passwordHash = bcrypt.hashSync(PERF.password, 10);
 
@@ -59,8 +62,15 @@ async function main() {
     const [venue] = await sql`SELECT id FROM venue LIMIT 1`;
     if (!venue) throw new Error('venue がありません。task db:seed を先に実行してください');
 
+    // シードの頭数が足りない分は計測用の馬で埋め、フルゲートを成立させる
     const horses = await sql`SELECT id FROM horse ORDER BY name LIMIT ${PERF.horseCount}`;
-    if (horses.length < PERF.horseCount) throw new Error(`horse が${PERF.horseCount}頭未満です。task db:seed を先に実行してください`);
+    for (let i = horses.length; i < PERF.horseCount; i++) {
+      const [horse] = await sql`
+        INSERT INTO horse (name, gender) VALUES (${`PERF馬${String(i + 1).padStart(2, '0')}`}, 'HORSE')
+        RETURNING id
+      `;
+      horses.push(horse);
+    }
 
     // guaranteed_odds を固定して払戻計算を決定的にする
     const [race] = await sql`
@@ -72,7 +82,7 @@ async function main() {
     for (let i = 0; i < horses.length; i++) {
       await sql`
         INSERT INTO race_entry (race_id, horse_id, bracket_number, horse_number)
-        VALUES (${race.id}, ${horses[i].id}, ${i + 1}, ${i + 1})
+        VALUES (${race.id}, ${horses[i].id}, ${Math.min(i + 1, 8)}, ${i + 1})
       `;
     }
 

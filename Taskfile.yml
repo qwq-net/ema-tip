@@ -126,7 +126,7 @@ tasks:
   perf:clean:
     desc: 負荷計測用のデータを削除します
     cmds:
-      - docker compose exec -T db psql -U postgres -d webapp -c "DELETE FROM event WHERE name = 'PERF検証イベント'; DELETE FROM \"user\" WHERE name = 'PERF管理者' OR name LIKE 'PERF利用者%';"
+      - docker compose exec -T db psql -U postgres -d webapp -c "DELETE FROM event WHERE name = 'PERF検証イベント'; DELETE FROM \"user\" WHERE name = 'PERF管理者' OR name LIKE 'PERF利用者%'; DELETE FROM horse WHERE name LIKE 'PERF馬%';"
 
   # 本番イメージは tools/ を含まないため、リポジトリの tools/ をマウントして実行する
   perf:setup:prod:
