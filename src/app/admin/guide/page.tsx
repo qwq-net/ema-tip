@@ -1,20 +1,6 @@
 import { Card } from '@/shared/ui';
-import {
-  BookOpen,
-  Calendar,
-  Carrot,
-  ChevronRight,
-  ClipboardList,
-  Coins,
-  Crown,
-  Key,
-  MapPin,
-  Settings,
-  Tag,
-  Ticket,
-  Trophy,
-  Users,
-} from 'lucide-react';
+import { cn } from '@/shared/utils/cn';
+import { ChevronRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -22,207 +8,123 @@ export const metadata: Metadata = {
   title: 'クイックガイド | 管理画面',
 };
 
-const MASTER_STEPS = [
-  {
-    title: '1. 競馬場管理',
-    description: '開催場所を定義します。',
-    icon: MapPin,
-    href: '/admin/venues',
-    points: ['名前、略称、回り方向を設定します。', 'エリア（関東・関西等）を区分します。'],
-  },
-  {
-    title: '2. 馬タグ管理',
-    description: '脚質や特性の選択肢を作成します。',
-    icon: Tag,
-    href: '/admin/horse-tags',
-    points: ['「逃げ」や「重馬場得意」などのタグを登録します。', '馬の個性を表現するために重要です。'],
-  },
-  {
-    title: '3. 馬マスタ管理',
-    description: '競走馬の基本情報を登録します。',
-    icon: Carrot,
-    href: '/admin/horses',
-    points: ['血統、性別、年齢などを設定します。', '先ほど作成したタグを付与できます。'],
-  },
-  {
-    title: '4. レースマスタ管理',
-    description: '重賞などの条件テンプレートを作成します。',
-    icon: BookOpen,
-    href: '/admin/race-definitions',
-    points: ['レース名、グレード、距離を定義します。', '開催ごとの入力の手間を省けます。'],
-  },
-];
-
-const FLOW_STEPS = [
-  {
-    title: '1. イベント作成',
-    description: '開催の基盤となるイベントを作成します。',
-    icon: Calendar,
-    href: '/admin/events/new',
-    points: ['開催日と初期配布金額を設定します。', 'ステータスを「開催中」にすると参加可能になります。'],
-  },
-  {
-    title: '2. レース作成',
-    description: 'イベント内に具体的なレースを追加します。',
-    icon: Trophy,
-    href: '/admin/races/new',
-    points: ['日付、会場、レース番号を選択します。', 'マスタから条件を読み込むことができます。'],
-  },
-  {
-    title: '3. 出走馬登録',
-    description: 'レースに馬を割り当て、枠順を確定します。',
-    icon: ClipboardList,
-    href: '/admin/entries',
-    points: ['ドラッグ＆ドロップで枠順を決定します。', 'これが完了すると馬券が購入可能になります。'],
-  },
-  {
-    title: '4. BET5設定',
-    description: '5重勝の対象レースを指定します。',
-    icon: Crown,
-    href: '/admin/bet5',
-    points: ['5重勝の対象レースを指定します。', '一攫千金のチャンスを提供します。'],
-  },
-];
-
-const OTHER_STEPS = [
-  {
-    title: '1. 馬券管理',
-    description: '購入された馬券の状況を確認します。',
-    icon: Ticket,
-    href: '/admin/bets',
-    points: ['全ユーザーの購入履歴を一覧できます。', 'レースごとの詳細や的中の有無を確認します。'],
-  },
-  {
-    title: '2. 保証オッズ設定',
-    description: 'システム全体の救済設定を行います。',
-    icon: Coins,
-    href: '/admin/settings/odds',
-    points: ['最低保証オッズのデフォルト値を設定します。', '必要に応じて個別のレースでも調整可能です。'],
-  },
-  {
-    title: '3. ユーザー管理',
-    description: '参加者の権限や状態を管理します。',
-    icon: Users,
-    href: '/admin/users',
-    points: ['Discord連携ユーザーの確認ができます。', '管理者の付与やユーザー情報の編集を行います。'],
-  },
-  {
-    title: '4. ゲストコード管理',
-    description: '招待用アクセスを制御します。',
-    icon: Key,
-    href: '/admin/users/guests',
-    points: ['一時的に利用可能な招待コードを発行します。', '新規参加者の招待や整理に使用します。'],
-  },
-];
-
-// ステップ色はダッシュボードと同じセクション単位の2段ルール。
-// 毎回行う運用フローは brand、準備とシステムは neutral を使う
-const TONES = {
-  brand: { chip: 'bg-turf-50 text-turf-700', stripe: 'border-l-turf-500' },
-  neutral: { chip: 'bg-gray-100 text-gray-600', stripe: 'border-l-gray-300' },
-} as const;
-
 type Step = {
   title: string;
   description: string;
-  icon: React.ElementType;
   href: string;
-  points: string[];
 };
 
-function StepCard({ step, tone }: { step: Step; tone: keyof typeof TONES }) {
-  const Icon = step.icon;
+const MASTER_STEPS: Step[] = [
+  { title: '競馬場管理', description: '名前・略称・回り方向・エリアを登録します。', href: '/admin/venues' },
+  { title: '馬タグ管理', description: '逃げや重馬場得意などの脚質・特性タグを登録します。', href: '/admin/horse-tags' },
+  { title: '馬マスタ管理', description: '血統・性齢を登録し、タグを付与します。', href: '/admin/horses' },
+  {
+    title: 'レースマスタ管理',
+    description: '重賞名・グレード・距離のテンプレートを登録します。',
+    href: '/admin/race-definitions',
+  },
+];
 
+const FLOW_STEPS: Step[] = [
+  {
+    title: 'イベント作成',
+    description: '開催日と初期配布金額を設定し、開催中にすると参加できるようになります。',
+    href: '/admin/events/new',
+  },
+  {
+    title: 'レース作成',
+    description: '会場とレース番号を選びます。条件はマスタから読み込めます。',
+    href: '/admin/races/new',
+  },
+  { title: '出走馬登録', description: 'ドラッグで枠順を確定すると馬券が購入可能になります。', href: '/admin/entries' },
+  { title: 'BET5設定', description: '5重勝の対象レースを指定します。', href: '/admin/bet5' },
+];
+
+const OTHER_ITEMS: Step[] = [
+  { title: '馬券管理', description: '全ユーザーの購入と的中状況を確認します。', href: '/admin/bets' },
+  {
+    title: '保証オッズ設定',
+    description: '最低保証倍率の既定値を設定します。レース個別でも調整できます。',
+    href: '/admin/settings/odds',
+  },
+  { title: 'ユーザー管理', description: '権限の変更とユーザー情報の編集を行います。', href: '/admin/users' },
+  { title: 'ゲストコード管理', description: '招待コードの発行と整理を行います。', href: '/admin/users/guests' },
+];
+
+// マーカー色はダッシュボードと同じセクション単位の2段ルール。運用フローは brand、それ以外は neutral
+const TONES = {
+  brand: 'bg-turf-100 text-turf-800',
+  neutral: 'bg-gray-100 text-gray-600',
+} as const;
+
+/**
+ * ガイドの1セクション分のステップリスト。行全体が対象画面へのリンクになる。
+ * ordered を渡すと作業順を表す番号マーカーを付ける。順序のない一覧では付けない。
+ */
+function StepList({ steps, tone, ordered = false }: { steps: Step[]; tone: keyof typeof TONES; ordered?: boolean }) {
+  const ListTag = ordered ? 'ol' : 'ul';
   return (
-    <Card className={`overflow-hidden border-l-4 border-gray-100 transition ${TONES[tone].stripe}`}>
-      <div className="flex h-full flex-col">
-        <div className="flex-1 p-5">
-          <div className="mb-3 flex items-center gap-3">
-            <div className={`rounded-control flex h-9 w-9 items-center justify-center ${TONES[tone].chip}`}>
-              <Icon className="h-5 w-5" />
-            </div>
-            <h3 className="text-secondary font-semibold">{step.title}</h3>
-          </div>
-
-          <p className="mb-4 text-sm text-gray-600">{step.description}</p>
-
-          <div className="mb-4 space-y-2">
-            {step.points.map((point, pIdx) => (
-              <div key={pIdx} className="flex gap-2 text-sm text-gray-500">
-                <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gray-300" />
-                {point}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 bg-gray-50 p-4">
-          <Link
-            href={step.href}
-            className="text-secondary group flex items-center justify-between text-sm font-medium hover:underline"
-          >
-            管理画面へ
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-      </div>
+    <Card className="overflow-hidden">
+      <ListTag className="divide-y divide-gray-100">
+        {steps.map((step, index) => (
+          <li key={step.href}>
+            <Link
+              href={step.href}
+              className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-gray-50"
+            >
+              {ordered && (
+                <span
+                  className={cn(
+                    'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
+                    TONES[tone]
+                  )}
+                >
+                  {index + 1}
+                </span>
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="font-semibold text-gray-900">{step.title}</span>
+                <span className="text-text-sub ml-3 text-sm max-sm:ml-0 max-sm:block">{step.description}</span>
+              </span>
+              <ChevronRight className="text-text-sub h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </li>
+        ))}
+      </ListTag>
     </Card>
   );
 }
 
 export default async function AdminGuidePage() {
   return (
-    <div className="max-w-6xl space-y-12 pb-12">
-      <div className="text-center md:text-left">
+    <div className="max-w-3xl space-y-10 pb-12">
+      <div>
         <h1 className="text-2xl font-semibold text-gray-900">クイックガイド</h1>
-        <p className="mt-2 text-lg text-gray-500">
-          システムの土台作りから、実際のイベント運営までの流れをマスターしましょう。
-        </p>
+        <p className="text-text-sub mt-1">マスタの準備からイベント開催までの流れです。</p>
       </div>
 
-      <section className="space-y-6">
-        <div className="flex items-center gap-3 border-b border-gray-200 pb-2">
-          <div className="rounded-full bg-gray-100 p-2 text-gray-600">
-            <BookOpen className="h-5 w-5" />
-          </div>
-          <h2 className="text-secondary text-xl font-semibold">【準備編】マスタデータを登録する</h2>
-          <p className="text-text-sub ml-auto hidden text-sm font-normal md:block">初回や新要素追加時のみ必要です</p>
+      <section className="space-y-3">
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-secondary text-lg font-semibold">準備編 マスタデータ</h2>
+          <p className="text-text-sub text-sm">初回や新要素の追加時のみ</p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {MASTER_STEPS.map((step, idx) => (
-            <StepCard key={idx} step={step} tone="neutral" />
-          ))}
-        </div>
+        <StepList steps={MASTER_STEPS} tone="neutral" ordered />
       </section>
 
-      <section className="space-y-6">
-        <div className="flex items-center gap-3 border-b border-gray-200 pb-2">
-          <div className="bg-turf-100 text-turf-800 rounded-full p-2">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <h2 className="text-secondary text-xl font-semibold">【運用編】イベントを開催する</h2>
-          <p className="text-text-sub ml-auto hidden text-sm font-normal md:block">イベントごとに毎回行うフローです</p>
+      <section className="space-y-3">
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-secondary text-lg font-semibold">運用編 イベント開催</h2>
+          <p className="text-text-sub text-sm">イベントごとに毎回行うフロー</p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {FLOW_STEPS.map((step, idx) => (
-            <StepCard key={idx} step={step} tone="brand" />
-          ))}
-        </div>
+        <StepList steps={FLOW_STEPS} tone="brand" ordered />
       </section>
 
-      <section className="space-y-6">
-        <div className="flex items-center gap-3 border-b border-gray-200 pb-2">
-          <div className="rounded-full bg-gray-100 p-2 text-gray-600">
-            <Settings className="h-5 w-5" />
-          </div>
-          <h2 className="text-secondary text-xl font-semibold">【その他】システム管理</h2>
-          <p className="text-text-sub ml-auto hidden text-sm font-normal md:block">環境設定やユーザー情報の管理です</p>
+      <section className="space-y-3">
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-secondary text-lg font-semibold">その他の管理</h2>
+          <p className="text-text-sub text-sm">必要になったときに使います</p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {OTHER_STEPS.map((step, idx) => (
-            <StepCard key={idx} step={step} tone="neutral" />
-          ))}
-        </div>
+        <StepList steps={OTHER_ITEMS} tone="neutral" />
       </section>
     </div>
   );

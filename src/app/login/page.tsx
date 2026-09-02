@@ -19,7 +19,7 @@ export default async function LoginPage() {
     <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="rounded-surface w-full max-w-md space-y-6 border border-gray-200 bg-white p-6">
         <div className="text-center">
-          <div className="mb-4">
+          <div className="mb-8">
             <h1 className="text-primary text-2xl font-semibold tracking-tight">Paper Tipster</h1>
             <p className={`text-center text-sm text-gray-500`}>オンライン馬券投票ごっこシステム</p>
           </div>
@@ -38,7 +38,7 @@ export default async function LoginPage() {
             </div>
             <div className="text-sm text-gray-600">
               <p>
-                ユーザーID、ユーザー名、アバター画像などの基本的なプロフィール情報のみを取得し、それ以外の情報にはアクセス出来ない権限を使用します。
+                ユーザーID・ユーザー名・アバター画像の基本的なプロフィール情報のみを取得し、それ以外の事は出来ない権限を使用します。
               </p>
             </div>
           </div>
