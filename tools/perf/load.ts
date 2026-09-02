@@ -15,7 +15,8 @@ import postgres from 'postgres';
  *   sse    全ユーザー接続中に締切イベントを発火し、SSE 到達遅延を測る。終了後は再開して戻す
  *   pages  主要ページの応答時間を直列計測する
  *   payout 締切→着順確定→払戻確定の所要時間を測る。レースが FINALIZED になるため最後に実行する
- *   all    上記を login → bets → bulk → peak → sse → pages → payout の順で実行する
+ *   bot    無認証のBOTアクセス。トップ・404・保護ルート・ログイン失敗を10並列で混合実行
+ *   all    上記を login → bets → bulk → peak → sse → pages → bot → payout の順で実行する
  */
 
 dotenv.config();
@@ -380,6 +381,83 @@ async function scenarioPages(fx: Fixture) {
   }
 }
 
+// 無認証の BOT アクセスを再現する。未認証トップ・ログインページ・実在しないパス・
+// 保護 API・パスワード誤りのログイン試行を混ぜ、匿名トラフィックの応答と副作用を測る。
+// アプリは cf-connecting-ip だけを信頼するため、分散攻撃の再現もこのヘッダで IP を散らす。
+// x-forwarded-for は意図的に無視される設計で、偽装してもレート制限は回避できない
+async function scenarioBot() {
+  const total = Number(process.env.PERF_BOT_REQUESTS ?? 400);
+  const stats = new Map<string, { durations: number[]; errors: number; statuses: Map<number, number> }>();
+  const track = (kind: string, ms: number, status: number, okStatuses: number[]) => {
+    const s = stats.get(kind) ?? { durations: [], errors: 0, statuses: new Map<number, number>() };
+    s.durations.push(ms);
+    s.statuses.set(status, (s.statuses.get(status) ?? 0) + 1);
+    if (!okStatuses.includes(status)) s.errors++;
+    stats.set(kind, s);
+  };
+  const randIp = () =>
+    `10.${1 + Math.floor(Math.random() * 250)}.${1 + Math.floor(Math.random() * 250)}.${1 + Math.floor(Math.random() * 250)}`;
+
+  const timedAnon = async (kind: string, path: string, okStatuses: number[]) => {
+    const start = performance.now();
+    const res = await fetch(`${BASE}${path}`, { headers: PROTO_HEADER });
+    await res.text();
+    track(kind, performance.now() - start, res.status, okStatuses);
+  };
+
+  const visit = async (i: number) => {
+    const n = i % 10;
+    if (n <= 3) await timedAnon('GET / 未認証', '/', [200]);
+    else if (n <= 5) await timedAnon('GET /login', '/login', [200]);
+    else if (n <= 7) await timedAnon('GET 実在しないパス', `/wp-admin-${i}`, [404]);
+    else if (n === 8) await timedAnon('GET 保護API 未認証', '/api/events/race-status', [401]);
+    else {
+      const ip = randIp();
+      const csrfRes = await fetch(`${BASE}/api/auth/csrf`, { headers: { ...PROTO_HEADER, 'cf-connecting-ip': ip } });
+      const { csrfToken }: { csrfToken: string } = await csrfRes.json();
+      const cookies = csrfRes.headers.getSetCookie().map((c) => c.split(';')[0]);
+      const start = performance.now();
+      const res = await fetch(`${BASE}/api/auth/callback/credentials`, {
+        method: 'POST',
+        redirect: 'manual',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Cookie: cookies.join('; '),
+          'cf-connecting-ip': ip,
+          Origin: BASE,
+          ...PROTO_HEADER,
+        },
+        body: new URLSearchParams({ csrfToken, username: 'PERF利用者01', password: '🐴🐴🐴' }),
+      });
+      await res.text();
+      track('POST ログイン失敗', performance.now() - start, res.status, [302]);
+    }
+  };
+
+  // 10並列のワーカーで total 件を消化する
+  let next = 0;
+  let aborted = 0;
+  await Promise.all(
+    Array.from({ length: 10 }, async () => {
+      for (;;) {
+        const i = next++;
+        if (i >= total) break;
+        try {
+          await visit(i);
+        } catch {
+          aborted++;
+        }
+      }
+    })
+  );
+
+  for (const [kind, s] of stats) {
+    const statuses = [...s.statuses].map(([code, count]) => `${code}×${count}`).join(' ');
+    summarize(`bot ${kind} [${statuses}]`, s.durations, s.errors);
+  }
+  if (aborted > 0) console.error(`  接続レベルの失敗: ${aborted}件`);
+}
+
 // 締切→着順確定→払戻確定を順に実行し、各所要時間を測る。
 // 実行後レースは FINALIZED になるため、再計測は task perf:setup からやり直す
 async function scenarioPayout(fx: Fixture, ids: ActionIds) {
@@ -408,7 +486,9 @@ async function main() {
     console.log('使い方: task perf:load -- <bets|sse|pages|payout|all>');
     process.exit(1);
   }
-  const names = requested.includes('all') ? ['login', 'bets', 'bulk', 'peak', 'sse', 'pages', 'payout'] : requested;
+  const names = requested.includes('all')
+    ? ['login', 'bets', 'bulk', 'peak', 'sse', 'pages', 'bot', 'payout']
+    : requested;
 
   const fx = await loadFixture();
 
@@ -438,6 +518,7 @@ async function main() {
     else if (name === 'peak') await scenarioPeak(fx, ids);
     else if (name === 'sse') await scenarioSse(fx, ids);
     else if (name === 'pages') await scenarioPages(fx);
+    else if (name === 'bot') await scenarioBot();
     else if (name === 'payout') await scenarioPayout(fx, ids);
     else console.error(`不明なシナリオ: ${name}`);
   }
