@@ -8,12 +8,14 @@ import postgres from 'postgres';
  * app コンテナ内での実行が前提。task perf:setup 済みであること。
  *
  * 実行: task perf:load -- <シナリオ...>
+ *   login  全ユーザー同時ログイン。bcrypt 照合の CPU 直列化の影響を単独実行と比べる
  *   bets   全ユーザー同時の馬券購入バースト。PERF_ROUNDS 回繰り返す
  *   bulk   一人による三連単全4,896点の一括購入。1リクエストの書き込み最悪ケース
+ *   peak   SSE 接続とページ閲覧とベットが重なる開催ピークの複合負荷
  *   sse    全ユーザー接続中に締切イベントを発火し、SSE 到達遅延を測る。終了後は再開して戻す
  *   pages  主要ページの応答時間を直列計測する
  *   payout 締切→着順確定→払戻確定の所要時間を測る。レースが FINALIZED になるため最後に実行する
- *   all    上記を bets → sse → pages → payout の順で実行する
+ *   all    上記を login → bets → bulk → peak → sse → pages → payout の順で実行する
  */
 
 dotenv.config();
@@ -156,6 +158,82 @@ async function loadFixture(): Promise<Fixture> {
   } finally {
     await sql.end();
   }
+}
+
+// 認証付き GET の所要時間を測る。リダイレクトは追従し、最終応答が 200 以外は ok=false
+async function timedGet(cookie: string, path: string): Promise<{ ms: number; ok: boolean }> {
+  const start = performance.now();
+  const res = await fetch(`${BASE}${path}`, { headers: { Cookie: cookie, ...PROTO_HEADER } });
+  await res.text();
+  return { ms: performance.now() - start, ok: res.status === 200 };
+}
+
+// イベント開始時の一斉ログインを再現する。bcrypt 照合が Node の単一スレッドを占有するため、
+// 単独実行との差で直列化による伸びを見る
+async function scenarioLogin(fx: Fixture) {
+  const solo = performance.now();
+  await login(fx.users[0].name);
+  console.log(`  単独ログイン: ${(performance.now() - solo).toFixed(0)}ms`);
+
+  let errors = 0;
+  const durations = await Promise.all(
+    fx.users.map(async (u) => {
+      const start = performance.now();
+      try {
+        await login(u.name);
+      } catch {
+        errors++;
+      }
+      return performance.now() - start;
+    })
+  );
+  summarize('login 30人同時', durations, errors);
+}
+
+// 開催ピークの複合負荷。全員が SSE を張り、レースページを見てはベットする流れを同時に行う。
+// 単独シナリオでは見えない相互干渉込みの応答時間と、オッズ更新イベントの到達を確認する
+async function scenarioPeak(fx: Fixture, ids: ActionIds) {
+  const cookies = await loginAll(fx.users.map((u) => u.name));
+  const ac = new AbortController();
+  const subs = fx.users.map((u) => subscribe(cookies.get(u.name) ?? '', 'RACE_ODDS_UPDATED', ac.signal));
+  await Promise.all(subs.map((s) => s.ready));
+  console.log(`  ${subs.length} 接続確立`);
+
+  const combinations = Array.from({ length: 8 }, (_, i) => [i + 1]);
+  const betDurations: number[] = [];
+  const pageDurations: number[] = [];
+  let betErrors = 0;
+  let pageErrors = 0;
+
+  for (let round = 1; round <= ROUNDS; round++) {
+    await Promise.all(
+      fx.users.map(async (u) => {
+        const cookie = cookies.get(u.name) ?? '';
+        const before = await timedGet(cookie, `/races/${fx.raceId}`);
+        const bet = await callAction(cookie, `/races/${fx.raceId}`, ids.placeBets, [
+          { raceId: fx.raceId, walletId: u.walletId, betType: 'win', combinations, amountPerBet: 100 },
+        ]);
+        const after = await timedGet(cookie, `/races/${fx.raceId}`);
+        for (const page of [before, after]) {
+          pageDurations.push(page.ms);
+          if (!page.ok) pageErrors++;
+        }
+        betDurations.push(bet.ms);
+        if (!bet.ok) {
+          betErrors++;
+          reportError(bet);
+        }
+      })
+    );
+  }
+
+  summarize('peak bets', betDurations, betErrors);
+  summarize('peak pages', pageDurations, pageErrors);
+
+  const timeout = new Promise<number>((resolve) => setTimeout(() => resolve(NaN), 10_000));
+  const oddsArrivals = await Promise.all(subs.map((s) => Promise.race([s.arrival, timeout])));
+  console.log(`  オッズSSE到達: ${oddsArrivals.filter((t) => !Number.isNaN(t)).length}/${subs.length} 接続`);
+  ac.abort();
 }
 
 // 締切直前の一斉購入を再現する。全ユーザーが単勝8点を同時に投げるラウンドを ROUNDS 回実施
@@ -330,7 +408,7 @@ async function main() {
     console.log('使い方: task perf:load -- <bets|sse|pages|payout|all>');
     process.exit(1);
   }
-  const names = requested.includes('all') ? ['bets', 'bulk', 'sse', 'pages', 'payout'] : requested;
+  const names = requested.includes('all') ? ['login', 'bets', 'bulk', 'peak', 'sse', 'pages', 'payout'] : requested;
 
   const fx = await loadFixture();
 
@@ -354,8 +432,10 @@ async function main() {
   console.log(`target=${BASE} users=${fx.users.length} race=${fx.raceId}`);
   for (const name of names) {
     console.log(`── ${name}`);
-    if (name === 'bets') await scenarioBets(fx, ids);
+    if (name === 'login') await scenarioLogin(fx);
+    else if (name === 'bets') await scenarioBets(fx, ids);
     else if (name === 'bulk') await scenarioBulk(fx, ids);
+    else if (name === 'peak') await scenarioPeak(fx, ids);
     else if (name === 'sse') await scenarioSse(fx, ids);
     else if (name === 'pages') await scenarioPages(fx);
     else if (name === 'payout') await scenarioPayout(fx, ids);
