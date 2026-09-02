@@ -3,7 +3,7 @@
 import { isEligibleForLoan } from '@/entities/wallet';
 import { toast } from '@/shared/lib/toast';
 import { ConfirmDialog } from '@/shared/ui';
-import { Banknote, ChevronRight } from 'lucide-react';
+import { ChevronRight, HandCoins } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { borrowLoan } from '../actions';
@@ -67,27 +67,35 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
       }
       icon={
         <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-          <Banknote className="h-6 w-6" />
+          <HandCoins className="h-6 w-6" />
         </span>
       }
-      title="逆転への招待状"
+      title="大逆転は、最終コーナーの向こう"
       description={
         <>
-          勝利まであと一歩かもしれません。今ここで諦めるのはもったいない。特別融資で栄光をその手に。
-          手続きは一瞬、夢は永遠です。
-          <span className="rounded-control mt-4 block space-y-2 bg-gray-50 p-4 text-left">
-            <span className="flex justify-between text-sm">
-              <span className="text-gray-500">融資額</span>
+          直線一気の追い込みは、いつも後方から生まれます。いま最下位でも、ゴール板の前で笑うのはあなたかもしれません。馬たちはまだ、走り終えていません。
+          <span className="rounded-control mt-4 block border border-gray-200 bg-gray-50 px-4 py-3 text-left">
+            <span className="block text-center text-sm font-semibold tracking-[0.35em] text-gray-900">借用証</span>
+            <span className="mt-2 flex justify-between border-b border-dashed border-gray-200 pb-1.5 text-sm">
+              <span className="text-gray-500">軍資金</span>
               <span className="font-semibold text-gray-900 tabular-nums">{loanAmount.toLocaleString('ja-JP')}円</span>
             </span>
-            <span className="flex justify-between text-sm">
+            <span className="flex justify-between border-b border-dashed border-gray-200 py-1.5 text-sm">
+              <span className="text-gray-500">利息</span>
+              <span className="font-semibold text-gray-900">なし</span>
+            </span>
+            <span className="flex justify-between border-b border-dashed border-gray-200 py-1.5 text-sm">
               <span className="text-gray-500">借入回数</span>
               <span className="font-semibold text-gray-900">イベントにつき1回まで</span>
+            </span>
+            <span className="flex justify-between pt-1.5 text-sm">
+              <span className="text-gray-500">備考</span>
+              <span className="font-semibold text-gray-900">次の的中で全部返る計算です</span>
             </span>
           </span>
         </>
       }
-      confirmLabel={`${loanAmount.toLocaleString('ja-JP')}円を借りる`}
+      confirmLabel={`${loanAmount.toLocaleString('ja-JP')}円で最終直線へ`}
       confirmVariant="primary"
       onConfirm={handleBorrow}
     />
