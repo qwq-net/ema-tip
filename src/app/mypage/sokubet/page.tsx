@@ -1,5 +1,6 @@
 import { getDisplayStatus } from '@/entities/race/lib/status';
 import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
+import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { Badge, Card } from '@/shared/ui';
@@ -117,9 +118,9 @@ export default async function SokubetPage() {
                                 </h3>
                                 <p className="text-turf-100 mt-1 text-sm">対象の5レース全ての1着を予想しよう</p>
                                 {bet5TargetRaceNumbers.length > 0 && (
-                                  <p className="mt-1 text-sm font-semibold text-white">
-                                    対象レース:{' '}
-                                    {bet5TargetRaceNumbers.map((raceNumber) => `${raceNumber}R`).join(' ▶ ')}
+                                  <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-white">
+                                    対象レース:
+                                    <Bet5RaceSequence raceNumbers={bet5TargetRaceNumbers} />
                                   </p>
                                 )}
                               </div>

@@ -1,4 +1,5 @@
 import { Bet5MyTicketsDialog } from '@/features/betting/ui/bet5-my-tickets-dialog';
+import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
 import { Bet5VotingForm } from '@/features/betting/ui/bet5-voting-form';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
@@ -162,8 +163,9 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
             )}
             <div className="rounded-control bg-gray-50 p-8 text-center">
               <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
-              <p className="text-text-sub mt-2 text-sm">
-                対象レース: {orderedRaces.map((race) => `${race.raceNumber}R`).join(' ▶ ')}
+              <p className="text-text-sub mt-2 flex flex-wrap items-center justify-center gap-1.5 text-sm">
+                対象レース:
+                <Bet5RaceSequence raceNumbers={orderedRaces.map((race) => race.raceNumber)} />
               </p>
             </div>
           </div>
