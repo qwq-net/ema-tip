@@ -14,17 +14,6 @@ vi.mock('@/shared/utils/admin-audit', () => ({
   logAdminAction: vi.fn(),
 }));
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}));
-
 vi.mock('@/shared/db', () => ({
   db: {
     transaction: vi.fn(),
@@ -32,17 +21,6 @@ vi.mock('@/shared/db', () => ({
       raceInstances: { findFirst: vi.fn() },
     },
   },
-}));
-
-vi.mock('@/shared/db/schema', () => ({
-  raceInstances: { id: 'raceInstances.id', status: 'status' },
-  raceEntries: { raceId: 'raceEntries.raceId' },
-  payoutResults: { raceId: 'payoutResults.raceId' },
-}));
-
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: { emit: vi.fn() },
-  RACE_EVENTS: { RACE_RESULT_UPDATED: 'RACE_RESULT_UPDATED' },
 }));
 
 describe('resetRaceResults', () => {

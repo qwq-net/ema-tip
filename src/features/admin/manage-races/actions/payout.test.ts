@@ -27,15 +27,6 @@ vi.mock('@/shared/utils/admin', () => ({
   },
 }));
 
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: {
-    emit: vi.fn(),
-  },
-  RACE_EVENTS: {
-    RACE_BROADCAST: 'RACE_BROADCAST',
-  },
-}));
-
 describe('finalizePayout', () => {
   let testUserId: string;
   let eventId: string;

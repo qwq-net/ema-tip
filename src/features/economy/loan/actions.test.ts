@@ -1,17 +1,6 @@
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { borrowLoan } from './actions';
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}));
-
 vi.mock('@/shared/db', () => ({
   db: {
     transaction: vi.fn(),
@@ -20,18 +9,6 @@ vi.mock('@/shared/db', () => ({
       wallets: { findFirst: vi.fn() },
     },
   },
-}));
-
-vi.mock('@/shared/db/schema', () => ({
-  events: { id: 'events.id' },
-  wallets: {
-    id: 'wallets.id',
-    userId: 'wallets.userId',
-    eventId: 'wallets.eventId',
-    balance: 'wallets.balance',
-    totalLoaned: 'wallets.totalLoaned',
-  },
-  transactions: {},
 }));
 
 import { auth } from '@/shared/config/auth';

@@ -1,6 +1,11 @@
 import { db } from '@/shared/db';
+import { SQL } from 'drizzle-orm';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { calculateBet5Payout, closeBet5Event, createBet5Event, resolveBet5Winners } from './bet5';
+
+// drizzle の SQL 式は実テーブル参照を含み JSON.stringify では循環参照になるため、
+// 式に埋め込まれた数値チャンクだけを取り出して比較する
+const sqlNumberParams = (value: SQL): number[] => value.queryChunks.filter((c): c is number => Number.isFinite(c));
 
 vi.mock('@/shared/db', () => ({
   db: {
@@ -12,16 +17,6 @@ vi.mock('@/shared/db', () => ({
     update: vi.fn(),
     insert: vi.fn(),
   },
-}));
-
-vi.mock('@/shared/db/schema', () => ({
-  bet5Events: { id: 'bet5Events.id', eventId: 'bet5Events.eventId' },
-  bet5Tickets: { id: 'bet5Tickets.id', bet5EventId: 'bet5Tickets.bet5EventId' },
-  events: { id: 'events.id', carryoverAmount: 'events.carryoverAmount' },
-  wallets: { id: 'wallets.id', balance: 'wallets.balance' },
-  transactions: {},
-  raceEntries: { raceId: 'raceEntries.raceId', finishPosition: 'raceEntries.finishPosition' },
-  raceInstances: { id: 'raceInstances.id', eventId: 'raceInstances.eventId', status: 'raceInstances.status' },
 }));
 
 const makeUpdateChain = () => {
@@ -232,7 +227,7 @@ describe('calculateBet5Payout', () => {
 
     const decrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
       const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
-      return value instanceof Object && JSON.stringify(value).includes('2000');
+      return value instanceof SQL && sqlNumberParams(value).includes(2000);
     });
     expect(decrementSet).toBeDefined();
   });
@@ -249,7 +244,7 @@ describe('calculateBet5Payout', () => {
     const incrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
       const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
       const increment = baseBet5Event.initialPot + losingTicket.amount;
-      return value instanceof Object && JSON.stringify(value).includes(String(increment));
+      return value instanceof SQL && sqlNumberParams(value).includes(increment);
     });
     expect(incrementSet).toBeDefined();
 

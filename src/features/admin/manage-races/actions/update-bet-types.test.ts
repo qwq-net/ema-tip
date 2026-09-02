@@ -16,26 +16,10 @@ vi.mock('@/shared/utils/admin-audit', () => ({
   logAdminAction: vi.fn(),
 }));
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
-
 vi.mock('@/shared/db', () => ({
   db: {
     transaction: vi.fn(),
   },
-}));
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}));
-
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: { emit: vi.fn() },
-  RACE_EVENTS: { BET_RESTRICTION_UPDATED: 'BET_RESTRICTION_UPDATED' },
 }));
 
 describe('updateRaceAllowedBetTypes', () => {

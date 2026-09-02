@@ -16,12 +16,6 @@ vi.mock('@/shared/utils/admin-audit', () => ({
   logAdminAction: vi.fn(),
 }));
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
 vi.mock('@/shared/db', () => ({
   db: {
     update: vi.fn(),
@@ -31,19 +25,6 @@ vi.mock('@/shared/db', () => ({
         findFirst: vi.fn().mockResolvedValue({ id: '123', status: 'SCHEDULED' }),
       },
     },
-  },
-}));
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}));
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: {
-    emit: vi.fn(),
-  },
-  RACE_EVENTS: {
-    RACE_CLOSED: 'RACE_CLOSED',
-    RACE_REOPENED: 'RACE_REOPENED',
-    RACE_TIMER_SET: 'RACE_TIMER_SET',
   },
 }));
 

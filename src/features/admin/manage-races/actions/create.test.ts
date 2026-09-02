@@ -12,12 +12,6 @@ vi.mock('@/shared/utils/admin', async () => {
   };
 });
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
 vi.mock('@/shared/db', () => ({
   db: {
     insert: vi.fn(),
@@ -34,9 +28,6 @@ vi.mock('@/shared/db', () => ({
       },
     },
   },
-}));
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
 }));
 
 describe('createRace', () => {

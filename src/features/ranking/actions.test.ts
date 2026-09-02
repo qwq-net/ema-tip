@@ -2,22 +2,6 @@ import { db } from '@/shared/db';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getEventRanking } from './actions';
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}));
-
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: { emit: vi.fn() },
-  RACE_EVENTS: { RANKING_UPDATED: 'RANKING_UPDATED' },
-}));
-
 vi.mock('@/shared/db', () => ({
   db: {
     query: {

@@ -11,17 +11,6 @@ vi.mock('@/shared/utils/admin', async () => {
   };
 });
 
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
-  handlers: { GET: vi.fn(), POST: vi.fn() },
-}));
-
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
-}));
-
 vi.mock('@/shared/db', () => ({
   db: {
     transaction: vi.fn(),
@@ -54,27 +43,6 @@ vi.mock('@/shared/lib/redis', () => ({
     set: vi.fn(),
     del: vi.fn(),
     on: vi.fn(),
-  },
-}));
-
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: { emit: vi.fn() },
-  RACE_EVENTS: { ODDS_UPDATED: 'ODDS_UPDATED' },
-}));
-
-vi.mock('@/shared/db/schema', () => ({
-  betGroups: { id: 'betGroups.id' },
-  bets: { id: 'bets.id', raceId: 'bets.raceId', details: 'bets.details' },
-  raceInstances: { id: 'raceInstances.id', status: 'status' },
-  events: { id: 'events.id', status: 'events.status' },
-  raceEntries: { raceId: 'raceEntries.raceId' },
-  raceOdds: { raceId: 'raceOdds.raceId' },
-  transactions: {},
-  wallets: { id: 'wallets.id', balance: 'wallets.balance' },
-  raceAllowedBetTypes: { raceId: 'raceAllowedBetTypes.raceId', betType: 'raceAllowedBetTypes.betType' },
-  eventDefaultAllowedBetTypes: {
-    eventId: 'eventDefaultAllowedBetTypes.eventId',
-    betType: 'eventDefaultAllowedBetTypes.betType',
   },
 }));
 

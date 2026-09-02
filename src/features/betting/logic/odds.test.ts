@@ -13,13 +13,6 @@ vi.mock('@/shared/db', () => ({
   },
 }));
 
-vi.mock('@/shared/db/schema', () => ({
-  bets: { raceId: 'bets.raceId', details: 'bets.details' },
-  raceInstances: { id: 'raceInstances.id' },
-  raceEntries: { raceId: 'raceEntries.raceId' },
-  raceOdds: { raceId: 'raceOdds.raceId' },
-}));
-
 vi.mock('@/entities/bet/lib/payout', async () => {
   const actual = await vi.importActual('@/entities/bet/lib/payout');
   return {
@@ -35,11 +28,6 @@ vi.mock('@/shared/lib/redis', () => ({
     ttl: vi.fn(),
     del: vi.fn(),
   },
-}));
-
-vi.mock('@/shared/lib/sse/event-emitter', () => ({
-  raceEventEmitter: { emit: vi.fn() },
-  RACE_EVENTS: { RACE_ODDS_UPDATED: 'RACE_ODDS_UPDATED' },
 }));
 
 import { db } from '@/shared/db';

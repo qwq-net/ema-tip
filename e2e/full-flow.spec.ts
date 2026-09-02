@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { cleanupFixtures, E2E, fetchSettlementState, setupFixtures, type Fixtures } from './support/fixtures';
+import { saveAndExpectToast } from './support/toast';
 
 /**
  * お金の一本道を通しで検証する唯一のE2E。
@@ -77,8 +78,7 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
     await adminPage.goto(`/admin/races/${fx.raceId}`);
     await adminPage.getByRole('checkbox', { name: 'このレースで個別に指定する' }).check();
     await adminPage.getByRole('checkbox', { name: '三連単', exact: true }).uncheck();
-    await betTypesCard.getByRole('button', { name: '設定を保存' }).click();
-    await expect(adminPage.getByText('購入可能な馬券種別を更新しました')).toBeVisible();
+    await saveAndExpectToast(adminPage, '設定を保存', '購入可能な馬券種別を更新しました', betTypesCard);
 
     await userPage.goto(`/races/${fx.raceId}`);
     await expect(userPage.getByText('このレースで購入できるのは')).toBeVisible();
@@ -87,11 +87,8 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
   });
 
   await test.step('個別指定を解除すると全種別が購入可能へ戻る', async () => {
-    // 前の成功 toast が残っていると保存完了前に次の検証へ進んでしまうため、消えるのを待つ
-    await expect(adminPage.getByText('購入可能な馬券種別を更新しました')).toHaveCount(0, { timeout: 10_000 });
     await adminPage.getByRole('checkbox', { name: 'このレースで個別に指定する' }).uncheck();
-    await betTypesCard.getByRole('button', { name: '設定を保存' }).click();
-    await expect(adminPage.getByText('購入可能な馬券種別を更新しました')).toBeVisible();
+    await saveAndExpectToast(adminPage, '設定を保存', '購入可能な馬券種別を更新しました', betTypesCard);
 
     await userPage.goto(`/races/${fx.raceId}`);
     await expect(userPage.getByText('このレースで購入できるのは')).toBeHidden();
@@ -106,30 +103,23 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
   await test.step('管理者が発生条件を100%へ変更すると案内が出る', async () => {
     await adminPage.goto(`/admin/events/${fx.eventId}`);
     await adminPage.getByLabel('融資の発生条件').fill('100');
-    await adminPage.getByRole('button', { name: 'イベント更新' }).click();
-    await expect(adminPage.getByText('イベント情報を更新しました').last()).toBeVisible();
+    await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
 
     await userPage.reload();
     await expect(userPage.getByText('資金が少し不足していませんか？')).toBeVisible();
   });
 
   await test.step('借入機能をOFFにすると案内が消える', async () => {
-    // 前ステップの成功 toast が残っていると保存完了前に次の検証へ進んでしまうため、消えるのを待つ
-    await expect(adminPage.getByText('イベント情報を更新しました')).toHaveCount(0, { timeout: 10_000 });
     await adminPage.getByLabel('借入機能を有効にする').uncheck();
-    await adminPage.getByRole('button', { name: 'イベント更新' }).click();
-    await expect(adminPage.getByText('イベント情報を更新しました').last()).toBeVisible();
+    await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
 
     await userPage.reload();
     await expect(userPage.getByText('資金が少し不足していませんか？')).toBeHidden();
   });
 
   await test.step('ONへ戻すと借用証モーダルから借入できる', async () => {
-    // 前ステップの成功 toast が残っていると保存完了前に次の検証へ進んでしまうため、消えるのを待つ
-    await expect(adminPage.getByText('イベント情報を更新しました')).toHaveCount(0, { timeout: 10_000 });
     await adminPage.getByLabel('借入機能を有効にする').check();
-    await adminPage.getByRole('button', { name: 'イベント更新' }).click();
-    await expect(adminPage.getByText('イベント情報を更新しました').last()).toBeVisible();
+    await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
 
     await userPage.reload();
     await userPage.getByText('資金が少し不足していませんか？').click();

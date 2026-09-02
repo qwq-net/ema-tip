@@ -28,9 +28,9 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx'],
+    files: ['**/*.test.ts', '**/*.test.tsx', 'vitest.setup.ts'],
     // vi.mock ベースの unit テスト戦略や、as unknown as などのモック型付けの慣行に衝突するため、
-    // テストファイルではモック関連ルールを無効化する
+    // テストファイルと共通セットアップではモック関連ルールを無効化する
     rules: {
       'anti-slop/no-module-mocking': 'off',
       'anti-slop/require-safety-comment-for-type-assertion': 'off',
