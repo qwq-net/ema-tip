@@ -18,6 +18,7 @@ type Event = {
   loanAmount: number | null;
   loanEnabled: boolean;
   loanThresholdPercent: number;
+  updatedAt: Date;
 };
 
 interface AdminEventEditorProps {
@@ -36,7 +37,9 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
 
   return (
     <div className="space-y-6">
-      <EventForm initialData={event} onSuccess={onSuccess} />
+      {/* React 19 は form action 完了後にフィールドを初期値へ自動リセットするため、
+          保存で updatedAt が変わるたびに再マウントし、リセット先を最新のサーバー値へ同期させる */}
+      <EventForm key={event.updatedAt.toISOString()} initialData={event} onSuccess={onSuccess} />
 
       <div className="border-t border-gray-100 pt-6">
         <AdminSectionTitle className="mb-4">アクション</AdminSectionTitle>
