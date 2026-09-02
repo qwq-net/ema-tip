@@ -123,7 +123,8 @@ async function callAction(cookie: string, path: string, actionId: string, args: 
 // p50/p95 は昇順ソート後の最近傍順位法で取る
 function summarize(label: string, durations: number[], errors: number) {
   const sorted = [...durations].sort((a, b) => a - b);
-  const pick = (p: number) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))] ?? 0;
+  const pick = (p: number) =>
+    sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))] ?? 0;
   const mean = sorted.length === 0 ? 0 : sorted.reduce((a, b) => a + b, 0) / sorted.length;
   console.log(
     `${label}: n=${sorted.length} errors=${errors} mean=${mean.toFixed(0)}ms p50=${pick(50).toFixed(0)}ms p95=${pick(95).toFixed(0)}ms max=${(sorted.at(-1) ?? 0).toFixed(0)}ms`
@@ -292,7 +293,11 @@ async function scenarioBulk(fx: Fixture, ids: ActionIds) {
 
 // SSE を1本購読し、初回応答で ready、指定イベント到達時刻で arrival が解決する。
 // arrival はイベントが来なければ解決しないため、呼び手がタイムアウトを併用する
-function subscribe(cookie: string, matchType: string, signal: AbortSignal): { ready: Promise<void>; arrival: Promise<number> } {
+function subscribe(
+  cookie: string,
+  matchType: string,
+  signal: AbortSignal
+): { ready: Promise<void>; arrival: Promise<number> } {
   let readyResolve = () => {};
   let arrivalResolve = (_: number) => {};
   const ready = new Promise<void>((resolve) => {

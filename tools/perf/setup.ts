@@ -42,7 +42,10 @@ async function main() {
       RETURNING id
     `;
 
-    const userNames = Array.from({ length: PERF.userCount }, (_, i) => `${PERF.userPrefix}${String(i + 1).padStart(2, '0')}`);
+    const userNames = Array.from(
+      { length: PERF.userCount },
+      (_, i) => `${PERF.userPrefix}${String(i + 1).padStart(2, '0')}`
+    );
     const userIds: string[] = [];
     for (const name of userNames) {
       const [user] = await sql`
