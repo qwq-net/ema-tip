@@ -22,6 +22,16 @@
 - 再利用可能な統一性のあるコンポーネントを意識する
 - 過度な抽象化はせず、運用に即した現実的な判断をする
 
+## デザインシステム
+
+- 色・角丸・書体・文字サイズは `src/app/styles/globals.css` の @theme が唯一の管理点。維持する慣習色の例外一覧もここのコメントにある
+- 文字色ロールに素の gray-400 等を使わず text-text-sub などのロールトークンを使う
+- 文字の標準は text-sm。15px に上書き済みで、これ未満のサイズを新設しない。text-xs は 12px の小型チップ限定で font-semibold 併記が必須。任意値サイズ text-[Npx] は禁止
+- 太さは 2 段。見出し・金額・ボタン・小型チップ・状態表示は font-semibold、説明・ラベル・補助テキストは normal で色が区別を担う
+- 角丸は rounded-control・rounded-surface・rounded-chip・rounded-full の 4 種のみ
+- 静的なカードやテーブルに影を付けない。shadow はダイアログ・ドロップダウン・固定フッターなど浮遊要素専用
+- 逸脱は theme-contrast・radius-scale・type-scale の各テストが CI で検出する
+
 ## 監査基準
 
 - YAGNI 原則を基本とする
