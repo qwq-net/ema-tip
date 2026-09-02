@@ -25,6 +25,15 @@ body {
   font-feature-settings: 'palt' 1;
 }
 
+/* Tailwind v4 の preflight はボタンを cursor: default にするため、
+   有効なボタン類は全体で人差し指カーソルに統一する */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
