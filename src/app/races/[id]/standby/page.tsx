@@ -3,11 +3,11 @@ import { getPayoutResults } from '@/entities/race/actions';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { isGuaranteedBet } from '@/features/betting/lib/guaranteed';
-import { GuaranteedOddsList } from '@/features/betting/ui/guaranteed-odds-list';
+import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { requireLoginPage } from '@/shared/utils/admin';
-import { ChevronLeft, ShieldCheck } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StandbyClient } from './standby-client';
@@ -142,7 +142,10 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
             <ChevronLeft size={16} />
             レース画面へ戻る
           </Link>
-          <RankingButton eventId={race.eventId} />
+          <div className="flex items-center gap-2">
+            {hasGuaranteedOdds && <GuaranteedOddsDialog guaranteedOdds={guaranteedOdds} />}
+            <RankingButton eventId={race.eventId} />
+          </div>
         </div>
 
         <StandbyClient
@@ -158,17 +161,6 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           hasTickets={ticketGroups.length > 0}
           entryCount={entries.length}
         />
-
-        {hasGuaranteedOdds && (
-          <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <h2 className="text-sm font-semibold text-gray-900">保証オッズ</h2>
-              <span className="text-sm text-gray-500">的中時の払戻倍率は下記を下回りません</span>
-            </div>
-            <GuaranteedOddsList guaranteedOdds={guaranteedOdds} />
-          </section>
-        )}
 
         <PurchasedTicketList ticketGroups={ticketGroups} fixedOddsMode={race.fixedOddsMode} />
       </div>
