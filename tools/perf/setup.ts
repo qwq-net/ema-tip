@@ -59,8 +59,14 @@ async function main() {
       RETURNING id
     `;
 
-    const [venue] = await sql`SELECT id FROM venue LIMIT 1`;
-    if (!venue) throw new Error('venue がありません。task db:seed を先に実行してください');
+    // シード未投入の空 DB でも動くよう、競馬場がなければ計測用に1つ作る
+    let [venue] = await sql`SELECT id FROM venue LIMIT 1`;
+    if (!venue) {
+      [venue] = await sql`
+        INSERT INTO venue (name, short_name, default_direction) VALUES ('PERF競馬場', 'PERF', 'LEFT')
+        RETURNING id
+      `;
+    }
 
     // シードの頭数が足りない分は計測用の馬で埋め、フルゲートを成立させる
     const horses = await sql`SELECT id FROM horse ORDER BY name LIMIT ${PERF.horseCount}`;

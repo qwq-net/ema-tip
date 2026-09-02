@@ -126,13 +126,13 @@ tasks:
   perf:clean:
     desc: 負荷計測用のデータを削除します
     cmds:
-      - docker compose exec -T db psql -U postgres -d webapp -c "DELETE FROM event WHERE name = 'PERF検証イベント'; DELETE FROM \"user\" WHERE name = 'PERF管理者' OR name LIKE 'PERF利用者%'; DELETE FROM horse WHERE name LIKE 'PERF馬%';"
+      - docker compose exec -T db psql -U postgres -d webapp -c "DELETE FROM event WHERE name = 'PERF検証イベント'; DELETE FROM \"user\" WHERE name = 'PERF管理者' OR name LIKE 'PERF利用者%'; DELETE FROM horse WHERE name LIKE 'PERF馬%'; DELETE FROM venue WHERE name = 'PERF競馬場';"
 
   # 本番イメージは tools/ を含まないため、リポジトリの tools/ をマウントして実行する
   perf:setup:prod:
-    desc: VM上の本番構成で負荷計測フィクスチャを作ります
+    desc: 'VM上の本番構成で負荷計測フィクスチャを作ります。例: PERF_HISTORY=20 task perf:setup:prod'
     cmds:
-      - '{{.PROD}} run --rm -v ./tools:/app/tools app pnpm tsx tools/perf/setup.ts'
+      - '{{.PROD}} run --rm -v ./tools:/app/tools -e PERF_HISTORY app pnpm tsx tools/perf/setup.ts'
 
   perf:load:prod:
     desc: 'VM上の本番構成で負荷シナリオを実行します。例: task perf:load:prod -- bets sse pages payout'
