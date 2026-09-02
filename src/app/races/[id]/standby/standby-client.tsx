@@ -258,22 +258,25 @@ export function StandbyClient({
         </div>
       )}
 
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        <button
-          onClick={toggleAudio}
-          className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
-            isAudioEnabled
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-gray-800/80 text-gray-400 hover:text-white'
-          }`}
-          aria-label={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}
-        >
-          {isAudioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-        </button>
-        <div className="flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
-          <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
+      {/* 確定済みで SSE を張っていないときは、接続状態も音声通知も意味を持たないため丸ごと出さない */}
+      {connectionStatus !== 'DISABLED' && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <button
+            onClick={toggleAudio}
+            className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
+              isAudioEnabled
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-800/80 text-gray-400 hover:text-white'
+            }`}
+            aria-label={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}
+          >
+            {isAudioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
+          <div className="flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
+            <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
+          </div>
         </div>
-      </div>
+      )}
 
       <PayoutResultModal
         open={showModal}
