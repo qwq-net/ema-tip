@@ -93,7 +93,9 @@ export async function updateEvent(id: string, formData: FormData) {
     })
     .where(eq(events.id, id));
 
+  // 一覧に加えて、管理者が開いている詳細ページも再検証しないと保存が画面へ反映されない
   revalidatePath('/admin/events');
+  revalidatePath(`/admin/events/${id}`);
 }
 
 export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED') {
@@ -102,6 +104,7 @@ export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' 
   await db.update(events).set({ status: newStatus }).where(eq(events.id, eventId));
 
   revalidatePath('/admin/events');
+  revalidatePath(`/admin/events/${eventId}`);
 }
 
 export async function getEvent(id: string) {
