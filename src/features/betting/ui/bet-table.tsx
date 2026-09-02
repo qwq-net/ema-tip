@@ -10,11 +10,10 @@ import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
-import { Badge, Button, Checkbox, LiveConnectionStatus } from '@/shared/ui';
+import { Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getGenderAge } from '@/shared/utils/gender';
-import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { AlertCircle, Clock, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -115,30 +114,30 @@ export function BetTable({
     setShowBetConfirm(true);
   };
 
-  const handleSubmit = () => {
-    setShowBetConfirm(false);
+  const handleSubmit = async () => {
     const validCombinations = getValidBetCombinations(selectionsArray, betType, bracketHorseCount);
 
-    startTransition(async () => {
-      try {
-        const result = await placeBets({
-          raceId,
-          walletId,
-          betType,
-          combinations: validCombinations,
-          amountPerBet: amount,
-        });
-        if (!result.success) {
-          toast.error(result.error);
-          return;
-        }
-        toast.success(`${totalAmount.toLocaleString('ja-JP')}円分の馬券を購入しました`);
-        resetSelections();
-        router.refresh();
-      } catch {
-        toast.error('エラーが発生しました');
+    try {
+      const result = await placeBets({
+        raceId,
+        walletId,
+        betType,
+        combinations: validCombinations,
+        amountPerBet: amount,
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
-    });
+      toast.success(`${totalAmount.toLocaleString('ja-JP')}円分の馬券を購入しました`);
+      resetSelections();
+      // 画面反映が終わるまで isPending でフォームを無効化したいので、refresh のみ transition に載せる
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      toast.error('エラーが発生しました');
+    }
   };
 
   const isBracketType = betType === BET_TYPES.BRACKET_QUINELLA;
@@ -341,35 +340,20 @@ export function BetTable({
         onSubmit={handleSubmitRequest}
       />
 
-      <AlertDialog.Root open={showBetConfirm} onOpenChange={setShowBetConfirm}>
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
-          <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="flex flex-col items-center text-center">
-              <AlertDialog.Title className="mb-1 text-xl font-semibold text-gray-900">
-                馬券を購入しますか？
-              </AlertDialog.Title>
-              <AlertDialog.Description className="text-sm text-gray-500">
-                {betCount}点・合計{' '}
-                <span className="font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</span>{' '}
-                を購入します。
-              </AlertDialog.Description>
-            </div>
-            <div className="mt-6 flex flex-col gap-3">
-              <AlertDialog.Action asChild>
-                <Button onClick={handleSubmit} className="w-full font-semibold">
-                  購入する
-                </Button>
-              </AlertDialog.Action>
-              <AlertDialog.Cancel asChild>
-                <Button variant="outline" className="w-full font-semibold">
-                  キャンセル
-                </Button>
-              </AlertDialog.Cancel>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+      <ConfirmDialog
+        open={showBetConfirm}
+        onOpenChange={setShowBetConfirm}
+        title="馬券を購入しますか？"
+        description={
+          <>
+            {betCount}点・合計{' '}
+            <span className="font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</span> を購入します。
+          </>
+        }
+        confirmLabel="購入する"
+        confirmVariant="primary"
+        onConfirm={handleSubmit}
+      />
     </div>
   );
 }

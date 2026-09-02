@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/shared/ui';
+import { Button, ConfirmDialog } from '@/shared/ui';
 import { Ban, Trash2, Undo } from 'lucide-react';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
@@ -27,20 +27,16 @@ export function UserActionsMenu({ userId, isDisabled, isCurrentUser }: UserActio
     });
   };
 
-  const handleDelete = () => {
-    if (!window.confirm('本当にこのユーザーを削除しますか？この操作は取り消せません。')) {
-      return;
+  const handleDelete = async () => {
+    try {
+      await deleteUser(userId);
+      toast.success('ユーザーを削除しました');
+    } catch (error) {
+      toast.error('ユーザーの削除に失敗しました');
+      console.error(error);
+      // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
+      throw error;
     }
-
-    startTransition(async () => {
-      try {
-        await deleteUser(userId);
-        toast.success('ユーザーを削除しました');
-      } catch (error) {
-        toast.error('ユーザーの削除に失敗しました');
-        console.error(error);
-      }
-    });
   };
 
   if (isCurrentUser) return null;
@@ -56,9 +52,17 @@ export function UserActionsMenu({ userId, isDisabled, isCurrentUser }: UserActio
       >
         {isDisabled ? <Undo className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
       </Button>
-      <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isPending} title="削除">
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <ConfirmDialog
+        trigger={
+          <Button variant="destructive" size="sm" disabled={isPending} title="削除">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        }
+        title="このユーザーを削除しますか？"
+        description="この操作は取り消せません。"
+        confirmLabel="削除する"
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

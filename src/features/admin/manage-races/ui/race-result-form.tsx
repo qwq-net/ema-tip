@@ -3,7 +3,7 @@
 import { fetchNetkeibaRaceResult } from '@/features/admin/import-race/actions';
 import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/types';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
-import { Badge, Button } from '@/shared/ui';
+import { Badge, Button, ConfirmDialog } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
@@ -19,7 +19,6 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import {
   AlertCircle,
   CheckCircle2,
@@ -200,8 +199,6 @@ export function RaceResultForm({
     setSortedEntries(initialEntries);
   }
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPayoutMoving, setIsPayoutMoving] = useState(false);
   const [netkeibaResult, setNetkeibaResult] = useState<NetkeibaRaceResult | null>(null);
   const [showNetkeibaConfirm, setShowNetkeibaConfirm] = useState(false);
@@ -272,40 +269,40 @@ export function RaceResultForm({
     }
   };
 
-  const handleServerReset = () => {
-    startTransition(async () => {
-      try {
-        await resetRaceResults(raceId);
-        toast.success('着順設定を初期状態にリセットしました');
-        router.refresh();
-      } catch {
-        toast.error('リセットに失敗しました');
-      }
-    });
+  const handleServerReset = async () => {
+    try {
+      await resetRaceResults(raceId);
+      toast.success('着順設定を初期状態にリセットしました');
+      router.refresh();
+    } catch (error) {
+      toast.error('リセットに失敗しました');
+      console.error(error);
+      // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
+      throw error;
+    }
   };
 
-  const handleSubmit = () => {
-    setShowConfirm(false);
-    startTransition(async () => {
-      const results = sortedEntries.map((entry, index) => ({
-        entryId: entry.id,
-        finishPosition: index + 1,
-      }));
+  const handleSubmit = async () => {
+    const results = sortedEntries.map((entry, index) => ({
+      entryId: entry.id,
+      finishPosition: index + 1,
+    }));
 
-      try {
-        const result = await finalizeRace(raceId, results);
-        if (!result.success) {
-          toast.error(result.error);
-          return;
-        }
-        toast.success('着順を確定しました（払い戻し計算完了）', {
-          icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-        });
-        router.refresh();
-      } catch {
-        toast.error('エラーが発生しました');
+    try {
+      const result = await finalizeRace(raceId, results);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
-    });
+      toast.success('着順を確定し、払い戻し計算が完了しました', {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+      });
+      router.refresh();
+    } catch (error) {
+      toast.error('エラーが発生しました');
+      console.error(error);
+      throw error;
+    }
   };
 
   const handleFetchNetkeibaResult = () => {
@@ -328,32 +325,31 @@ export function RaceResultForm({
     });
   };
 
-  const handleNetkeibaFinalize = () => {
-    setShowNetkeibaConfirm(false);
+  const handleNetkeibaFinalize = async () => {
     if (!netkeibaResult) return;
 
-    startTransition(async () => {
-      const results = netkeibaResult.finishOrder
-        .map((horseNumber, index) => {
-          const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
-          return entry ? { entryId: entry.id, finishPosition: index + 1 } : null;
-        })
-        .filter((r): r is { entryId: string; finishPosition: number } => r !== null);
+    const results = netkeibaResult.finishOrder
+      .map((horseNumber, index) => {
+        const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
+        return entry ? { entryId: entry.id, finishPosition: index + 1 } : null;
+      })
+      .filter((r): r is { entryId: string; finishPosition: number } => r !== null);
 
-      try {
-        const result = await finalizeRace(raceId, results, netkeibaResult.payouts);
-        if (!result.success) {
-          toast.error(result.error);
-          return;
-        }
-        toast.success('着順を確定しました（Netkeibaオッズ払い戻し計算完了）', {
-          icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-        });
-        router.refresh();
-      } catch {
-        toast.error('エラーが発生しました');
+    try {
+      const result = await finalizeRace(raceId, results, netkeibaResult.payouts);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
-    });
+      toast.success('着順を確定し、Netkeibaオッズで払い戻し計算が完了しました', {
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+      });
+      router.refresh();
+    } catch (error) {
+      toast.error('エラーが発生しました');
+      console.error(error);
+      throw error;
+    }
   };
 
   const activeEntry = activeId ? sortedEntries.find((e) => e.id === activeId) : null;
@@ -572,55 +568,41 @@ export function RaceResultForm({
                       )}
                     </Button>
 
-                    <AlertDialog.Root open={showNetkeibaConfirm} onOpenChange={setShowNetkeibaConfirm}>
-                      <AlertDialog.Portal>
-                        <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300" />
-                        <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300">
-                          <div className="flex flex-col items-center text-center">
-                            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-500">
-                              <CheckCircle2 className="h-8 w-8" />
-                            </div>
-                            <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
-                              Netkeibaの結果で確定しますか？
-                            </AlertDialog.Title>
-                            <AlertDialog.Description asChild className="w-full text-sm text-gray-500">
-                              <div>
-                                Netkeibaの実際の払い戻しオッズで計算されます。
-                                <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                                  {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
-                                    const labels = ['1着', '2着', '3着'];
-                                    const colors = ['text-amber-600', 'text-slate-500', 'text-orange-600'];
-                                    const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
-                                    return (
-                                      <div key={horseNumber} className="flex justify-between py-1">
-                                        <span className={colors[index]}>{labels[index]}</span>
-                                        <span>{entry?.horseName ?? `${horseNumber}番`}</span>
-                                      </div>
-                                    );
-                                  })}
+                    <ConfirmDialog
+                      open={showNetkeibaConfirm}
+                      onOpenChange={setShowNetkeibaConfirm}
+                      icon={
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                          <CheckCircle2 className="h-8 w-8" />
+                        </div>
+                      }
+                      title="Netkeibaの結果で確定しますか？"
+                      description={
+                        <>
+                          Netkeibaの実際の払い戻しオッズで計算されます。
+                          <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                            {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
+                              const labels = ['1着', '2着', '3着'];
+                              const colors = ['text-amber-600', 'text-slate-500', 'text-orange-600'];
+                              const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
+                              return (
+                                <div key={horseNumber} className="flex justify-between py-1">
+                                  <span className={colors[index]}>{labels[index]}</span>
+                                  <span>{entry?.horseName ?? `${horseNumber}番`}</span>
                                 </div>
-                              </div>
-                            </AlertDialog.Description>
+                              );
+                            })}
                           </div>
-                          <div className="mt-8 flex flex-col gap-3">
-                            <AlertDialog.Action asChild>
-                              <Button onClick={handleNetkeibaFinalize} className="w-full py-5 text-lg font-semibold">
-                                確定する
-                              </Button>
-                            </AlertDialog.Action>
-                            <AlertDialog.Cancel asChild>
-                              <Button variant="outline" className="w-full py-5 text-lg font-semibold">
-                                キャンセル
-                              </Button>
-                            </AlertDialog.Cancel>
-                          </div>
-                        </AlertDialog.Content>
-                      </AlertDialog.Portal>
-                    </AlertDialog.Root>
+                        </>
+                      }
+                      confirmLabel="確定する"
+                      confirmVariant="primary"
+                      onConfirm={handleNetkeibaFinalize}
+                    />
                   </>
                 ) : (
-                  <AlertDialog.Root open={showConfirm} onOpenChange={setShowConfirm}>
-                    <AlertDialog.Trigger asChild>
+                  <ConfirmDialog
+                    trigger={
                       <Button
                         className={cn(
                           'shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]',
@@ -628,58 +610,41 @@ export function RaceResultForm({
                         )}
                         disabled={isPending || isPayoutMoving || canFinalizePayout}
                       >
-                        {isPending ? '確定処理中...' : canFinalizePayout ? '着順確定済み' : '着順を確定する'}
+                        {canFinalizePayout ? '着順確定済み' : '着順を確定する'}
                         {isChanged && !isPending && (
                           <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
                         )}
                       </Button>
-                    </AlertDialog.Trigger>
-                    <AlertDialog.Portal>
-                      <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300" />
-                      <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300">
-                        <div className="flex flex-col items-center text-center">
-                          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-                            <AlertCircle className="h-8 w-8" />
+                    }
+                    icon={
+                      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+                        <AlertCircle className="h-8 w-8" />
+                      </div>
+                    }
+                    title="着順を確定しますか？"
+                    description={
+                      <>
+                        この操作を行うと、投票された馬券の払い戻し計算が実行されます。
+                        <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                          <div className="flex justify-between py-1">
+                            <span className="text-amber-600">1着</span>
+                            <span>{sortedEntries[0]?.horseName}</span>
                           </div>
-                          <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
-                            着順を確定しますか？
-                          </AlertDialog.Title>
-                          <AlertDialog.Description asChild className="text-sm text-gray-500">
-                            <div>
-                              この操作を行うと、投票された馬券の払い戻し計算が実行されます。
-                              <br />
-                              <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                                <div className="flex justify-between py-1">
-                                  <span className="text-amber-600">1着</span>
-                                  <span>{sortedEntries[0]?.horseName}</span>
-                                </div>
-                                <div className="flex justify-between py-1">
-                                  <span className="text-slate-500">2着</span>
-                                  <span>{sortedEntries[1]?.horseName}</span>
-                                </div>
-                                <div className="flex justify-between py-1">
-                                  <span className="text-orange-600">3着</span>
-                                  <span>{sortedEntries[2]?.horseName}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </AlertDialog.Description>
+                          <div className="flex justify-between py-1">
+                            <span className="text-slate-500">2着</span>
+                            <span>{sortedEntries[1]?.horseName}</span>
+                          </div>
+                          <div className="flex justify-between py-1">
+                            <span className="text-orange-600">3着</span>
+                            <span>{sortedEntries[2]?.horseName}</span>
+                          </div>
                         </div>
-                        <div className="mt-8 flex flex-col gap-3">
-                          <AlertDialog.Action asChild>
-                            <Button onClick={handleSubmit} className="w-full py-5 text-lg font-semibold">
-                              確定する
-                            </Button>
-                          </AlertDialog.Action>
-                          <AlertDialog.Cancel asChild>
-                            <Button variant="outline" className="w-full py-5 text-lg font-semibold">
-                              キャンセル
-                            </Button>
-                          </AlertDialog.Cancel>
-                        </div>
-                      </AlertDialog.Content>
-                    </AlertDialog.Portal>
-                  </AlertDialog.Root>
+                      </>
+                    }
+                    confirmLabel="確定する"
+                    confirmVariant="primary"
+                    onConfirm={handleSubmit}
+                  />
                 )}
               </div>
             )}
@@ -693,48 +658,26 @@ export function RaceResultForm({
                 >
                   {isPayoutMoving ? '払い戻し処理中...' : '払い戻しを確定する'}
                 </Button>
-                <AlertDialog.Root open={showResetConfirm} onOpenChange={setShowResetConfirm}>
-                  <AlertDialog.Trigger asChild>
+                <ConfirmDialog
+                  trigger={
                     <Button
                       variant="ghost"
                       className="w-full text-sm font-semibold text-gray-400 hover:text-red-500"
                       disabled={isPayoutMoving || isPending}
                     >
-                      着順設定をやり直す（リセット）
+                      着順設定をリセットする
                     </Button>
-                  </AlertDialog.Trigger>
-                  <AlertDialog.Portal>
-                    <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
-                    <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl">
-                      <div className="flex flex-col items-center text-center">
-                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
-                          <AlertCircle className="h-8 w-8" />
-                        </div>
-                        <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
-                          着順設定をリセットしますか？
-                        </AlertDialog.Title>
-                        <AlertDialog.Description className="text-sm text-gray-500">
-                          確定済みの着順・払い戻しがリセットされます。この操作は元に戻せません。
-                        </AlertDialog.Description>
-                      </div>
-                      <div className="mt-6 flex flex-col gap-3">
-                        <AlertDialog.Action asChild>
-                          <Button
-                            onClick={handleServerReset}
-                            className="w-full bg-red-600 font-semibold hover:bg-red-700"
-                          >
-                            リセットする
-                          </Button>
-                        </AlertDialog.Action>
-                        <AlertDialog.Cancel asChild>
-                          <Button variant="outline" className="w-full font-semibold">
-                            キャンセル
-                          </Button>
-                        </AlertDialog.Cancel>
-                      </div>
-                    </AlertDialog.Content>
-                  </AlertDialog.Portal>
-                </AlertDialog.Root>
+                  }
+                  icon={
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+                      <AlertCircle className="h-8 w-8" />
+                    </div>
+                  }
+                  title="着順設定をリセットしますか？"
+                  description="確定済みの着順・払い戻しがリセットされます。この操作は元に戻せません。"
+                  confirmLabel="リセットする"
+                  onConfirm={handleServerReset}
+                />
               </div>
             )}
           </div>

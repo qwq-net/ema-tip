@@ -2,7 +2,17 @@
 
 import { calculateBet5PayoutAction, closeBet5EventAction, updateBet5InitialPotAction } from '@/features/betting';
 import { BET5_STATUS_LABELS } from '@/shared/constants/status';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  ConfirmDialog,
+  Label,
+  NumericInput,
+} from '@/shared/ui';
 import { lookup } from '@/shared/utils/lookup';
 import { Calculator, ExternalLink, Info, Loader2, Lock, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -72,43 +82,33 @@ export function Bet5ManageCard({
     });
   };
 
-  const handleClose = () => {
-    if (!confirm('本当に締め切りますか？ユーザーはこれ以降投票できなくなります。')) return;
-
-    startTransition(async () => {
-      try {
-        await closeBet5EventAction(bet5Event.id, eventId);
-        toast.success('締め切りました');
-        router.refresh();
-      } catch (error) {
-        toast.error('締め切りに失敗しました');
-        console.error(error);
-      }
-    });
+  const handleClose = async () => {
+    try {
+      await closeBet5EventAction(bet5Event.id, eventId);
+      toast.success('締め切りました');
+      router.refresh();
+    } catch (error) {
+      toast.error('締め切りに失敗しました');
+      console.error(error);
+      // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
+      throw error;
+    }
   };
 
-  const handleCalculate = () => {
-    if (!canCalculatePayout) {
-      toast.error('全対象レースが「着順確定」または「払戻確定」になるまで実行できません');
-      return;
-    }
-
-    if (!confirm('全レース確定後に実行してください。配当計算と払い戻しを実行しますか？')) return;
-
-    startTransition(async () => {
-      try {
-        const result = await calculateBet5PayoutAction(bet5Event.id, eventId);
-        if (result.success) {
-          toast.success(`集計完了: 的中${result.winCount}件, 100円あたり配当${result.dividend}円`);
-        } else {
-          toast.error(`失敗: ${result.message}`);
-        }
-        router.refresh();
-      } catch (error) {
-        toast.error('計算処理に失敗しました');
-        console.error(error);
+  const handleCalculate = async () => {
+    try {
+      const result = await calculateBet5PayoutAction(bet5Event.id, eventId);
+      if (result.success) {
+        toast.success(`集計完了: 的中${result.winCount}件, 100円あたり配当${result.dividend}円`);
+      } else {
+        toast.error(`失敗: ${result.message}`);
       }
-    });
+      router.refresh();
+    } catch (error) {
+      toast.error('計算処理に失敗しました');
+      console.error(error);
+      throw error;
+    }
   };
 
   return (
@@ -204,17 +204,33 @@ export function Bet5ManageCard({
 
         <div className="flex flex-col gap-2 sm:flex-row">
           {bet5Event.status === 'SCHEDULED' && (
-            <Button variant="destructive" onClick={handleClose} disabled={isPending}>
-              <Lock className="mr-2 h-4 w-4" />
-              締め切り (受付終了)
-            </Button>
+            <ConfirmDialog
+              trigger={
+                <Button variant="destructive" disabled={isPending}>
+                  <Lock className="mr-2 h-4 w-4" />
+                  受付を締め切る
+                </Button>
+              }
+              title="BET5を締め切りますか？"
+              description="ユーザーはこれ以降投票できなくなります。"
+              confirmLabel="締め切る"
+              onConfirm={handleClose}
+            />
           )}
 
           {bet5Event.status === 'CLOSED' && (
-            <Button variant="secondary" onClick={handleCalculate} disabled={isPending || !canCalculatePayout}>
-              <Calculator className="mr-2 h-4 w-4" />
-              配当計算・払い戻し実行
-            </Button>
+            <ConfirmDialog
+              trigger={
+                <Button variant="secondary" disabled={isPending || !canCalculatePayout}>
+                  <Calculator className="mr-2 h-4 w-4" />
+                  配当計算・払い戻し実行
+                </Button>
+              }
+              title="配当計算・払い戻しを実行しますか？"
+              description="的中を集計し、各ユーザーへ払い戻します。この操作は取り消せません。"
+              confirmLabel="実行する"
+              onConfirm={handleCalculate}
+            />
           )}
 
           {bet5Event.status === 'CLOSED' && !canCalculatePayout && (
