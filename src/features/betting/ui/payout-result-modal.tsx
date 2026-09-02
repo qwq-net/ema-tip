@@ -10,6 +10,7 @@ interface ResultItem {
     numbers: number[];
     payout: number;
     popularity?: number;
+    guaranteed?: boolean;
   }[];
 }
 
@@ -94,7 +95,7 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
   const item = results.find((r) => r.type === type);
   const data = item?.combinations || [];
 
-  const rows = [...data];
+  const rows: ResultItem['combinations'] = [...data];
   while (rows.length < minRows) {
     rows.push({ numbers: [], payout: 0 });
   }
@@ -120,8 +121,15 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
               <div className="font-mono text-2xl font-semibold tracking-wider">
                 {isPlaceholder ? '-' : row.numbers.join(' - ')}
               </div>
-              <div className="w-32 text-right font-mono text-xl font-semibold">
-                {row.payout.toLocaleString('ja-JP')}円
+              <div className="flex min-w-32 items-center justify-end gap-2">
+                {row.guaranteed && (
+                  <span className="rounded bg-emerald-900 px-1.5 py-0.5 text-sm font-semibold text-emerald-300">
+                    保証
+                  </span>
+                )}
+                <span className="text-right font-mono text-xl font-semibold">
+                  {row.payout.toLocaleString('ja-JP')}円
+                </span>
               </div>
             </div>
           );

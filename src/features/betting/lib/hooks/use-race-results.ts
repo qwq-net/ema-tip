@@ -8,6 +8,7 @@ export interface PayoutResult {
     numbers: number[];
     payout: number;
     popularity?: number;
+    guaranteed?: boolean;
   }[];
 }
 

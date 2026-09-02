@@ -2,10 +2,12 @@ import { BetType } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
+import { isGuaranteedBet } from '@/features/betting/lib/guaranteed';
+import { GuaranteedOddsList } from '@/features/betting/ui/guaranteed-odds-list';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { requireLoginPage } from '@/shared/utils/admin';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StandbyClient } from './standby-client';
@@ -27,6 +29,7 @@ interface ClientPayoutResult {
     numbers: number[];
     payout: number;
     popularity?: number;
+    guaranteed?: boolean;
   }[];
 }
 
@@ -62,6 +65,10 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     }));
   }
 
+  const guaranteedOdds = race.guaranteedOdds ?? {};
+  const hasGuaranteedOdds = !race.fixedOddsMode && Object.keys(guaranteedOdds).length > 0;
+  const combinationsByType = new Map(initialResults.map((r) => [r.type, r.combinations]));
+
   const ticketGroups = betGroupsData.map((group) => {
     return {
       id: group.id,
@@ -77,6 +84,16 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           status: bet.status,
           payout: bet.payout ?? undefined,
           odds: bet.odds ?? undefined,
+          guaranteed:
+            hasGuaranteedOdds &&
+            isGuaranteedBet({
+              status: bet.status,
+              type: details.type,
+              selections: details.selections,
+              odds: bet.odds,
+              guaranteedOdds,
+              payoutCombinations: combinationsByType.get(group.type),
+            }),
           createdAt: bet.createdAt,
           selections: details.selections.map((num: number) => {
             // 枠連の selections は馬番ではなく枠番。馬番として引き当てると別の馬の枠色が表示される
@@ -141,6 +158,17 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           hasTickets={ticketGroups.length > 0}
           entryCount={entries.length}
         />
+
+        {hasGuaranteedOdds && (
+          <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <h2 className="text-sm font-semibold text-gray-900">保証オッズ</h2>
+              <span className="text-sm text-gray-500">的中時の払戻倍率は下記を下回りません</span>
+            </div>
+            <GuaranteedOddsList guaranteedOdds={guaranteedOdds} />
+          </section>
+        )}
 
         <PurchasedTicketList ticketGroups={ticketGroups} fixedOddsMode={race.fixedOddsMode} />
       </div>

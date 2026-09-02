@@ -22,6 +22,7 @@ interface BetTicket {
   status: 'PENDING' | 'HIT' | 'LOST' | 'REFUNDED';
   payout?: number;
   odds?: string;
+  guaranteed?: boolean;
   createdAt: Date;
 }
 
@@ -93,6 +94,8 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
   const maxProvisional = Math.max(...provisionalPayouts);
 
   const isHit = group.bets.some((bet) => bet.status === 'HIT');
+  const hasGuaranteedHit = group.bets.some((bet) => bet.status === 'HIT' && bet.guaranteed);
+  const hasGuaranteedProvisional = group.bets.some((bet) => bet.status === 'PENDING' && bet.guaranteed);
   const isAllRefunded = group.bets.every((bet) => bet.status === 'REFUNDED');
   const isSettledWithoutHit = group.bets.every((bet) => bet.status === 'LOST' || bet.status === 'REFUNDED');
   const isPending = group.bets.some((bet) => bet.status === 'PENDING');
@@ -165,6 +168,9 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
             <div className="flex items-center gap-2">
               <span className="font-semibold text-gray-900">{BET_TYPE_LABELS[group.type]}</span>
               {getGroupStatusBadge()}
+              {hasGuaranteedHit && (
+                <Badge variant="status" label="保証オッズ適用" className="bg-emerald-100 text-emerald-800" />
+              )}
             </div>
           </div>
         </div>
@@ -182,11 +188,18 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
             <div className="mt-0.5 text-sm text-gray-400">Netkeibaオッズで払戻</div>
           ) : (
             hasProvisional && (
-              <div className="mt-0.5 text-sm font-medium text-amber-600">
-                想定払戻:{' '}
-                {minProvisional === maxProvisional
-                  ? `${minProvisional.toLocaleString('ja-JP')}円`
-                  : `${minProvisional.toLocaleString('ja-JP')}〜${maxProvisional.toLocaleString('ja-JP')}円`}
+              <div className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
+                {hasGuaranteedProvisional && (
+                  <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-sm font-semibold text-emerald-700">
+                    保証
+                  </span>
+                )}
+                <span>
+                  想定払戻:{' '}
+                  {minProvisional === maxProvisional
+                    ? `${minProvisional.toLocaleString('ja-JP')}円`
+                    : `${minProvisional.toLocaleString('ja-JP')}〜${maxProvisional.toLocaleString('ja-JP')}円`}
+                </span>
               </div>
             )
           )}

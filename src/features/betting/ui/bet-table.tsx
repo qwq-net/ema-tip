@@ -9,6 +9,7 @@ import type { getRaceOdds } from '@/features/betting/logic/odds';
 import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
+import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
 import { Badge, Button, Checkbox, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
@@ -55,6 +56,7 @@ interface BetTableProps {
   closingAt: string | null;
   initialOdds: Awaited<ReturnType<typeof getRaceOdds>>;
   fixedOddsMode?: boolean;
+  guaranteedOdds?: Record<string, number> | null;
 }
 
 export function BetTable({
@@ -66,6 +68,7 @@ export function BetTable({
   closingAt,
   initialOdds,
   fixedOddsMode = false,
+  guaranteedOdds,
 }: BetTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -199,15 +202,18 @@ export function BetTable({
             Netkeibaオッズ（固定）
           </span>
         ) : (
-          odds?.updatedAt && (
-            <span className="w-full text-right text-sm text-gray-500 sm:w-auto">
-              オッズ最終更新:{' '}
-              <FormattedDate
-                date={odds.updatedAt}
-                options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }}
-              />
-            </span>
-          )
+          <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
+            {odds?.updatedAt && (
+              <span className="text-right text-sm text-gray-500">
+                オッズ最終更新:{' '}
+                <FormattedDate
+                  date={odds.updatedAt}
+                  options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }}
+                />
+              </span>
+            )}
+            <GuaranteedOddsDialog guaranteedOdds={guaranteedOdds} />
+          </div>
         )}
       </div>
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

@@ -13,7 +13,7 @@ const PROVISIONAL_ODDS_CACHE_SECONDS = 10;
 export async function calculateOdds(raceId: string) {
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),
-    columns: { fixedOddsMode: true },
+    columns: { fixedOddsMode: true, guaranteedOdds: true },
   });
 
   if (race?.fixedOddsMode) return;
@@ -27,8 +27,10 @@ export async function calculateOdds(raceId: string) {
 
   const winBets = raceBets.filter((bet) => bet.details.type === 'win');
 
-  // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す
-  const provisionalWin = calculateProvisionalOdds(aggregateOddsPool(winBets))[BET_TYPES.WIN] ?? {};
+  // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す。
+  // 保証オッズも適用し、表示オッズが実際の払戻下限を下回らないようにする
+  const provisionalWin =
+    calculateProvisionalOdds(aggregateOddsPool(winBets), race?.guaranteedOdds || undefined)[BET_TYPES.WIN] ?? {};
   const winOdds = Object.fromEntries(
     // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
     Object.entries(provisionalWin).map(([key, rate]) => [String((JSON.parse(key) as number[])[0]), rate])

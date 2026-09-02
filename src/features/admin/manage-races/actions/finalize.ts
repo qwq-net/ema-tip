@@ -143,7 +143,7 @@ async function finalizeRaceInner(
       }
     }
 
-    const payoutCalculationsByType: Record<string, { numbers: number[]; payout: number }[]> = {};
+    const payoutCalculationsByType: Record<string, { numbers: number[]; payout: number; guaranteed?: boolean }[]> = {};
 
     if (netkeibaPayouts) {
       for (const [type, entries] of Object.entries(netkeibaPayouts)) {
@@ -161,13 +161,19 @@ async function finalizeRaceInner(
         for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
           let rate = calculatePayoutRate(poolByBetType[type], selectionAmount, totalWinningAmount, winningCount);
 
-          if (guaranteedOdds?.[type]) {
-            rate = Math.max(rate, guaranteedOdds[type]);
+          // 保証で倍率が引き上げられた組み合わせはフラグを残し、UI で保証適用を示せるようにする
+          const isGuaranteed = guaranteedOdds?.[type] !== undefined && rate < guaranteedOdds[type];
+          if (isGuaranteed) {
+            rate = guaranteedOdds[type];
           }
 
           const unitPayout = Math.floor(ODDS_UNIT * rate);
           // SAFETY: selectionKey は normalizeSelections が number[] を JSON.stringify したもの
-          payoutCalculationsByType[type].push({ numbers: JSON.parse(selectionKey) as number[], payout: unitPayout });
+          payoutCalculationsByType[type].push({
+            numbers: JSON.parse(selectionKey) as number[],
+            payout: unitPayout,
+            ...(isGuaranteed && { guaranteed: true }),
+          });
         }
       }
 
@@ -182,7 +188,7 @@ async function finalizeRaceInner(
           const exists = payoutCalculationsByType[type].some((p) => normalizeSelections(type, p.numbers) === key);
           if (!exists) {
             const payout = Math.floor(ODDS_UNIT * defaultRate);
-            payoutCalculationsByType[type].push({ numbers: combination, payout });
+            payoutCalculationsByType[type].push({ numbers: combination, payout, guaranteed: true });
           }
         }
 

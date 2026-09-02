@@ -106,6 +106,24 @@ describe('calculateOdds', () => {
     expect(valuesArg.winOdds['2']).toBe(3.0);
   });
 
+  it('保証オッズが設定されている場合、単勝の表示オッズが保証倍率を下回らない', async () => {
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValueOnce({
+      fixedOddsMode: false,
+      guaranteedOdds: { win: 5.0 },
+    });
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 1000, details: { type: 'win', selections: [1] } },
+      { amount: 500, details: { type: 'win', selections: [2] } },
+    ]);
+    (redis.get as unknown as Mock).mockResolvedValue(null);
+
+    await calculateOdds(raceId);
+
+    const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
+    const valuesArg = insertValues.mock.calls[0][0];
+    expect(valuesArg.winOdds).toEqual({ '1': 5.0, '2': 5.0 });
+  });
+
   it('1馬番のみにベットが集中 → オッズ最低値1.1が適用される', async () => {
     (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
       { amount: 1000, details: { type: 'win', selections: [1] } },

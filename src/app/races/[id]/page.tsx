@@ -105,6 +105,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           closingAt={race.closingAt ? race.closingAt.toISOString() : null}
           initialOdds={initialOdds}
           fixedOddsMode={race.fixedOddsMode}
+          guaranteedOdds={race.guaranteedOdds}
         />
 
         <Suspense

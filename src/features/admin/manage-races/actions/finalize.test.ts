@@ -277,6 +277,59 @@ describe('finalizeRace', () => {
     expect(winHit!.payout).toBe(1000);
   });
 
+  it('保証倍率が採用された組み合わせには guaranteed フラグが付与される', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({
+      status: 'CLOSED',
+      guaranteedOdds: { [BET_TYPES.WIN]: 10.0 },
+    });
+    mockTx.query.bets.findMany.mockResolvedValue([
+      { id: 'b1', amount: 100, details: { type: BET_TYPES.WIN, selections: [1] } },
+    ]);
+
+    await finalizeRace('race1', defaultResults);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
+    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number; guaranteed?: boolean }>;
+    const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
+    expect(winHit!.guaranteed).toBe(true);
+  });
+
+  it('計算倍率が保証倍率を上回る組み合わせには guaranteed フラグが付かない', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({
+      status: 'CLOSED',
+      guaranteedOdds: { [BET_TYPES.WIN]: 1.2 },
+    });
+    mockTx.query.bets.findMany.mockResolvedValue([
+      { id: 'b1', amount: 100, details: { type: BET_TYPES.WIN, selections: [1] } },
+      { id: 'b2', amount: 100, details: { type: BET_TYPES.WIN, selections: [2] } },
+    ]);
+
+    await finalizeRace('race1', defaultResults);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
+    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number; guaranteed?: boolean }>;
+    const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
+    expect(winHit!.payout).toBe(200);
+    expect(winHit!.guaranteed).toBeUndefined();
+  });
+
+  it('誰も買っていない的中組み合わせの補完にも guaranteed フラグが付与される', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.bets.findMany.mockResolvedValue([]);
+
+    await finalizeRace('race1', defaultResults);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
+    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number; guaranteed?: boolean }>;
+    const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
+    expect(winHit!.guaranteed).toBe(true);
+  });
+
   it('賭けがないレースでもデフォルト保証オッズで勝利組み合わせが生成される', async () => {
     await setupAdminAuth();
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
