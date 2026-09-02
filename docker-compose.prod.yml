@@ -8,17 +8,22 @@ x-logging: &logging
       max-size: 10m
       max-file: '3'
 
+# メモリ上限は実測にもとづく保険。本番アプリは負荷時でも400MB強で安定しており、
+# 万一の異常増加時は OOM kill と restart で自己回復させ、VM 全体を巻き込ませない
 services:
   app:
     restart: unless-stopped
+    mem_limit: 1g
     <<: *logging
 
   db:
     restart: unless-stopped
+    mem_limit: 512m
     <<: *logging
 
   redis:
     restart: unless-stopped
+    mem_limit: 256m
     <<: *logging
 
   tunnel:
@@ -27,4 +32,5 @@ services:
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     restart: unless-stopped
+    mem_limit: 128m
     <<: *logging
