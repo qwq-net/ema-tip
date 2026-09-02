@@ -264,11 +264,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
       </div>
 
       <div className="sticky right-0 ml-auto flex shrink-0 flex-col items-end gap-1 pl-4">
-        {row.hasHit && (
-          <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-sm font-semibold text-red-700">
-            的中
-          </span>
-        )}
+        {row.hasHit && <Badge variant="status" label="的中" className="bg-red-100 text-red-800" />}
         <span className="text-text-sub text-sm font-medium whitespace-nowrap">{row.betCount}点</span>
       </div>
     </div>

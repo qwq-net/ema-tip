@@ -113,7 +113,7 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold whitespace-nowrap ring-1 ring-black/5 ring-inset',
+        'inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold whitespace-nowrap ring-1 ring-black/5 ring-inset',
         getVariantStyles(),
         className
       )}

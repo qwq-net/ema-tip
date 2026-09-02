@@ -3,6 +3,7 @@
 import { createBet5EventAction } from '@/features/betting';
 import { toast } from '@/shared/lib/toast';
 import {
+  Badge,
   Button,
   Card,
   CardContent,
@@ -105,9 +106,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                     <span className="flex items-center justify-between">
                       <span className="text-sm font-medium">{raceLabel(race)}</span>
                       {legNumber > 0 && (
-                        <span className="bg-turf-600 rounded-full px-2 py-0.5 text-xs font-semibold text-white">
-                          第{legNumber}戦
-                        </span>
+                        <Badge label={`第${legNumber}戦`} className="bg-turf-600 border-0 text-white" />
                       )}
                     </span>
                   </button>

@@ -98,9 +98,10 @@ export function RankingList({
                 </div>
                 <div className="flex items-center gap-2">
                   {user.totalLoaned !== undefined && user.totalLoaned > 0 && (
-                    <span className="mr-1 rounded-full bg-orange-100 px-2 py-0.5 text-sm font-semibold text-orange-700">
-                      借入 {user.totalLoaned.toLocaleString('ja-JP')}円
-                    </span>
+                    <Badge
+                      label={`借入 ${user.totalLoaned.toLocaleString('ja-JP')}円`}
+                      className="mr-1 bg-orange-100 text-orange-700 tabular-nums"
+                    />
                   )}
                   <div className="text-right">
                     <div className="font-semibold text-gray-900">

@@ -2,7 +2,7 @@
 
 import { getDisplayStatus } from '@/entities/race/lib/status';
 import { RaceListTable } from '@/entities/race/ui/race-list-table';
-import { Badge } from '@/shared/ui';
+import { Badge, Button } from '@/shared/ui';
 import { PersistedAccordion, PersistedAccordionHeader, PersistedAccordionItem } from '@/shared/ui/persisted-accordion';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
@@ -86,34 +86,38 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                 countLabel={`${event.races.length}レース`}
               >
                 {showBet5SetupLink && (
-                  <Link
-                    href={`/admin/events/${event.id}/bet5`}
-                    className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-100"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    BET5が設定できます
-                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                  </Link>
+                  <Button asChild variant="outline" size="sm" className="border-sky-200 text-sky-700 hover:bg-sky-50">
+                    <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
+                      BET5が設定できます
+                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                 )}
                 {showBet5CloseReminder && (
-                  <Link
-                    href={`/admin/events/${event.id}/bet5`}
-                    className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
-                    onClick={(e) => e.stopPropagation()}
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-200 text-amber-700 hover:bg-amber-50"
                   >
-                    BET5を締め切り忘れていませんか？
-                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                  </Link>
+                    <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
+                      BET5を締め切り忘れていませんか？
+                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                 )}
                 {showBet5PayoutReminder && (
-                  <Link
-                    href={`/admin/events/${event.id}/bet5`}
-                    className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100"
-                    onClick={(e) => e.stopPropagation()}
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-rose-200 text-rose-700 hover:bg-rose-50"
                   >
-                    BET5を払い戻し忘れていませんか？
-                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                  </Link>
+                    <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
+                      BET5を払い戻し忘れていませんか？
+                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                 )}
               </PersistedAccordionHeader>
             }

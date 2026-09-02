@@ -4,11 +4,10 @@ import { getDisplayStatus } from '@/entities/race/lib/status';
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
-import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
+import { RaceStatus } from '@/shared/constants/status';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
-import { lookup } from '@/shared/utils/lookup';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -99,21 +98,6 @@ export function StandbyClient({
   const baseStatus: RaceStatus = initialIsFinalized ? 'FINALIZED' : isClosed ? 'CLOSED' : 'SCHEDULED';
   const displayStatus = initialIsFinalized ? 'FINALIZED' : getDisplayStatus(baseStatus, ranking.length > 0);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'SCHEDULED':
-        return 'bg-green-600';
-      case 'CLOSED':
-        return 'bg-orange-600';
-      case 'RANKING_CONFIRMED':
-        return 'bg-indigo-500 ring-indigo-300';
-      case 'FINALIZED':
-        return 'bg-indigo-600';
-      default:
-        return 'bg-gray-600';
-    }
-  };
-
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
@@ -132,11 +116,7 @@ export function StandbyClient({
       <div className="mb-8 flex items-center justify-between border-b border-gray-100 pb-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span
-              className={`rounded-chip px-2 py-0.5 text-sm font-semibold text-white ${getStatusColor(displayStatus)}`}
-            >
-              {lookup(RACE_STATUS_LABELS, displayStatus) || RACE_STATUS_LABELS[baseStatus]}
-            </span>
+            <Badge variant="status" label={displayStatus} />
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">{race.location}</span>
               {race.raceNumber && (

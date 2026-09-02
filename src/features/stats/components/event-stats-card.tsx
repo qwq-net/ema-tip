@@ -2,6 +2,7 @@
 
 import { TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { AssetChart } from '@/features/stats/components/asset-chart';
+import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
@@ -22,11 +23,7 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold">{event.name}</h3>
-                {event.loan > 0 && (
-                  <span className="rounded-full bg-orange-100 px-2 py-0.5 text-sm font-semibold text-orange-700">
-                    借入あり
-                  </span>
-                )}
+                {event.loan > 0 && <Badge label="借入あり" className="bg-orange-100 text-orange-700" />}
               </div>
               <div className="flex gap-4 text-sm">
                 <div>
