@@ -14,6 +14,12 @@ Winning Post などのプレイデータをもとに、仲間内で仮想の競�
 - Testing: Vitest
 - Infrastructure: Docker Compose + Cloudflare Tunnel
 
+## 推奨環境
+
+- OS: Ubuntu
+- vCPU: 2+
+- MEMORY: 4GB+
+
 ## 開発環境セットアップ
 
 前提: Docker と [Task](https://taskfile.dev/) がインストールされていること。
