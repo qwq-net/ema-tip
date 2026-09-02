@@ -134,16 +134,13 @@ export default async function AdminPage() {
             </div>
             <div className="space-y-1">
               <h2 className="text-secondary font-semibold">管理者向けクイックガイド</h2>
-              <p className="max-w-md text-sm text-gray-600">
-                マスタの登録からイベント開催までの流れをステップ形式で解説します。
-              </p>
             </div>
           </div>
           <Link
             href="/admin/guide"
             className="text-primary rounded-control flex shrink-0 items-center gap-2 border border-gray-200 bg-white px-4 py-2 text-sm font-semibold transition hover:bg-gray-50 active:scale-[.96]"
           >
-            使い方を見る
+            ガイドへ
             <ArrowRight className="h-4 w-4" />
           </Link>
         </CardContent>
