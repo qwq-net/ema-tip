@@ -9,7 +9,7 @@ import postgres from 'postgres';
  *
  * 実行: task perf:load -- <シナリオ...>
  *   bets   全ユーザー同時の馬券購入バースト。PERF_ROUNDS 回繰り返す
- *   bulk   一人による三連単1000点の一括購入。1リクエストの書き込み最悪ケース
+ *   bulk   一人による三連単全4,896点の一括購入。1リクエストの書き込み最悪ケース
  *   sse    全ユーザー接続中に締切イベントを発火し、SSE 到達遅延を測る。終了後は再開して戻す
  *   pages  主要ページの応答時間を直列計測する
  *   payout 締切→着順確定→払戻確定の所要時間を測る。レースが FINALIZED になるため最後に実行する
@@ -186,9 +186,9 @@ async function scenarioBets(fx: Fixture, ids: ActionIds) {
   summarize('bets', durations, errors);
 }
 
-// 一人が行える1リクエストの最悪ケースを測る。18頭立て三連単をサーバー上限の1000点まで
-// 一括購入し、bet 1000行 + transaction 1000行の書き込みを1回で発生させる。
-// 総額10万円で初期残高を使い切るため、bets シナリオとは別ユーザーを使う
+// 一人が行える1リクエストの最悪ケースを測る。18頭立て三連単の全4,896点を一括購入し、
+// bet と transaction 各4,896行の書き込みを1回のリクエストで発生させる。
+// 総額約49万円を要するため、bets シナリオとは別ユーザーを使う
 async function scenarioBulk(fx: Fixture, ids: ActionIds) {
   const user = fx.users.at(-1);
   if (!user) throw new Error('ユーザーがいません');
@@ -196,12 +196,10 @@ async function scenarioBulk(fx: Fixture, ids: ActionIds) {
 
   const combinations: number[][] = [];
   const n = fx.entryIds.length;
-  outer: for (let a = 1; a <= n; a++) {
+  for (let a = 1; a <= n; a++) {
     for (let b = 1; b <= n; b++) {
       for (let c = 1; c <= n; c++) {
-        if (a === b || b === c || a === c) continue;
-        combinations.push([a, b, c]);
-        if (combinations.length >= 1000) break outer;
+        if (a !== b && b !== c && a !== c) combinations.push([a, b, c]);
       }
     }
   }

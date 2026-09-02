@@ -18,8 +18,8 @@ const PERF = {
   eventName: 'PERF検証イベント',
   raceName: 'PERF検証レース',
   password: '🐶🐶🐶',
-  // bets シナリオ消化後も bulk の三連単1000点×100円を買い切れる残高にしておく
-  balance: 200_000,
+  // bets シナリオ消化後も bulk の三連単全4,896点×100円を買い切れる残高にしておく
+  balance: 500_000,
   // 実戦のフルゲート想定。三連単4,896点となり、1リクエスト上限1000点の一括購入を検証できる
   horseCount: 18,
 } as const;

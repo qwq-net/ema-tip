@@ -188,14 +188,14 @@ describe('placeBets', () => {
     });
   });
 
-  it('組み合わせ数が上限の1000を超える場合は INVALID_INPUT エラーをスローする', async () => {
+  it('組み合わせ数が理論最大の4896を超える場合は点数上限エラーを返す', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
-    const tooManyCombinations = Array.from({ length: 1001 }, (_, i) => [i + 1]);
+    const tooManyCombinations = Array.from({ length: 4897 }, (_, i) => [i + 1]);
     await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).resolves.toEqual({
       success: false,
-      error: ADMIN_ERRORS.INVALID_INPUT,
+      error: '購入点数は4,896点以内にしてください',
     });
   });
 

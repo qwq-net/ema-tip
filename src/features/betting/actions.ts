@@ -20,7 +20,9 @@ import { revalidatePath } from 'next/cache';
 import { calculateOdds, getProvisionalOddsCached } from './logic/odds';
 
 const BATCH_SIZE = 100;
-const MAX_COMBINATIONS = 1000;
+// 18頭フルゲートの三連単全点 18×17×16 に相当する理論最大。
+// UI のフォーメーションで組める最大点数なので、これを超えるのは不正リクエストだけ
+const MAX_COMBINATIONS = 4896;
 
 type PlaceBetsArgs = {
   raceId: string;
@@ -39,8 +41,12 @@ export async function placeBets(args: PlaceBetsArgs) {
 async function placeBetsInner({ raceId, walletId, betType, combinations, amountPerBet }: PlaceBetsArgs) {
   const session = await requireUser();
 
-  if (combinations.length === 0 || combinations.length > MAX_COMBINATIONS) {
+  if (combinations.length === 0) {
     throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
+  }
+
+  if (combinations.length > MAX_COMBINATIONS) {
+    throw new ActionError(`購入点数は${MAX_COMBINATIONS.toLocaleString('ja-JP')}点以内にしてください`);
   }
 
   if (amountPerBet <= 0 || amountPerBet % 100 !== 0) {
