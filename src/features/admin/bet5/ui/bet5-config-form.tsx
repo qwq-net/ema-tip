@@ -25,12 +25,14 @@ type Race = {
 interface Bet5ConfigFormProps {
   eventId: string;
   eventName: string;
+  /** 初期プール入力欄の初期値。イベントのデフォルト配布金額の10倍を渡す想定 */
+  defaultInitialPot: number;
   races: Race[];
 }
 
-export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProps) {
+export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }: Bet5ConfigFormProps) {
   const router = useRouter();
-  const [initialPot, setInitialPot] = useState(0);
+  const [initialPot, setInitialPot] = useState(defaultInitialPot);
   const [selectedRaces, setSelectedRaces] = useState<string[]>([]);
 
   const sortedRaces = [...races].sort((a, b) => (a.raceNumber || 0) - (b.raceNumber || 0));
@@ -121,7 +123,9 @@ export function Bet5ConfigForm({ eventId, eventName, races }: Bet5ConfigFormProp
           <div className="space-y-2">
             <Label htmlFor="initialPot">初期プール</Label>
             <NumericInput id="initialPot" value={initialPot} onChange={setInitialPot} min={0} />
-            <p className="text-sm text-gray-500">売上によるプール金額とは別に、今回特別に設定するボーナス金額です。</p>
+            <p className="text-sm text-gray-500">
+              売上によるプール金額とは別に、今回特別に設定するボーナス金額です。初期値はイベントの配布金額の10倍です。
+            </p>
           </div>
 
           <ConfirmDialog

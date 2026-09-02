@@ -152,6 +152,7 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
         <Bet5ConfigForm
           eventId={id}
           eventName={event.name}
+          defaultInitialPot={event.distributeAmount * 10}
           races={races.map((r) => ({ id: r.id, raceNumber: r.raceNumber, name: r.name }))}
         />
       ) : (
