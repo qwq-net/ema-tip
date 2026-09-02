@@ -50,12 +50,14 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
 
         <CollapsibleContent>
           <div className="space-y-4 border-t border-gray-100 px-4 py-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {event.loan > 0 && (
               <div className="space-y-1">
                 <span className="text-text-sub text-sm">借入総額</span>
-                <div className="text-error text-lg font-semibold">¥{event.loan.toLocaleString('ja-JP')}</div>
+                <div className="text-error text-lg font-semibold tabular-nums">
+                  ¥{event.loan.toLocaleString('ja-JP')}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-2">
               <h4 className="text-text-sub text-sm font-medium">資産推移</h4>
