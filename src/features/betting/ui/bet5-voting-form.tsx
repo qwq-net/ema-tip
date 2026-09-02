@@ -141,7 +141,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 aria-current={index === activeTab || undefined}
                 className={cn(
                   'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50',
-                  index === activeTab && 'bg-indigo-50/50'
+                  index === activeTab && 'bg-turf-50/70'
                 )}
               >
                 <span className="text-text-sub shrink-0 text-sm font-semibold">第{index + 1}戦</span>
@@ -156,7 +156,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 <span
                   className={cn(
                     'ml-auto shrink-0 text-sm font-semibold',
-                    selectionCount > 0 ? 'text-indigo-600' : 'text-text-sub'
+                    selectionCount > 0 ? 'text-turf-700' : 'text-text-sub'
                   )}
                 >
                   {selectionCount > 0 ? `${selectionCount}頭選択` : '未選択'}
@@ -178,14 +178,14 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 aria-current={isSelected || undefined}
                 className={cn(
                   'relative flex min-w-[80px] flex-1 flex-col items-center justify-center gap-1 px-4 py-3 text-sm font-medium transition-colors hover:bg-gray-50',
-                  isSelected ? 'border-b-2 border-indigo-600 bg-indigo-50/50' : 'text-gray-500'
+                  isSelected ? 'border-turf-600 bg-turf-50/70 border-b-2' : 'text-gray-500'
                 )}
               >
-                <span className={cn('text-sm whitespace-nowrap', isSelected && 'font-semibold text-indigo-700')}>
+                <span className={cn('text-sm whitespace-nowrap', isSelected && 'text-turf-800 font-semibold')}>
                   {race.raceNumber}R
                 </span>
                 {selectionCount > 0 && (
-                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-100 px-1.5 text-sm font-semibold text-indigo-700">
+                  <span className="bg-turf-100 text-turf-800 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-sm font-semibold">
                     {selectionCount}
                   </span>
                 )}
@@ -221,7 +221,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                       className={
                         isScratched
                           ? 'text-text-sub bg-red-50/50 line-through'
-                          : `cursor-pointer transition-colors hover:bg-gray-50 ${isSelected ? 'bg-indigo-50/50 hover:bg-indigo-50' : ''}`
+                          : `cursor-pointer transition-colors hover:bg-gray-50 ${isSelected ? 'bg-turf-50/70 hover:bg-turf-100/70' : ''}`
                       }
                       onClick={() => !isScratched && toggleSelection(activeRace.id, entry.horse.id)}
                     >
@@ -248,7 +248,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                             onCheckedChange={() => toggleSelection(activeRace.id, entry.horse.id)}
                             disabled={isScratched}
                             aria-label={`${entry.horseNumber ?? '-'}番 ${entry.horse.name}を選択`}
-                            className="h-5 w-5 border-gray-300 data-[state=checked]:border-indigo-600 data-[state=checked]:bg-indigo-600"
+                            className="data-[state=checked]:border-turf-600 data-[state=checked]:bg-turf-600 h-5 w-5 border-gray-300"
                           />
                         </div>
                       </td>
@@ -265,7 +265,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
               <span className="font-semibold text-gray-600">{activeRace.raceNumber}R 選択馬:</span>
               {activeRaceSelections.length > 0 ? (
-                <span className="font-semibold text-indigo-600">
+                <span className="text-turf-700 font-semibold">
                   {activeRace.entries
                     .filter((e) => activeRaceSelections.includes(e.horse.id))
                     .map((e) => e.horseNumber)
@@ -342,7 +342,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
               </span>
               <span className="flex justify-between border-t border-gray-200 pt-2 text-lg font-semibold text-gray-900">
                 <span>合計金額</span>
-                <span className="text-indigo-600">{totalCost.toLocaleString('ja-JP')}円</span>
+                <span className="text-turf-700">{totalCost.toLocaleString('ja-JP')}円</span>
               </span>
             </span>
           </>

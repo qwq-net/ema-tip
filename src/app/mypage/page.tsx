@@ -25,28 +25,28 @@ export default async function MyPage() {
       title: '即BET',
       description: '開催中のレースへ投票（馬券購入）',
       icon: <Zap size={32} />,
-      color: 'bg-yellow-100 text-yellow-600',
+      color: 'bg-turf-100 text-turf-800',
     },
     {
       href: '/stats',
       title: '過去の戦績確認',
       description: 'これまでの的中実績や回収率',
       icon: <History size={32} />,
-      color: 'bg-blue-100 text-blue-600',
+      color: 'bg-turf-100 text-turf-800',
     },
     {
       href: '/mypage/wallet',
       title: 'ウォレット確認',
       description: '所持金と取引履歴の確認',
       icon: <Wallet size={32} />,
-      color: 'bg-green-100 text-green-600',
+      color: 'bg-turf-100 text-turf-800',
     },
     {
       href: '/mypage/claim',
       title: 'お小遣いを貰う',
       description: 'イベントに参加して資金をチャージ',
       icon: <Coins size={32} />,
-      color: 'bg-amber-100 text-amber-600',
+      color: 'bg-turf-100 text-turf-800',
     },
   ];
 

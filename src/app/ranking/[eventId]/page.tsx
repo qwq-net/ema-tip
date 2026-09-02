@@ -39,7 +39,7 @@ export default async function RankingPage({ params }: RankingPageProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+          <div className="bg-turf-100 text-turf-800 flex h-12 w-12 items-center justify-center rounded-xl">
             <Trophy size={28} />
           </div>
           <div>

@@ -63,7 +63,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
         <Button variant="outline" className="w-full sm:w-auto">
           <Ticket className="mr-2 h-4 w-4" />
           購入済みの投票を確認
-          <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-100 px-1.5 text-sm font-semibold text-indigo-700">
+          <span className="bg-turf-100 text-turf-800 ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-sm font-semibold">
             {tickets.length}
           </span>
         </Button>
@@ -114,7 +114,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                 })}
                 <div className="flex justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
                   <span className="text-gray-500">{points}点</span>
-                  <span className="font-semibold text-indigo-600">{ticket.amount.toLocaleString('ja-JP')}円</span>
+                  <span className="text-turf-700 font-semibold">{ticket.amount.toLocaleString('ja-JP')}円</span>
                 </div>
               </div>
             );

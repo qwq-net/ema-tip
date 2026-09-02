@@ -96,14 +96,14 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                   <div
                     key={race.id}
                     className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-gray-50 ${
-                      legNumber > 0 ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-gray-200'
+                      legNumber > 0 ? 'border-turf-500 bg-turf-50 ring-turf-500 ring-1' : 'border-gray-200'
                     }`}
                     onClick={() => handleRaceSelection(race.id)}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{raceLabel(race)}</span>
                       {legNumber > 0 && (
-                        <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-semibold text-white">
+                        <span className="bg-turf-600 rounded-full px-2 py-0.5 text-xs font-semibold text-white">
                           第{legNumber}戦
                         </span>
                       )}

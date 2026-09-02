@@ -90,7 +90,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                         <div className="ml-2 flex items-center gap-1">
                           <button
                             onClick={() => setEditingTag(tag)}
-                            className="text-text-sub transition-colors hover:text-blue-500"
+                            className="text-text-sub hover:text-primary transition-colors"
                           >
                             <Edit className="h-3 w-3" />
                           </button>

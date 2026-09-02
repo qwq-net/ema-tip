@@ -37,7 +37,7 @@ export default async function SokubetPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-yellow-600">
+          <div className="bg-turf-100 text-turf-800 flex h-12 w-12 items-center justify-center rounded-xl">
             <Zap size={28} />
           </div>
           <div>
@@ -87,7 +87,7 @@ export default async function SokubetPage() {
                                 </Link>
                               )}
                               {hasPurchasedBet5 && (
-                                <Badge label="BET5 購入済み" className="border-0 bg-indigo-500 text-white" />
+                                <Badge label="BET5 購入済み" className="bg-turf-600 border-0 text-white" />
                               )}
                             </div>
                           )}
@@ -106,14 +106,16 @@ export default async function SokubetPage() {
                     {bet5Id && bet5Open && (
                       <div className="mb-4">
                         <Link href={`/events/${event.id}/bet5`}>
-                          <Card className="cursor-pointer border-0 bg-linear-to-r from-indigo-600 to-purple-700 p-4 text-white shadow-md transition-opacity hover:opacity-90">
+                          <Card className="bg-turf-950 cursor-pointer border-0 p-4 text-white shadow-md transition-opacity hover:opacity-90">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                  <span className="rounded bg-white px-2 py-0.5 text-sm text-indigo-600">BET5</span>
+                                  <span className="bg-gold text-turf-950 rounded px-2 py-0.5 text-sm font-semibold">
+                                    BET5
+                                  </span>
                                   5レース的中・一攫千金チャンス！
                                 </h3>
-                                <p className="mt-1 text-sm text-indigo-100">対象の5レース全ての1着を予想しよう</p>
+                                <p className="text-turf-100 mt-1 text-sm">対象の5レース全ての1着を予想しよう</p>
                                 {bet5TargetRaceNumbers.length > 0 && (
                                   <p className="mt-1 text-sm font-semibold text-white">
                                     対象レース:{' '}

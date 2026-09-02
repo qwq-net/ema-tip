@@ -457,7 +457,7 @@ export function RaceResultForm({
           <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
             <div className="flex items-center font-medium text-amber-800">
               <Info className="mr-1.5 h-4 w-4 shrink-0" />
-              BET5が締め切られていません。出走前に締め切ってください。
+              出走前にBET5を締め切ってください。
             </div>
             <Link
               href={`/admin/events/${race.eventId}/bet5`}
@@ -482,7 +482,7 @@ export function RaceResultForm({
             {race.fixedOddsMode && (
               <div className="flex items-center justify-between py-2">
                 <span className="font-medium text-gray-500">オッズ設定</span>
-                <span className="font-semibold text-blue-600">固定オッズ</span>
+                <span className="text-turf-700 font-semibold">固定オッズ</span>
               </div>
             )}
             <div className="flex items-center justify-between py-2">
@@ -535,7 +535,7 @@ export function RaceResultForm({
               <div className="space-y-3">
                 <Button
                   variant="outline"
-                  className="w-full border-blue-100 py-4 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+                  className="border-turf-100 text-turf-700 hover:bg-turf-50 w-full py-4 text-sm font-semibold"
                   onClick={handleReopen}
                   disabled={isPending || canFinalizePayout}
                 >
@@ -546,7 +546,7 @@ export function RaceResultForm({
                 {race.fixedOddsMode ? (
                   <>
                     {!canFinalizePayout && (
-                      <div className="flex items-start gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 ring-1 ring-blue-100">
+                      <div className="bg-turf-50 text-turf-800 ring-turf-100 flex items-start gap-1.5 rounded-lg px-3 py-2 text-sm font-medium ring-1">
                         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                         Netkeiba上で結果が確定するまで確定はできません
                       </div>
@@ -572,7 +572,7 @@ export function RaceResultForm({
                       open={showNetkeibaConfirm}
                       onOpenChange={setShowNetkeibaConfirm}
                       icon={
-                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                        <div className="bg-turf-50 text-turf-600 mb-4 flex h-14 w-14 items-center justify-center rounded-full">
                           <CheckCircle2 className="h-8 w-8" />
                         </div>
                       }

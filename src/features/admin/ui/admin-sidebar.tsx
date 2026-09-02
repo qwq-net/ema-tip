@@ -123,7 +123,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         )}
       >
         <div className="border-b border-gray-800 p-6">
-          <div className="text-primary flex items-center gap-2">
+          <div className="text-turf-400 flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
             <h1 className="text-xl font-semibold tracking-tight text-white">PT Admin</h1>
           </div>
@@ -172,7 +172,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 className="h-8 w-8 rounded-full"
               />
             ) : (
-              <div className="bg-primary/20 text-primary border-primary/30 flex h-8 w-8 items-center justify-center rounded-full border">
+              <div className="border-turf-500/30 bg-turf-500/20 text-turf-300 flex h-8 w-8 items-center justify-center rounded-full border">
                 <span className="text-sm font-semibold">{user.name?.[0] || 'A'}</span>
               </div>
             )}

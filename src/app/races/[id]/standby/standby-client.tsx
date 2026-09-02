@@ -201,20 +201,16 @@ export function StandbyClient({
 
       {!initialIsFinalized && !hasTickets && (
         <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-          <div
-            className={`border-b border-gray-100 px-6 py-4 ${
-              isClosed ? 'bg-linear-to-r from-gray-50 to-white' : 'bg-linear-to-r from-blue-50 to-white'
-            }`}
-          >
+          <div className={`border-b border-gray-100 px-6 py-4 ${isClosed ? 'bg-gray-50' : 'bg-turf-50'}`}>
             <div className="flex items-center gap-2">
               {isClosed ? (
                 <div className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-400 text-sm font-semibold text-white">
                   !
                 </div>
               ) : (
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <Loader2 className="text-turf-600 h-4 w-4 animate-spin" />
               )}
-              <span className={`text-sm font-semibold ${isClosed ? 'text-gray-600' : 'text-blue-600'}`}>
+              <span className={`text-sm font-semibold ${isClosed ? 'text-gray-600' : 'text-turf-700'}`}>
                 {isClosed ? '投票締切' : '確定待ち'}
               </span>
             </div>
@@ -234,7 +230,7 @@ export function StandbyClient({
 
       {initialIsFinalized && !hasTickets && (
         <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-          <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
+          <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
             <div className="flex items-center gap-2 text-gray-500">
               <Badge variant="status" label="情報" className="bg-gray-100 text-gray-600" />
               <span className="text-sm font-semibold">結果発表済み</span>
@@ -265,7 +261,7 @@ export function StandbyClient({
             onClick={toggleAudio}
             className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
               isAudioEnabled
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                ? 'bg-turf-600 hover:bg-turf-700 text-white'
                 : 'bg-gray-800/80 text-gray-400 hover:text-white'
             }`}
             aria-label={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}

@@ -196,7 +196,7 @@ export function BetTable({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <BetTypeSelector betType={betType} onBetTypeChange={handleBetTypeChange} />
         {fixedOddsMode ? (
-          <span className="flex w-full items-center justify-end gap-1 text-sm font-semibold text-blue-600 sm:w-auto">
+          <span className="text-primary flex w-full items-center justify-end gap-1 text-sm font-semibold sm:w-auto">
             <Lock className="h-3.5 w-3.5" />
             Netkeibaオッズ（固定）
           </span>

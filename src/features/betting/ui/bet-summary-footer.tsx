@@ -114,7 +114,7 @@ export function BetSummaryFooter({
                   disabled={isClosed || isPending}
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 text-gray-500 hover:text-blue-600"
+                  className="hover:text-primary h-10 w-10 text-gray-500"
                   title="キーパッドで入力"
                 >
                   <Calculator className="h-5 w-5" />

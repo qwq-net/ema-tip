@@ -38,16 +38,16 @@ const COLOR_VARIANTS = {
     qaHoverText: 'group-hover:text-amber-600',
   },
   purple: {
-    qaBg: 'bg-purple-100',
-    qaText: 'text-purple-600',
-    qaHoverBg: 'group-hover:bg-purple-600',
-    qaHoverText: 'group-hover:text-purple-600',
+    qaBg: 'bg-turf-100',
+    qaText: 'text-turf-700',
+    qaHoverBg: 'group-hover:bg-turf-600',
+    qaHoverText: 'group-hover:text-turf-700',
   },
   indigo: {
-    qaBg: 'bg-indigo-100',
-    qaText: 'text-indigo-600',
-    qaHoverBg: 'group-hover:bg-indigo-600',
-    qaHoverText: 'group-hover:text-indigo-600',
+    qaBg: 'bg-turf-100',
+    qaText: 'text-turf-700',
+    qaHoverBg: 'group-hover:bg-turf-600',
+    qaHoverText: 'group-hover:text-turf-700',
   },
   slate: {
     qaBg: 'bg-slate-100',
@@ -56,10 +56,10 @@ const COLOR_VARIANTS = {
     qaHoverText: 'group-hover:text-slate-600',
   },
   emerald: {
-    qaBg: 'bg-emerald-100',
-    qaText: 'text-emerald-600',
-    qaHoverBg: 'group-hover:bg-emerald-600',
-    qaHoverText: 'group-hover:text-emerald-600',
+    qaBg: 'bg-turf-100',
+    qaText: 'text-turf-700',
+    qaHoverBg: 'group-hover:bg-turf-600',
+    qaHoverText: 'group-hover:text-turf-700',
   },
   rose: {
     qaBg: 'bg-rose-100',
@@ -185,7 +185,7 @@ export default async function AdminPage() {
     <div className="max-w-5xl space-y-8">
       <AdminPageHeader title="ダッシュボード" />
 
-      <Card className="border-indigo-100 bg-indigo-50/50 shadow-sm transition-all hover:bg-indigo-50">
+      <Card className="border-turf-100 bg-turf-50/70 hover:bg-turf-50 shadow-sm transition-all">
         <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
           <div className="flex items-center gap-4">
             <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">

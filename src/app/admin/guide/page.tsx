@@ -133,9 +133,9 @@ const COLOR_MAP = {
   teal: 'bg-teal-50 text-teal-600 border-teal-100',
   amber: 'bg-amber-50 text-amber-600 border-amber-100',
   primary: 'bg-primary/10 text-primary border-primary/20',
-  indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-  purple: 'bg-purple-50 text-purple-600 border-purple-100',
-  emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  indigo: 'bg-turf-50 text-turf-700 border-turf-100',
+  purple: 'bg-turf-50 text-turf-700 border-turf-100',
+  emerald: 'bg-turf-50 text-turf-700 border-turf-100',
   rose: 'bg-rose-50 text-rose-600 border-rose-100',
   cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100',
   sky: 'bg-sky-50 text-sky-600 border-sky-100',
@@ -223,7 +223,7 @@ export default async function AdminGuidePage() {
 
       <section className="space-y-6">
         <div className="flex items-center gap-3 border-b border-gray-200 pb-2">
-          <div className="rounded-full bg-indigo-100 p-2 text-indigo-700">
+          <div className="bg-turf-100 text-turf-800 rounded-full p-2">
             <Calendar className="h-5 w-5" />
           </div>
           <h2 className="text-secondary text-xl font-semibold">【運用編】イベントを開催する</h2>

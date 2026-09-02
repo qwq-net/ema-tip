@@ -90,7 +90,7 @@ export function AdminRankingManager({
               variant={optimisticMode === 'ANONYMOUS' ? 'secondary' : 'outline'}
               disabled={isPending}
               onClick={() => handleModeChange('ANONYMOUS')}
-              className={optimisticMode === 'ANONYMOUS' ? 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200' : ''}
+              className={optimisticMode === 'ANONYMOUS' ? 'bg-turf-100 text-turf-900 hover:bg-turf-200' : ''}
             >
               <Users className="mr-2 h-4 w-4" />
               匿名公開

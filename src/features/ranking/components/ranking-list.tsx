@@ -38,7 +38,7 @@ export function RankingList({
 
   const getStatusColor = () => {
     if (!published) return 'bg-gray-200 text-gray-700';
-    if (displayMode === 'ANONYMOUS') return 'bg-indigo-100 text-indigo-800';
+    if (displayMode === 'ANONYMOUS') return 'bg-turf-100 text-turf-800';
     if (displayMode === 'FULL_WITH_LOAN') return 'bg-orange-100 text-orange-800';
     return 'bg-green-100 text-green-800';
   };
@@ -72,7 +72,7 @@ export function RankingList({
               <div
                 key={user.userId}
                 className={`flex items-center justify-between px-6 py-4 transition-colors ${
-                  user.isCurrentUser ? 'bg-blue-50/50' : 'hover:bg-gray-50'
+                  user.isCurrentUser ? 'bg-turf-50/70' : 'hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -90,9 +90,9 @@ export function RankingList({
                     {user.rank}
                   </div>
                   <div>
-                    <div className={`font-medium ${user.isCurrentUser ? 'text-blue-700' : 'text-gray-900'}`}>
+                    <div className={`font-medium ${user.isCurrentUser ? 'text-turf-800' : 'text-gray-900'}`}>
                       {user.name}
-                      {user.isCurrentUser && <span className="ml-2 text-sm font-normal text-blue-500">(あなた)</span>}
+                      {user.isCurrentUser && <span className="text-turf-600 ml-2 text-sm font-normal">あなた</span>}
                     </div>
                   </div>
                 </div>

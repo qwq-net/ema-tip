@@ -17,7 +17,7 @@ export function WalletMissingCard({
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="max-w-md">
         <CardContent className="pt-6 text-center">
-          <Info className="mx-auto mb-4 h-12 w-12 text-blue-500" />
+          <Info className="text-turf-600 mx-auto mb-4 h-12 w-12" />
           <h2 className="mb-2 text-xl font-semibold">ウォレットが見つかりません</h2>
           <p className="text-gray-500">{description}</p>
           <div className="mt-6 flex flex-col gap-3">

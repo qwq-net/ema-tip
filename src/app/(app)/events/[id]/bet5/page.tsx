@@ -106,10 +106,10 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
         </div>
 
-        <Card className="border-0 bg-linear-to-r from-indigo-600 to-purple-700 p-6 text-white shadow-md">
+        <Card className="bg-turf-950 border-0 p-6 text-white shadow-md">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="rounded bg-white px-2 py-0.5 text-sm font-semibold text-indigo-600">BET5</span>
+              <span className="bg-gold text-turf-950 rounded px-2 py-0.5 text-sm font-semibold">BET5</span>
               <h2 className="text-lg font-semibold">5レース的中・一攫千金チャンス！</h2>
             </div>
             {isOpen ? (
@@ -127,13 +127,13 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
             )}
           </div>
           <div className="mt-4">
-            <p className="text-sm text-indigo-100">BET5プール金額</p>
-            <p className="text-3xl font-semibold">
+            <p className="text-turf-100 text-sm">BET5プール金額</p>
+            <p className="text-gold text-3xl font-semibold tabular-nums">
               {bet5Event.initialPot.toLocaleString('ja-JP')}円
-              <span className="ml-1.5 text-base font-medium text-indigo-100">+ プレイヤーの購入金額</span>
+              <span className="text-turf-100 ml-1.5 text-base font-medium">+ プレイヤーの購入金額</span>
             </p>
           </div>
-          <p className="mt-3 text-sm text-indigo-100">
+          <p className="text-turf-100 mt-3 text-sm">
             5つのレース全ての1着馬を予想してください。1口100円から投票できます。
           </p>
         </Card>

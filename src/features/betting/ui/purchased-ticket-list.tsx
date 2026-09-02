@@ -170,7 +170,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
             <span className="font-semibold text-gray-900">{BET_TYPE_LABELS[group.type]}</span>
             {getGroupStatusBadge()}
             {hasGuaranteedHit && (
-              <Badge variant="status" label="保証オッズ適用" className="bg-emerald-100 text-emerald-800" />
+              <Badge variant="status" label="保証オッズ適用" className="bg-turf-100 text-turf-800" />
             )}
           </span>
         </span>
@@ -194,9 +194,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
             hasProvisional && (
               <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
                 {hasGuaranteedProvisional && (
-                  <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-sm font-semibold text-emerald-700">
-                    保証
-                  </span>
+                  <span className="bg-turf-100 text-turf-800 rounded px-1.5 py-0.5 text-sm font-semibold">保証</span>
                 )}
                 <span className="tabular-nums">
                   想定払戻:{' '}

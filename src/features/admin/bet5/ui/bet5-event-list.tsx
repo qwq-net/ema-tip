@@ -89,7 +89,7 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                       size="sm"
                       asChild
                       variant={isConfigured ? 'outline' : 'primary'}
-                      className={cn('gap-1 shadow-sm', !isConfigured && 'bg-indigo-600 text-white hover:bg-indigo-700')}
+                      className={cn('gap-1 shadow-sm', !isConfigured && 'bg-turf-600 hover:bg-turf-700 text-white')}
                     >
                       <Link href={`/admin/events/${event.id}/bet5`}>
                         <Trophy className="h-4 w-4" />

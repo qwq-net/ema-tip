@@ -18,13 +18,13 @@ export function GuaranteedOddsDialog({ guaranteedOdds }: GuaranteedOddsDialogPro
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5 whitespace-nowrap">
-          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <ShieldCheck className="text-turf-600 h-4 w-4" />
           保証オッズ
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogTitle className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-emerald-600" />
+          <ShieldCheck className="text-turf-600 h-5 w-5" />
           保証オッズ
         </DialogTitle>
         <DialogDescription>

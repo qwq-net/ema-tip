@@ -42,7 +42,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
 
   if (showConfirm) {
     return (
-      <Card className="border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-orange-950 shadow-md">
+      <Card className="border-0 bg-amber-400 p-4 text-orange-950 shadow-md">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
@@ -80,7 +80,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
   return (
     <button
       type="button"
-      className="block w-full rounded-xl border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-left text-orange-950 shadow-md transition-opacity hover:opacity-90"
+      className="block w-full rounded-xl border-0 bg-amber-400 p-4 text-left text-orange-950 shadow-md transition-opacity hover:opacity-90"
       onClick={() => setShowConfirm(true)}
     >
       <span className="flex items-center justify-between">

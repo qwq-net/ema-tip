@@ -2,24 +2,60 @@
 
 /* ============================================================
    カラーシステム
-   ブランドカラー・文字色・状態色はすべてこの @theme で管理する。
-   ここの値を変えると bg-primary / text-text-sub 等の全ユーティリティへ波及する。
-   値を変えるときは白文字・白地との組み合わせで WCAG AA 4.5:1 を保つこと。
-   コンポーネント側では gray-400 等の生パレットを文字色ロールに使わず、
-   text-main / text-sub / success / error のロールトークンを使う。
+   色はすべてこの @theme で管理する。2 層構成で、上段のプリミティブは
+   oklch で生成した知覚等間隔ランプの実体値、下段のセマンティックは
+   コンポーネントが参照する役割名。ブランド調整はランプの値を差し替える。
+   主要ペアのコントラストは theme-contrast.test.ts が AA 4.5:1 を検証する。
+
+   ランプ生成パラメータ:
+   - gray: 色相 172・彩度 0.004-0.014 の緑微バイアス紙ニュートラル。
+     Tailwind 既定 gray を同じ段構成で上書きしており、既存の gray-* クラスに波及する
+   - turf: 色相 175 のターフビリジアン。700 がアンカー oklch(0.50 0.09 175)。
+     JRA コーポレートグリーンと枠番 6 緑の色相 150 付近から 25 度離している
+   例外として維持する慣習色: 枠番 8 色 bracket.ts・払戻モーダルの券種色・
+   予想印の記号色・的中と払戻の赤・金銭プラスマイナスの青赤
    ============================================================ */
 @theme {
-  /* ブランドカラー。白文字を載せる前提の濃度に固定する */
-  --color-primary: #2563eb; /* 白文字 5.17:1 */
-  --color-primary-hover: #1d4ed8; /* 白文字 6.70:1 */
-  --color-secondary: #0f172a;
+  /* ニュートラル。緑微バイアスの紙色 */
+  --color-gray-50: #f8fbfa;
+  --color-gray-100: #f1f5f4;
+  --color-gray-200: #e3e9e6;
+  --color-gray-300: #cfd7d4;
+  --color-gray-400: #9aa3a0;
+  --color-gray-500: #6a7571;
+  --color-gray-600: #4d5753;
+  --color-gray-700: #3a4340;
+  --color-gray-800: #242a28;
+  --color-gray-900: #151a18;
+  --color-gray-950: #050807;
+
+  /* ブランド。ターフビリジアン */
+  --color-turf-50: #eefbf7;
+  --color-turf-100: #daf4ec;
+  --color-turf-200: #b9ebdc;
+  --color-turf-300: #94d9c6;
+  --color-turf-400: #57b9a1;
+  --color-turf-500: #2a9a82;
+  --color-turf-600: #0d836d; /* 白文字 4.68:1 */
+  --color-turf-700: #107460; /* 白文字 5.69:1 */
+  --color-turf-800: #006150; /* 白文字 7.43:1 */
+  --color-turf-900: #095143;
+  --color-turf-950: #072d25;
+
+  /* BET5 のジャックポット表現用ゴールド。turf-950 の面の上でのみ使う */
+  --color-gold: #f0ca4e; /* turf-950 上 9.40:1 */
+
+  /* ここから下がセマンティック。コンポーネントの役割色はこちらを参照する */
+  --color-primary: var(--color-turf-700);
+  --color-primary-hover: var(--color-turf-800);
+  --color-secondary: var(--color-gray-900);
 
   /* 文字色ロール */
-  --color-text-main: #1e293b; /* 本文 */
-  --color-text-sub: #64748b; /* 補助テキスト。白地 4.76:1・gray-50 上 4.55:1 */
+  --color-text-main: var(--color-gray-800);
+  --color-text-sub: var(--color-gray-500); /* 白地 4.78:1・gray-50 上 4.59:1 */
 
   /* 地色 */
-  --color-background: #f8fafc;
+  --color-background: var(--color-gray-50);
   --color-surface: #ffffff;
 
   /* 状態色。文字色として白地に載せても AA を満たす濃度 */
