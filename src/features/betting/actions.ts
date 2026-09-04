@@ -16,7 +16,6 @@ import {
 } from '@/shared/db/schema';
 import { ActionError, ADMIN_ERRORS, requireUser, runAction } from '@/shared/utils/admin';
 import { eq, sql } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 import { calculateOdds, getProvisionalOddsCached } from './logic/odds';
 
 const BATCH_SIZE = 100;
@@ -232,8 +231,9 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
       .where(eq(wallets.id, walletId));
   });
 
-  revalidatePath('/mypage');
-  revalidatePath(`/races/${raceId}`);
+  // revalidatePath は呼ばない。呼ぶとアクション応答にページの再レンダリングが同梱されて
+  // 購入の待ち時間が倍近く伸びる。対象ページは全て認証付きの動的レンダリングで、
+  // 購入後は呼び手が router.refresh で取り直し、オッズは SSE が配信するため鮮度は保たれる
 
   // オッズ再計算は応答を待たないファイア・アンド・フォーゲット
   void calculateOdds(raceId).catch((err) => {
