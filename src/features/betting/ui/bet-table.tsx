@@ -354,10 +354,10 @@ export function BetTable({
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
-              <th className="px-2 py-2 text-sm font-semibold">枠番</th>
-              <th className="px-2 py-2 text-sm font-semibold">馬番</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold">枠番</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold">馬番</th>
               <th className="px-2 py-2 text-sm font-semibold">馬名</th>
-              <th className="px-2 py-2 text-sm font-semibold">性齢</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold">性齢</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">単勝オッズ</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">複勝オッズ</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">
@@ -388,11 +388,11 @@ export function BetTable({
                         }
                       >
                         {idx === 0 && (
-                          <td className="px-2 align-middle" rowSpan={bracketEntries.length}>
+                          <td className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
                             <BracketBadge bracketNumber={Number(bracket)} />
                           </td>
                         )}
-                        <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
+                        <td className="px-2 py-2 text-center text-sm font-semibold">{entry.horseNumber}</td>
                         <td className="px-2 py-2 text-sm font-semibold">
                           {entry.horseName}
                           {isScratched && (
@@ -401,7 +401,7 @@ export function BetTable({
                             </span>
                           )}
                         </td>
-                        <td className="px-2 py-2">
+                        <td className="px-2 py-2 text-center">
                           <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                         </td>
                         <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
@@ -448,10 +448,10 @@ export function BetTable({
                           : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
                       }
                     >
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 text-center">
                         <BracketBadge bracketNumber={entry.bracketNumber} />
                       </td>
-                      <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
+                      <td className="px-2 py-2 text-center text-sm font-semibold">{entry.horseNumber}</td>
                       <td className="px-2 py-2 text-sm font-semibold">
                         {entry.horseName}
                         {isScratched && (
@@ -460,7 +460,7 @@ export function BetTable({
                           </span>
                         )}
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 text-center">
                         <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
