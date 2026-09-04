@@ -12,7 +12,7 @@ import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
+import { Alert, Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
@@ -218,16 +218,14 @@ export function BetTable({
         <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
       </div>
       {isClosed && (
-        <div className="rounded-control flex items-center gap-2 bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
-          <AlertCircle className="h-4 w-4" />
+        <Alert variant="error" icon={AlertCircle}>
           このレースは受付を終了しました。現在、馬券を購入することはできません。
-        </div>
+        </Alert>
       )}
       {!isClosed && remainingMs !== null && (
-        <div className="rounded-control flex items-center gap-2 bg-amber-50 p-3 text-sm font-semibold text-amber-700 tabular-nums ring-1 ring-amber-100">
-          <Clock className="h-4 w-4" />
+        <Alert variant="warning" icon={Clock} className="tabular-nums">
           締切まで残り {formatRemainingTime(remainingMs)}
-        </div>
+        </Alert>
       )}
       {allowedBetTypes && (
         <div className="rounded-control bg-primary/5 text-primary ring-primary/10 flex items-center gap-2 p-3 text-sm font-semibold ring-1">

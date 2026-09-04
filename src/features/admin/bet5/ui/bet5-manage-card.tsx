@@ -4,6 +4,7 @@ import { calculateBet5PayoutAction, closeBet5EventAction, updateBet5InitialPotAc
 import { BET5_STATUS_LABELS } from '@/shared/constants/status';
 import { toast } from '@/shared/lib/toast';
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -118,10 +119,9 @@ export function Bet5ManageCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {bet5Event.status === 'SCHEDULED' && (
-          <div className="rounded-control flex items-center border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
-            <Info className="mr-2 h-4 w-4 shrink-0" />
+          <Alert variant="warning" icon={Info}>
             設定済みレースが出走する前にBET5を締め切ってください。
-          </div>
+          </Alert>
         )}
 
         <div className="rounded-control bg-gray-50 p-4">

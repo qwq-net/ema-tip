@@ -73,9 +73,41 @@
   --color-background: var(--color-gray-50);
   --color-surface: #ffffff;
 
-  /* 状態色。文字色として白地に載せても AA を満たす濃度 */
+  /* 意味色。成功・警告・エラー・情報を文字/面/枠の3点1組で固定し、
+     バナーは Alert 部品、文字単体は text-成分を使う。濃度の揺れを作らない */
   --color-success: #15803d; /* 白地 5.02:1 */
+  --color-success-soft: #f0fdf4;
+  --color-success-ring: #bbf7d0;
+  --color-warning: #b45309; /* 白地 5.4:1 */
+  --color-warning-soft: #fffbeb;
+  --color-warning-ring: #fde68a;
   --color-error: #b91c1c; /* 白地 5.94:1 */
+  --color-error-soft: #fef2f2;
+  --color-error-ring: #fecaca;
+  --color-info: #1d4ed8; /* 白地 6.3:1 */
+  --color-info-soft: #eff6ff;
+  --color-info-ring: #bfdbfe;
+
+  /* カテゴリ識別パレット。意味を持たない分類チップ用の面と文字のペアで、
+     利用者は shared/ui/badge.tsx に限る。面は Tailwind 100 相当、文字は 800 相当 */
+  --color-cat-red-bg: #fee2e2;
+  --color-cat-red-text: #991b1b;
+  --color-cat-orange-bg: #ffedd5;
+  --color-cat-orange-text: #9a3412;
+  --color-cat-amber-bg: #fef3c7;
+  --color-cat-amber-text: #92400e;
+  --color-cat-green-bg: #dcfce7;
+  --color-cat-green-text: #166534;
+  --color-cat-cyan-bg: #cffafe;
+  --color-cat-cyan-text: #155e75;
+  --color-cat-blue-bg: #dbeafe;
+  --color-cat-blue-text: #1e40af;
+  --color-cat-indigo-bg: #e0e7ff;
+  --color-cat-indigo-text: #3730a3;
+  --color-cat-purple-bg: #f3e8ff;
+  --color-cat-purple-text: #6b21a8;
+  --color-cat-pink-bg: #fce7f3;
+  --color-cat-pink-text: #9d174d;
 
   /* 角丸スケール。操作系は control、容器系は surface、小型データチップは chip、
      ステータスピルは rounded-full。この4種以外は使わない。radius-scale.test.ts が検証する */

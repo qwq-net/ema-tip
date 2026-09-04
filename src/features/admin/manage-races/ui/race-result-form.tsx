@@ -3,6 +3,7 @@
 import { fetchNetkeibaRaceResult } from '@/features/admin/import-race/actions';
 import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/types';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
 import { Badge, Button, ConfirmDialog } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
@@ -71,17 +72,10 @@ interface RaceResultFormProps {
   };
 }
 
+// 並べ替えリストの着順マーカー。1〜3着は共通の金銀銅、4着以下はグレー
 const getRankStyles = (position: number) => {
-  switch (position) {
-    case 1:
-      return 'bg-amber-100 text-amber-700 ring-amber-200 border-amber-200';
-    case 2:
-      return 'bg-gray-100 text-gray-700 ring-gray-200 border-gray-200';
-    case 3:
-      return 'bg-orange-100 text-orange-700 ring-orange-200 border-orange-200';
-    default:
-      return 'bg-gray-100 text-gray-600 border-gray-100';
-  }
+  const medal = medalRankClass(position);
+  return medal ? `${medal} border-transparent` : 'bg-gray-100 text-gray-600 border-gray-100';
 };
 
 function HorseInfo({ horseName, jockey, odds }: { horseName: string; jockey?: string | null; odds?: number | null }) {
@@ -589,11 +583,17 @@ export function RaceResultForm({
                           <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                             {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
                               const labels = ['1着', '2着', '3着'];
-                              const colors = ['text-amber-600', 'text-gray-500', 'text-orange-600'];
                               const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
                               return (
                                 <div key={horseNumber} className="flex justify-between py-1">
-                                  <span className={colors[index]}>{labels[index]}</span>
+                                  <span
+                                    className={cn(
+                                      'rounded-chip px-1.5 py-0.5 text-xs font-semibold',
+                                      medalRankClass(index + 1)
+                                    )}
+                                  >
+                                    {labels[index]}
+                                  </span>
                                   <span>{entry?.horseName ?? `${horseNumber}番`}</span>
                                 </div>
                               );
@@ -632,18 +632,19 @@ export function RaceResultForm({
                       <>
                         この操作を行うと、投票された馬券の払い戻し計算が実行されます。
                         <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                          <div className="flex justify-between py-1">
-                            <span className="text-amber-600">1着</span>
-                            <span>{sortedEntries[0]?.horseName}</span>
-                          </div>
-                          <div className="flex justify-between py-1">
-                            <span className="text-gray-500">2着</span>
-                            <span>{sortedEntries[1]?.horseName}</span>
-                          </div>
-                          <div className="flex justify-between py-1">
-                            <span className="text-orange-600">3着</span>
-                            <span>{sortedEntries[2]?.horseName}</span>
-                          </div>
+                          {[1, 2, 3].map((position) => (
+                            <div key={position} className="flex justify-between py-1">
+                              <span
+                                className={cn(
+                                  'rounded-chip px-1.5 py-0.5 text-xs font-semibold',
+                                  medalRankClass(position)
+                                )}
+                              >
+                                {position}着
+                              </span>
+                              <span>{sortedEntries[position - 1]?.horseName}</span>
+                            </div>
+                          ))}
                         </div>
                       </>
                     }

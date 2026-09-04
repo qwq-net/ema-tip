@@ -6,7 +6,7 @@ import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, raceInstances } from '@/shared/db/schema';
-import { Card } from '@/shared/ui';
+import { Alert, Card } from '@/shared/ui';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { AlertCircle, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -156,10 +156,9 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
         ) : (
           <div className="space-y-4">
             {hasClosedRace && bet5Event.status === 'SCHEDULED' && (
-              <div className="rounded-control flex items-center gap-2 bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">
-                <AlertCircle className="h-4 w-4 shrink-0" />
+              <Alert variant="error" icon={AlertCircle}>
                 対象レースが既に締め切られているため、BET5の投票受付は終了しました。
-              </div>
+              </Alert>
             )}
             <div className="rounded-control bg-gray-50 p-8 text-center">
               <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>

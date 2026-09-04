@@ -27,7 +27,6 @@ const SANCTIONED = new Set([
   'src/features/betting/ui/payout-result-modal.tsx',
   'src/features/forecasts/components/ForecastDisplay.tsx',
   'src/shared/ui/live-connection-status.tsx',
-  'src/shared/ui/badge.tsx',
 ]);
 
 // 意味色の手組みが残る既存ファイル。新規追加は禁止で、直書きを解消したらここから削除する
@@ -59,8 +58,6 @@ const GRANDFATHERED = new Set([
   'src/features/admin/manage-venues/ui/venue-list.tsx',
   'src/features/admin/shared/ui/confirm-delete-button.tsx',
   'src/features/auth/ui/emoji-keypad.tsx',
-  'src/features/auth/ui/guest-login-client.tsx',
-  'src/features/auth/ui/guest-signup-client.tsx',
   'src/features/betting/ui/bet-table.tsx',
   'src/features/betting/ui/bet5-voting-form.tsx',
   'src/features/betting/ui/numeric-keypad.tsx',

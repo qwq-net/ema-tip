@@ -33,6 +33,8 @@
 - 太さは 2 段。見出し・金額・ボタン・小型チップ・状態表示は font-semibold、説明・ラベル・補助テキストは normal で色が区別を担う
 - 角丸は rounded-control・rounded-surface・rounded-chip・rounded-full の 4 種のみ
 - 状態の単語チップは Badge 部品のピルを使い、手組みのステータスピルを作らない。テーブルやカード行内の小型マーカーだけ rounded-chip + px-1.5 py-0.5 の高密度仕様を使う
+- 帯型の状態通知は Alert 部品を使う。成功・警告・エラー・情報の意味色は @theme の success/warning/error/info トークン3点組が単一管理点で、面や文字の直書きをしない
+- 分類チップの色は @theme のカテゴリ識別パレット cat-* を Badge 経由で使う。生の Tailwind パレット色は慣習色ファイル以外に書かない。逸脱は color-usage.test.ts が検出する
 - border と divide には必ず色を併記する。Tailwind v4 の既定は currentColor で黒い枠線になる
 - 静的なカードやテーブルに影を付けない。shadow はダイアログ・ドロップダウン・固定フッターなど浮遊要素専用
 - 逸脱は theme-contrast・radius-scale・type-scale の各テストが CI で検出する

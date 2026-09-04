@@ -6,6 +6,7 @@ import { useEmojiPassword } from '@/features/auth/lib/use-emoji-password';
 import { EmojiKeypad } from '@/features/auth/ui/emoji-keypad';
 import { GuestAuthTabs } from '@/features/auth/ui/guest-auth-tabs';
 import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
+import { Alert } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/forms';
 import { Loader2 } from 'lucide-react';
@@ -140,16 +141,10 @@ export function GuestLoginClient() {
             </div>
 
             {error && (
-              <div role="alert" className="rounded-control bg-red-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">ログインエラー</h3>
-                    <div className="mt-2 text-sm text-red-700">
-                      <p>{error}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Alert variant="error" className="flex-col items-start gap-1 p-4">
+                <h3 className="font-semibold">ログインエラー</h3>
+                <p className="font-normal">{error}</p>
+              </Alert>
             )}
 
             <div>

@@ -17,17 +17,19 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
     children || (label && (lookup(EVENT_STATUS_LABELS, label) || lookup(RACE_STATUS_LABELS, label) || label));
   if (!content) return <span>-</span>;
 
+  // 分類チップの色は @theme のカテゴリ識別パレット cat-* を使う。
+  // 色相と分類の対応はこの switch が単一の管理点で、生の Tailwind 色は書かない
   const getVariantStyles = () => {
     switch (variant) {
       case 'surface':
-        return label === '芝' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800';
+        return label === '芝' ? 'bg-cat-green-bg text-cat-green-text' : 'bg-cat-amber-bg text-cat-amber-text';
 
       case 'condition':
         switch (label) {
           case '良':
-            return 'bg-sky-100 text-sky-800';
+            return 'bg-cat-blue-bg text-cat-blue-text';
           case '稍重':
-            return 'bg-cyan-100 text-cyan-800';
+            return 'bg-cat-cyan-bg text-cat-cyan-text';
           case '重':
             return 'bg-gray-200 text-gray-800';
           case '不良':
@@ -44,26 +46,26 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
           case '有効':
           case '出走前':
           case '準備中':
-            return 'bg-green-100 text-green-800';
+            return 'bg-cat-green-bg text-cat-green-text';
           case 'ACTIVE':
           case '開催中':
-            return 'bg-blue-100 text-blue-800';
+            return 'bg-cat-blue-bg text-cat-blue-text';
           case 'CLOSED':
           case '締切済み':
-            return 'bg-orange-100 text-orange-800';
+            return 'bg-cat-orange-bg text-cat-orange-text';
           case 'RANKING_CONFIRMED':
           case '着順確定':
-            return 'bg-indigo-50 text-indigo-700 ring-indigo-200';
+            return 'bg-cat-indigo-bg/50 text-cat-indigo-text ring-cat-indigo-bg';
           case 'FINALIZED':
           case '結果確定済み':
           case '払戻確定':
-            return 'bg-indigo-100 text-indigo-800';
+            return 'bg-cat-indigo-bg text-cat-indigo-text';
           case 'COMPLETED':
           case '終了':
             return 'bg-gray-100 text-gray-800';
           case 'Disabled':
           case '無効':
-            return 'bg-red-100 text-red-800';
+            return 'bg-cat-red-bg text-cat-red-text';
           default:
             return 'bg-gray-100 text-gray-800';
         }
@@ -74,14 +76,15 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
       case 'role':
         switch (label) {
           case 'ADMIN':
-            return 'bg-red-100 text-red-800';
+            return 'bg-cat-blue-bg text-cat-blue-text';
           case 'TIPSTER':
+            return 'bg-cat-orange-bg text-cat-orange-text';
           case 'AI_TIPSTER':
-            return 'bg-purple-100 text-purple-800';
+            return 'bg-cat-purple-bg text-cat-purple-text';
           case 'GUEST':
-            return 'bg-green-100 text-green-800';
+            return 'bg-gray-100 text-gray-800';
           case 'You':
-            return 'bg-blue-100 text-blue-800';
+            return 'bg-turf-100 text-turf-800';
           default:
             return 'bg-gray-100 text-gray-800';
         }
@@ -93,10 +96,10 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
             return 'bg-white text-gray-700 ring-gray-200';
           case 'FOREIGN_BRED':
           case '外国産':
-            return 'bg-orange-50 text-orange-700 ring-orange-200';
+            return 'bg-cat-orange-bg/60 text-cat-orange-text ring-cat-orange-bg';
           case 'FOREIGN_TRAINED':
           case '外来馬':
-            return 'bg-purple-50 text-purple-700 ring-purple-200';
+            return 'bg-cat-purple-bg/60 text-cat-purple-text ring-cat-purple-bg';
           default:
             return 'bg-gray-50 text-gray-600 ring-gray-200';
         }
