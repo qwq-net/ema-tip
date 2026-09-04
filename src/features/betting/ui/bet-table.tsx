@@ -324,30 +324,30 @@ export function BetTable({
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-text-sub text-sm">{BET_TYPE_DESCRIPTIONS[betType]}</p>
-        {columnCount >= 2 && (
-          <div role="group" aria-label="買い方" className="flex gap-0.5 rounded-full bg-gray-100 p-1">
-            {(
-              [
-                { label: '通常', value: false },
-                { label: 'ボックス', value: true },
-              ] as const
-            ).map(({ label, value }) => (
-              <button
-                key={label}
-                type="button"
-                aria-pressed={boxMode === value}
-                disabled={isClosed || isPending}
-                onClick={() => handleBoxModeChange(value)}
-                className={cn(
-                  'rounded-full px-3 py-1 text-sm font-semibold transition-colors',
-                  boxMode === value ? 'bg-primary text-white' : 'text-text-sub hover:text-gray-900'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* 単勝・複勝では無効化して見せたままにする。券種切替のたびに消すと行の高さが変わり
+            レイアウトシフトが起きるため、券種セレクタの許可外表示と同じく非表示にはしない */}
+        <div role="group" aria-label="買い方" className="flex gap-0.5 rounded-full bg-gray-100 p-1">
+          {(
+            [
+              { label: '通常', value: false },
+              { label: 'ボックス', value: true },
+            ] as const
+          ).map(({ label, value }) => (
+            <button
+              key={label}
+              type="button"
+              aria-pressed={isBoxView === value}
+              disabled={isClosed || isPending || columnCount < 2}
+              onClick={() => handleBoxModeChange(value)}
+              className={cn(
+                'rounded-full px-3 py-1 text-sm font-semibold transition-colors disabled:opacity-50',
+                isBoxView === value ? 'bg-primary text-white' : 'text-text-sub enabled:hover:text-gray-900'
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
         {/* 騎手は意図的に表示しない。ゲーム内の予想への影響が薄く、レース登録の運用負担を増やさないため */}
