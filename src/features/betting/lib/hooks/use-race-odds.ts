@@ -3,7 +3,6 @@
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import type { getRaceOdds } from '@/features/betting/logic/odds';
 import type { RaceOddsData, SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
-import { toast } from '@/shared/lib/toast';
 import { useCallback, useState } from 'react';
 
 type OddsData = Awaited<ReturnType<typeof getRaceOdds>>;
@@ -30,11 +29,13 @@ export function useRaceOdds(
 ) {
   const [odds, setOdds] = useState<OddsData | RaceOddsData>(initialOdds);
 
+  // トーストは出さない。オッズ更新は誰かが購入するたびに全接続へ届くため、開催ピークには
+  // 通知が洪水になり、購入者自身にも成功トーストと重なって出る。オッズ値と
+  // 「オッズ最終更新」時刻の表示がライブで変わることが更新の通知を兼ねる
   const handleOddsUpdated = useCallback(
     (message: SSERaceOddsUpdatedMessage) => {
       if (fixedOddsMode) return;
       setOdds(message.data);
-      toast.info('オッズが更新されました');
     },
     [fixedOddsMode]
   );

@@ -55,6 +55,11 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
     await userPage.getByRole('button', { name: '購入確定' }).click();
     await userPage.getByRole('button', { name: '購入する' }).click();
     await expect(userPage.getByText('円分の馬券を購入しました')).toBeVisible();
+
+    // 購入アクションは revalidatePath を持たず、画面反映は呼び手の router.refresh だけが担う。
+    // 反映経路の退行を検出するため、トーストに加えて残高の減算と購入済み表示まで検証する
+    const balanceAfterBet = (E2E.distributeAmount - E2E.betAmount).toLocaleString('ja-JP');
+    await expect(userPage.getByText(`${balanceAfterBet}円`)).toBeVisible();
   });
 
   const adminContext = await browser.newContext();
