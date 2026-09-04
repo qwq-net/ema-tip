@@ -9,7 +9,9 @@ import {
 } from '@/shared/lib/login-rate-limit';
 import { getClientIp } from '@/shared/utils/get-client-ip';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import bcrypt from 'bcryptjs';
+// 照合を libuv スレッドプールで行う native 実装を使う。純 JS の bcryptjs はメインスレッドを
+// 塞ぎ、一斉ログインが直列化して30人同時で数秒待ちになる。ハッシュ形式は bcryptjs と互換
+import { compare, hash } from '@node-rs/bcrypt';
 import { eq } from 'drizzle-orm';
 import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
@@ -144,7 +146,7 @@ const {
               throw new UsernameTakenError();
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await hash(password, 10);
             let newUser: typeof schema.users.$inferSelect;
             try {
               [newUser] = await db
@@ -178,7 +180,7 @@ const {
             if (!existingUser) {
               console.warn(`Login failed: user not found ${username}`);
               // 応答時間の差からユーザー名の存在有無を判別されないよう、不存在でもダミー照合を行う
-              await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+              await compare(password, DUMMY_PASSWORD_HASH);
               await recordFailure();
               throw new InvalidCredentialsError();
             }
@@ -189,7 +191,7 @@ const {
               throw new UserSetupIncompleteError();
             }
 
-            const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+            const isPasswordValid = await compare(password, existingUser.password);
             if (!isPasswordValid) {
               console.warn('Invalid password attempt');
               await recordFailure();
