@@ -157,6 +157,12 @@ export function BetTable({
 
   const columnLabels = getBetTypeColumnLabels(betType);
 
+  // ボックス中は選択列を1本へ畳む。全列が同期するため複数列を見せる意味がなく、
+  // 「着順候補の列に同じチェック」という順不同のボックスとズレた見た目も避ける
+  const isBoxView = boxMode && columnCount > 1;
+  const displayColumnCount = isBoxView ? 1 : columnCount;
+  const displayColumnLabels = isBoxView ? ['ボックス'] : columnLabels;
+
   const handleSubmitRequest = () => {
     const error = validateBetSubmission(betCount, amount, totalAmount, balance);
     if (error) {
@@ -278,16 +284,28 @@ export function BetTable({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-text-sub text-sm">{BET_TYPE_DESCRIPTIONS[betType]}</p>
         {columnCount >= 2 && (
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-gray-700">
-            <Checkbox
-              checked={boxMode}
-              onCheckedChange={(checked) => handleBoxModeChange(checked === true)}
-              disabled={isClosed || isPending}
-              className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
-            />
-            ボックス
-            <span className="text-text-sub font-normal">チェックが全列へまとめて入ります</span>
-          </label>
+          <div role="group" aria-label="買い方" className="flex gap-0.5 rounded-full bg-gray-100 p-1">
+            {(
+              [
+                { label: '通常', value: false },
+                { label: 'ボックス', value: true },
+              ] as const
+            ).map(({ label, value }) => (
+              <button
+                key={label}
+                type="button"
+                aria-pressed={boxMode === value}
+                disabled={isClosed || isPending}
+                onClick={() => handleBoxModeChange(value)}
+                className={cn(
+                  'rounded-full px-3 py-1 text-sm font-semibold transition-colors',
+                  boxMode === value ? 'bg-primary text-white' : 'text-text-sub hover:text-gray-900'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         )}
       </div>
       <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
@@ -302,7 +320,7 @@ export function BetTable({
               <th className="px-2 py-2 text-center text-sm font-semibold">単勝オッズ</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">複勝オッズ</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">人気</th>
-              {columnLabels.map((label, i) => (
+              {displayColumnLabels.map((label, i) => (
                 <th key={i} className="px-2 py-2 text-center text-sm font-semibold">
                   {label}
                 </th>
@@ -358,13 +376,13 @@ export function BetTable({
                         />
 
                         {idx === 0 &&
-                          Array.from({ length: columnCount }).map((_, colIdx) => (
+                          Array.from({ length: displayColumnCount }).map((_, colIdx) => (
                             <td key={colIdx} className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
                               <Checkbox
                                 checked={selections[colIdx].has(Number(bracket))}
                                 onCheckedChange={() => handleCheckboxChange(colIdx, Number(bracket))}
                                 disabled={isClosed || isPending}
-                                aria-label={`${columnLabels[colIdx]} に枠${bracket}を選択`}
+                                aria-label={`${displayColumnLabels[colIdx]} に枠${bracket}を選択`}
                                 className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                               />
                             </td>
@@ -416,13 +434,13 @@ export function BetTable({
                         isScratched={isScratched}
                       />
 
-                      {Array.from({ length: columnCount }).map((_, colIdx) => (
+                      {Array.from({ length: displayColumnCount }).map((_, colIdx) => (
                         <td key={colIdx} className="px-2 py-2 text-center">
                           <Checkbox
                             checked={!isScratched && selections[colIdx].has(entry.horseNumber!)}
                             onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
                             disabled={isClosed || isPending || isScratched}
-                            aria-label={`${columnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
+                            aria-label={`${displayColumnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
                             className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                           />
                         </td>
