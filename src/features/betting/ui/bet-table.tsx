@@ -32,24 +32,22 @@ interface Entry {
 
 // 単勝オッズの1セル。文字色は通常のまま、SSE 更新で値が変化したときだけ
 // 上昇は緑、下降は赤から本来の文字色へ減衰点灯する。
-// version を key にして更新イベントごとにアニメーションを最初から再生する。
-// rank は賭け金額由来の人気順で、未購入の馬では表示しない
-function OddsValue({
-  value,
-  delta,
-  version,
-  rank,
-}: {
-  value: string;
-  delta?: 'up' | 'down';
-  version: number;
-  rank?: number;
-}) {
+// version を key にして更新イベントごとにアニメーションを最初から再生する
+function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'down'; version: number }) {
   return (
     <span key={version} className={cn(delta === 'up' && 'animate-odds-up', delta === 'down' && 'animate-odds-down')}>
       {value}
-      {rank !== undefined && <span className="text-text-sub ml-1 text-xs font-semibold">{rank}人気</span>}
     </span>
+  );
+}
+
+// 人気順の1セル。賭け金額由来の順位で、未購入の馬と取消馬は「-」を表示する。
+// オッズ列と人気列の両ブランチで同一実装を共有し、渡し漏れの分岐差を作らない
+function PopularityCell({ rank, isScratched }: { rank?: number; isScratched: boolean }) {
+  return (
+    <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
+      {isScratched || rank === undefined ? '-' : `${rank}人気`}
+    </td>
   );
 }
 
@@ -264,6 +262,7 @@ export function BetTable({
               <th className="px-2 py-2 text-sm font-semibold">馬名</th>
               <th className="px-2 py-2 text-sm font-semibold">性齢</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">単勝オッズ</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold">人気</th>
               {columnLabels.map((label, i) => (
                 <th key={i} className="px-2 py-2 text-center text-sm font-semibold">
                   {label}
@@ -310,10 +309,13 @@ export function BetTable({
                               value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
                               delta={oddsDeltas[String(entry.horseNumber)]}
                               version={oddsVersion}
-                              rank={odds?.winPopularity?.[String(entry.horseNumber)]}
                             />
                           )}
                         </td>
+                        <PopularityCell
+                          rank={odds?.winPopularity?.[String(entry.horseNumber)]}
+                          isScratched={isScratched}
+                        />
 
                         {idx === 0 &&
                           Array.from({ length: columnCount }).map((_, colIdx) => (
@@ -365,10 +367,13 @@ export function BetTable({
                             value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
                             delta={oddsDeltas[String(entry.horseNumber)]}
                             version={oddsVersion}
-                            rank={odds?.winPopularity?.[String(entry.horseNumber)]}
                           />
                         )}
                       </td>
+                      <PopularityCell
+                        rank={odds?.winPopularity?.[String(entry.horseNumber)]}
+                        isScratched={isScratched}
+                      />
 
                       {Array.from({ length: columnCount }).map((_, colIdx) => (
                         <td key={colIdx} className="px-2 py-2 text-center">
