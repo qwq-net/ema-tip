@@ -35,16 +35,16 @@ export const BET_TYPE_LABELS = {
   [BET_TYPES.TRIO]: '3連複',
 } satisfies Record<BetType, string>;
 
-// 券種セレクタの下に出す1行説明。的中条件だけを書き、点数や買い方には触れない
+// 券種セレクタの下に出す1行説明。初心者向けのやさしい言い回しで的中条件を伝え、点数や買い方には触れない
 export const BET_TYPE_DESCRIPTIONS = {
-  [BET_TYPES.WIN]: '1着になる馬を当てる',
-  [BET_TYPES.PLACE]: '3着までに入る馬を当てる',
-  [BET_TYPES.BRACKET_QUINELLA]: '1着と2着の枠番の組合せを当てる。順番は問わない',
-  [BET_TYPES.QUINELLA]: '1着と2着の馬の組合せを当てる。順番は問わない',
-  [BET_TYPES.WIDE]: '3着までに入る2頭の組合せを当てる',
-  [BET_TYPES.EXACTA]: '1着と2着の馬を着順どおりに当てる',
-  [BET_TYPES.TRIFECTA]: '1着・2着・3着の馬を着順どおりに当てる',
-  [BET_TYPES.TRIO]: '3着までに入る3頭の組合せを当てる。順番は問わない',
+  [BET_TYPES.WIN]: '1着になる馬はどれ？と1頭を選ぶ、いちばん基本の馬券です',
+  [BET_TYPES.PLACE]: '選んだ馬が3着までに入れば的中。当てやすい入門向けの馬券です',
+  [BET_TYPES.BRACKET_QUINELLA]: '1着・2着に入る枠の組み合わせを当てます。順番はどちらでも大丈夫',
+  [BET_TYPES.QUINELLA]: '1着・2着に入る2頭の組み合わせを当てます。順番はどちらでも大丈夫',
+  [BET_TYPES.WIDE]: '選んだ2頭が両方とも3着までに入れば的中。順番は気にしなくてOK',
+  [BET_TYPES.EXACTA]: '1着・2着を着順どおりに当てます。馬連より難しいぶん配当は大きめ',
+  [BET_TYPES.TRIFECTA]: '1着・2着・3着を着順どおりにずばり当てる、最難関で高配当の馬券です',
+  [BET_TYPES.TRIO]: '3着までに入る3頭の組み合わせを当てます。順番はどれでも大丈夫',
 } satisfies Record<BetType, string>;
 
 export const BET_TYPE_SELECTION_COUNTS = {
