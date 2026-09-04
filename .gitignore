@@ -42,7 +42,7 @@ next-env.d.ts
 
 # temporary
 tmp/
-docs/
+docs/superpowers/
 
 # db dumps
 /backups/
