@@ -118,7 +118,7 @@ export const raceOdds = pgTable('race_odds', {
     .unique()
     .references(() => raceInstances.id, { onDelete: 'cascade' }),
   winOdds: jsonb('win_odds').$type<Record<string, number>>(),
-  // 馬番→人気順。丸め済みオッズではなく単勝の賭け金額から算出する。同額は同順位
+  // 馬番→人気順。丸め済みオッズではなく単勝の賭け金額から算出し、同額は件数と馬番で割って重複させない
   winPopularity: jsonb('win_popularity').$type<Record<string, number>>(),
   placeOdds: jsonb('place_odds').$type<Record<string, { min: number; max: number }>>(),
   updatedAt: timestamp('updated_at', { withTimezone: true })

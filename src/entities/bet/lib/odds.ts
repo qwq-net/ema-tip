@@ -10,11 +10,14 @@ const EXPECTED_WINNER_COUNT = {
 export interface OddsPool {
   poolByBetType: Record<string, number>;
   amountBySelection: Record<string, Record<string, number>>;
+  // 選択肢ごとのベット行数。人気順の同額タイブレークに使う
+  countBySelection: Record<string, Record<string, number>>;
 }
 
 export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]): OddsPool {
   const poolByBetType: Record<string, number> = {};
   const amountBySelection: Record<string, Record<string, number>> = {};
+  const countBySelection: Record<string, Record<string, number>> = {};
 
   for (const bet of bets) {
     const details = bet.details;
@@ -24,26 +27,37 @@ export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]
     poolByBetType[betType] = (poolByBetType[betType] || 0) + bet.amount;
     if (!amountBySelection[betType]) amountBySelection[betType] = {};
     amountBySelection[betType][key] = (amountBySelection[betType][key] || 0) + bet.amount;
+    if (!countBySelection[betType]) countBySelection[betType] = {};
+    countBySelection[betType][key] = (countBySelection[betType][key] || 0) + 1;
   }
 
-  return { poolByBetType, amountBySelection };
+  return { poolByBetType, amountBySelection, countBySelection };
 }
 
-// 賭け金額から人気順を導く。金額の多い順に1から振り、同額は同順位として次の順位を
-// その数だけ飛ばす。金額ゼロや未購入の選択肢は結果に含まれない。
+// 賭け金額から人気順を導く。金額の多い順に1から重複なく振り、同額は購入件数が多い方を、
+// それも同じなら選択肢キーの数値が小さい方を上位にして全順位を一意にする。
+// 金額ゼロや未購入の選択肢は結果に含まれない。
 // 表示オッズは0.1単位へ切り捨てられ異なる支持率が同値に潰れるため、丸め前の金額を正とする
-export function calculateWinPopularity(amountBySelection: Record<string, number>) {
+export function calculateWinPopularity(
+  amountBySelection: Record<string, number>,
+  countBySelection: Record<string, number> = {}
+) {
+  const selectionNumber = (key: string) => {
+    // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
+    const parsed = JSON.parse(key) as number[];
+    return parsed[0] ?? Number.MAX_SAFE_INTEGER;
+  };
   const entries = Object.entries(amountBySelection).filter(([, amount]) => amount > 0);
-  entries.sort((a, b) => b[1] - a[1]);
+  entries.sort(
+    ([keyA, amountA], [keyB, amountB]) =>
+      amountB - amountA ||
+      (countBySelection[keyB] ?? 0) - (countBySelection[keyA] ?? 0) ||
+      selectionNumber(keyA) - selectionNumber(keyB)
+  );
 
   const ranks: Record<string, number> = {};
-  let prevAmount: number | null = null;
-  let prevRank = 0;
-  entries.forEach(([key, amount], index) => {
-    const rank = amount === prevAmount ? prevRank : index + 1;
-    ranks[key] = rank;
-    prevAmount = amount;
-    prevRank = rank;
+  entries.forEach(([key], index) => {
+    ranks[key] = index + 1;
   });
   return ranks;
 }

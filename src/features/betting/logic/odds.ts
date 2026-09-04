@@ -38,10 +38,9 @@ export async function calculateOdds(raceId: string) {
   );
   // 人気順は丸め済みオッズでなく賭け金額から算出し、表示上の同オッズでも順位が付く
   const winPopularity = Object.fromEntries(
-    Object.entries(calculateWinPopularity(pool.amountBySelection[BET_TYPES.WIN] ?? {})).map(([key, rank]) => [
-      toHorseNumberKey(key),
-      rank,
-    ])
+    Object.entries(
+      calculateWinPopularity(pool.amountBySelection[BET_TYPES.WIN] ?? {}, pool.countBySelection[BET_TYPES.WIN] ?? {})
+    ).map(([key, rank]) => [toHorseNumberKey(key), rank])
   );
 
   await db
