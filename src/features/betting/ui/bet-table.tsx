@@ -30,14 +30,12 @@ interface Entry {
   status: string;
 }
 
-// 単勝オッズの1セル。SSE 更新で上昇は緑、下降は赤から基調青へ減衰点灯し、
+// 単勝オッズの1セル。文字色は通常のまま、SSE 更新で値が変化したときだけ
+// 上昇は緑、下降は赤から本来の文字色へ減衰点灯する。
 // version を key にして更新イベントごとにアニメーションを最初から再生する
 function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'down'; version: number }) {
   return (
-    <span
-      key={version}
-      className={cn('text-odds', delta === 'up' && 'animate-odds-up', delta === 'down' && 'animate-odds-down')}
-    >
+    <span key={version} className={cn(delta === 'up' && 'animate-odds-up', delta === 'down' && 'animate-odds-down')}>
       {value}
     </span>
   );
