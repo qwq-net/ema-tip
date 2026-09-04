@@ -2,6 +2,7 @@
 
 import type { RankingData } from '@/entities/ranking';
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
+import { medalRankClass } from '@/shared/constants/rank-medal';
 import { Badge, LiveConnectionStatus } from '@/shared/ui';
 import { Trophy, Users } from 'lucide-react';
 import type { RankingDisplayMode } from '../actions';
@@ -78,13 +79,7 @@ export function RankingList({
                 <div className="flex items-center gap-4">
                   <div
                     className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold ${
-                      user.rank === 1
-                        ? 'bg-amber-100 text-amber-700'
-                        : user.rank === 2
-                          ? 'bg-gray-100 text-gray-700'
-                          : user.rank === 3
-                            ? 'bg-orange-100 text-orange-800'
-                            : 'bg-white text-gray-500'
+                      medalRankClass(user.rank) ?? 'bg-white text-gray-500'
                     }`}
                   >
                     {user.rank}

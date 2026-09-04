@@ -10,6 +10,7 @@ import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
+import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
 import { Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
@@ -41,27 +42,16 @@ function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'd
   );
 }
 
-// 上位3人気の金銀銅チップ。文字色の金銀は白地で読めないため、淡い地色に濃い文字を載せる
-const RANK_CHIP_CLASSES = {
-  1: 'bg-yellow-100 text-yellow-800',
-  2: 'bg-gray-200 text-gray-700',
-  3: 'bg-orange-100 text-orange-900',
-} as const;
-
-function rankChipClass(rank: number): string | undefined {
-  return rank === 1 || rank === 2 || rank === 3 ? RANK_CHIP_CLASSES[rank] : undefined;
-}
-
 // 人気順の1セル。賭け金額由来の順位で、未購入の馬と取消馬は「-」を表示する。
-// 1〜3人気は金銀銅のチップで強調し、4人気以下は素のテキストで出す。
+// 1〜3人気はランキングと共通の金銀銅チップで強調し、4人気以下は素のテキストで出す。
 // オッズ列と人気列の両ブランチで同一実装を共有し、渡し漏れの分岐差を作らない
 function PopularityCell({ rank, isScratched }: { rank?: number; isScratched: boolean }) {
   return (
     <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
       {isScratched || rank === undefined ? (
         '-'
-      ) : rankChipClass(rank) ? (
-        <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', rankChipClass(rank))}>{rank}人気</span>
+      ) : medalRankClass(rank) ? (
+        <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', medalRankClass(rank))}>{rank}人気</span>
       ) : (
         `${rank}人気`
       )}
