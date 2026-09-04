@@ -3,7 +3,7 @@
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import type { getRaceOdds } from '@/features/betting/logic/odds';
 import type { RaceOddsData, SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 type OddsData = Awaited<ReturnType<typeof getRaceOdds>>;
 
@@ -28,14 +28,30 @@ export function useRaceOdds(
   events?: RaceEventCallbacks
 ) {
   const [odds, setOdds] = useState<OddsData | RaceOddsData>(initialOdds);
+  // 更新の連番。表示側が key に使い、同方向の連続更新でも点灯アニメーションを最初から再生する
+  const [oddsVersion, setOddsVersion] = useState(0);
+  // 馬番ごとの前回比。値が変わらなかった馬番は含まれない
+  const [oddsDeltas, setOddsDeltas] = useState<Record<string, 'up' | 'down'>>({});
+  const prevWinOddsRef = useRef(initialOdds?.winOdds);
 
   // トーストは出さない。オッズ更新は誰かが購入するたびに全接続へ届くため、開催ピークには
-  // 通知が洪水になり、購入者自身にも成功トーストと重なって出る。オッズ値と
-  // 「オッズ最終更新」時刻の表示がライブで変わることが更新の通知を兼ねる
+  // 通知が洪水になり、購入者自身にも成功トーストと重なって出る。更新の通知は
+  // オッズ値と最終更新時刻の点灯表示が担う
   const handleOddsUpdated = useCallback(
     (message: SSERaceOddsUpdatedMessage) => {
       if (fixedOddsMode) return;
+      const prev = prevWinOddsRef.current ?? {};
+      const next = message.data.winOdds ?? {};
+      const deltas: Record<string, 'up' | 'down'> = {};
+      for (const [horseNumber, value] of Object.entries(next)) {
+        const before = prev[horseNumber];
+        if (before !== undefined && value > before) deltas[horseNumber] = 'up';
+        else if (before !== undefined && value < before) deltas[horseNumber] = 'down';
+      }
+      prevWinOddsRef.current = next;
       setOdds(message.data);
+      setOddsDeltas(deltas);
+      setOddsVersion((v) => v + 1);
     },
     [fixedOddsMode]
   );
@@ -47,5 +63,5 @@ export function useRaceOdds(
     ...events,
   });
 
-  return { odds, connectionStatus };
+  return { odds, oddsDeltas, oddsVersion, connectionStatus };
 }

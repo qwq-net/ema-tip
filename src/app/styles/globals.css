@@ -79,6 +79,40 @@
   --radius-chip: 0.25rem;
 
   --animate-spin-slow: spin 3s linear infinite;
+
+  /* オッズ表示の基調青と、SSE更新時の点灯アニメーション。上昇は緑、下降は赤から
+     基調青へ、更新時刻はブランド緑からグレーへ減衰する。更新イベントごとに
+     要素を key で作り直して最初から再生する。視差効果減の設定では全体既定により
+     アニメーションが止まり、終端色に即着地する */
+  --color-odds: #2563eb; /* 白地 4.56:1 */
+  --animate-odds-up: odds-up 3s ease-out both;
+  --animate-odds-down: odds-down 3s ease-out both;
+  --animate-stamp-flash: stamp-flash 2s ease-out both;
+
+  @keyframes odds-up {
+    from {
+      color: var(--color-success);
+    }
+    to {
+      color: var(--color-odds);
+    }
+  }
+  @keyframes odds-down {
+    from {
+      color: var(--color-error);
+    }
+    to {
+      color: var(--color-odds);
+    }
+  }
+  @keyframes stamp-flash {
+    from {
+      color: var(--color-primary);
+    }
+    to {
+      color: var(--color-gray-500);
+    }
+  }
 }
 
 :root {

@@ -14,6 +14,7 @@ import { toast } from '@/shared/lib/toast';
 import { Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
+import { cn } from '@/shared/utils/cn';
 import { getGenderAge } from '@/shared/utils/gender';
 import { AlertCircle, Clock, Info, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -27,6 +28,19 @@ interface Entry {
   horseGender: string;
   horseAge: number | null;
   status: string;
+}
+
+// 単勝オッズの1セル。SSE 更新で上昇は緑、下降は赤から基調青へ減衰点灯し、
+// version を key にして更新イベントごとにアニメーションを最初から再生する
+function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'down'; version: number }) {
+  return (
+    <span
+      key={version}
+      className={cn('text-odds', delta === 'up' && 'animate-odds-up', delta === 'down' && 'animate-odds-down')}
+    >
+      {value}
+    </span>
+  );
 }
 
 // 購入確定前のバリデーション。エラーメッセージを返し、問題なければ null を返す。
@@ -83,7 +97,7 @@ export function BetTable({
     closingAt,
   });
 
-  const { odds, connectionStatus } = useRaceOddsData(raceId, initialOdds, fixedOddsMode, {
+  const { odds, oddsDeltas, oddsVersion, connectionStatus } = useRaceOddsData(raceId, initialOdds, fixedOddsMode, {
     eventId,
     onRaceBroadcast: () => router.push(`/races/${raceId}/standby`),
     onRaceClosed: () => setIsClosed(true),
@@ -215,7 +229,11 @@ export function BetTable({
         ) : (
           <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
             {odds?.updatedAt && (
-              <span className="text-right text-sm text-gray-500">
+              // key と点灯クラスで SSE 更新のたびにブランド緑からグレーへ減衰再生する。初期表示では点灯しない
+              <span
+                key={oddsVersion}
+                className={cn('text-right text-sm text-gray-500', oddsVersion > 0 && 'animate-stamp-flash')}
+              >
                 オッズ最終更新:{' '}
                 <FormattedDate
                   date={odds.updatedAt}
@@ -275,7 +293,15 @@ export function BetTable({
                           <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                         </td>
                         <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
-                          {isScratched ? '-' : (odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-')}
+                          {isScratched ? (
+                            '-'
+                          ) : (
+                            <OddsValue
+                              value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
+                              delta={oddsDeltas[String(entry.horseNumber)]}
+                              version={oddsVersion}
+                            />
+                          )}
                         </td>
 
                         {idx === 0 &&
@@ -321,7 +347,15 @@ export function BetTable({
                         <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
-                        {isScratched ? '-' : (odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-')}
+                        {isScratched ? (
+                          '-'
+                        ) : (
+                          <OddsValue
+                            value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
+                            delta={oddsDeltas[String(entry.horseNumber)]}
+                            version={oddsVersion}
+                          />
+                        )}
                       </td>
 
                       {Array.from({ length: columnCount }).map((_, colIdx) => (
