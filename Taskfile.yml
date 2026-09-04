@@ -111,7 +111,7 @@ tasks:
   perf:stats:reset:
     desc: クエリ統計をリセットします。計測シナリオの直前に実行します
     cmds:
-      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT pg_stat_statements_reset();"
+      - docker compose exec -T db psql -U postgres -d webapp -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements; SELECT pg_stat_statements_reset();"
 
   perf:setup:
     desc: 負荷計測用のユーザー30人・イベント・レース・ウォレットを作り直します
