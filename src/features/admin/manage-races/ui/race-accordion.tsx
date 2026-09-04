@@ -86,7 +86,12 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                 countLabel={`${event.races.length}レース`}
               >
                 {showBet5SetupLink && (
-                  <Button asChild variant="outline" size="sm" className="border-sky-200 text-sky-700 hover:bg-sky-50">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                  >
                     <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
                       BET5が設定できます
                       <ExternalLink className="ml-1 h-3.5 w-3.5" />
@@ -107,12 +112,7 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                   </Button>
                 )}
                 {showBet5PayoutReminder && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="border-rose-200 text-rose-700 hover:bg-rose-50"
-                  >
+                  <Button asChild variant="outline" size="sm" className="border-red-200 text-red-700 hover:bg-red-50">
                     <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
                       BET5を払い戻し忘れていませんか？
                       <ExternalLink className="ml-1 h-3.5 w-3.5" />

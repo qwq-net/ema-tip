@@ -103,7 +103,7 @@ export function StandbyClient({
       case 1:
         return 'bg-amber-100 text-amber-700 ring-amber-200';
       case 2:
-        return 'bg-slate-100 text-slate-700 ring-slate-200';
+        return 'bg-gray-100 text-gray-700 ring-gray-200';
       case 3:
         return 'bg-orange-100 text-orange-700 ring-orange-200';
       default:

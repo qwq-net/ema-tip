@@ -168,7 +168,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                           index === 0
                             ? 'border-amber-200 bg-amber-100 text-amber-700'
                             : index === 1
-                              ? 'border-slate-200 bg-slate-100 text-slate-700'
+                              ? 'border-gray-200 bg-gray-100 text-gray-700'
                               : index === 2
                                 ? 'border-orange-200 bg-orange-100 text-orange-700'
                                 : 'text-text-sub border-gray-100 bg-gray-50'

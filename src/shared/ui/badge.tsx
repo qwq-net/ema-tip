@@ -29,7 +29,7 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
           case '稍重':
             return 'bg-cyan-100 text-cyan-800';
           case '重':
-            return 'bg-slate-200 text-slate-800';
+            return 'bg-gray-200 text-gray-800';
           case '不良':
             return 'bg-gray-300 text-gray-800';
           default:

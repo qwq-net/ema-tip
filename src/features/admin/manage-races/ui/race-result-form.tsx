@@ -76,7 +76,7 @@ const getRankStyles = (position: number) => {
     case 1:
       return 'bg-amber-100 text-amber-700 ring-amber-200 border-amber-200';
     case 2:
-      return 'bg-slate-100 text-slate-700 ring-slate-200 border-slate-200';
+      return 'bg-gray-100 text-gray-700 ring-gray-200 border-gray-200';
     case 3:
       return 'bg-orange-100 text-orange-700 ring-orange-200 border-orange-200';
     default:
@@ -589,7 +589,7 @@ export function RaceResultForm({
                           <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                             {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
                               const labels = ['1着', '2着', '3着'];
-                              const colors = ['text-amber-600', 'text-slate-500', 'text-orange-600'];
+                              const colors = ['text-amber-600', 'text-gray-500', 'text-orange-600'];
                               const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
                               return (
                                 <div key={horseNumber} className="flex justify-between py-1">
@@ -637,7 +637,7 @@ export function RaceResultForm({
                             <span>{sortedEntries[0]?.horseName}</span>
                           </div>
                           <div className="flex justify-between py-1">
-                            <span className="text-slate-500">2着</span>
+                            <span className="text-gray-500">2着</span>
                             <span>{sortedEntries[1]?.horseName}</span>
                           </div>
                           <div className="flex justify-between py-1">

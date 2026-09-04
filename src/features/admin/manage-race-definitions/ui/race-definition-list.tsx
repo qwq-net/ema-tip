@@ -62,7 +62,7 @@ export async function RaceDefinitionList() {
                 label={GRADE_LABELS[def.grade] || def.grade}
                 className={
                   def.grade.startsWith('G')
-                    ? 'bg-yellow-50 text-yellow-800 ring-yellow-200'
+                    ? 'bg-amber-50 text-amber-800 ring-amber-200'
                     : 'bg-gray-50 text-gray-600 ring-gray-200'
                 }
               />

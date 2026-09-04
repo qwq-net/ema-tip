@@ -14,7 +14,11 @@
      JRA コーポレートグリーンと枠番 6 緑の色相 150 付近から 25 度離している
    例外として維持する慣習色: 枠番 8 色 bracket.ts・払戻モーダルの券種色・
    予想印の記号色・的中と払戻の赤・金銭プラスマイナスの青赤・
-   順位 1〜3 の金銀銅 rank-medal.ts
+   順位 1〜3 の金銀銅 rank-medal.ts・性齢の牡青と牝ピンク gender.ts・
+   ユーザーロール色 entities/user/constants.ts・馬タイプ horse-type-badge・
+   SSE 接続状態の信号色 live-connection-status・Discord ブランド青 login-button。
+   カテゴリ色の集中管理点は shared/ui/badge.tsx。
+   コンポーネントへの生パレット色の直書きは color-usage.test.ts が検出する
    ============================================================ */
 @theme {
   /* 書体。Webフォントは使わずシステム書体で描画する。Mac は Hiragino、

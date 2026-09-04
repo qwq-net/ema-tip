@@ -7,7 +7,7 @@ export function HorseSourceBadge({ source }: { source: HorseSource }) {
     <Badge
       label={source === 'NETKEIBA' ? 'Netkeiba' : '手動'}
       className={
-        source === 'NETKEIBA' ? 'bg-sky-50 text-sky-700 ring-sky-200' : 'bg-gray-100 text-gray-600 ring-gray-200'
+        source === 'NETKEIBA' ? 'bg-blue-50 text-blue-700 ring-blue-200' : 'bg-gray-100 text-gray-600 ring-gray-200'
       }
     />
   );

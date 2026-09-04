@@ -27,7 +27,7 @@ export function LiveConnectionStatus({ status, className, showText = true }: Liv
 
   if (status === 'CONNECTING') {
     return (
-      <div className={cn('flex items-center gap-2 text-yellow-500', className)}>
+      <div className={cn('flex items-center gap-2 text-amber-500', className)}>
         <Loader2 className="h-4 w-4 animate-spin" />
         {showText && <span className="text-sm font-semibold">CONNECTING...</span>}
       </div>

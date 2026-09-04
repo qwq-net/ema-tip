@@ -19,7 +19,7 @@ function UserAvatar({
   return (
     <div
       className={cn(
-        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100',
+        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100',
         className
       )}
     >
