@@ -143,7 +143,7 @@ export function Bet5ManageCard({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bet5-initial-pot">プール金額（払い戻し実行まで編集可）</Label>
+            <Label htmlFor="bet5-initial-pot">プール金額</Label>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:items-center">
               <NumericInput
                 id="bet5-initial-pot"
@@ -162,7 +162,7 @@ export function Bet5ManageCard({
                 プールを更新
               </Button>
             </div>
-            {!canEditPot && <p className="text-sm text-gray-500">払い戻し完了後はプールを変更できません。</p>}
+            {!canEditPot && <p className="text-sm text-gray-500">払戻完了後はプールを変更できません。</p>}
           </div>
         </div>
 
@@ -223,10 +223,10 @@ export function Bet5ManageCard({
               trigger={
                 <Button variant="secondary" disabled={isPending || !canCalculatePayout}>
                   <Calculator className="mr-2 h-4 w-4" />
-                  配当計算・払い戻し実行
+                  配当計算・払戻実行
                 </Button>
               }
-              title="配当計算・払い戻しを実行しますか？"
+              title="配当計算・払戻を実行しますか？"
               description="的中を集計し、各ユーザーへ払い戻します。この操作は取り消せません。"
               confirmLabel="実行する"
               onConfirm={handleCalculate}
@@ -243,14 +243,14 @@ export function Bet5ManageCard({
           {bet5Event.status === 'SCHEDULED' && (
             <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
               <Info className="mr-1 h-4 w-4" />
-              払い戻しは締め切り後に実行できます。
+              払戻は締切後に実行できます。
             </div>
           )}
 
           {bet5Event.status === 'FINALIZED' && (
             <div className="flex items-center font-medium text-green-600">
               <Calculator className="mr-2 h-4 w-4" />
-              集計・払い戻し完了済み
+              集計・払戻完了済み
             </div>
           )}
         </div>

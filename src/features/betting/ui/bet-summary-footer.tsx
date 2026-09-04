@@ -14,6 +14,8 @@ interface BetSummaryFooterProps {
   onSubmit: () => void;
   /** 確定ボタンのラベル。通常馬券は既定の「購入確定」、BET5 は投票の語で渡す。 */
   submitLabel?: string;
+  /** 残高ラベル。通常馬券は既定の「購入可能残高」、BET5 は投票の語で渡す。 */
+  balanceLabel?: string;
 }
 
 export function BetSummaryFooter({
@@ -26,6 +28,7 @@ export function BetSummaryFooter({
   onAmountChange,
   onSubmit,
   submitLabel = '購入確定',
+  balanceLabel = '購入可能残高',
 }: BetSummaryFooterProps) {
   const [showKeypad, setShowKeypad] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -142,7 +145,7 @@ export function BetSummaryFooter({
 
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between lg:justify-end">
           <div className="flex flex-col items-center gap-1 sm:items-end">
-            <span className="text-text-sub text-sm">投票可能残高</span>
+            <span className="text-text-sub text-sm">{balanceLabel}</span>
             <span className="text-sm font-semibold text-gray-600 tabular-nums">
               {balance.toLocaleString('ja-JP')}円
             </span>

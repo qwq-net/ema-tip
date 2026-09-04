@@ -18,6 +18,9 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
   const [betType, setBetType] = useState<BetType>(allowedBetTypes?.[0] ?? BET_TYPES.WIN);
   const [selections, setSelections] = useState<Set<number>[]>([new Set(), new Set(), new Set()]);
   const [amount, setAmount] = useState<number>(100);
+  // ボックス購入モード。ON の間は1回のチェック操作が全列へ同時に入り、
+  // 同じ馬を列数分クリックせずにボックスを組める。2列以上の券種でのみ意味を持つ
+  const [boxMode, setBoxMode] = useState(false);
 
   const columnCount = getBetTypeColumnCount(betType);
 
@@ -58,8 +61,22 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
     setSelections([new Set(), new Set(), new Set()]);
   };
 
+  // ボックスモード ON かつ複数列の券種では、どの列を操作しても全列を同時に切り替える。
+  // 全列に入っている番号は全列から外し、1列でも欠けていれば全列へ入れる
   const handleCheckboxChange = (columnIndex: number, horseNumber: number) => {
     setSelections((prev) => {
+      if (boxMode && columnCount > 1) {
+        const inAllColumns = prev.slice(0, columnCount).every((set) => set.has(horseNumber));
+        return prev.map((set) => {
+          const newSet = new Set(set);
+          if (inAllColumns) {
+            newSet.delete(horseNumber);
+          } else {
+            newSet.add(horseNumber);
+          }
+          return newSet;
+        });
+      }
       const newSelections = [...prev];
       const newSet = new Set(prev[columnIndex]);
       if (newSet.has(horseNumber)) {
@@ -70,6 +87,18 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
       newSelections[columnIndex] = newSet;
       return newSelections;
     });
+  };
+
+  // ボックスモードの切替。ON にした時点の選択は全列の和集合へ揃え、
+  // それまで列ごとに入れていた選択がそのままボックスの買い目になるようにする
+  const handleBoxModeChange = (enabled: boolean) => {
+    setBoxMode(enabled);
+    if (enabled) {
+      setSelections((prev) => {
+        const union = new Set(prev.slice(0, columnCount).flatMap((set) => [...set]));
+        return prev.map(() => new Set(union));
+      });
+    }
   };
 
   const resetSelections = () => {
@@ -87,6 +116,8 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
     columnCount,
     bracketHorseCount,
     selectionsArray,
+    boxMode,
+    handleBoxModeChange,
     handleBetTypeChange,
     handleCheckboxChange,
     resetSelections,

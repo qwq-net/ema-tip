@@ -160,10 +160,10 @@ export async function placeBet5Bet({
       where: eq(bet5Events.id, bet5EventId),
     });
 
-    if (!event) throw new ActionError('BET5 event not found');
+    if (!event) throw new ActionError('BET5が見つかりません');
 
     if (event.status !== 'SCHEDULED') {
-      throw new ActionError('BET5 event is closed');
+      throw new ActionError('BET5の投票受付は終了しています');
     }
 
     // 後出し購入防止: 対象レースのいずれかが締切・確定済みなら、BET5イベントの締切忘れがあっても購入不可
@@ -198,7 +198,7 @@ export async function placeBet5Bet({
 
     const count = calculateBet5Count(selections);
 
-    if (count === 0) throw new ActionError('Invalid selection');
+    if (count === 0) throw new ActionError('選択内容が正しくありません');
     const normalizedUnitAmount = Math.max(100, Math.floor(unitAmount / 100) * 100);
     const cost = count * normalizedUnitAmount;
 
@@ -206,7 +206,7 @@ export async function placeBet5Bet({
       where: and(eq(wallets.userId, userId), eq(wallets.eventId, event.eventId)),
     });
 
-    if (!wallet) throw new ActionError('Wallet not found');
+    if (!wallet) throw new ActionError('ウォレットが見つかりません');
 
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${wallet.id}`}))`);
 
@@ -218,14 +218,14 @@ export async function placeBet5Bet({
     });
 
     if (!lockedEvent || lockedEvent.status !== 'SCHEDULED') {
-      throw new ActionError('BET5 event is closed');
+      throw new ActionError('BET5の投票受付は終了しています');
     }
 
     const lockedWallet = await tx.query.wallets.findFirst({
       where: eq(wallets.id, wallet.id),
     });
 
-    if (!lockedWallet || lockedWallet.balance < cost) throw new ActionError('Insufficient balance');
+    if (!lockedWallet || lockedWallet.balance < cost) throw new ActionError('残高が不足しています');
 
     const [ticket] = await tx
       .insert(bet5Tickets)

@@ -257,7 +257,7 @@ export function RaceResultForm({
     setIsPayoutMoving(true);
     try {
       await finalizePayout(raceId);
-      toast.success('払い戻し確定通知を送信しました', {
+      toast.success('払戻確定通知を送信しました', {
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
       router.refresh();
@@ -294,7 +294,7 @@ export function RaceResultForm({
         toast.error(result.error);
         return;
       }
-      toast.success('着順を確定し、払い戻し計算が完了しました', {
+      toast.success('着順を確定し、払戻計算が完了しました', {
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
       router.refresh();
@@ -341,7 +341,7 @@ export function RaceResultForm({
         toast.error(result.error);
         return;
       }
-      toast.success('着順を確定し、Netkeibaオッズで払い戻し計算が完了しました', {
+      toast.success('着順を確定し、Netkeibaオッズで払戻計算が完了しました', {
         icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       });
       router.refresh();
@@ -579,7 +579,7 @@ export function RaceResultForm({
                       title="Netkeibaの結果で確定しますか？"
                       description={
                         <>
-                          Netkeibaの実際の払い戻しオッズで計算されます。
+                          Netkeibaの実際の払戻オッズで計算されます。
                           <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                             {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
                               const labels = ['1着', '2着', '3着'];
@@ -630,7 +630,7 @@ export function RaceResultForm({
                     title="着順を確定しますか？"
                     description={
                       <>
-                        この操作を行うと、投票された馬券の払い戻し計算が実行されます。
+                        この操作を行うと、購入された馬券の払戻計算が実行されます。
                         <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                           {[1, 2, 3].map((position) => (
                             <div key={position} className="flex justify-between py-1">
@@ -663,7 +663,7 @@ export function RaceResultForm({
                   onClick={handlePayoutFinalize}
                   disabled={isPayoutMoving || isPending}
                 >
-                  {isPayoutMoving ? '払い戻し処理中...' : '払い戻しを確定する'}
+                  {isPayoutMoving ? '払戻処理中...' : '払戻を確定する'}
                 </Button>
                 <ConfirmDialog
                   trigger={
@@ -681,7 +681,7 @@ export function RaceResultForm({
                     </div>
                   }
                   title="着順設定をリセットしますか？"
-                  description="確定済みの着順・払い戻しがリセットされます。この操作は元に戻せません。"
+                  description="確定済みの着順・払戻がリセットされます。この操作は元に戻せません。"
                   confirmLabel="リセットする"
                   onConfirm={handleServerReset}
                 />

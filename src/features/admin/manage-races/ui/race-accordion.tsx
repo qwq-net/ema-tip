@@ -114,7 +114,7 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                 {showBet5PayoutReminder && (
                   <Button asChild variant="outline" size="sm" className="border-red-200 text-red-700 hover:bg-red-50">
                     <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
-                      BET5を払い戻し忘れていませんか？
+                      BET5の払戻を忘れていませんか？
                       <ExternalLink className="ml-1 h-3.5 w-3.5" />
                     </Link>
                   </Button>

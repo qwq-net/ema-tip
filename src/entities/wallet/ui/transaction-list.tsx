@@ -16,20 +16,20 @@ interface TransactionListProps {
   transactions: Transaction[];
 }
 
+// 取引種別の表示名の単一管理点。キーは transactionTypeEnum の値に一致させること。
+// 通常馬券は「購入」、取消馬による REFUND は的中の払戻と区別して「返還」と表示する
+export const TRANSACTION_TYPE_LABELS = {
+  DISTRIBUTION: '配布金',
+  BET: '購入',
+  PAYOUT: '払戻',
+  REFUND: '返還',
+  LOAN: '借入金',
+} satisfies Record<string, string>;
+
 export function TransactionList({ transactions }: TransactionListProps) {
   if (transactions.length === 0) {
     return <div className="text-text-sub py-8 text-center">取引履歴はありません。</div>;
   }
-
-  // キーは transactionTypeEnum の値に一致させること
-  const typeLabels = {
-    DISTRIBUTION: '配布金',
-    BET: '投票',
-    PAYOUT: '払戻',
-    REFUND: '払戻',
-    ADJUSTMENT: '調整',
-    LOAN: '借入金',
-  } satisfies Record<string, string>;
 
   return (
     <div className="space-y-3">
@@ -46,7 +46,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
               </div>
               <div>
                 <div className="font-semibold text-gray-900">
-                  {tx.description || lookup(typeLabels, tx.type) || tx.type}
+                  {tx.description || lookup(TRANSACTION_TYPE_LABELS, tx.type) || tx.type}
                 </div>
                 <div className="text-text-sub text-sm">
                   <FormattedDate

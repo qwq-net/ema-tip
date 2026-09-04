@@ -82,15 +82,15 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
     .filter({ has: adminPage.getByRole('checkbox', { name: 'このレースで個別に指定する' }) })
     .last();
 
-  await test.step('管理者がレースの購入可能種別を三連単以外へ制限する', async () => {
+  await test.step('管理者がレースの購入可能種別を3連単以外へ制限する', async () => {
     await adminPage.goto(`/admin/races/${fx.raceId}`);
     await adminPage.getByRole('checkbox', { name: 'このレースで個別に指定する' }).check();
-    await adminPage.getByRole('checkbox', { name: '三連単', exact: true }).uncheck();
+    await adminPage.getByRole('checkbox', { name: '3連単', exact: true }).uncheck();
     await saveAndExpectToast(adminPage, '設定を保存', '購入可能な馬券種別を更新しました', betTypesCard);
 
     await userPage.goto(`/races/${fx.raceId}`);
     await expect(userPage.getByText('このレースで購入できるのは')).toBeVisible();
-    await expect(userPage.getByRole('button', { name: '三連単', exact: true })).toBeDisabled();
+    await expect(userPage.getByRole('button', { name: '3連単', exact: true })).toBeDisabled();
     await expect(userPage.getByRole('button', { name: '単勝', exact: true })).toBeEnabled();
   });
 
@@ -100,7 +100,7 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
 
     await userPage.goto(`/races/${fx.raceId}`);
     await expect(userPage.getByText('このレースで購入できるのは')).toBeHidden();
-    await expect(userPage.getByRole('button', { name: '三連単', exact: true })).toBeEnabled();
+    await expect(userPage.getByRole('button', { name: '3連単', exact: true })).toBeEnabled();
   });
 
   await test.step('融資は発生条件を満たすまで表示されない', async () => {
@@ -151,10 +151,10 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
     await finalizeButton.click();
     await adminPage.getByRole('button', { name: '確定する', exact: true }).click();
 
-    const payoutButton = adminPage.getByRole('button', { name: '払い戻しを確定する' });
+    const payoutButton = adminPage.getByRole('button', { name: '払戻を確定する' });
     await expect(payoutButton).toBeEnabled({ timeout: 30_000 });
     await payoutButton.click();
-    await expect(adminPage.getByText('払い戻し確定通知を送信しました')).toBeVisible({ timeout: 30_000 });
+    await expect(adminPage.getByText('払戻確定通知を送信しました')).toBeVisible({ timeout: 30_000 });
   });
 
   await test.step('的中表示と残高を検証', async () => {

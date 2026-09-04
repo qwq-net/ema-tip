@@ -37,9 +37,10 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
               let description = null;
               if ((tx.type === 'BET' || tx.type === 'PAYOUT') && tx.bet5Ticket) {
                 const bet5EventName = tx.bet5Ticket.bet5Event?.event?.name;
+                // BET5 は画面全体で「投票」の語に統一している。通常馬券の「購入」と使い分ける
                 description = bet5EventName
-                  ? `${bet5EventName} BET5 ${tx.type === 'PAYOUT' ? '払戻' : '購入'}`
-                  : `BET5 ${tx.type === 'PAYOUT' ? '払戻' : '購入'}`;
+                  ? `${bet5EventName} BET5 ${tx.type === 'PAYOUT' ? '払戻' : '投票'}`
+                  : `BET5 ${tx.type === 'PAYOUT' ? '払戻' : '投票'}`;
               } else if (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND') {
                 const raceName = tx.bet?.race?.name;
                 const venueShortName = tx.bet?.race?.venue?.shortName;

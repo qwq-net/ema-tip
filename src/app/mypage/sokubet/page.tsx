@@ -93,7 +93,7 @@ export default async function SokubetPage() {
                       </div>
                       <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
                         <Wallet size={16} className="text-text-sub" />
-                        <span className="text-sm text-nowrap text-gray-500">投票可能残高</span>
+                        <span className="text-sm text-nowrap text-gray-500">購入可能残高</span>
                         <span className="flex-1 text-right text-lg font-semibold text-gray-900 sm:flex-none">
                           {Math.floor(balance).toLocaleString('ja-JP')}
                           <span className="text-text-sub ml-0.5 text-sm">円</span>

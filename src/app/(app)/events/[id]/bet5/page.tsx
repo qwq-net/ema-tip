@@ -93,6 +93,9 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
   const hasClosedRace = orderedRaces.some((race) => race.status !== 'SCHEDULED');
   const isOpen = bet5Event.status === 'SCHEDULED' && !hasClosedRace;
 
+  // 払戻完了後はキャリーオーバーが精算で消費・繰越済みのため、初期プールだけを出す
+  const carryoverAmount = bet5Event.status === 'FINALIZED' ? 0 : event.carryoverAmount;
+
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-4xl space-y-6">
@@ -130,12 +133,18 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           <div className="mt-4">
             <p className="text-turf-100 text-sm">BET5プール金額</p>
             <p className="text-gold text-3xl font-semibold tabular-nums">
-              {bet5Event.initialPot.toLocaleString('ja-JP')}円
+              {(bet5Event.initialPot + carryoverAmount).toLocaleString('ja-JP')}円
               <span className="text-turf-100 ml-1.5 text-base font-medium">+ プレイヤーの購入金額</span>
             </p>
+            {carryoverAmount > 0 && (
+              <p className="text-gold mt-1 text-sm font-semibold tabular-nums">
+                うちキャリーオーバー {carryoverAmount.toLocaleString('ja-JP')}円
+              </p>
+            )}
           </div>
           <p className="text-turf-100 mt-3 text-sm">
             5つのレース全ての1着馬を予想してください。1口100円から投票できます。
+            的中者がいなかった馬券の売上は、キャリーオーバーとしてこのプールへ加算されます。
           </p>
         </Card>
 

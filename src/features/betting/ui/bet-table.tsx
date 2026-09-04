@@ -1,6 +1,6 @@
 'use client';
 
-import { BET_TYPE_LABELS, BET_TYPES, BetType, getValidBetCombinations } from '@/entities/bet';
+import { BET_TYPE_DESCRIPTIONS, BET_TYPE_LABELS, BET_TYPES, BetType, getValidBetCombinations } from '@/entities/bet';
 import { useRaceOdds as useRaceOddsData } from '@/features/betting';
 import { placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
@@ -55,6 +55,20 @@ function PopularityCell({ rank, isScratched }: { rank?: number; isScratched: boo
       ) : (
         `${rank}人気`
       )}
+    </td>
+  );
+}
+
+// 複勝オッズの1セル。値は「最小-最大」の幅表示で、幅がなければ単一値を出す。
+// 未購入の馬と取消馬は単勝オッズ列と同じ「-.-」「-」の表記に合わせる
+function PlaceOddsCell({ range, isScratched }: { range?: { min: number; max: number }; isScratched: boolean }) {
+  const format = () => {
+    if (!range) return '-.-';
+    return range.min === range.max ? range.min.toFixed(1) : `${range.min.toFixed(1)}-${range.max.toFixed(1)}`;
+  };
+  return (
+    <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
+      {isScratched ? '-' : format()}
     </td>
   );
 }
@@ -134,6 +148,8 @@ export function BetTable({
     columnCount,
     bracketHorseCount,
     selectionsArray,
+    boxMode,
+    handleBoxModeChange,
     handleBetTypeChange,
     handleCheckboxChange,
     resetSelections,
@@ -259,7 +275,23 @@ export function BetTable({
           </div>
         )}
       </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-text-sub text-sm">{BET_TYPE_DESCRIPTIONS[betType]}</p>
+        {columnCount >= 2 && (
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-gray-700">
+            <Checkbox
+              checked={boxMode}
+              onCheckedChange={(checked) => handleBoxModeChange(checked === true)}
+              disabled={isClosed || isPending}
+              className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
+            />
+            ボックス
+            <span className="text-text-sub font-normal">チェックが全列へまとめて入ります</span>
+          </label>
+        )}
+      </div>
       <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
+        {/* 騎手は意図的に表示しない。ゲーム内の予想への影響が薄く、レース登録の運用負担を増やさないため */}
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
@@ -268,6 +300,7 @@ export function BetTable({
               <th className="px-2 py-2 text-sm font-semibold">馬名</th>
               <th className="px-2 py-2 text-sm font-semibold">性齢</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">単勝オッズ</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold">複勝オッズ</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">人気</th>
               {columnLabels.map((label, i) => (
                 <th key={i} className="px-2 py-2 text-center text-sm font-semibold">
@@ -318,6 +351,7 @@ export function BetTable({
                             />
                           )}
                         </td>
+                        <PlaceOddsCell range={odds?.placeOdds?.[String(entry.horseNumber)]} isScratched={isScratched} />
                         <PopularityCell
                           rank={odds?.winPopularity?.[String(entry.horseNumber)]}
                           isScratched={isScratched}
@@ -376,6 +410,7 @@ export function BetTable({
                           />
                         )}
                       </td>
+                      <PlaceOddsCell range={odds?.placeOdds?.[String(entry.horseNumber)]} isScratched={isScratched} />
                       <PopularityCell
                         rank={odds?.winPopularity?.[String(entry.horseNumber)]}
                         isScratched={isScratched}

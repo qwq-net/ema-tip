@@ -59,7 +59,10 @@ export function PayoutResultModal({ raceName, raceDate, results, open, onOpenCha
             <DialogDescription className="sr-only">{raceName}の払戻金結果を表示しています。</DialogDescription>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-xl font-semibold tracking-widest">払戻金</span>
+            <div className="flex flex-col items-end">
+              <span className="text-xl font-semibold tracking-widest">払戻金</span>
+              <span className="text-sm text-gray-300">100円につき</span>
+            </div>
             <DialogClose asChild>
               <button aria-label="閉じる" className="text-gray-400 hover:text-white">
                 <X size={28} />

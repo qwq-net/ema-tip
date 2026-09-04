@@ -287,6 +287,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
               onAmountChange={setAmount}
               onSubmit={handleCheck}
               submitLabel="投票する"
+              balanceLabel="投票可能残高"
             />
           </div>
         </div>

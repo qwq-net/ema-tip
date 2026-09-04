@@ -21,6 +21,7 @@ interface Entry {
   horseGender: string;
   horseAge: number | null;
   finishPosition: number | null;
+  status: string;
 }
 
 interface ClientPayoutResult {
@@ -159,7 +160,8 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           initialResults={initialResults}
           initialRanking={initialRanking}
           hasTickets={ticketGroups.length > 0}
-          entryCount={entries.length}
+          // 投票画面の頭数表示と揃え、取消・除外馬を除いた出走頭数を渡す
+          entryCount={entries.filter((entry) => entry.status === 'ENTRANT').length}
         />
 
         <PurchasedTicketList ticketGroups={ticketGroups} fixedOddsMode={race.fixedOddsMode} />

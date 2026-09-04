@@ -221,7 +221,7 @@ export function StandbyClient({
           <div className="p-6">
             <h2 className="mb-2 text-lg font-semibold text-gray-900">このレースの結果が発表されました</h2>
             <p className="text-sm leading-relaxed text-gray-600">
-              購入した馬券はありませんが、下のボタンから払戻結果のなどの詳細情報を確認いただけます。
+              購入した馬券はありませんが、下のボタンから払戻結果などの詳細情報を確認いただけます。
             </p>
             <div className="mt-6 flex justify-center">
               <Button

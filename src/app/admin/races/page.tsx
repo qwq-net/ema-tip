@@ -24,7 +24,7 @@ export default async function RacesPage() {
             <AdminSectionTitle>登録済みのレース</AdminSectionTitle>
             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
               <CircleHelp className="h-4 w-4 text-gray-500" />
-              <span>レースの締め切りや払い戻し確定操作は レースタイトルのリンク先から行えます。</span>
+              <span>レースの締切や払戻確定の操作は レースタイトルのリンク先から行えます。</span>
             </div>
           </div>
           <Button asChild className="flex items-center gap-2 font-semibold transition active:scale-[.96]">

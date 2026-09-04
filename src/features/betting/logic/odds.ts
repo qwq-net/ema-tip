@@ -5,7 +5,13 @@ import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { and, eq, sql } from 'drizzle-orm';
 
-import { aggregateOddsPool, BET_TYPES, calculateProvisionalOdds, calculateWinPopularity } from '@/entities/bet';
+import {
+  aggregateOddsPool,
+  BET_TYPES,
+  calculatePlaceOddsRange,
+  calculateProvisionalOdds,
+  calculateWinPopularity,
+} from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
 const PROVISIONAL_ODDS_CACHE_SECONDS = 10;
@@ -18,18 +24,18 @@ export async function calculateOdds(raceId: string) {
 
   if (race?.fixedOddsMode) return;
 
-  // 購入のたびに呼ばれるホットパス。単勝オッズにしか使わないため、
-  // SQL側で単勝ベットに絞り、必要な2カラムだけ取得して転送量を抑える
+  // 購入のたびに呼ばれるホットパス。表示に使う単勝・複勝オッズだけ計算するため、
+  // SQL側で両ベットに絞り、必要な2カラムだけ取得して転送量を抑える
   const raceBets = await db.query.bets.findMany({
-    where: and(eq(bets.raceId, raceId), sql`${bets.details}->>'type' = 'win'`),
+    where: and(eq(bets.raceId, raceId), sql`${bets.details}->>'type' IN ('win', 'place')`),
     columns: { details: true, amount: true },
   });
 
-  const winBets = raceBets.filter((bet) => bet.details.type === 'win');
+  const displayBets = raceBets.filter((bet) => bet.details.type === 'win' || bet.details.type === 'place');
 
   // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す。
   // 保証オッズも適用し、表示オッズが実際の払戻下限を下回らないようにする
-  const pool = aggregateOddsPool(winBets);
+  const pool = aggregateOddsPool(displayBets);
   const provisionalWin = calculateProvisionalOdds(pool, race?.guaranteedOdds || undefined)[BET_TYPES.WIN] ?? {};
   // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
   const toHorseNumberKey = (key: string) => String((JSON.parse(key) as number[])[0]);
@@ -42,6 +48,13 @@ export async function calculateOdds(raceId: string) {
       calculateWinPopularity(pool.amountBySelection[BET_TYPES.WIN] ?? {}, pool.countBySelection[BET_TYPES.WIN] ?? {})
     ).map(([key, rank]) => [toHorseNumberKey(key), rank])
   );
+  const placeAmountByHorse = Object.fromEntries(
+    Object.entries(pool.amountBySelection[BET_TYPES.PLACE] ?? {}).map(([key, amount]) => [
+      toHorseNumberKey(key),
+      amount,
+    ])
+  );
+  const placeOdds = calculatePlaceOddsRange(placeAmountByHorse, race?.guaranteedOdds?.[BET_TYPES.PLACE]);
 
   await db
     .insert(raceOdds)
@@ -49,14 +62,14 @@ export async function calculateOdds(raceId: string) {
       raceId,
       winOdds,
       winPopularity,
-      placeOdds: {},
+      placeOdds,
     })
     .onConflictDoUpdate({
       target: raceOdds.raceId,
       set: {
         winOdds,
         winPopularity,
-        placeOdds: {},
+        placeOdds,
         updatedAt: new Date(),
       },
     });
@@ -69,7 +82,7 @@ export async function calculateOdds(raceId: string) {
   if (!isThrottled) {
     raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
       raceId,
-      data: { winOdds, winPopularity, placeOdds: {}, updatedAt: new Date() },
+      data: { winOdds, winPopularity, placeOdds, updatedAt: new Date() },
     });
     await redis.set(lastNotificationKey, 'true', 'EX', THROTTLE_SECONDS);
   } else {

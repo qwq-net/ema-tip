@@ -112,7 +112,7 @@ describe('calculateOdds', () => {
     expect(valuesArg.winOdds).toEqual({ '1': 5.0, '2': 5.0 });
   });
 
-  it('1馬番のみにベットが集中 → オッズ最低値1.1が適用される', async () => {
+  it('1馬番のみにベットが集中 → オッズ最低値1.0が適用される', async () => {
     (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
       { amount: 1000, details: { type: 'win', selections: [1] } },
     ]);
@@ -122,7 +122,7 @@ describe('calculateOdds', () => {
 
     const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
     const valuesArg = insertValues.mock.calls[0][0];
-    expect(valuesArg.winOdds['1']).toBe(1.1);
+    expect(valuesArg.winOdds['1']).toBe(1.0);
   });
 
   describe('スロットリング', () => {
@@ -285,7 +285,7 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    expect(result.win[JSON.stringify([1])]).toBe(1.1);
+    expect(result.win[JSON.stringify([1])]).toBe(1.0);
   });
 
   it('ベットがない場合は空のオブジェクトを返す', async () => {
@@ -308,7 +308,7 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    expect(result.quinella[JSON.stringify([1, 3])]).toBe(1.1);
+    expect(result.quinella[JSON.stringify([1, 3])]).toBe(1.0);
     expect(Object.keys(result.quinella)).toHaveLength(1);
   });
 
@@ -371,7 +371,7 @@ describe('getProvisionalOddsCached', () => {
 
     const result = await getProvisionalOddsCached(raceId);
 
-    expect(result.win[JSON.stringify([1])]).toBe(1.1);
+    expect(result.win[JSON.stringify([1])]).toBe(1.0);
     expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:provisional_odds`, JSON.stringify(result), 'EX', 10);
   });
 
@@ -388,7 +388,7 @@ describe('getProvisionalOddsCached', () => {
     const result = await getProvisionalOddsCached(raceId);
     consoleSpy.mockRestore();
 
-    expect(result.win[JSON.stringify([1])]).toBe(1.1);
+    expect(result.win[JSON.stringify([1])]).toBe(1.0);
   });
 });
 

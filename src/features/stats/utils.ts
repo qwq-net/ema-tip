@@ -1,4 +1,5 @@
-import type { Transaction } from '@/entities/wallet/ui/transaction-list';
+import { TRANSACTION_TYPE_LABELS, type Transaction } from '@/entities/wallet/ui/transaction-list';
+import { lookup } from '@/shared/utils/lookup';
 
 export type AssetHistoryPoint = {
   date: string;
@@ -30,35 +31,18 @@ export type TransactionWithDetails = {
   } | null;
 };
 
+// 取引種別の表示名は TRANSACTION_TYPE_LABELS を単一管理点とし、未知の種別は生の値をそのまま返す
 export function getActionName(type: string): string {
-  switch (type) {
-    case 'BET':
-      return '投票';
-    case 'PAYOUT':
-      return '払戻';
-    case 'DISTRIBUTION':
-      return '初期配布';
-    case 'LOAN':
-      return '借入';
-    default:
-      return type;
-  }
+  return lookup(TRANSACTION_TYPE_LABELS, type) ?? type;
 }
 
 export function getTransactionDescription(tx: TransactionWithDetails): string {
   const raceName = tx.bet?.race?.name;
 
-  if (tx.type === 'BET' && raceName) {
-    return `${raceName} 投票`;
-  } else if (tx.type === 'PAYOUT' && raceName) {
-    return `${raceName} 払戻`;
-  } else if (tx.type === 'LOAN') {
-    return '借入';
-  } else if (tx.type === 'DISTRIBUTION') {
-    return '初期配布';
-  } else {
-    return getActionName(tx.type);
+  if (raceName && (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND')) {
+    return `${raceName} ${getActionName(tx.type)}`;
   }
+  return getActionName(tx.type);
 }
 
 const JST_MONTH_DAY = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit' });
