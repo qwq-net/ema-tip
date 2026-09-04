@@ -10,6 +10,8 @@ export type PlaceOddsMap = Record<
 
 export type RaceOddsData = {
   winOdds: WinOddsMap;
+  // 馬番→人気順。賭け金額から算出し、未購入の馬番は含まれない
+  winPopularity?: Record<string, number> | null;
   placeOdds: PlaceOddsMap;
   updatedAt: Date | string;
 };

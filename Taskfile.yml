@@ -102,16 +102,24 @@ tasks:
       - docker compose exec -T db psql -U postgres -d webapp -c "SELECT created_at, actor_name, action, target_id, detail FROM admin_action_log ORDER BY created_at DESC LIMIT 50;"
 
   # ── パフォーマンス計測 ─────────────────────────────────────────
+  # pg_stat_statements は public に置くと drizzle-kit push が拡張のビューを消そうとして
+  # 失敗するため、専用スキーマ extensions に隔離する。public に入っている既存環境からは移動する
+  perf:stats:ensure:
+    internal: true
+    cmds:
+      - docker compose exec -T db psql -U postgres -d webapp -c "CREATE SCHEMA IF NOT EXISTS extensions; CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA extensions; DO \$\$ BEGIN IF EXISTS (SELECT 1 FROM pg_extension e JOIN pg_namespace n ON n.oid = e.extnamespace WHERE e.extname = 'pg_stat_statements' AND n.nspname = 'public') THEN ALTER EXTENSION pg_stat_statements SET SCHEMA extensions; END IF; END \$\$;"
+
   perf:stats:
     desc: クエリ別の実行統計を合計時間の降順で表示します
+    deps: [perf:stats:ensure]
     cmds:
-      - docker compose exec -T db psql -U postgres -d webapp -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
-      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT calls, round(total_exec_time::numeric, 1) AS total_ms, round(mean_exec_time::numeric, 2) AS mean_ms, round(max_exec_time::numeric, 1) AS max_ms, rows, left(regexp_replace(query, E'\\s+', ' ', 'g'), 100) AS query FROM pg_stat_statements WHERE query NOT ILIKE '%pg_stat_statements%' ORDER BY total_exec_time DESC LIMIT 25;"
+      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT calls, round(total_exec_time::numeric, 1) AS total_ms, round(mean_exec_time::numeric, 2) AS mean_ms, round(max_exec_time::numeric, 1) AS max_ms, rows, left(regexp_replace(query, E'\\s+', ' ', 'g'), 100) AS query FROM extensions.pg_stat_statements WHERE query NOT ILIKE '%pg_stat_statements%' ORDER BY total_exec_time DESC LIMIT 25;"
 
   perf:stats:reset:
     desc: クエリ統計をリセットします。計測シナリオの直前に実行します
+    deps: [perf:stats:ensure]
     cmds:
-      - docker compose exec -T db psql -U postgres -d webapp -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements; SELECT pg_stat_statements_reset();"
+      - docker compose exec -T db psql -U postgres -d webapp -c "SELECT extensions.pg_stat_statements_reset();"
 
   perf:setup:
     desc: 負荷計測用のユーザー30人・イベント・レース・ウォレットを作り直します

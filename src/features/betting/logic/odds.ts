@@ -5,7 +5,7 @@ import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { and, eq, sql } from 'drizzle-orm';
 
-import { aggregateOddsPool, BET_TYPES, calculateProvisionalOdds } from '@/entities/bet';
+import { aggregateOddsPool, BET_TYPES, calculateProvisionalOdds, calculateWinPopularity } from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
 const PROVISIONAL_ODDS_CACHE_SECONDS = 10;
@@ -29,11 +29,19 @@ export async function calculateOdds(raceId: string) {
 
   // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す。
   // 保証オッズも適用し、表示オッズが実際の払戻下限を下回らないようにする
-  const provisionalWin =
-    calculateProvisionalOdds(aggregateOddsPool(winBets), race?.guaranteedOdds || undefined)[BET_TYPES.WIN] ?? {};
+  const pool = aggregateOddsPool(winBets);
+  const provisionalWin = calculateProvisionalOdds(pool, race?.guaranteedOdds || undefined)[BET_TYPES.WIN] ?? {};
+  // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
+  const toHorseNumberKey = (key: string) => String((JSON.parse(key) as number[])[0]);
   const winOdds = Object.fromEntries(
-    // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
-    Object.entries(provisionalWin).map(([key, rate]) => [String((JSON.parse(key) as number[])[0]), rate])
+    Object.entries(provisionalWin).map(([key, rate]) => [toHorseNumberKey(key), rate])
+  );
+  // 人気順は丸め済みオッズでなく賭け金額から算出し、表示上の同オッズでも順位が付く
+  const winPopularity = Object.fromEntries(
+    Object.entries(calculateWinPopularity(pool.amountBySelection[BET_TYPES.WIN] ?? {})).map(([key, rank]) => [
+      toHorseNumberKey(key),
+      rank,
+    ])
   );
 
   await db
@@ -41,12 +49,14 @@ export async function calculateOdds(raceId: string) {
     .values({
       raceId,
       winOdds,
+      winPopularity,
       placeOdds: {},
     })
     .onConflictDoUpdate({
       target: raceOdds.raceId,
       set: {
         winOdds,
+        winPopularity,
         placeOdds: {},
         updatedAt: new Date(),
       },
@@ -60,7 +70,7 @@ export async function calculateOdds(raceId: string) {
   if (!isThrottled) {
     raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
       raceId,
-      data: { winOdds, placeOdds: {}, updatedAt: new Date() },
+      data: { winOdds, winPopularity, placeOdds: {}, updatedAt: new Date() },
     });
     await redis.set(lastNotificationKey, 'true', 'EX', THROTTLE_SECONDS);
   } else {
@@ -79,6 +89,7 @@ export async function calculateOdds(raceId: string) {
               raceId,
               data: {
                 winOdds: latestOdds.winOdds,
+                winPopularity: latestOdds.winPopularity,
                 placeOdds: latestOdds.placeOdds,
                 updatedAt: latestOdds.updatedAt,
               },

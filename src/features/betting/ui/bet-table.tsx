@@ -32,11 +32,23 @@ interface Entry {
 
 // 単勝オッズの1セル。文字色は通常のまま、SSE 更新で値が変化したときだけ
 // 上昇は緑、下降は赤から本来の文字色へ減衰点灯する。
-// version を key にして更新イベントごとにアニメーションを最初から再生する
-function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'down'; version: number }) {
+// version を key にして更新イベントごとにアニメーションを最初から再生する。
+// rank は賭け金額由来の人気順で、未購入の馬では表示しない
+function OddsValue({
+  value,
+  delta,
+  version,
+  rank,
+}: {
+  value: string;
+  delta?: 'up' | 'down';
+  version: number;
+  rank?: number;
+}) {
   return (
     <span key={version} className={cn(delta === 'up' && 'animate-odds-up', delta === 'down' && 'animate-odds-down')}>
       {value}
+      {rank !== undefined && <span className="text-text-sub ml-1 text-xs font-semibold">{rank}人気</span>}
     </span>
   );
 }
@@ -298,6 +310,7 @@ export function BetTable({
                               value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
                               delta={oddsDeltas[String(entry.horseNumber)]}
                               version={oddsVersion}
+                              rank={odds?.winPopularity?.[String(entry.horseNumber)]}
                             />
                           )}
                         </td>
@@ -352,6 +365,7 @@ export function BetTable({
                             value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
                             delta={oddsDeltas[String(entry.horseNumber)]}
                             version={oddsVersion}
+                            rank={odds?.winPopularity?.[String(entry.horseNumber)]}
                           />
                         )}
                       </td>

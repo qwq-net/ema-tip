@@ -29,6 +29,25 @@ export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]
   return { poolByBetType, amountBySelection };
 }
 
+// 賭け金額から人気順を導く。金額の多い順に1から振り、同額は同順位として次の順位を
+// その数だけ飛ばす。金額ゼロや未購入の選択肢は結果に含まれない。
+// 表示オッズは0.1単位へ切り捨てられ異なる支持率が同値に潰れるため、丸め前の金額を正とする
+export function calculateWinPopularity(amountBySelection: Record<string, number>) {
+  const entries = Object.entries(amountBySelection).filter(([, amount]) => amount > 0);
+  entries.sort((a, b) => b[1] - a[1]);
+
+  const ranks: Record<string, number> = {};
+  let prevAmount: number | null = null;
+  let prevRank = 0;
+  entries.forEach(([key, amount], index) => {
+    const rank = amount === prevAmount ? prevRank : index + 1;
+    ranks[key] = rank;
+    prevAmount = amount;
+    prevRank = rank;
+  });
+  return ranks;
+}
+
 export function calculateProvisionalOdds(pool: OddsPool, guaranteedOdds?: Record<string, number>) {
   const provisionalOdds: Record<string, Record<string, number>> = {};
 

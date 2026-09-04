@@ -60,6 +60,9 @@ test('ゲスト登録から払戻確定までの一本道', async ({ browser }) 
     // 反映経路の退行を検出するため、トーストに加えて残高の減算と購入済み表示まで検証する
     const balanceAfterBet = (E2E.distributeAmount - E2E.betAmount).toLocaleString('ja-JP');
     await expect(userPage.getByText(`${balanceAfterBet}円`)).toBeVisible();
+
+    // 唯一のベットなので馬番1が1番人気になる。SSE経由のオッズ更新で人気表示が届くことも兼ねて検証する
+    await expect(userPage.getByText('1人気')).toBeVisible();
   });
 
   const adminContext = await browser.newContext();
