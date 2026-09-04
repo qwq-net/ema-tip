@@ -17,9 +17,9 @@ import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
 import { getGenderAge } from '@/shared/utils/gender';
-import { AlertCircle, Clock, Info, Lock } from 'lucide-react';
+import { AlertCircle, CircleHelp, Clock, Info, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 
 interface Entry {
   id: string;
@@ -70,6 +70,47 @@ function PlaceOddsCell({ range, isScratched }: { range?: { min: number; max: num
     <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
       {isScratched ? '-' : format()}
     </td>
+  );
+}
+
+// 人気列ヘッダの説明ツールチップ。ホバーで開閉し、タッチ端末向けにクリックでも切り替える。
+// フォーカスが外れるか Escape で閉じる。
+// ヘッダは横スクロールコンテナの最上段にあり、絶対配置で上へ出すと上端で切れるため、
+// 開いた時点のボタン位置を基準に fixed でアイコンの上へ表示する
+function PopularityHelp() {
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const open = () => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (rect) setPosition({ top: rect.top - 6, left: rect.left + rect.width / 2 });
+  };
+  const close = () => setPosition(null);
+
+  return (
+    <span className="inline-flex" onMouseEnter={open} onMouseLeave={close}>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label="人気の説明"
+        aria-expanded={position !== null}
+        onClick={() => (position ? close() : open())}
+        onBlur={close}
+        onKeyDown={(e) => e.key === 'Escape' && close()}
+        className="text-text-sub -my-1 inline-flex items-center justify-center p-1 hover:text-gray-900"
+      >
+        <CircleHelp className="h-5 w-5" />
+      </button>
+      {position && (
+        <span
+          role="tooltip"
+          style={{ top: position.top, left: position.left }}
+          className="rounded-control fixed z-50 w-56 -translate-x-1/2 -translate-y-full bg-gray-900 px-3 py-2 text-left text-sm font-normal whitespace-normal text-white shadow-lg"
+        >
+          人気は単勝の賭け金額が多い順です。同額のときは購入件数が多い馬が上位になります。
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -319,7 +360,12 @@ export function BetTable({
               <th className="px-2 py-2 text-sm font-semibold">性齢</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">単勝オッズ</th>
               <th className="px-2 py-2 text-center text-sm font-semibold">複勝オッズ</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold">人気</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold">
+                <span className="inline-flex items-center gap-0.5">
+                  人気
+                  <PopularityHelp />
+                </span>
+              </th>
               {displayColumnLabels.map((label, i) => (
                 <th key={i} className="px-2 py-2 text-center text-sm font-semibold">
                   {label}
