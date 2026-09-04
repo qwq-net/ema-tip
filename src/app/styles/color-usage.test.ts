@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 // 生パレット色クラス。gray と turf は @theme で上書き済みの管理内なので対象外
 const RAW_PALETTE_CLASS =
-  /(?:bg|text|border|ring|from|to|via|divide|fill|stroke)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|zinc|neutral|stone)-\d+/g;
+  /(?:bg|text|border|ring|from|to|via|divide|fill|stroke|outline|decoration|caret|accent|shadow)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|zinc|neutral|stone)-\d+/g;
 
 // 任意値の色指定。ブランド色以外で使わない
 const ARBITRARY_HEX_CLASS = /(?:bg|text|border|ring)-\[#[0-9a-fA-F]{3,8}\]/g;

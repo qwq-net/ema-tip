@@ -18,6 +18,8 @@
    ユーザーロール色 entities/user/constants.ts・馬タイプ horse-type-badge・
    SSE 接続状態の信号色 live-connection-status・Discord ブランド青 login-button。
    カテゴリ色の集中管理点は shared/ui/badge.tsx。
+   white と black は管理内の慣用ニュートラル。white は surface と同値の面と
+   濃色面上の文字に、black はオーバーレイやスクリムに限って使う。
    コンポーネントへの生パレット色の直書きは color-usage.test.ts が検出する
    ============================================================ */
 @theme {
