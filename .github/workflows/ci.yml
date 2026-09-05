@@ -92,3 +92,43 @@ jobs:
 
       - name: Run Tests
         run: pnpm test
+
+  # 本番イメージは CI のユニットテストでは動かないため、ここでビルドして起動まで確かめる。
+  # pnpm 11 の既定変更で非 root の本番イメージが pnpm start で落ちた事故があり、
+  # 実行ユーザーや pnpm の設定を触った時の唯一の自動検知になる
+  image:
+    name: Production Image Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create env file
+        run: printf 'AUTH_SECRET=dummy-ci-secret\nNEXTAUTH_URL=http://localhost:3000\n' > .env
+
+      - name: Build and start production stack
+        run: $PROD up -d --build app db redis
+
+      - name: Apply schema with the production image
+        run: $PROD run --rm --no-deps app pnpm drizzle-kit push
+
+      - name: Wait for every app container to serve /login
+        run: |
+          for index in 1 2; do
+            ok=0
+            for i in $(seq 1 20); do
+              if $PROD exec -T --index "$index" app node -e "fetch('http://localhost:3000/login',{redirect:'manual'}).then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"; then
+                ok=1
+                break
+              fi
+              sleep 3
+            done
+            if [ "$ok" != 1 ]; then
+              echo "app-$index did not become ready" >&2
+              $PROD logs app | tail -50
+              exit 1
+            fi
+            echo "app-$index ok"
+          done

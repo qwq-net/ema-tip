@@ -57,7 +57,7 @@ describe('calculateOdds', () => {
       { amount: 500, details: { type: 'win', selections: [2] } },
       { amount: 2000, details: { type: 'exacta', selections: [1, 2] } },
     ]);
-    (redis.get as unknown as Mock).mockResolvedValue(null);
+    (redis.set as unknown as Mock).mockResolvedValue('OK');
 
     await calculateOdds(raceId);
 
@@ -70,7 +70,7 @@ describe('calculateOdds', () => {
 
   it('ベットが0件の場合は空のオッズオブジェクトを保存する', async () => {
     (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-    (redis.get as unknown as Mock).mockResolvedValue(null);
+    (redis.set as unknown as Mock).mockResolvedValue('OK');
 
     await calculateOdds(raceId);
 
@@ -85,7 +85,7 @@ describe('calculateOdds', () => {
       { amount: 500, details: { type: 'win', selections: [1] } },
       { amount: 500, details: { type: 'win', selections: [2] } },
     ]);
-    (redis.get as unknown as Mock).mockResolvedValue(null);
+    (redis.set as unknown as Mock).mockResolvedValue('OK');
 
     await calculateOdds(raceId);
 
@@ -104,7 +104,7 @@ describe('calculateOdds', () => {
       { amount: 1000, details: { type: 'win', selections: [1] } },
       { amount: 500, details: { type: 'win', selections: [2] } },
     ]);
-    (redis.get as unknown as Mock).mockResolvedValue(null);
+    (redis.set as unknown as Mock).mockResolvedValue('OK');
 
     await calculateOdds(raceId);
 
@@ -117,7 +117,7 @@ describe('calculateOdds', () => {
     (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
       { amount: 1000, details: { type: 'win', selections: [1] } },
     ]);
-    (redis.get as unknown as Mock).mockResolvedValue(null);
+    (redis.set as unknown as Mock).mockResolvedValue('OK');
 
     await calculateOdds(raceId);
 
@@ -127,19 +127,19 @@ describe('calculateOdds', () => {
   });
 
   describe('スロットリング', () => {
-    it('スロットルされていない場合はSSEイベントを即時発火してRedisにスロットルキーをセットする', async () => {
+    it('スロットルキーを SET NX で取れた場合はSSEイベントを即時発火する', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue(null);
+      (redis.set as unknown as Mock).mockResolvedValue('OK');
 
       await calculateOdds(raceId);
 
       expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_ODDS_UPDATED', expect.objectContaining({ raceId }));
-      expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:last_odds_notification`, 'true', 'EX', 10);
+      expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:last_odds_notification`, 'true', 'EX', 10, 'NX');
     });
 
     it('スロットル中はSSEイベントを即時発火せずtrailing-edge更新をスケジュールする', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue('true');
+      (redis.set as unknown as Mock).mockResolvedValueOnce(null);
       (redis.ttl as unknown as Mock).mockResolvedValue(5);
       (redis.set as unknown as Mock).mockResolvedValue('OK');
 
@@ -151,7 +151,7 @@ describe('calculateOdds', () => {
 
     it('NX=null で既にスケジュール済みの場合は重複スケジュールしない', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue('true');
+      (redis.set as unknown as Mock).mockResolvedValueOnce(null);
       (redis.ttl as unknown as Mock).mockResolvedValue(5);
       (redis.set as unknown as Mock).mockResolvedValue(null);
 
@@ -168,7 +168,7 @@ describe('calculateOdds', () => {
       };
 
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue('true');
+      (redis.set as unknown as Mock).mockResolvedValueOnce(null);
       (redis.ttl as unknown as Mock).mockResolvedValue(3);
       (redis.set as unknown as Mock).mockResolvedValue('OK');
       (db.query.raceOdds.findFirst as unknown as Mock).mockResolvedValue(latestOdds);
@@ -189,7 +189,7 @@ describe('calculateOdds', () => {
 
     it('trailing-edge タイマーでオッズがnullの場合はSSEを発火しないがスケジュールキーは削除する', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue('true');
+      (redis.set as unknown as Mock).mockResolvedValueOnce(null);
       (redis.ttl as unknown as Mock).mockResolvedValue(2);
       (redis.set as unknown as Mock).mockResolvedValue('OK');
       (db.query.raceOdds.findFirst as unknown as Mock).mockResolvedValue(null);
@@ -203,7 +203,7 @@ describe('calculateOdds', () => {
 
     it('trailing-edge タイマーでDB例外が発生してもfinallyでスケジュールキーを削除する', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue('true');
+      (redis.set as unknown as Mock).mockResolvedValueOnce(null);
       (redis.ttl as unknown as Mock).mockResolvedValue(1);
       (redis.set as unknown as Mock).mockResolvedValue('OK');
       (db.query.raceOdds.findFirst as unknown as Mock).mockRejectedValue(new Error('DB error'));
@@ -218,7 +218,7 @@ describe('calculateOdds', () => {
 
     it('TTLが0以下の場合はdelay=0でsetTimeoutが発火される', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
-      (redis.get as unknown as Mock).mockResolvedValue('true');
+      (redis.set as unknown as Mock).mockResolvedValueOnce(null);
       (redis.ttl as unknown as Mock).mockResolvedValue(-1);
       (redis.set as unknown as Mock).mockResolvedValue('OK');
       (db.query.raceOdds.findFirst as unknown as Mock).mockResolvedValue({

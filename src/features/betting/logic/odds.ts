@@ -82,14 +82,15 @@ export async function calculateOdds(raceId: string) {
   const lastNotificationKey = `race:${raceId}:last_odds_notification`;
   const updateScheduledKey = `race:${raceId}:update_scheduled`;
 
-  const isThrottled = await redis.get(lastNotificationKey);
+  // SET NX で即時通知の権利を 1 回だけ取る。読んでから書く方式だと、
+  // app が複数プロセスで同時に購入を受けた時に両方が通知して重複する
+  const acquired = await redis.set(lastNotificationKey, 'true', 'EX', THROTTLE_SECONDS, 'NX');
 
-  if (!isThrottled) {
+  if (acquired === 'OK') {
     raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
       raceId,
       data: { winOdds, winPopularity, placeOdds, updatedAt: new Date() },
     });
-    await redis.set(lastNotificationKey, 'true', 'EX', THROTTLE_SECONDS);
   } else {
     const ttl = await redis.ttl(lastNotificationKey);
     const delay = ttl > 0 ? ttl * 1000 : 0;
