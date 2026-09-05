@@ -57,7 +57,7 @@ describe('compressBetSelections (Simplified)', () => {
   describe('並び順 (Sort Order)', () => {
     it('各ポジション内で馬番昇順でソートされる', () => {
       const result = compressBetSelections([bet([2, 5, 3]), bet([1, 2, 4])]);
-      expect(result[0].positions).toEqual([
+      expect(result[0]!.positions).toEqual([
         [1, 2],
         [2, 5],
         [3, 4],

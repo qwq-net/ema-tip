@@ -3,7 +3,7 @@
 import { upsertForecast } from '@/features/forecasts/actions';
 
 import { FORECAST_SYMBOLS } from '@/features/forecasts/constants';
-import { ForecastSelection } from '@/features/forecasts/types';
+import type { ForecastSelection } from '@/features/forecasts/types';
 import { toast } from '@/shared/lib/toast';
 import { Button, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
 import { Badge } from '@/shared/ui/badge';

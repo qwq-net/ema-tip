@@ -118,7 +118,7 @@ export async function getSokubetDashboardData(userId: string) {
 
       return {
         ...group,
-        races: group.races.sort((a, b) => (a.raceNumber ?? 999) - (b.raceNumber ?? 999)),
+        races: [...group.races].sort((a, b) => (a.raceNumber ?? 999) - (b.raceNumber ?? 999)),
         bet5TargetRaceNumbers: bet5TargetRaces.map((race) => race.raceNumber),
         bet5HasClosedRace: bet5TargetRaces.some((race) => race.status !== 'SCHEDULED'),
       };

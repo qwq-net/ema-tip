@@ -51,9 +51,7 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
             <CardContent className="flex items-center justify-between p-4">
               <div>
                 <p className="font-medium text-gray-900">ステータス変更</p>
-                <p className="text-sm text-gray-500">
-                  現在のステータス: {EVENT_STATUS_LABELS[event.status] || event.status}
-                </p>
+                <p className="text-sm text-gray-500">現在のステータス: {EVENT_STATUS_LABELS[event.status]}</p>
               </div>
               <div className="flex gap-2">
                 {event.status === 'SCHEDULED' && (

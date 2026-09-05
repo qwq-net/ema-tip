@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 import { useId } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AssetHistoryPoint } from '../utils';
+import type { AssetHistoryPoint } from '../utils';
 
 interface AssetChartProps {
   data: AssetHistoryPoint[];
@@ -94,9 +94,10 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
               <ReferenceLine y={0} stroke="var(--color-text-sub)" strokeDasharray="3 3" />
               <Tooltip
                 content={({ active, payload }) => {
-                  if (active && payload?.length) {
+                  const [firstPoint] = payload;
+                  if (active && firstPoint) {
                     // SAFETY: この Tooltip は AssetHistoryPoint[] を data に持つチャート専用
-                    const data = payload[0].payload as AssetHistoryPoint;
+                    const data = firstPoint.payload as AssetHistoryPoint;
                     return (
                       <div className="rounded-control border border-gray-200 bg-white p-3 text-sm shadow-md">
                         <div className="text-text-sub text-sm">{data.date}</div>

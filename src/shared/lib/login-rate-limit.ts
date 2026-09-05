@@ -1,13 +1,16 @@
 import { redis } from '@/shared/lib/redis';
+import { z } from 'zod';
 
 const TTL_SECONDS = 24 * 60 * 60;
 
-export interface LoginAttemptRecord {
-  attempts: number;
-  blockLevel: number;
-  lockedUntil: number | null;
-  lastAttemptAt: number;
-}
+const loginAttemptRecordSchema = z.object({
+  attempts: z.number(),
+  blockLevel: z.number(),
+  lockedUntil: z.number().nullable(),
+  lastAttemptAt: z.number(),
+});
+
+export type LoginAttemptRecord = z.infer<typeof loginAttemptRecordSchema>;
 
 function keyFor(ip: string): string {
   return `ratelimit:ip:${ip}`;
@@ -16,18 +19,19 @@ function keyFor(ip: string): string {
 /**
  * IP のログイン失敗記録を返す。未記録なら null。
  * 壊れた値を残すと該当 IP のログインが TTL まで失敗し続けるため、
- * 値が JSON として壊れている場合は削除して null を返す。
+ * 記録として読めない値は削除して null を返す。未記録と同じ扱いになり、失敗回数は 1 から数え直す。
  */
 export async function getLoginAttemptRecord(ip: string): Promise<LoginAttemptRecord | null> {
   const data = await redis.get(keyFor(ip));
   if (!data) return null;
   try {
-    // SAFETY: この値は recordLoginAttempt が LoginAttemptRecord を JSON 化して保存したもの
-    return JSON.parse(data) as LoginAttemptRecord;
+    const record = loginAttemptRecordSchema.safeParse(JSON.parse(data));
+    if (record.success) return record.data;
   } catch {
-    await redis.del(keyFor(ip));
-    return null;
+    // JSON として壊れている場合も下の削除へ落とす
   }
+  await redis.del(keyFor(ip));
+  return null;
 }
 
 /** ロック中かを返す。真なら record と lockedUntil が確定するため、解除時刻をそのまま読める。 */
@@ -69,14 +73,10 @@ export async function recordLoginFailure(
   const threshold = lockThreshold(isStrict, currentBlockLevel);
 
   if (currentAttempts >= threshold) {
-    let durationMinutes;
-    if (isStrict) {
-      const strictDurations = [60, 24 * 60];
-      durationMinutes = strictDurations[Math.min(currentBlockLevel, strictDurations.length - 1)];
-    } else {
-      const normalDurations = [10, 60, 24 * 60];
-      durationMinutes = normalDurations[Math.min(currentBlockLevel, normalDurations.length - 1)];
-    }
+    // ロック時間は段階ごとに伸ばし、最後の段階に達したらそこで頭打ちにする
+    const durations: readonly [number, ...number[]] = isStrict ? [60, 24 * 60] : [10, 60, 24 * 60];
+    const [shortest] = durations;
+    const durationMinutes = durations[Math.min(currentBlockLevel, durations.length - 1)] ?? shortest;
 
     lockedUntil = Date.now() + durationMinutes * 60 * 1000;
     newBlockLevel = currentBlockLevel + 1;

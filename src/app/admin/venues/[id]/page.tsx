@@ -2,17 +2,12 @@ import { getVenue } from '@/features/admin/manage-venues/actions';
 import { VenueForm } from '@/features/admin/manage-venues/ui/venue-form';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
 export default async function EditVenuePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const venue = await getVenue(id);
-
-  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
-  async function onSuccess() {
-    'use server';
-    redirect('/admin/venues');
-  }
+  if (!venue) notFound();
 
   return (
     <div className="mx-auto max-w-2xl py-8">
@@ -33,7 +28,7 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
             direction: venue.defaultDirection,
             area: venue.area,
           }}
-          onSuccess={onSuccess}
+          redirectTo="/admin/venues"
         />
       </Card>
     </div>

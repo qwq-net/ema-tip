@@ -6,3 +6,6 @@ export interface RankingData {
   isCurrentUser: boolean;
   totalLoaned?: number;
 }
+
+/** イベントのランキング公開範囲。HIDDEN は非公開、ANONYMOUS は名前を伏せる、FULL_WITH_LOAN は借入額も含めて出す。 */
+export type RankingDisplayMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';

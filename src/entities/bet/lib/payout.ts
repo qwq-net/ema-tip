@@ -1,4 +1,5 @@
-import { BET_TYPES, BetDetail, BetType } from '@/entities/bet/constants';
+import type { BetDetail, BetType } from '@/entities/bet/constants';
+import { BET_TYPES } from '@/entities/bet/constants';
 
 export const ODDS_UNIT = 100;
 
@@ -21,58 +22,59 @@ const REQUIRED_FINISHERS = {
 
 const asc = (a: number, b: number) => a - b;
 
-/** 2 つの選択が first と second の組と順不同で一致するか */
-function isUnorderedPair(selections: number[], first: number, second: number): boolean {
+/** 2 つの選択が numbers の先頭 2 件と順不同で一致するか。numbers は必要な着順が揃った状態で渡す */
+function isUnorderedPair(selections: number[], numbers: number[]): boolean {
+  const [first, second] = numbers;
   return (selections[0] === first && selections[1] === second) || (selections[0] === second && selections[1] === first);
 }
 
 /** 選択が重複なく size 個あり、すべて上位 3 着の馬番に含まれるか */
-function isDistinctSubsetOfTop3(selections: number[], size: number, finishers: Finisher[]): boolean {
+function isDistinctSubsetOfTop3(selections: number[], size: number, horses: number[]): boolean {
   if (selections.length !== size) return false;
   if (new Set(selections).size !== size) return false;
-  const top3 = finishers.slice(0, 3).map((f) => f.horseNumber);
+  const top3 = horses.slice(0, 3);
   return selections.every((s) => top3.includes(s));
 }
 
+/**
+ * 1 口のベットが確定着順に対して的中しているかを返す。
+ * 券種が必要とする着順が確定していなければ判定できないため不的中として扱う。
+ * 判定に使うのは馬番と枠番の先頭数件で、必要な件数は上の長さ検査が保証する。
+ */
 export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean {
   const { type, selections } = detail;
 
-  // 券種が必要とする着順が揃っていなければ判定できない。noUncheckedIndexedAccess は無効だが
-  // 実行時には着順が足りない状態が起こりうるため、この 1 箇所で防ぐ
+  // 券種が必要とする着順が揃っていなければ判定できない。実行時には着順が足りない状態が
+  // 起こりうるため、この 1 箇所で防ぐ。以降の slice はこの検査を前提に読む
   if (finishers.length < REQUIRED_FINISHERS[type]) return false;
 
-  const firstFinisher = finishers[0];
-  const secondFinisher = finishers[1];
-  const thirdFinisher = finishers[2];
+  const horses = finishers.map((f) => f.horseNumber);
+  const brackets = finishers.map((f) => f.bracketNumber);
 
   switch (type) {
     case BET_TYPES.WIN:
-      return selections[0] === firstFinisher.horseNumber;
+      return selections[0] === horses[0];
 
     case BET_TYPES.PLACE:
-      return finishers.slice(0, 3).some((f) => f.horseNumber === selections[0]);
+      return horses.slice(0, 3).some((horse) => horse === selections[0]);
 
     case BET_TYPES.QUINELLA:
-      return isUnorderedPair(selections, firstFinisher.horseNumber, secondFinisher.horseNumber);
+      return isUnorderedPair(selections, horses);
 
     case BET_TYPES.EXACTA:
-      return selections[0] === firstFinisher.horseNumber && selections[1] === secondFinisher.horseNumber;
+      return selections[0] === horses[0] && selections[1] === horses[1];
 
     case BET_TYPES.WIDE:
-      return isDistinctSubsetOfTop3(selections, 2, finishers);
+      return isDistinctSubsetOfTop3(selections, 2, horses);
 
     case BET_TYPES.BRACKET_QUINELLA:
-      return isUnorderedPair(selections, firstFinisher.bracketNumber, secondFinisher.bracketNumber);
+      return isUnorderedPair(selections, brackets);
 
     case BET_TYPES.TRIO:
-      return isDistinctSubsetOfTop3(selections, 3, finishers);
+      return isDistinctSubsetOfTop3(selections, 3, horses);
 
     case BET_TYPES.TRIFECTA:
-      return (
-        selections[0] === firstFinisher.horseNumber &&
-        selections[1] === secondFinisher.horseNumber &&
-        selections[2] === thirdFinisher.horseNumber
-      );
+      return selections[0] === horses[0] && selections[1] === horses[1] && selections[2] === horses[2];
 
     default:
       return false;
@@ -88,6 +90,16 @@ export const normalizeSelections = (type: BetType, numbers: number[]) => {
     return JSON.stringify(numbers);
   }
   return JSON.stringify([...numbers].sort(asc));
+};
+
+/**
+ * normalizeSelections が作ったキーを馬番の配列へ戻す。
+ * 順不同の券種は昇順に整列された状態で返るため、キーと配列の対応は往復しても崩れない。
+ * 集計キーとして自前で作った文字列だけを渡す前提で、外部から来た文字列は渡さない。
+ */
+export const parseSelectionKey = (key: string): number[] => {
+  // SAFETY: 渡されるのは normalizeSelections が number[] を JSON.stringify した文字列に限られる
+  return JSON.parse(key) as number[];
 };
 
 export function isRefundedBet(
@@ -156,44 +168,44 @@ export function calculatePayoutRate(
   return Math.max(1.0, rate);
 }
 
+/**
+ * 券種ごとに、確定着順から的中となる馬番または枠番の組をすべて返す。
+ * 券種が必要とする着順が確定していなければ的中の組は存在しないため空配列を返す。
+ * 順不同の券種は昇順に整列した組で返り、集計キーの正規化と対応が取れる。
+ */
 export function getWinningCombinations(type: BetType, finishers: Finisher[]): number[][] {
   if (finishers.length < REQUIRED_FINISHERS[type]) return [];
 
-  const firstFinisher = finishers[0];
-  const secondFinisher = finishers[1];
-  const thirdFinisher = finishers[2];
+  const horses = finishers.map((f) => f.horseNumber);
+  const brackets = finishers.map((f) => f.bracketNumber);
 
   switch (type) {
     case BET_TYPES.WIN:
-      return [[firstFinisher.horseNumber]];
+      return [horses.slice(0, 1)];
 
     case BET_TYPES.PLACE:
-      return finishers.slice(0, 3).map((f) => [f.horseNumber]);
+      return horses.slice(0, 3).map((horse) => [horse]);
 
     case BET_TYPES.QUINELLA:
-      return [[firstFinisher.horseNumber, secondFinisher.horseNumber].sort(asc)];
+      return [horses.slice(0, 2).sort(asc)];
 
     case BET_TYPES.EXACTA:
-      return [[firstFinisher.horseNumber, secondFinisher.horseNumber]];
+      return [horses.slice(0, 2)];
 
     case BET_TYPES.WIDE: {
-      const top3 = finishers.slice(0, 3).map((f) => f.horseNumber);
-      const combos: number[][] = [[top3[0], top3[1]].sort(asc)];
-      if (top3.length >= 3) {
-        combos.push([top3[0], top3[2]].sort(asc));
-        combos.push([top3[1], top3[2]].sort(asc));
-      }
-      return combos;
+      // 上位 3 着から 2 頭を選ぶ全組を、1 着から順に相手を後ろへ辿って作る
+      const top3 = horses.slice(0, 3);
+      return top3.flatMap((horse, index) => top3.slice(index + 1).map((other) => [horse, other].sort(asc)));
     }
 
     case BET_TYPES.BRACKET_QUINELLA:
-      return [[firstFinisher.bracketNumber, secondFinisher.bracketNumber].sort(asc)];
+      return [brackets.slice(0, 2).sort(asc)];
 
     case BET_TYPES.TRIO:
-      return [[firstFinisher.horseNumber, secondFinisher.horseNumber, thirdFinisher.horseNumber].sort(asc)];
+      return [horses.slice(0, 3).sort(asc)];
 
     case BET_TYPES.TRIFECTA:
-      return [[firstFinisher.horseNumber, secondFinisher.horseNumber, thirdFinisher.horseNumber]];
+      return [horses.slice(0, 3)];
 
     default:
       return [];

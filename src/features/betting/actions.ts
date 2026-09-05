@@ -1,6 +1,7 @@
 'use server';
 
-import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, BetType, resolveAllowedBetTypes } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, resolveAllowedBetTypes } from '@/entities/bet';
 import { normalizeSelections } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import {
@@ -15,6 +16,7 @@ import {
   wallets,
 } from '@/shared/db/schema';
 import { ActionError, ADMIN_ERRORS, requireUser, runAction } from '@/shared/utils/admin';
+import { firstRow } from '@/shared/utils/first-row';
 import { eq, sql } from 'drizzle-orm';
 import { calculateOdds, getProvisionalOddsCached } from './logic/odds';
 
@@ -111,7 +113,8 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
   validateWallet(wallet, session.user.id, race.eventId, totalAmount);
 
   await db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${walletId}`}))`);
+    const lockKey = `bet:${walletId}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
     // 締切・再開の UPDATE と直列化する共有ロック。これがないと、
     // 下の状態チェック通過後に締切がコミットされ、締切済みレースへのベットが混入しうる
@@ -137,7 +140,7 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
       throw new ActionError(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
     }
 
-    const [betGroup] = await tx
+    const insertedGroups = await tx
       .insert(betGroups)
       .values({
         userId: session.user.id,
@@ -147,6 +150,7 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
         totalAmount,
       })
       .returning();
+    const betGroup = firstRow(insertedGroups, '購入グループ');
 
     for (let i = 0; i < combinations.length; i += BATCH_SIZE) {
       const batch = combinations.slice(i, i + BATCH_SIZE);

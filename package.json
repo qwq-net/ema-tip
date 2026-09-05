@@ -57,6 +57,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.2.11",
+    "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-sonarjs": "4.2.0",
     "jiti": "^2.7.0",
     "prettier": "^3.9.6",

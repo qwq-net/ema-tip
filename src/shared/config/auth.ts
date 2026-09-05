@@ -8,6 +8,7 @@ import {
   type LoginAttemptRecord,
   recordLoginFailure,
 } from '@/shared/lib/login-rate-limit';
+import { firstRow } from '@/shared/utils/first-row';
 import { getClientIp } from '@/shared/utils/get-client-ip';
 import { splitGraphemes } from '@/shared/utils/graphemes';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
@@ -15,7 +16,9 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter';
 // 塞ぎ、一斉ログインが直列化して30人同時で数秒待ちになる。ハッシュ形式は bcryptjs と互換
 import { compare, hash } from '@node-rs/bcrypt';
 import { eq } from 'drizzle-orm';
+import type { User } from 'next-auth';
 import NextAuth, { CredentialsSignin } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 import Credentials from 'next-auth/providers/credentials';
 import Discord, { type DiscordProfile } from 'next-auth/providers/discord';
 import { cache } from 'react';
@@ -110,7 +113,7 @@ async function signUpGuest({
   const hashedPassword = await hash(password, 10);
   let newUser: typeof schema.users.$inferSelect;
   try {
-    [newUser] = await db
+    const insertedUsers = await db
       .insert(schema.users)
       .values({
         name: username,
@@ -120,6 +123,7 @@ async function signUpGuest({
         isOnboardingCompleted: true,
       })
       .returning();
+    newUser = firstRow(insertedUsers, 'ユーザー');
   } catch (error) {
     // 同時登録の競合は user_name_idx の一意制約で片方が落ちる
     if (error instanceof Error && 'code' in error && error.code === '23505') {
@@ -272,7 +276,9 @@ const {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    // next-auth の型は user を必須として配るが、実際に渡るのはサインイン直後の 1 回だけで、
+    // 以降のトークン更新では渡ってこない。実態に合わせて省略可能として受ける
+    jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         token.role = user.role;
         token.id = user.id;

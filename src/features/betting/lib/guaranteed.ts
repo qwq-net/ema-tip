@@ -1,4 +1,5 @@
-import { BetType, normalizeSelections } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { normalizeSelections } from '@/entities/bet';
 
 // ベットの払戻または想定払戻に保証オッズが効いているかを返す。
 // HIT は払戻結果の該当組み合わせの guaranteed フラグで判定し、PENDING は

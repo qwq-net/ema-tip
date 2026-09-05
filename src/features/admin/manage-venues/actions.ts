@@ -89,5 +89,5 @@ export async function getVenue(id: string) {
   await requireAdmin();
 
   const result = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
-  return result[0] || null;
+  return result[0] ?? null;
 }

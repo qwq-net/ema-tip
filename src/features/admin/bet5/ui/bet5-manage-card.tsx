@@ -1,6 +1,5 @@
 'use client';
 
-import { calculateBet5PayoutAction, closeBet5EventAction, updateBet5InitialPotAction } from '@/features/betting';
 import { BET5_STATUS_LABELS } from '@/shared/constants/status';
 import { toast } from '@/shared/lib/toast';
 import {
@@ -20,6 +19,7 @@ import { Calculator, ExternalLink, Info, Loader2, Lock, Sparkles } from 'lucide-
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { calculateBet5PayoutAction, closeBet5EventAction, updateBet5InitialPotAction } from '../actions';
 
 interface Bet5Event {
   id: string;

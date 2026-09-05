@@ -8,7 +8,7 @@ import { Card } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
 import { cn } from '@/shared/utils/cn';
 import { ChevronDown } from 'lucide-react';
-import { EventStats } from '../utils';
+import type { EventStats } from '../utils';
 
 interface EventStatsCardProps {
   event: EventStats;

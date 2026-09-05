@@ -1,5 +1,6 @@
 import { db } from '@/shared/db';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getEventRanking } from './actions';
 
 vi.mock('@/shared/db', () => ({

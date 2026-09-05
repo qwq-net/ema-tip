@@ -1,6 +1,7 @@
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { updateRaceAllowedBetTypes } from './update-bet-types';
 
 vi.mock('@/shared/utils/admin', async () => {

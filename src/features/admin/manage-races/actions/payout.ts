@@ -1,6 +1,7 @@
 'use server';
 
-import { BetDetail, isRefundedBet, normalizeSelections, ODDS_UNIT, resolveInvalidSelections } from '@/entities/bet';
+import type { BetDetail } from '@/entities/bet';
+import { isRefundedBet, normalizeSelections, ODDS_UNIT, resolveInvalidSelections } from '@/entities/bet';
 import { db } from '@/shared/db';
 import {
   bets,
@@ -124,7 +125,8 @@ export async function finalizePayout(raceId: string) {
   const session = await requireAdmin();
 
   await db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
+    const lockKey = `payout:${raceId}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
     const race = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),

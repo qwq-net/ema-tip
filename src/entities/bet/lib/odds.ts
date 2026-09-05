@@ -1,6 +1,7 @@
 import { lookup } from '@/shared/utils/lookup';
-import { BET_TYPES, BetDetail, BetType } from '../constants';
-import { normalizeSelections } from './payout';
+import type { BetDetail, BetType } from '../constants';
+import { BET_TYPES } from '../constants';
+import { normalizeSelections, parseSelectionKey } from './payout';
 
 const EXPECTED_WINNER_COUNT = {
   [BET_TYPES.PLACE]: 3,
@@ -24,11 +25,11 @@ export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]
     const betType = details.type;
     const key = normalizeSelections(betType, details.selections);
 
-    poolByBetType[betType] = (poolByBetType[betType] || 0) + bet.amount;
-    if (!amountBySelection[betType]) amountBySelection[betType] = {};
-    amountBySelection[betType][key] = (amountBySelection[betType][key] || 0) + bet.amount;
-    if (!countBySelection[betType]) countBySelection[betType] = {};
-    countBySelection[betType][key] = (countBySelection[betType][key] || 0) + 1;
+    poolByBetType[betType] = (poolByBetType[betType] ?? 0) + bet.amount;
+    const selectionAmounts = (amountBySelection[betType] ??= {});
+    selectionAmounts[key] = (selectionAmounts[key] ?? 0) + bet.amount;
+    const selectionCounts = (countBySelection[betType] ??= {});
+    selectionCounts[key] = (selectionCounts[key] ?? 0) + 1;
   }
 
   return { poolByBetType, amountBySelection, countBySelection };
@@ -42,11 +43,7 @@ export function calculateWinPopularity(
   amountBySelection: Record<string, number>,
   countBySelection: Record<string, number> = {}
 ) {
-  const selectionNumber = (key: string) => {
-    // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
-    const parsed = JSON.parse(key) as number[];
-    return parsed[0] ?? Number.MAX_SAFE_INTEGER;
-  };
+  const selectionNumber = (key: string) => parseSelectionKey(key)[0] ?? Number.MAX_SAFE_INTEGER;
   const entries = Object.entries(amountBySelection).filter(([, amount]) => amount > 0);
   entries.sort(
     ([keyA, amountA], [keyB, amountB]) =>
@@ -67,7 +64,7 @@ export function calculateProvisionalOdds(pool: OddsPool, guaranteedOdds?: Record
 
   for (const [type, totalAmount] of Object.entries(pool.poolByBetType)) {
     provisionalOdds[type] = {};
-    const selections = pool.amountBySelection[type];
+    const selections = pool.amountBySelection[type] ?? {};
     const expectedWinners = lookup(EXPECTED_WINNER_COUNT, type) ?? 1;
     const effectivePool = totalAmount / expectedWinners;
 

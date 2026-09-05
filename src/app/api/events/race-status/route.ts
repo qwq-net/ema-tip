@@ -1,6 +1,6 @@
 import { auth } from '@/shared/config/auth';
 import { RACE_EVENTS, raceEventEmitter, type RaceEventPayload } from '@/shared/lib/sse/event-emitter';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 

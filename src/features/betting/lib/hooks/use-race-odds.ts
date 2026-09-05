@@ -35,8 +35,10 @@ export function useRaceOdds(raceId: string, initialOdds: OddsData, fixedOddsMode
   const handleOddsUpdated = useCallback(
     (message: SSERaceOddsUpdatedMessage) => {
       if (fixedOddsMode) return;
-      const prev = prevWinOddsRef.current ?? {};
-      const next = message.data.winOdds ?? {};
+      // 添字アクセスは常に値を返す型になるが、前回のオッズに無い馬番では undefined が返る。
+      // 未知の馬番を弾く下のガードを型の上でも成立させるため、値を省略可能として受ける
+      const prev: Record<string, number | undefined> = prevWinOddsRef.current ?? {};
+      const next = message.data.winOdds;
       const deltas: Record<string, 'up' | 'down'> = {};
       for (const [horseNumber, value] of Object.entries(next)) {
         const before = prev[horseNumber];

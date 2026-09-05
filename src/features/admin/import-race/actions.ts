@@ -4,6 +4,7 @@ import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ActionError, requireAdmin, runAction, type ActionResult } from '@/shared/utils/admin';
+import { firstRow } from '@/shared/utils/first-row';
 import { lookup } from '@/shared/utils/lookup';
 import { and, eq, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -79,6 +80,12 @@ const netkeibaOddsPayloadSchema = z.object({
 
 type NetkeibaOddsPayload = z.infer<typeof netkeibaOddsPayloadSchema>;
 
+// JSONP の外側。data はオッズ本体か、それを deflate 圧縮して base64 にした文字列のどちらかが入る
+const netkeibaOddsEnvelopeSchema = z.object({
+  status: z.string(),
+  data: z.union([z.string(), netkeibaOddsPayloadSchema]),
+});
+
 async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, number>> {
   const apiUrl = `https://race.netkeiba.com/api/api_get_jra_odds.html?race_id=${raceId}&type=1&action=init&output=jsonp&callback=cb`;
   const res = await fetch(apiUrl, {
@@ -92,29 +99,36 @@ async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, numb
 
   const text = await res.text();
   const jsonStr = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
-  // SAFETY: netkeiba オッズ API の JSONP レスポンス形状。直後の status / data ガードで異形状は空扱いにする
-  const json = JSON.parse(jsonStr) as { status: string; data: NetkeibaOddsPayload | string };
-
-  if ((json.status !== 'result' && json.status !== 'middle') || !json.data) {
+  const envelope = netkeibaOddsEnvelopeSchema.safeParse(JSON.parse(jsonStr));
+  if (!envelope.success) {
+    console.warn('[ImportRace] netkeiba オッズの形式が想定と違うため取り込みを見送ります:', envelope.error);
     return {};
   }
 
-  const rawOddsData: unknown =
-    json.data instanceof Object
-      ? json.data
-      : JSON.parse(inflateSync(Buffer.from(json.data, 'base64')).toString('utf-8'));
-
-  const oddsData = netkeibaOddsPayloadSchema.safeParse(rawOddsData);
-  if (!oddsData.success) {
-    console.warn('[ImportRace] netkeiba オッズの形式が想定と違うため取り込みを見送ります:', oddsData.error);
+  const { status, data } = envelope.data;
+  if ((status !== 'result' && status !== 'middle') || !data) {
     return {};
   }
 
-  const winOddsRaw = oddsData.data.odds?.['1'] ?? {};
+  let payload: NetkeibaOddsPayload;
+  if (data instanceof Object) {
+    payload = data;
+  } else {
+    const inflated = netkeibaOddsPayloadSchema.safeParse(
+      JSON.parse(inflateSync(Buffer.from(data, 'base64')).toString('utf-8'))
+    );
+    if (!inflated.success) {
+      console.warn('[ImportRace] netkeiba オッズの形式が想定と違うため取り込みを見送ります:', inflated.error);
+      return {};
+    }
+    payload = inflated.data;
+  }
+
+  const winOddsRaw = payload.odds?.['1'] ?? {};
   const result: Record<string, number> = {};
   for (const [key, val] of Object.entries(winOddsRaw)) {
     const horseNum = parseInt(key, 10);
-    const oddsVal = parseFloat(val[0]);
+    const oddsVal = parseFloat(val[0] ?? '');
     if (!isNaN(oddsVal) && oddsVal < NETKEIBA_SCRATCHED_ODDS) result[String(horseNum)] = oddsVal;
   }
   return result;
@@ -215,16 +229,21 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
         for (const h of inserted) horseIdByName.set(h.name, h.id);
       }
 
-      const horseIds: Record<number, string> = {};
-      for (const h of params.horses) {
+      const entryValues = params.horses.map((h) => {
         const horseId = horseIdByName.get(h.name);
         if (!horseId) {
           throw new ActionError(`馬「${h.name}」の登録に失敗しました`);
         }
-        horseIds[h.horseNumber] = horseId;
-      }
+        return {
+          horseId,
+          horseNumber: h.horseNumber,
+          bracketNumber: h.bracketNumber,
+          jockey: h.jockey,
+          status: h.scratched ? ('SCRATCHED' as const) : ('ENTRANT' as const),
+        };
+      });
 
-      const [race] = await tx
+      const insertedRaces = await tx
         .insert(raceInstances)
         .values({
           eventId: params.eventId,
@@ -241,17 +260,9 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
           fixedOddsMode: params.fixedOddsMode,
         })
         .returning({ id: raceInstances.id });
+      const race = firstRow(insertedRaces, 'レース');
 
-      await tx.insert(raceEntries).values(
-        params.horses.map((h) => ({
-          raceId: race.id,
-          horseId: horseIds[h.horseNumber],
-          horseNumber: h.horseNumber,
-          bracketNumber: h.bracketNumber,
-          jockey: h.jockey,
-          status: h.scratched ? ('SCRATCHED' as const) : ('ENTRANT' as const),
-        }))
-      );
+      await tx.insert(raceEntries).values(entryValues.map((entry) => ({ raceId: race.id, ...entry })));
 
       const winOdds: Record<string, number> = {};
       for (const h of params.horses) {

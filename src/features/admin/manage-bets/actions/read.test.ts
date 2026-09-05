@@ -1,5 +1,6 @@
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBetsByRace, getEventsWithRaces, getRaceWithBets } from './read';
 
 vi.mock('@/shared/utils/admin', async () => {

@@ -7,6 +7,7 @@ import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { lookup, narrowToOption } from '@/shared/utils/lookup';
 import { Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { createRace, updateRace } from '../actions';
 
@@ -35,7 +36,8 @@ interface RaceFormProps {
     defaultDirection: string;
   }[];
   venues?: { id: string; name: string; defaultDirection: string }[];
-  onSuccess?: () => void;
+  /** 保存に成功したあとに遷移する先のパス */
+  redirectTo: string;
 }
 
 // フォームが state で持つ入力値の一式
@@ -72,18 +74,19 @@ function getInitialValues(initialData: RaceFormProps['initialData'], events: Rac
   return {
     eventId: initialData.eventId || defaults.eventId,
     date: initialData.date || defaults.date,
-    surface: initialData.surface || defaults.surface,
+    surface: initialData.surface,
     condition: initialData.condition || defaults.condition,
     raceDefinitionId: initialData.raceDefinitionId || defaults.raceDefinitionId,
     venueId: initialData.venueId || defaults.venueId,
     direction: initialData.direction || defaults.direction,
     name: initialData.name || defaults.name,
-    distance: initialData.distance ?? defaults.distance,
+    distance: initialData.distance,
   };
 }
 
-export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], onSuccess }: RaceFormProps) {
+export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], redirectTo }: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   const initialValues = getInitialValues(initialData, events);
   const [eventId, setEventId] = useState(initialValues.eventId);
   const [date, setDate] = useState(initialValues.date);
@@ -150,7 +153,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
 
         toast.success('レースを登録しました');
       }
-      onSuccess?.();
+      router.push(redirectTo);
     } catch (error) {
       console.error(error);
       toast.error(initialData ? '更新に失敗しました' : '登録に失敗しました');
@@ -181,6 +184,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
             <input
               name="date"
               type="date"
+              aria-label="開催日"
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -293,6 +297,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
                   type="radio"
                   name="surface"
                   value={s}
+                  aria-label={s}
                   checked={surface === s}
                   onChange={(e) => setSurface(narrowToOption(RACE_SURFACES, e.target.value) ?? '芝')}
                   className="sr-only"
@@ -320,6 +325,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
                 type="radio"
                 name="condition"
                 value={c}
+                aria-label={c}
                 checked={condition === c}
                 onChange={(e) => setCondition(narrowToOption(RACE_CONDITIONS, e.target.value) ?? '良')}
                 className="sr-only"

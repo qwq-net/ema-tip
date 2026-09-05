@@ -1,4 +1,4 @@
-import { LogoutButton } from '@/features/auth';
+import { LogoutButton } from '@/entities/user';
 import { EditableUserProfile } from '@/features/user/ui/editable-user-profile';
 import { Button, Card, CardContent } from '@/shared/ui';
 import { requireLoginPage } from '@/shared/utils/admin';

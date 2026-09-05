@@ -10,9 +10,54 @@ import { describe, expect, it } from 'vitest';
  * 残置ファイルから直書きが消えたら一覧から外すことも強制し、後戻りを防ぐ。
  */
 
-// 生パレット色クラス。gray と turf は @theme で上書き済みの管理内なので対象外
-const RAW_PALETTE_CLASS =
-  /(?:bg|text|border|ring|from|to|via|divide|fill|stroke|outline|decoration|caret|accent|shadow)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|zinc|neutral|stone)-\d+/g;
+// 色を取るユーティリティ接頭辞と、生パレットの色名。
+// gray と turf は @theme で上書き済みの管理内なので色名に含めない
+const COLOR_UTILITY_PREFIXES = [
+  'bg',
+  'text',
+  'border',
+  'ring',
+  'from',
+  'to',
+  'via',
+  'divide',
+  'fill',
+  'stroke',
+  'outline',
+  'decoration',
+  'caret',
+  'accent',
+  'shadow',
+];
+const RAW_PALETTE_NAMES = [
+  'red',
+  'orange',
+  'amber',
+  'yellow',
+  'lime',
+  'green',
+  'emerald',
+  'teal',
+  'cyan',
+  'sky',
+  'blue',
+  'indigo',
+  'violet',
+  'purple',
+  'fuchsia',
+  'pink',
+  'rose',
+  'slate',
+  'zinc',
+  'neutral',
+  'stone',
+];
+
+// 生パレット色クラス
+const RAW_PALETTE_CLASS = new RegExp(
+  `(?:${COLOR_UTILITY_PREFIXES.join('|')})-(?:${RAW_PALETTE_NAMES.join('|')})-\\d+`,
+  'g'
+);
 
 // 任意値の色指定。ブランド色以外で使わない
 const ARBITRARY_HEX_CLASS = /(?:bg|text|border|ring)-\[#[0-9a-fA-F]{3,8}\]/g;
@@ -107,7 +152,9 @@ describe('生パレット色の使用箇所', () => {
   }
 
   it('許可されていないファイルに生パレット色クラスがない', () => {
-    const violations = [...withRawColors].filter((f) => !SANCTIONED.has(f) && !GRANDFATHERED.has(f)).sort();
+    const violations = [...withRawColors]
+      .filter((f) => !SANCTIONED.has(f) && !GRANDFATHERED.has(f))
+      .sort((a, b) => a.localeCompare(b));
     expect(
       violations,
       '色は globals.css のトークンか Badge 等の部品を使う。慣習色として維持するなら globals.css の例外一覧と本テストの SANCTIONED へ登録する'
@@ -115,12 +162,12 @@ describe('生パレット色の使用箇所', () => {
   });
 
   it('残置一覧のファイルにはまだ直書きが残っている', () => {
-    const stale = [...GRANDFATHERED].filter((f) => !withRawColors.has(f)).sort();
+    const stale = [...GRANDFATHERED].filter((f) => !withRawColors.has(f)).sort((a, b) => a.localeCompare(b));
     expect(stale, '直書きを解消したファイルは GRANDFATHERED から削除して後戻りを防ぐ').toEqual([]);
   });
 
   it('任意値の hex 色はブランド色以外にない', () => {
-    const violations = [...withHex].filter((f) => !HEX_ALLOWED.has(f)).sort();
+    const violations = [...withHex].filter((f) => !HEX_ALLOWED.has(f)).sort((a, b) => a.localeCompare(b));
     expect(violations).toEqual([]);
   });
 });

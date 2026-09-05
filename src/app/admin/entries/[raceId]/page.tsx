@@ -35,9 +35,9 @@ export default async function RaceEntryPage({ params }: Props) {
         </Link>
         <div className="flex-1">
           <RacePageHeader
-            venueShortName={race.venue?.shortName}
+            venueShortName={race.venue.shortName}
             raceNumber={race.raceNumber}
-            eventName={race.event?.name}
+            eventName={race.event.name}
             name={race.name}
             netkeibaUrl={race.netkeibaUrl}
             surface={race.surface}

@@ -48,7 +48,7 @@ export async function setupFixtures(): Promise<Fixtures> {
 
     await sql`
       INSERT INTO guest_code (code, title, created_by)
-      VALUES (${E2E.guestCode}, 'E2E用コード', ${admin.id})
+      VALUES (${E2E.guestCode}, 'E2E用コード', ${admin!.id})
     `;
 
     const [event] = await sql`
@@ -65,18 +65,18 @@ export async function setupFixtures(): Promise<Fixtures> {
 
     const [race] = await sql`
       INSERT INTO race_instance (event_id, venue_id, date, name, race_number, distance, surface, status, guaranteed_odds)
-      VALUES (${event.id}, ${venue.id}, CURRENT_DATE, ${E2E.raceName}, 1, 1600, '芝', 'SCHEDULED', ${sql.json({ win: 2 })})
+      VALUES (${event!.id}, ${venue.id}, CURRENT_DATE, ${E2E.raceName}, 1, 1600, '芝', 'SCHEDULED', ${sql.json({ win: 2 })})
       RETURNING id
     `;
 
     for (let i = 0; i < horses.length; i++) {
       await sql`
         INSERT INTO race_entry (race_id, horse_id, bracket_number, horse_number)
-        VALUES (${race.id}, ${horses[i].id}, ${i + 1}, ${i + 1})
+        VALUES (${race!.id}, ${horses[i]!.id}, ${i + 1}, ${i + 1})
       `;
     }
 
-    return { raceId: race.id, eventId: event.id, horse1Name: horses[0].name };
+    return { raceId: race!.id, eventId: event!.id, horse1Name: horses[0]!.name };
   } finally {
     await sql.end();
   }

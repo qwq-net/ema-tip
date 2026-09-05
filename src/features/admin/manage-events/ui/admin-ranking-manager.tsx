@@ -1,8 +1,8 @@
 'use client';
 
-import { type RankingData } from '@/entities/ranking';
+import type { RankingData, RankingDisplayMode } from '@/entities/ranking';
+import { updateRankingDisplayMode } from '@/entities/ranking/actions';
 import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
-import { type RankingDisplayMode, updateRankingDisplayMode } from '@/features/ranking';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
 import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';

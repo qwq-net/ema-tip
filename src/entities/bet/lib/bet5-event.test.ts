@@ -1,7 +1,8 @@
 import { db } from '@/shared/db';
 import { SQL } from 'drizzle-orm';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import { calculateBet5Payout, closeBet5Event, createBet5Event, resolveBet5Winners } from './bet5';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { calculateBet5Payout, closeBet5Event, createBet5Event, resolveBet5Winners } from './bet5-event';
 
 // drizzle の SQL 式は実テーブル参照を含み JSON.stringify では循環参照になるため、
 // 式に埋め込まれた数値チャンクだけを取り出して比較する
@@ -109,7 +110,7 @@ describe('calculateBet5Payout', () => {
     await calculateBet5Payout(bet5EventId);
 
     expect(mockTx.execute).toHaveBeenCalledTimes(1);
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
   });
 
@@ -118,7 +119,7 @@ describe('calculateBet5Payout', () => {
 
     await calculateBet5Payout(bet5EventId);
 
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain(bet5EventId);
   });
 
@@ -181,7 +182,7 @@ describe('calculateBet5Payout', () => {
     expect(mockTx.update).toHaveBeenCalled();
     expect(mockTx.insert).toHaveBeenCalled();
     const setCall = mockTx._updateChain.set.mock.calls.find(
-      (args: unknown[]) => (args[0] as Record<string, unknown>)?.status === 'FINALIZED'
+      (args: unknown[]) => (args[0] as Record<string, unknown>).status === 'FINALIZED'
     );
     expect(setCall).toBeDefined();
   });
@@ -193,7 +194,7 @@ describe('calculateBet5Payout', () => {
 
     expect(result).toMatchObject({ success: true, winCount: 0 });
     const carryoverSet = mockTx._updateChain.set.mock.calls.find(
-      (args: unknown[]) => (args[0] as Record<string, unknown>)?.carryoverAmount !== undefined
+      (args: unknown[]) => (args[0] as Record<string, unknown>).carryoverAmount !== undefined
     );
     expect(carryoverSet).toBeDefined();
   });
@@ -221,12 +222,12 @@ describe('calculateBet5Payout', () => {
     await calculateBet5Payout(bet5EventId);
 
     const zeroCarryoverSet = mockTx._updateChain.set.mock.calls.find(
-      (args: unknown[]) => (args[0] as Record<string, unknown>)?.carryoverAmount === 0
+      (args: unknown[]) => (args[0] as Record<string, unknown>).carryoverAmount === 0
     );
     expect(zeroCarryoverSet).toBeUndefined();
 
     const decrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
-      const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
+      const value = (args[0] as Record<string, unknown>).carryoverAmount;
       return value instanceof SQL && sqlNumberParams(value).includes(2000);
     });
     expect(decrementSet).toBeDefined();
@@ -242,14 +243,14 @@ describe('calculateBet5Payout', () => {
     await calculateBet5Payout(bet5EventId);
 
     const incrementSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) => {
-      const value = (args[0] as Record<string, unknown>)?.carryoverAmount;
+      const value = (args[0] as Record<string, unknown>).carryoverAmount;
       const increment = baseBet5Event.initialPot + losingTicket.amount;
       return value instanceof SQL && sqlNumberParams(value).includes(increment);
     });
     expect(incrementSet).toBeDefined();
 
     const absoluteSet = mockTx._updateChain.set.mock.calls.find((args: unknown[]) =>
-      Number.isFinite((args[0] as Record<string, unknown>)?.carryoverAmount)
+      Number.isFinite((args[0] as Record<string, unknown>).carryoverAmount)
     );
     expect(absoluteSet).toBeUndefined();
   });
@@ -257,7 +258,7 @@ describe('calculateBet5Payout', () => {
 
 describe('placeBet5Bet', () => {
   it('対象レースにSCHEDULED以外が含まれる場合は購入を拒否する', async () => {
-    const { placeBet5Bet } = await import('./bet5');
+    const { placeBet5Bet } = await import('./bet5-event');
     const insertMock = vi.fn();
     const mockTx = {
       execute: vi.fn().mockResolvedValue(undefined),

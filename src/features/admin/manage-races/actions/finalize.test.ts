@@ -1,7 +1,8 @@
 import { BET_TYPES } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizeRace } from './finalize';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -89,7 +90,7 @@ describe('finalizeRace', () => {
     await finalizeRace('race1', defaultResults);
 
     expect(mockTx.execute).toHaveBeenCalledTimes(1);
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
     expect(lockArg).toContain('payout:race1');
   });
@@ -171,7 +172,9 @@ describe('finalizeRace', () => {
     const quinellaInsert = insertedValues.find((v) => v.type === BET_TYPES.QUINELLA && v.raceId === 'race1');
     expect(quinellaInsert).toBeDefined();
     const combos = quinellaInsert!.combinations as { numbers: number[]; payout: number }[];
-    const hitCombo = combos.find((c) => JSON.stringify([...c.numbers].sort()) === JSON.stringify([1, 2]));
+    const hitCombo = combos.find(
+      (c) => JSON.stringify([...c.numbers].sort((a, b) => a - b)) === JSON.stringify([1, 2])
+    );
     expect(hitCombo).toBeDefined();
     expect(hitCombo!.payout).toBe(200);
   });
@@ -380,11 +383,11 @@ describe('finalizeRace', () => {
     expect(placeInsert).toBeDefined();
     const placeCombos = placeInsert!.combinations as { numbers: number[]; payout: number }[];
     expect(placeCombos).toHaveLength(3);
-    expect(placeCombos[0].payout).toBe(180);
+    expect(placeCombos[0]!.payout).toBe(180);
 
     const trifectaInsert = insertedValues.find((v) => v.type === BET_TYPES.TRIFECTA && v.raceId === 'race1');
     expect(trifectaInsert).toBeDefined();
-    expect((trifectaInsert!.combinations as { numbers: number[]; payout: number }[])[0].payout).toBe(25600);
+    expect((trifectaInsert!.combinations as { numbers: number[]; payout: number }[])[0]!.payout).toBe(25600);
   });
 
   it('netkeibaPayouts を渡した場合、保証オッズやデフォルトオッズによる補完が行われない', async () => {

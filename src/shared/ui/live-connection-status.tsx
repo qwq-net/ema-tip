@@ -1,6 +1,6 @@
 'use client';
 
-import { ConnectionStatus } from '@/shared/hooks/use-sse';
+import type { ConnectionStatus } from '@/shared/hooks/use-sse';
 import { cn } from '@/shared/utils/cn';
 import { Loader2, WifiOff } from 'lucide-react';
 

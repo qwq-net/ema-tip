@@ -1,4 +1,5 @@
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { borrowLoan } from './actions';
 
 vi.mock('@/shared/db', () => ({
@@ -116,7 +117,7 @@ describe('borrowLoan', () => {
     await borrowLoan(eventId);
 
     expect(mockTx.execute).toHaveBeenCalledTimes(1);
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
     expect(lockArg).toContain(walletId);
   });
@@ -182,8 +183,8 @@ describe('borrowLoan', () => {
     await borrowLoan(eventId);
 
     expect(mockTx.insert).toHaveBeenCalled();
-    const insertValues = mockTx.insert.mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = mockTx.insert.mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.type).toBe('LOAN');
     expect(valuesArg.amount).toBe(5000);
   });
@@ -196,8 +197,8 @@ describe('borrowLoan', () => {
 
     await borrowLoan(eventId);
 
-    const insertValues = mockTx.insert.mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = mockTx.insert.mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.amount).toBe(10000);
   });
 });

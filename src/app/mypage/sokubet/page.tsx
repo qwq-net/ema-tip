@@ -146,7 +146,7 @@ export default async function SokubetPage() {
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="mb-1 flex items-center gap-2">
-                                  <span className="text-sm text-gray-500">{race.venue?.shortName}</span>
+                                  <span className="text-sm text-gray-500">{race.venue.shortName}</span>
                                   {race.raceNumber && (
                                     <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
                                       {race.raceNumber}R
@@ -156,7 +156,7 @@ export default async function SokubetPage() {
                                     variant="status"
                                     label={getDisplayStatus(
                                       race.status,
-                                      race.entries?.some((e) => e.finishPosition !== null) ?? false
+                                      race.entries.some((e) => e.finishPosition !== null)
                                     )}
                                   />
                                 </div>
@@ -166,7 +166,7 @@ export default async function SokubetPage() {
                                   <span className="h-1 w-1 rounded-full bg-gray-300" />
                                   <span>{race.distance}m</span>
                                   <span className="h-1 w-1 rounded-full bg-gray-300" />
-                                  <span>{race.entries?.length || 0}頭</span>
+                                  <span>{race.entries.length}頭</span>
                                 </div>
                               </div>
                               <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">

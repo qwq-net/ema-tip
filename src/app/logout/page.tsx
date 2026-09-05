@@ -1,4 +1,4 @@
-import { LogoutButton } from '@/features/auth';
+import { LogoutButton } from '@/entities/user';
 
 import type { Metadata } from 'next';
 

@@ -1,12 +1,14 @@
 'use client';
 import { HORSE_TYPES } from '@/shared/constants/horse';
-import { HORSE_TAG_CATEGORIES, HorseTagType } from '@/shared/constants/horse-tags';
+import type { HorseTagType } from '@/shared/constants/horse-tags';
+import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton, Textarea } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { narrowToOption } from '@/shared/utils/lookup';
 import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { createHorse, updateHorse } from '../actions';
 
@@ -24,7 +26,8 @@ interface HorseFormProps {
     tags: { type: HorseTagType; content: string }[];
   };
   tagOptions: { id: string; type: HorseTagType; content: string }[];
-  onSuccess?: () => void;
+  /** 保存に成功したあとに遷移する先のパス */
+  redirectTo: string;
 }
 
 // 各入力の初期値。編集時は initialData がそのまま同じ形で使われる
@@ -48,8 +51,9 @@ const HORSE_FORM_DEFAULTS: HorseFormValues = {
   tags: [],
 };
 
-export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps) {
+export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   const values = initialData ?? HORSE_FORM_DEFAULTS;
   const [gender, setGender] = useState(values.gender);
   const [type, setType] = useState(values.type);
@@ -90,7 +94,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
         setTags([]);
         toast.success('馬を登録しました');
       }
-      onSuccess?.();
+      router.push(redirectTo);
     } catch (error) {
       console.error(error);
       toast.error(initialData ? '更新に失敗しました' : '登録に失敗しました');
@@ -123,6 +127,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                   type="radio"
                   name="type_radio"
                   value={t.value}
+                  aria-label={t.label}
                   checked={type === t.value}
                   onChange={(e) => setType(narrowToOption(HORSE_TYPES, e.target.value) ?? 'REAL')}
                   className="sr-only"
@@ -151,6 +156,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                   type="radio"
                   name="gender"
                   value={g}
+                  aria-label={g}
                   checked={gender === g}
                   onChange={(e) => setGender(narrowToOption(GENDER_INPUTS, e.target.value) ?? '牡')}
                   className="sr-only"
@@ -185,7 +191,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
         <div className="rounded-control space-y-4 border border-gray-200 bg-gray-50/50 p-4">
           {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((cat) => {
             const masterTags = categorizedMasterTags[cat];
-            if (!masterTags || masterTags.length === 0) return null;
+            if (masterTags.length === 0) return null;
 
             return (
               <div key={cat} className="space-y-2">
@@ -234,6 +240,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
                         content: tag.content,
                       })
                     }
+                    aria-label={`${tag.content} を外す`}
                     className="text-text-sub ml-1 rounded-full p-0.5 hover:bg-gray-100 hover:text-red-500"
                   >
                     <X className="h-3 w-3" />

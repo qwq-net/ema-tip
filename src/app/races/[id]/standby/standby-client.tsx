@@ -2,10 +2,11 @@
 
 import { getDisplayStatus } from '@/entities/race/lib/status';
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
-import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
+import type { PayoutResult } from '@/features/betting/lib/hooks/use-race-results';
+import { useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
-import { RaceStatus } from '@/shared/constants/status';
-import { ConnectionStatus } from '@/shared/hooks/use-sse';
+import type { RaceStatus } from '@/shared/constants/status';
+import type { ConnectionStatus } from '@/shared/hooks/use-sse';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';

@@ -4,6 +4,7 @@ import { HORSE_TAG_TYPES, HORSE_TYPES } from '@/shared/constants/horse';
 import { db } from '@/shared/db';
 import { horseTags, horses, raceEntries } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
+import { firstRow } from '@/shared/utils/first-row';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -59,7 +60,7 @@ export async function createHorse(formData: FormData) {
   const genderInput = parse.data.gender;
   const gender = GENDER_MAP[genderInput];
 
-  const [horse] = await db
+  const insertedHorses = await db
     .insert(horses)
     .values({
       name: parse.data.name,
@@ -70,6 +71,7 @@ export async function createHorse(formData: FormData) {
       type: parse.data.type,
     })
     .returning();
+  const horse = firstRow(insertedHorses, '馬');
 
   if (parse.data.tags && parse.data.tags.length > 0) {
     await db.insert(horseTags).values(

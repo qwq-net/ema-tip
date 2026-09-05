@@ -3,17 +3,10 @@ import { RaceDefinitionForm } from '@/features/admin/manage-race-definitions/ui/
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { redirect } from 'next/navigation';
 
 export default async function EditRaceDefinitionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [raceDefinition, venues] = await Promise.all([getRaceDefinition(id), getVenues()]);
-
-  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
-  async function onSuccess() {
-    'use server';
-    redirect('/admin/race-definitions');
-  }
 
   return (
     <div className="mx-auto max-w-2xl py-8">
@@ -35,7 +28,7 @@ export default async function EditRaceDefinitionPage({ params }: { params: Promi
             defaultSurface: raceDefinition.defaultSurface,
           }}
           venues={venues}
-          onSuccess={onSuccess}
+          redirectTo="/admin/race-definitions"
         />
       </Card>
     </div>

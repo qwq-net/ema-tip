@@ -1,7 +1,8 @@
-import { BET_TYPES, BetDetail } from '@/entities/bet/constants';
+import type { BetDetail } from '@/entities/bet/constants';
+import { BET_TYPES } from '@/entities/bet/constants';
 import { describe, expect, it } from 'vitest';
+import type { Finisher } from './payout';
 import {
-  Finisher,
   calculatePayoutRate,
   getWinningCombinations,
   isRefundedBet,
@@ -167,7 +168,9 @@ describe('calculatePayoutRate (オッズ計算)', () => {
 
   it('小数点第1位で切り捨て', () => {
     const rate = calculatePayoutRate(1000, 300, 300);
-    expect(rate).toBe(3.3);
+    // 倍率は 0.1 刻みの実数なので IEEE754 の表現誤差だけを許容する。
+    // 判定の粒度は 0.1 のままで、桁を1つ間違えれば落ちる
+    expect(rate).toBeCloseTo(3.3, 10);
   });
 
   it('的中金額が0の場合は0を返す', () => {
@@ -177,13 +180,13 @@ describe('calculatePayoutRate (オッズ計算)', () => {
 
   it('複数的中組み合わせがある場合のオッズ分配 (ワイド等)', () => {
     const rateA = calculatePayoutRate(1000, 200, 600, 3);
-    expect(rateA).toBe(1.6);
+    expect(rateA).toBeCloseTo(1.6, 10);
 
     const rateB = calculatePayoutRate(1000, 300, 600, 3);
-    expect(rateB).toBe(1.4);
+    expect(rateB).toBeCloseTo(1.4, 10);
 
     const rateC = calculatePayoutRate(1000, 100, 600, 3);
-    expect(rateC).toBe(2.3);
+    expect(rateC).toBeCloseTo(2.3, 10);
   });
 
   it('複数的中で利益がゼロの場合', () => {

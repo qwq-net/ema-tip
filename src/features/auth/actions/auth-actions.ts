@@ -1,7 +1,7 @@
 'use server';
 
 import { isValidUserName } from '@/entities/user';
-import { signIn, signOut } from '@/shared/config/auth';
+import { signIn } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
 import { getLoginAttemptRecord, isLoginLocked, recordLoginFailure } from '@/shared/lib/login-rate-limit';
@@ -65,8 +65,4 @@ export async function validateGuestRegistration(code: string, username: string) 
   }
 
   return { success: true };
-}
-
-export async function logout() {
-  await signOut({ redirectTo: '/login' });
 }

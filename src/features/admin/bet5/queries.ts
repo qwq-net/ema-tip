@@ -50,7 +50,7 @@ export async function getBet5AdminData(eventId: string) {
     entries.forEach((entry) => {
       horseMap[entry.horseId] = {
         horseNumber: entry.horseNumber,
-        name: entry.horse?.name || '不明',
+        name: entry.horse.name,
       };
     });
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { HorseTagType } from '@/entities/horse';
+import type { HorseTagType } from '@/entities/horse';
 import { HORSE_TAG_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import { toast } from '@/shared/lib/toast';

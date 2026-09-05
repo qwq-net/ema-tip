@@ -1,6 +1,6 @@
 import { Button } from '@/shared/ui';
-import { ComponentProps } from 'react';
-import { logout } from '../actions/auth-actions';
+import type { ComponentProps } from 'react';
+import { logout } from '../actions';
 
 type LogoutButtonProps = ComponentProps<typeof Button>;
 

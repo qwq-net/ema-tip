@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function generateGuestCode(title: string) {
   const session = await requireAdmin();
-  const adminUserId = session.user?.id;
+  const adminUserId = session.user.id;
   if (!adminUserId) {
     throw new Error('認証されていません');
   }

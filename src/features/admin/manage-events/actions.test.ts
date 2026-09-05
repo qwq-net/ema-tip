@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { updateEvent, updateEventStatus } from './actions';
 
 vi.mock('@/shared/utils/admin', () => ({

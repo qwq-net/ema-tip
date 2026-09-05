@@ -14,12 +14,11 @@ import { toast } from '@/shared/lib/toast';
 import { Button, Input } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
   closestCenter,
   DndContext,
-  DragEndEvent,
   DragOverlay,
-  DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useDroppable,
@@ -117,6 +116,7 @@ function SortableEntry({
       <button
         type="button"
         onClick={() => onRemove(horse.id)}
+        aria-label={`${horse.name} を出走から外す`}
         className="text-text-sub rounded-chip p-1 transition-colors hover:bg-red-50 hover:text-red-500"
       >
         <Trash2 className="h-4 w-4" />
@@ -137,13 +137,14 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
   };
 
   return (
-    <div
+    <button
+      type="button"
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="rounded-control flex cursor-grab items-center gap-3 border border-gray-200 bg-white p-3 transition hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
+      className="rounded-control flex w-full cursor-grab items-center gap-3 border border-gray-200 bg-white p-3 text-left transition hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
       <span className="flex-1 text-sm font-medium text-gray-900">{horse.name}</span>
       <HorseSourceBadge source={horse.source} />
@@ -151,7 +152,7 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
       </span>
-    </div>
+    </button>
   );
 }
 

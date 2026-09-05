@@ -1,7 +1,8 @@
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import { revalidatePath } from 'next/cache';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { closeRace, reopenRace, setClosingTime, updateRace } from './update';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -263,7 +264,7 @@ describe('setClosingTime', () => {
     const after = Date.now();
 
     expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ status: 'SCHEDULED' }));
-    const setArgs = mockSet.mock.calls[0][0];
+    const setArgs = mockSet.mock.calls[0]![0];
     const closingAt = setArgs.closingAt as Date;
     const expectedMin = before + 30 * 60 * 1000;
     const expectedMax = after + 30 * 60 * 1000;
@@ -348,7 +349,7 @@ describe('updateRace ステータス遷移', () => {
 
     await updateRace('123', createFormData({ closingAt: '2030-12-31T23:59' }));
 
-    const setArgs = mockSet.mock.calls[0][0];
+    const setArgs = mockSet.mock.calls[0]![0];
     expect(setArgs.status).toBe('SCHEDULED');
   });
 
@@ -359,7 +360,7 @@ describe('updateRace ステータス遷移', () => {
 
     await updateRace('123', createFormData({ closingAt: '2020-01-01T00:00' }));
 
-    const setArgs = mockSet.mock.calls[0][0];
+    const setArgs = mockSet.mock.calls[0]![0];
     expect(setArgs.status).toBe('CLOSED');
   });
 
@@ -370,7 +371,7 @@ describe('updateRace ステータス遷移', () => {
 
     await updateRace('123', createFormData());
 
-    const setArgs = mockSet.mock.calls[0][0];
+    const setArgs = mockSet.mock.calls[0]![0];
     expect(setArgs.status).toBe('SCHEDULED');
   });
 

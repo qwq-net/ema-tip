@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function updateUserRole(userId: string, newRole: Role) {
   const session = await requireAdmin();
-  const adminUserId = session.user?.id;
+  const adminUserId = session.user.id;
   if (!adminUserId) {
     throw new Error('認証されていません');
   }
@@ -25,7 +25,7 @@ export async function updateUserRole(userId: string, newRole: Role) {
 
 export async function toggleUserStatus(userId: string) {
   const session = await requireAdmin();
-  const adminUserId = session.user?.id;
+  const adminUserId = session.user.id;
   if (!adminUserId) {
     throw new Error('認証されていません');
   }
@@ -51,7 +51,7 @@ export async function toggleUserStatus(userId: string) {
 
 export async function deleteUser(userId: string) {
   const session = await requireAdmin();
-  const adminUserId = session.user?.id;
+  const adminUserId = session.user.id;
   if (!adminUserId) {
     throw new Error('認証されていません');
   }

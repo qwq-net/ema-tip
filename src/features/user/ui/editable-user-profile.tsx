@@ -9,7 +9,7 @@ import { Check, Loader2, Pencil, X } from 'lucide-react';
 import type { Session } from 'next-auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface EditableUserProfileProps {
   user: Session['user'];
@@ -20,6 +20,12 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [isPending, setIsPending] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // 編集開始で現れる入力欄へ焦点を移す。autoFocus と違い、ページ表示直後に焦点をさらわない
+  useEffect(() => {
+    if (isEditing) nameInputRef.current?.focus();
+  }, [isEditing]);
 
   if (!user) return null;
 
@@ -36,7 +42,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
     const result = await updateUserName(formData);
     setIsPending(false);
 
-    if (result?.error) {
+    if (result.error) {
       toast.error(result.error);
     } else {
       toast.success('ユーザー名を変更しました');
@@ -67,17 +73,17 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
       )}
       <div className="flex flex-col">
         <span
-          className={`rounded-chip mb-0.5 w-fit border px-1.5 py-0.5 text-sm font-medium ${lookup(RoleColor, user.role ?? '') ?? ''}`}
+          className={`rounded-chip mb-0.5 w-fit border px-1.5 py-0.5 text-sm font-medium ${lookup(RoleColor, user.role) ?? ''}`}
         >
-          {lookup(RoleLabel, user.role ?? '') ?? user.role}
+          {lookup(RoleLabel, user.role) ?? user.role}
         </span>
         {isEditing ? (
           <div className="flex items-center gap-2">
             <Input
+              ref={nameInputRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-8 w-40 text-sm font-semibold"
-              autoFocus
             />
             <Button
               size="icon"

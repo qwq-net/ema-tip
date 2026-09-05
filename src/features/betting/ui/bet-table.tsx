@@ -1,6 +1,7 @@
 'use client';
 
-import { BET_TYPE_DESCRIPTIONS, BET_TYPE_LABELS, BET_TYPES, BetType, getValidBetCombinations } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPE_DESCRIPTIONS, BET_TYPE_LABELS, BET_TYPES, getValidBetCombinations } from '@/entities/bet';
 import { useRaceOdds as useRaceOddsData } from '@/features/betting';
 import { placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
@@ -79,8 +80,47 @@ function PlaceOddsCell({ range, isScratched }: { range?: { min: number; max: num
   );
 }
 
-// 人気列ヘッダの説明ツールチップ。ホバーで開閉し、タッチ端末向けにクリックでも切り替える。
-// フォーカスが外れるか Escape で閉じる。
+/**
+ * 枠連系の出馬表で、選択列のチェックボックスを列数ぶん並べる。
+ * 枠のセルは同じ枠の行をまとめた 1 セルなので rowSpan を受け取る。
+ * チェックの状態は列ごとの選択集合が持ち、切り替えは onToggle へ委ねる。
+ */
+function BracketSelectionCells({
+  bracketNumber,
+  rowSpan,
+  columnCount,
+  columnLabels,
+  selections,
+  disabled,
+  onToggle,
+}: {
+  bracketNumber: number;
+  rowSpan: number;
+  columnCount: number;
+  columnLabels: string[];
+  selections: Set<number>[];
+  disabled: boolean;
+  onToggle: (columnIndex: number, bracketNumber: number) => void;
+}) {
+  return (
+    <>
+      {selections.slice(0, columnCount).map((selection, colIdx) => (
+        <td key={colIdx} className="px-2 text-center align-middle" rowSpan={rowSpan}>
+          <Checkbox
+            checked={selection.has(bracketNumber)}
+            onCheckedChange={() => onToggle(colIdx, bracketNumber)}
+            disabled={disabled}
+            aria-label={`${columnLabels[colIdx] ?? ''} に枠${bracketNumber}を選択`}
+            className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
+          />
+        </td>
+      ))}
+    </>
+  );
+}
+
+// 人気列ヘッダの説明ツールチップ。ホバーとフォーカスで開き、離れるか Escape で閉じる。
+// タッチ端末はホバーもフォーカス外れも起きないため、タップだけは開閉の切り替えにする。
 // ヘッダは横スクロールコンテナの最上段にあり、絶対配置で上へ出すと上端で切れるため、
 // 開いた時点のボタン位置を基準に fixed でアイコンの上へ表示する
 function PopularityHelp() {
@@ -94,13 +134,19 @@ function PopularityHelp() {
   const close = () => setPosition(null);
 
   return (
-    <span className="inline-flex" onMouseEnter={open} onMouseLeave={close}>
+    <span className="inline-flex">
       <button
         ref={buttonRef}
         type="button"
         aria-label="人気の説明"
         aria-expanded={position !== null}
-        onClick={() => (position ? close() : open())}
+        onPointerDown={(e) => {
+          if (e.pointerType === 'touch' && position) close();
+        }}
+        onClick={open}
+        onMouseEnter={open}
+        onMouseLeave={close}
+        onFocus={open}
         onBlur={close}
         onKeyDown={(e) => e.key === 'Escape' && close()}
         className="text-text-sub -my-1 inline-flex items-center justify-center p-1 hover:text-gray-900"
@@ -248,6 +294,9 @@ export function BetTable({
   const displayColumnCount = isBoxView ? 1 : columnCount;
   const displayColumnLabels = isBoxView ? ['ボックス'] : columnLabels;
 
+  // 締切後と送信中は選択列を触れなくする
+  const isSelectionLocked = isClosed || isPending;
+
   const handleSubmitRequest = () => {
     const error = validateBetSubmission(betCount, amount, totalAmount, balance);
     if (error) {
@@ -296,10 +345,8 @@ export function BetTable({
         if (bracket === null) {
           return acc;
         }
-        if (!acc[bracket]) {
-          acc[bracket] = [];
-        }
-        acc[bracket].push(entry);
+        const group = (acc[bracket] ??= []);
+        group.push(entry);
         return acc;
       }, {})
     : {};
@@ -456,18 +503,17 @@ export function BetTable({
                           isScratched={isScratched}
                         />
 
-                        {idx === 0 &&
-                          Array.from({ length: displayColumnCount }).map((_, colIdx) => (
-                            <td key={colIdx} className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
-                              <Checkbox
-                                checked={selections[colIdx].has(Number(bracket))}
-                                onCheckedChange={() => handleCheckboxChange(colIdx, Number(bracket))}
-                                disabled={isClosed || isPending}
-                                aria-label={`${displayColumnLabels[colIdx]} に枠${bracket}を選択`}
-                                className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
-                              />
-                            </td>
-                          ))}
+                        {idx === 0 && (
+                          <BracketSelectionCells
+                            bracketNumber={Number(bracket)}
+                            rowSpan={bracketEntries.length}
+                            columnCount={displayColumnCount}
+                            columnLabels={displayColumnLabels}
+                            selections={selections}
+                            disabled={isSelectionLocked}
+                            onToggle={handleCheckboxChange}
+                          />
+                        )}
                       </tr>
                     );
                   })
@@ -515,13 +561,13 @@ export function BetTable({
                         isScratched={isScratched}
                       />
 
-                      {Array.from({ length: displayColumnCount }).map((_, colIdx) => (
+                      {selections.slice(0, displayColumnCount).map((selection, colIdx) => (
                         <td key={colIdx} className="px-2 py-2 text-center">
                           <Checkbox
-                            checked={!isScratched && selections[colIdx].has(entry.horseNumber)}
+                            checked={!isScratched && selection.has(entry.horseNumber)}
                             onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber)}
-                            disabled={isClosed || isPending || isScratched}
-                            aria-label={`${displayColumnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
+                            disabled={isSelectionLocked || isScratched}
+                            aria-label={`${displayColumnLabels[colIdx] ?? ''} に${entry.horseName}(${entry.horseNumber}番)を選択`}
                             className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                           />
                         </td>

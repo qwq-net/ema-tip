@@ -69,7 +69,7 @@ function toResultFormRace(race: RaceWithRelations): RaceResultFormRace {
     id: race.id,
     eventId: race.eventId,
     date: race.date,
-    location: race.venue?.name || '',
+    location: race.venue.name,
     name: race.name,
     raceNumber: race.raceNumber,
     status: race.status,
@@ -91,9 +91,9 @@ interface RaceDetailHeaderProps {
 function RaceDetailHeader({ race, entrantCount }: RaceDetailHeaderProps) {
   return (
     <RacePageHeader
-      venueShortName={race.venue?.shortName}
+      venueShortName={race.venue.shortName}
       raceNumber={race.raceNumber}
-      eventName={race.event?.name}
+      eventName={race.event.name}
       name={race.name}
       netkeibaUrl={race.netkeibaUrl}
       surface={race.surface}
@@ -286,53 +286,56 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
               </CardHeader>
               <CardContent className="pt-6">
                 <div className="space-y-3">
-                  {entriesWithResult.map((entry, index) => (
-                    <div
-                      key={entry.id}
-                      className="group rounded-surface flex items-center gap-4 border border-gray-100 bg-white p-3 transition hover:border-gray-200"
-                    >
+                  {entriesWithResult.map((entry, index) => {
+                    const winOdds = oddsMap[String(entry.horseNumber)];
+                    return (
                       <div
-                        className={cn(
-                          'rounded-control flex h-10 w-10 shrink-0 items-center justify-center border text-xl font-semibold transition-colors',
-                          resultRankClass(index)
-                        )}
+                        key={entry.id}
+                        className="group rounded-surface flex items-center gap-4 border border-gray-100 bg-white p-3 transition hover:border-gray-200"
                       >
-                        {index + 1}
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span
+                        <div
                           className={cn(
-                            'rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1 ring-black/5',
-                            getBracketColor(entry.bracketNumber)
+                            'rounded-control flex h-10 w-10 shrink-0 items-center justify-center border text-xl font-semibold transition-colors',
+                            resultRankClass(index)
                           )}
                         >
-                          {entry.bracketNumber ?? '?'}
-                        </span>
-                        <span className="text-primary bg-primary/10 ring-primary/10 rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1">
-                          {entry.horseNumber ?? '?'}
-                        </span>
-                      </div>
+                          {index + 1}
+                        </div>
 
-                      <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                        <span className="truncate text-base font-semibold text-gray-900">{entry.horseName}</span>
-                        {entry.jockey && (
-                          <>
-                            <span className="text-text-sub shrink-0 text-sm">/</span>
-                            <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
-                          </>
-                        )}
-                        {oddsMap[String(entry.horseNumber)] !== undefined && (
-                          <>
-                            <span className="text-text-sub shrink-0 text-sm">/</span>
-                            <span className="shrink-0 text-sm font-semibold text-gray-600">
-                              オッズ: {oddsMap[String(entry.horseNumber)].toFixed(1)}倍
-                            </span>
-                          </>
-                        )}
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              'rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1 ring-black/5',
+                              getBracketColor(entry.bracketNumber)
+                            )}
+                          >
+                            {entry.bracketNumber ?? '?'}
+                          </span>
+                          <span className="text-primary bg-primary/10 ring-primary/10 rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1">
+                            {entry.horseNumber ?? '?'}
+                          </span>
+                        </div>
+
+                        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                          <span className="truncate text-base font-semibold text-gray-900">{entry.horseName}</span>
+                          {entry.jockey && (
+                            <>
+                              <span className="text-text-sub shrink-0 text-sm">/</span>
+                              <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
+                            </>
+                          )}
+                          {winOdds !== undefined && (
+                            <>
+                              <span className="text-text-sub shrink-0 text-sm">/</span>
+                              <span className="shrink-0 text-sm font-semibold text-gray-600">
+                                オッズ: {winOdds.toFixed(1)}倍
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

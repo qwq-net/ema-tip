@@ -51,7 +51,7 @@ export function GuestLoginClient() {
       redirect: false,
     });
 
-    if (result?.error) {
+    if (result.error) {
       const postIpLockStatus = await checkIpLockStatus();
 
       setIsLoading(false);
@@ -117,10 +117,10 @@ export function GuestLoginClient() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <p className="mb-2 block text-sm font-medium text-gray-700">
                 絵文字パスワード
                 <span className="ml-2 text-sm font-normal text-gray-500">（3〜6文字）</span>
-              </label>
+              </p>
 
               <Input
                 type="password"

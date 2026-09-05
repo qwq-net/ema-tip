@@ -27,13 +27,12 @@ async function main() {
 
     const userAnswer = await rl.question('\n番号を入力 (デフォルト: 1): ');
     const userIndex = userAnswer.trim() === '' ? 0 : parseInt(userAnswer, 10) - 1;
+    const targetUser = allUsers[userIndex];
 
-    if (isNaN(userIndex) || userIndex < 0 || userIndex >= allUsers.length) {
+    if (!targetUser) {
       console.error('無効な選択です。');
       process.exit(1);
     }
-
-    const targetUser = allUsers[userIndex];
 
     console.log(`\n--- ${targetUser.name || targetUser.id} のロールを選択 ---`);
     AVAILABLE_ROLES.forEach((role, i) => {
@@ -42,14 +41,12 @@ async function main() {
     });
 
     const roleAnswer = await rl.question('\n番号を入力: ');
-    const roleIndex = parseInt(roleAnswer, 10) - 1;
+    const newRole = AVAILABLE_ROLES[parseInt(roleAnswer, 10) - 1];
 
-    if (isNaN(roleIndex) || roleIndex < 0 || roleIndex >= AVAILABLE_ROLES.length) {
+    if (!newRole) {
       console.error('無効な選択です。');
       process.exit(1);
     }
-
-    const newRole = AVAILABLE_ROLES[roleIndex];
 
     if (newRole === targetUser.role) {
       console.log(`\nロールは既に ${ROLE_LABELS[newRole]} です。変更はありません。`);

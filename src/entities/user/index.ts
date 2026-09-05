@@ -9,3 +9,4 @@ export {
   isValidUserName,
   type Role,
 } from './constants';
+export { LogoutButton } from './ui/logout-button';

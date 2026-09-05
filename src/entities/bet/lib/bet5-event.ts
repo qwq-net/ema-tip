@@ -1,9 +1,10 @@
-import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ActionError } from '@/shared/utils/action-result';
+import { firstRow } from '@/shared/utils/first-row';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from './bet5';
 
 export const Bet5SelectionSchema = z.object({
   race1: z.array(z.string().uuid()),
@@ -34,11 +35,11 @@ export function resolveBet5Winners(races: string[], winnerRows: Bet5WinnerRow[])
 
   const winners: string[] = [];
   for (const raceId of races) {
-    const winnerSet = winnerSetByRace.get(raceId);
-    if (winnerSet?.size !== 1) {
+    const [winner, ...rest] = winnerSetByRace.get(raceId) ?? [];
+    if (winner === undefined || rest.length > 0) {
       return null;
     }
-    winners.push([...winnerSet][0]);
+    winners.push(winner);
   }
 
   return winners;
@@ -169,7 +170,14 @@ export async function placeBet5Bet({
     }
 
     // 後出し購入防止: 対象レースのいずれかが締切・確定済みなら、BET5イベントの締切忘れがあっても購入不可
-    const targetRaceIds = [event.race1Id, event.race2Id, event.race3Id, event.race4Id, event.race5Id];
+    const selectionsByRace: [string, string[]][] = [
+      [event.race1Id, selections.race1],
+      [event.race2Id, selections.race2],
+      [event.race3Id, selections.race3],
+      [event.race4Id, selections.race4],
+      [event.race5Id, selections.race5],
+    ];
+    const targetRaceIds = selectionsByRace.map(([raceId]) => raceId);
     const closedRaces = await tx.query.raceInstances.findMany({
       where: (raceInstances, { and, inArray, ne }) =>
         and(inArray(raceInstances.id, targetRaceIds), ne(raceInstances.status, 'SCHEDULED')),
@@ -194,10 +202,9 @@ export async function placeBet5Bet({
       }
       raceEntrants.add(entry.horseId);
     }
-    const selectionsByRace = [selections.race1, selections.race2, selections.race3, selections.race4, selections.race5];
-    for (let i = 0; i < targetRaceIds.length; i++) {
-      const entrants = entrantsByRace.get(targetRaceIds[i]);
-      if (!entrants || !selectionsByRace[i].every((horseId) => entrants.has(horseId))) {
+    for (const [raceId, horseIds] of selectionsByRace) {
+      const entrants = entrantsByRace.get(raceId);
+      if (!entrants || !horseIds.every((horseId) => entrants.has(horseId))) {
         throw new ActionError('出走取消となった馬が含まれています。選択し直してください');
       }
     }
@@ -214,7 +221,8 @@ export async function placeBet5Bet({
 
     if (!wallet) throw new ActionError('ウォレットが見つかりません');
 
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${wallet.id}`}))`);
+    const walletLockKey = `bet:${wallet.id}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${walletLockKey}))`);
 
     // 締切の UPDATE と直列化する共有ロック。状態チェック通過後の締切コミットによる購入混入を防ぐ
     await tx.execute(sql`SELECT 1 FROM bet5_event WHERE id = ${bet5EventId} FOR SHARE`);
@@ -233,7 +241,7 @@ export async function placeBet5Bet({
 
     if (!lockedWallet || lockedWallet.balance < cost) throw new ActionError('残高が不足しています');
 
-    const [ticket] = await tx
+    const insertedTickets = await tx
       .insert(bet5Tickets)
       .values({
         bet5EventId,
@@ -247,6 +255,7 @@ export async function placeBet5Bet({
         amount: cost,
       })
       .returning();
+    const ticket = firstRow(insertedTickets, 'BET5の投票');
 
     await tx
       .update(wallets)
@@ -266,7 +275,8 @@ export async function placeBet5Bet({
 
 export async function calculateBet5Payout(bet5EventId: string) {
   return db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet5payout:${bet5EventId}`}))`);
+    const payoutLockKey = `bet5payout:${bet5EventId}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${payoutLockKey}))`);
 
     const bet5Event = await tx.query.bet5Events.findFirst({
       where: eq(bet5Events.id, bet5EventId),

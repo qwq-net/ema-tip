@@ -3,6 +3,7 @@ import { bets, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { and, eq, sql } from 'drizzle-orm';
+import { z } from 'zod';
 
 import {
   aggregateOddsPool,
@@ -11,11 +12,15 @@ import {
   calculateProvisionalOdds,
   calculateWinPopularity,
   isRefundedBet,
+  parseSelectionKey,
   resolveInvalidSelections,
 } from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
 const PROVISIONAL_ODDS_CACHE_SECONDS = 10;
+
+// キャッシュした暫定オッズの形。券種 → 選択肢キー → 倍率
+const provisionalOddsCacheSchema = z.record(z.string(), z.record(z.string(), z.number()));
 
 export async function calculateOdds(raceId: string) {
   const race = await db.query.raceInstances.findFirst({
@@ -38,8 +43,7 @@ export async function calculateOdds(raceId: string) {
   // 保証オッズも適用し、表示オッズが実際の払戻下限を下回らないようにする
   const pool = aggregateOddsPool(displayBets);
   const provisionalWin = calculateProvisionalOdds(pool, race?.guaranteedOdds ?? undefined)[BET_TYPES.WIN] ?? {};
-  // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
-  const toHorseNumberKey = (key: string) => String((JSON.parse(key) as number[])[0]);
+  const toHorseNumberKey = (key: string) => String(parseSelectionKey(key)[0]);
   const winOdds = Object.fromEntries(
     Object.entries(provisionalWin).map(([key, rate]) => [toHorseNumberKey(key), rate])
   );
@@ -101,9 +105,11 @@ export async function calculateOdds(raceId: string) {
             raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
               raceId,
               data: {
-                winOdds: latestOdds.winOdds,
+                // jsonb 列は nullable だが RaceOddsData は非 null 宣言なので空オブジェクトへ丸める。
+                // 受け手が null を想定せずに済み、SSE のペイロードを後から検証しやすくなる
+                winOdds: latestOdds.winOdds ?? {},
                 winPopularity: latestOdds.winPopularity,
-                placeOdds: latestOdds.placeOdds,
+                placeOdds: latestOdds.placeOdds ?? {},
                 updatedAt: latestOdds.updatedAt,
               },
             });
@@ -162,8 +168,10 @@ export async function getProvisionalOddsCached(raceId: string) {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      // SAFETY: このキーには下で計算結果を JSON.stringify した値しか保存していない
-      return JSON.parse(cached) as Awaited<ReturnType<typeof calculateAllProvisionalOdds>>;
+      const parsed = provisionalOddsCacheSchema.safeParse(JSON.parse(cached));
+      // 想定と違う値が残っていたらキャッシュを無視して計算し直す。書き込みで上書きされる
+      if (parsed.success) return parsed.data;
+      console.error('[Odds] Ignoring provisional odds cache with unexpected shape:', parsed.error);
     }
   } catch (err) {
     console.error('[Odds] Failed to read provisional odds cache:', err);

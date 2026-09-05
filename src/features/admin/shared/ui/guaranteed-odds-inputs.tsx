@@ -25,7 +25,7 @@ export function GuaranteedOddsInputs({ value, onChange }: GuaranteedOddsInputsPr
         <div key={type} className="space-y-2">
           <Label htmlFor={`odds-${type}`}>{BET_TYPE_LABELS[type]}</Label>
           <NumericInput
-            value={value[type] || 0}
+            value={value[type] ?? 0}
             onChange={(val) => handleChange(type, val)}
             min={0}
             allowDecimal

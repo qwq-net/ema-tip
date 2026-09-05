@@ -5,6 +5,7 @@ import { db } from '@/shared/db';
 import { eventDefaultAllowedBetTypes, events } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireAdmin } from '@/shared/utils/admin';
+import { firstRow } from '@/shared/utils/first-row';
 import { formString } from '@/shared/utils/form';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -58,7 +59,7 @@ export async function createEvent(formData: FormData) {
 
     const carryover = lastEvent?.carryoverAmount ?? 0;
 
-    const [created] = await tx
+    const insertedEvents = await tx
       .insert(events)
       .values({
         name: parse.data.name,
@@ -72,6 +73,7 @@ export async function createEvent(formData: FormData) {
         loanThresholdPercent: parse.data.loanThresholdPercent,
       })
       .returning({ id: events.id });
+    const created = firstRow(insertedEvents, 'イベント');
 
     if (parse.data.allowedBetTypes) {
       await tx

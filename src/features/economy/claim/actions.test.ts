@@ -1,4 +1,5 @@
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { claimEvent } from './actions';
 
 vi.mock('@/shared/db', () => ({
@@ -85,14 +86,14 @@ describe('claimEvent', () => {
     await claimEvent(eventId);
 
     expect(mockTx.execute).toHaveBeenCalledTimes(1);
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
   });
 
   it('advisory lockキーにuserIdとeventIdの両方が含まれる', async () => {
     await claimEvent(eventId);
 
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain(userId);
     expect(lockArg).toContain(eventId);
   });
@@ -107,8 +108,8 @@ describe('claimEvent', () => {
     await claimEvent(eventId);
 
     expect(mockTx.insert).toHaveBeenCalled();
-    const firstInsertValues = mockTx.insert.mock.results[0].value.values;
-    const walletData = firstInsertValues.mock.calls[0][0];
+    const firstInsertValues = mockTx.insert.mock.results[0]!.value.values;
+    const walletData = firstInsertValues.mock.calls[0]![0];
     expect(walletData.userId).toBe(userId);
     expect(walletData.eventId).toBe(eventId);
     expect(walletData.balance).toBe(10000);
@@ -118,8 +119,8 @@ describe('claimEvent', () => {
     await claimEvent(eventId);
 
     expect(mockTx.insert).toHaveBeenCalledTimes(2);
-    const secondInsertValues = mockTx.insert.mock.results[1].value.values;
-    const txData = secondInsertValues.mock.calls[0][0];
+    const secondInsertValues = mockTx.insert.mock.results[1]!.value.values;
+    const txData = secondInsertValues.mock.calls[0]![0];
     expect(txData.type).toBe('DISTRIBUTION');
     expect(txData.amount).toBe(10000);
   });

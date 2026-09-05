@@ -70,8 +70,8 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
     winners.add(row.horseId);
   });
   targetRaceIds.forEach((raceId) => {
-    const set = winnerSetByRaceId.get(raceId);
-    winnerHorseIdByRaceId.set(raceId, set?.size === 1 ? [...set][0] : null);
+    const [winner, ...rest] = winnerSetByRaceId.get(raceId) ?? [];
+    winnerHorseIdByRaceId.set(raceId, winner !== undefined && rest.length === 0 ? winner : null);
   });
 
   const isRaceResolved = (status: string) => status === 'RANKING_CONFIRMED' || status === 'FINALIZED';

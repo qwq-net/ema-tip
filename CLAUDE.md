@@ -33,9 +33,13 @@
 - eslint-disable は理由付きの行単位のみ。ファイル単位の無効化はしない。不要になった指定は reportUnusedDisableDirectives が検出する
 - 新しいルールを足すときは warn で入れて既存違反を潰し、ゼロになった時点で error へ昇格する
 - lint は `--max-warnings 0`。warning はそのまま CI の失敗になる
-- no-unnecessary-condition は off。tsconfig の noUncheckedIndexedAccess が無効な間は正しいガードを不要と誤判定するため、添字アクセスの厳格化とセットで有効化する
-- 見送り中の候補は3つ。noUncheckedIndexedAccess は tsc エラー約225件、exactOptionalPropertyTypes は約22件。import/no-cycle は WSL にネイティブ resolver が無く未計測なのでコンテナ内で測る
-- features 間の越境4件は今回制限していない。層境界の残る穴はここだけ
+- noUncheckedIndexedAccess は有効。添字アクセスは `T | undefined` を返すので、`for...of` や `entries()` で添字自体を無くすか、先頭要素を取り出して undefined を確かめてから使う
+- 1 行だけ返るはずのクエリ結果は `firstRow` で受ける。`const [x] = await ...returning()` は undefined を素通しする
+- no-unnecessary-condition は error。指摘は本物なので、条件を消すか型を実態へ寄せるかで直す。安全側に見えるガードでも型が非 null なら消す判断をする
+- features のスライスは互いを参照しない。スライス一覧は tools/eslint/feature-slices.mjs がディレクトリから導出する。共有したい処理は entities か shared へ下ろす
+- jsx-a11y は strict を全ルール error。アイコンだけのボタンには aria-label を付ける
+- sonarjs は recommended を error。除外は prefer-read-only-props と pseudo-random の2つだけで、理由は eslint.config.ts にある
+- 見送り中の候補は2つ。exactOptionalPropertyTypes は tsc エラー約22件。import/no-cycle は WSL にネイティブ resolver が無く未計測なのでコンテナ内で測る
 
 ## デザインシステム
 

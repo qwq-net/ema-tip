@@ -72,7 +72,7 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
           {tickets.map((ticket) => (
             <TableRow key={ticket.id}>
               <Td className="text-gray-500">{formatDate(ticket.createdAt)}</Td>
-              <Td className="font-medium whitespace-normal text-gray-900">{ticket.user?.name || '不明'}</Td>
+              <Td className="font-medium whitespace-normal text-gray-900">{ticket.user.name || '不明'}</Td>
               <Td className="leading-relaxed whitespace-normal text-gray-600">
                 <div className="flex flex-col gap-1">
                   <div className="flex gap-1">

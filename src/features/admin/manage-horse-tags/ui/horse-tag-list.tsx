@@ -1,6 +1,6 @@
 'use client';
 
-import { HorseTagType } from '@/entities/horse';
+import type { HorseTagType } from '@/entities/horse';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import { toast } from '@/shared/lib/toast';
@@ -72,7 +72,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((type) => {
-          const typeTags = categorizedTags[type] || [];
+          const typeTags = categorizedTags[type];
           return (
             <Card key={type}>
               <CardHeader className="pb-3">
@@ -90,13 +90,17 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                         <div className="ml-2 flex items-center gap-1">
                           <button
                             onClick={() => setEditingTag(tag)}
+                            aria-label={`${tag.content} を編集`}
                             className="text-text-sub hover:text-primary transition-colors"
                           >
                             <Edit className="h-3 w-3" />
                           </button>
                           <ConfirmDialog
                             trigger={
-                              <button className="text-text-sub transition-colors hover:text-red-500">
+                              <button
+                                aria-label={`${tag.content} を削除`}
+                                className="text-text-sub transition-colors hover:text-red-500"
+                              >
                                 <Trash2 className="h-3 w-3" />
                               </button>
                             }

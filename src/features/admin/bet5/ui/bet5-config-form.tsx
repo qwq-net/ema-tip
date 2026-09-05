@@ -1,6 +1,5 @@
 'use client';
 
-import { createBet5EventAction } from '@/features/betting';
 import { toast } from '@/shared/lib/toast';
 import {
   Badge,
@@ -16,6 +15,7 @@ import {
 } from '@/shared/ui';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { createBet5EventAction } from '../actions';
 
 interface Race {
   id: string;
@@ -31,6 +31,11 @@ interface Bet5ConfigFormProps {
   races: Race[];
 }
 
+/** レース ID が 5 件ちょうどかを判定する。BET5 は 5 レース組でしか作れないため、件数を型へ持ち上げる */
+function isFiveRaceIds(raceIds: string[]): raceIds is [string, string, string, string, string] {
+  return raceIds.length === 5;
+}
+
 export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }: Bet5ConfigFormProps) {
   const router = useRouter();
   const [initialPot, setInitialPot] = useState(defaultInitialPot);
@@ -38,7 +43,10 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
 
   const sortedRaces = [...races].sort((a, b) => (a.raceNumber ?? 0) - (b.raceNumber ?? 0));
   const selectedInRaceOrder = sortedRaces.filter((race) => selectedRaces.includes(race.id));
-  const raceLabel = (race: Race) => `${race.raceNumber ? `${race.raceNumber}R` : 'Ex'} ${race.name}`;
+  const raceLabel = (race: Race) => {
+    const numberLabel = race.raceNumber ? `${race.raceNumber}R` : 'Ex';
+    return `${numberLabel} ${race.name}`;
+  };
 
   const handleRaceSelection = (raceId: string) => {
     if (selectedRaces.includes(raceId)) {
@@ -53,18 +61,16 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
   };
 
   const handleCreate = async () => {
-    if (selectedRaces.length !== 5) {
+    const raceIds = selectedInRaceOrder.map((race) => race.id);
+    if (!isFiveRaceIds(raceIds)) {
       toast.error('5つのレースを選択してください');
       return;
     }
 
-    const sortedSelectedIds = selectedInRaceOrder.map((race) => race.id);
-
     try {
       await createBet5EventAction({
         eventId,
-        // SAFETY: handleCreate 冒頭のガードで選択数が 5 件ちょうどであることを確認済み
-        raceIds: sortedSelectedIds as [string, string, string, string, string],
+        raceIds,
         initialPot,
       });
       toast.success('BET5を作成しました');

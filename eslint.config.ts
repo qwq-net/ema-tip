@@ -1,9 +1,11 @@
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
-import sonarjs from 'eslint-plugin-sonarjs';
+import sonarjs, { configs as sonarjsConfigs } from 'eslint-plugin-sonarjs';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import antiSlop from './tools/eslint/anti-slop.mjs';
+import { featureSliceNames } from './tools/eslint/feature-slices.mjs';
+import { jsxA11yStrictRules } from './tools/eslint/jsx-a11y-strict.mjs';
 
 // CLI として手で実行する保守スクリプト。進行状況を標準出力へ流すため console.log を許可する
 const cliScripts = [
@@ -15,6 +17,10 @@ const cliScripts = [
 ];
 
 const testFiles = ['**/*.test.ts', '**/*.test.tsx', 'vitest.setup.ts', 'e2e/**/*.ts'];
+
+// features のスライス一覧はディレクトリから導出する。手書きの台帳を置くと実体とずれる
+const featureSlices = featureSliceNames();
+const noAppImport = { regex: '^@/app/', message: 'features から app は参照できません' };
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -49,17 +55,79 @@ const eslintConfig = defineConfig([
         'error',
         { ignorePrimitives: { string: true, number: false, boolean: false, bigint: false } },
       ],
-      // tsconfig の noUncheckedIndexedAccess が無効な間は健全に働かないため使わない。
-      // 配列と Record の添字アクセスが常に値を返す型になり、finishers[0] の存在チェックや
-      // acc[key] の初期化ガードを不要と誤判定する。的中判定のガードを消すと払戻が壊れる。
-      // 添字アクセスを厳格化したら有効化する。その時点で誤検知 55 件が消え、実質の指摘 77 件が残る。
-      // ただし noUncheckedIndexedAccess を有効にすると tsc エラーが約 225 件出るため、その解消とセットで進める
-      '@typescript-eslint/no-unnecessary-condition': 'off',
+      // 券種やステータスのユニオンに対する switch で分岐漏れを検出する。
+      // default があっても網羅性を要求し、ユニオンが増えたときに更新漏れを落とす
+      '@typescript-eslint/switch-exhaustiveness-check': ['error', { considerDefaultExhaustiveForUnions: true }],
+      // 型だけの import を import type に固定する。バンドルへ実体が残らず循環参照も起きにくくなる。
+      // インラインの import() 型注釈は vi.mock の importOriginal で必要なため禁止しない
+      '@typescript-eslint/consistent-type-imports': ['error', { disallowTypeAnnotations: false }],
+    },
+  },
+  // eslint-config-next は自身のルールを warn で配る。この製品は警告と失敗を分けない方針なので
+  // すべて error へ引き上げる。違反は 0 件で、--max-warnings 0 を外しても検査が緩まなくなる
+  {
+    rules: {
+      'react-hooks/exhaustive-deps': 'error',
+      'react-hooks/incompatible-library': 'error',
+      'react-hooks/unsupported-syntax': 'error',
+      '@next/next/google-font-display': 'error',
+      '@next/next/google-font-preconnect': 'error',
+      '@next/next/next-script-for-ga': 'error',
+      '@next/next/no-async-client-component': 'error',
+      '@next/next/no-before-interactive-script-outside-document': 'error',
+      '@next/next/no-css-tags': 'error',
+      '@next/next/no-head-element': 'error',
+      '@next/next/no-img-element': 'error',
+      '@next/next/no-page-custom-font': 'error',
+      '@next/next/no-styled-jsx-in-document': 'error',
+      '@next/next/no-title-in-document-head': 'error',
+      '@next/next/no-typos': 'error',
+      '@next/next/no-unwanted-polyfillio': 'error',
+      'import/no-anonymous-default-export': 'error',
+      'jsx-a11y/alt-text': ['error', { elements: ['img'], img: ['Image'] }],
+      'jsx-a11y/aria-props': 'error',
+      'jsx-a11y/aria-proptypes': 'error',
+      'jsx-a11y/aria-unsupported-elements': 'error',
+      'jsx-a11y/role-has-required-aria-props': 'error',
+      'jsx-a11y/role-supports-aria-props': 'error',
+    },
+  },
+  // eslint-config-next が有効にする jsx-a11y は 6 ルールだけなので、strict の全ルールを上に重ねる。
+  // 上の引き上げブロックより後ろに置いて後勝ちさせるため、alt-text のオプションはここで指定し直す
+  {
+    files: ['**/*.tsx'],
+    rules: {
+      ...jsxA11yStrictRules(),
+      'jsx-a11y/alt-text': ['error', { elements: ['img'], img: ['Image'] }],
+      // label-has-for はプラグイン自身が非推奨とし、役割を label-has-associated-control へ移した。
+      // 併用すると同じ label へ二重に指摘が出るため後継だけを残す
+      'jsx-a11y/label-has-for': 'off',
+      // アイコンだけのボタンは alt-text も label-has-associated-control も名前を見ないため、
+      // このルールが唯一の検出手段になる。既定の深さでは入れ子のテキストを辿れず誤検出が出るので
+      // depth を 3 まで広げる。プラグインは strict でもこれを off で配るため明示的に有効化する
+      'jsx-a11y/control-has-associated-label': ['error', { depth: 3 }],
+      // Checkbox は shared/ui の素の input[type=checkbox] ラッパで、label で包めば関連付けが成立する。
+      // 独自コンポーネント名をコントロールとして認識させる
+      'jsx-a11y/label-has-associated-control': ['error', { controlComponents: ['Checkbox'] }],
+      // form は暗黙送信という鍵盤操作を元から持つ要素で、Enter による誤送信を抑える onKeyDown は
+      // その調整にあたる。偽のウィジェットを作る用途ではないため form の onKeyDown だけ許可する
+      'jsx-a11y/no-noninteractive-element-interactions': ['error', { form: ['onKeyDown'] }],
     },
   },
   {
     plugins: { 'anti-slop': antiSlop, sonarjs },
     rules: {
+      // sonarjs の recommended。バグ検出とコードスメル 217 ルールを error で取り込む。
+      // 個別指定は必ずこの展開より後ろへ置いて後勝ちさせる
+      ...sonarjsConfigs.recommended.rules,
+
+      // React の props を readonly にする様式の統一。欠陥ではなく好みの範囲で、
+      // 適用すると 133 箇所の型注釈を書き換えることになるため採用しない
+      'sonarjs/prefer-read-only-props': 'off',
+      // Math.random の指摘。該当は開発用シーダの乱数と SSE のクライアント識別子だけで、
+      // どちらも暗号や認証の用途ではない。乱数の質が安全性に影響しないため検査しない
+      'sonarjs/pseudo-random': 'off',
+
       'anti-slop/no-chained-type-assertions': 'error',
       'anti-slop/no-conditional-empty-object-spread': 'error',
       'anti-slop/no-known-value-widening': 'error',
@@ -136,12 +204,30 @@ const eslintConfig = defineConfig([
   {
     files: ['src/features/**'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        { patterns: [{ regex: '^@/app/', message: 'features から app は参照できません' }] },
-      ],
+      'no-restricted-imports': ['error', { patterns: [noAppImport] }],
     },
   },
+  // features のスライス同士は参照し合わない。共有したくなったものは entities か shared へ下ろす。
+  // no-restricted-imports は「自分以外のスライス」を 1 つの pattern で表せないため、
+  // スライスごとにブロックを分けて自分以外を regex で禁じる。
+  // 同じルールを後のブロックで指定すると前の指定を置き換えるので、app の禁止もここへ含める
+  ...featureSlices.map((slice) => ({
+    files: [`src/features/${slice}/**`],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            noAppImport,
+            {
+              regex: `^@/features/(?!${slice}(/|$))`,
+              message: `features/${slice} から他のスライスは参照できません。共有する処理は entities か shared へ移します`,
+            },
+          ],
+        },
+      ],
+    },
+  })),
   {
     files: cliScripts,
     rules: { 'no-console': 'off' },

@@ -35,7 +35,7 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <FormattedDate date={race.date} options={{ month: 'long', day: 'numeric', weekday: 'short' }} />
-                <span>{race.venue?.name}</span>
+                <span>{race.venue.name}</span>
                 {race.raceNumber && <span>{race.raceNumber}R</span>}
               </div>
               <div className="flex items-center gap-2">

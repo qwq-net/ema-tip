@@ -1,6 +1,7 @@
 'use client';
 
-import { BET_TYPES, BetType } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPES } from '@/entities/bet';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui';
 import { X } from 'lucide-react';
 

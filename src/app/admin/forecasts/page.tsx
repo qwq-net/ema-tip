@@ -17,16 +17,14 @@ export default async function ForecastsPage() {
 
   const eventGroups = races.reduce<Record<string, EventGroup>>((acc, race) => {
     const eventId = race.event.id;
-    if (!acc[eventId]) {
-      acc[eventId] = {
-        id: race.event.id,
-        name: race.event.name,
-        date: race.event.date,
-        status: race.event.status,
-        races: [],
-      };
-    }
-    acc[eventId].races.push(race);
+    const group = (acc[eventId] ??= {
+      id: race.event.id,
+      name: race.event.name,
+      date: race.event.date,
+      status: race.event.status,
+      races: [],
+    });
+    group.races.push(race);
     return acc;
   }, {});
 

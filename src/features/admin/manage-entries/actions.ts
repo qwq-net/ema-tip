@@ -91,8 +91,8 @@ export async function getRacesForSelect() {
       condition: race.condition,
       entryCount: countByRace.get(race.id) ?? 0,
       venue: {
-        name: race.venue?.name || '',
-        shortName: race.venue?.shortName || '',
+        name: race.venue.name,
+        shortName: race.venue.shortName,
       },
       date: race.date,
     });

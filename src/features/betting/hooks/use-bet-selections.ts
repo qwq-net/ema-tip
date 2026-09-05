@@ -1,4 +1,5 @@
-import { BET_TYPES, BetType, calculateBetCount } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPES, calculateBetCount } from '@/entities/bet';
 import { getBetTypeColumnCount } from '@/features/betting/model/bet-types';
 import { useState } from 'react';
 
@@ -47,8 +48,9 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
 
   // 選択中の種別が SSE 経由の制限変更で許可外になった場合、許可済みの先頭種別へ切り替える。
   // 表示だけ無効化すると許可外の選択が残ったまま購入エラーになる
-  if (allowedBetTypes && !allowedBetTypes.includes(betType)) {
-    setBetType(allowedBetTypes[0]);
+  const [fallbackBetType] = allowedBetTypes ?? [];
+  if (fallbackBetType !== undefined && !allowedBetTypes?.includes(betType)) {
+    setBetType(fallbackBetType);
     setSelections([new Set(), new Set(), new Set()]);
   }
 

@@ -25,11 +25,11 @@ interface GenderAge {
  */
 function parseGenderAge(row: HTMLElement): GenderAge {
   const bareiText = textOf(row.querySelector('td.Barei')) || textOf(row.querySelector('td.HorseInfo .Age'));
-  const ageMatch = /(\d+)/.exec(bareiText);
+  const ageDigits = /(\d+)/.exec(bareiText)?.[1];
 
   return {
     gender: lookup(GENDER_MAP, bareiText[0] ?? '') ?? 'HORSE',
-    age: ageMatch ? parseInt(ageMatch[1]) : null,
+    age: ageDigits === undefined ? null : parseInt(ageDigits),
   };
 }
 
@@ -48,11 +48,12 @@ function extractRaceId(url: string): string {
 
 function parseRaceInfo(root: ReturnType<typeof parse>, raceId: string): ScrapedRaceInfo {
   const raceData01 = root.querySelector('.RaceData01')?.text ?? '';
-  const raceName =
-    root.querySelector('.RaceName')?.text?.trim() ?? root.querySelector('h1.RaceName')?.text?.trim() ?? '';
+  const raceName = root.querySelector('.RaceName')?.text.trim() ?? root.querySelector('h1.RaceName')?.text.trim() ?? '';
 
-  const distanceMatch = /(\d+)m/.exec(raceData01);
-  const distance = distanceMatch ? parseInt(distanceMatch[1]) : 0;
+  // 後読みは数字列の途中から走査をやり直させないための番兵。
+  // 取得元は netkeiba のスクレイプ結果で、長い数字列を渡されたときの走査量を線形に抑える
+  const distanceMatch = /(?<!\d)(\d+)m/.exec(raceData01);
+  const distance = distanceMatch ? Number(distanceMatch[1]) : 0;
 
   const surface = raceData01.includes('芝') ? '芝' : 'ダート';
 
@@ -72,9 +73,9 @@ function parseRaceInfo(root: ReturnType<typeof parse>, raceId: string): ScrapedR
 function parseHorses(root: ReturnType<typeof parse>): ScrapedHorse[] {
   const rows = root.querySelectorAll('tr.HorseList');
 
-  if (rows.length === 0) throw new Error('出走馬情報を取得できませんでした');
+  const [firstRow] = rows;
+  if (firstRow === undefined) throw new Error('出走馬情報を取得できませんでした');
 
-  const firstRow = rows[0];
   const wakuCell = firstRow.querySelector('td[class*="Waku"]');
   const isConfirmed = /Waku\d/.test(wakuCell?.classNames ?? '');
   if (!isConfirmed) {

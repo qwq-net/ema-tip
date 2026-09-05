@@ -1,49 +1,63 @@
 import { BET_TYPES, type BetType } from '@/entities/bet/constants';
-import type { HorseTagType, HorseType } from '@/entities/horse/types';
+import type { HorseTagType } from '@/entities/horse/types';
 import { ROLES } from '@/entities/user/constants';
+import { HORSE_TAG_TYPES, HORSE_TYPES } from '@/shared/constants/horse';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { RACE_CONDITIONS, RACE_GRADES, RACE_SURFACES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { lookup } from '@/shared/utils/lookup';
 import bcrypt from 'bcryptjs';
 import { and, eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { calculateBracketNumber } from '../utils/bracket';
+import { firstRow } from '../utils/first-row';
 import { db } from './index';
 import * as schema from './schema';
 import horsesDataRaw from './seeds/horses.json';
 import racesDataRaw from './seeds/races.json';
 import venuesDataRaw from './seeds/venues.json';
 
-interface VenueSeedData {
-  code: string;
-  name: string;
-  shortName: string;
-  direction: (typeof VENUE_DIRECTIONS)[number];
-  area: (typeof VENUE_AREAS)[number];
+// seeds/*.json は手管理のマスタ。列挙値や必須項目の崩れを DB へ触れる前に落とす
+const VenueSeedSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  shortName: z.string(),
+  direction: z.enum(VENUE_DIRECTIONS),
+  area: z.enum(VENUE_AREAS),
+});
+
+const RaceSeedSchema = z.object({
+  name: z.string(),
+  grade: z.enum(RACE_GRADES),
+  venue: z.string(),
+  surface: z.enum(RACE_SURFACES),
+  distance: z.number().int().positive(),
+  direction: z.enum(VENUE_DIRECTIONS),
+});
+
+// gender は牡と牝だけを列挙値へ移し、それ以外はセン馬として扱うため文字列のまま受ける
+const HorseSeedSchema = z.object({
+  name: z.string(),
+  gender: z.string(),
+  age: z.number().int().nullable(),
+  type: z.enum(HORSE_TYPES).optional(),
+  tags: z.array(z.object({ type: z.enum(HORSE_TAG_TYPES), content: z.string() })).optional(),
+});
+
+/**
+ * マスタ JSON の 1 件ずつを検証し、全件通ったときだけ配列を返す。
+ * 1 件でも想定と違えばファイル名と該当箇所を添えて throw し、投入を始めさせない。
+ */
+function parseSeedFile<T>(fileName: string, itemSchema: z.ZodType<T>, raw: object[]): T[] {
+  const result = z.array(itemSchema).safeParse(raw);
+  if (result.success) return result.data;
+
+  const details = result.error.issues.map((issue) => `  [${issue.path.join('.')}] ${issue.message}`).join('\n');
+  throw new Error(`seeds/${fileName} の形式が不正です。\n${details}`);
 }
 
-interface RaceSeedData {
-  name: string;
-  grade: (typeof RACE_GRADES)[number];
-  venue: string;
-  surface: (typeof RACE_SURFACES)[number];
-  distance: number;
-  direction: (typeof VENUE_DIRECTIONS)[number];
-}
-
-interface HorseSeedData {
-  name: string;
-  gender: string;
-  age: number | null;
-  type?: HorseType;
-  tags?: { type: HorseTagType; content: string }[];
-}
-
-// SAFETY: seeds/*.json は手管理のマスタ。列挙値の妥当性は SeedData interface の union で表現している
-const venuesData = venuesDataRaw as VenueSeedData[];
-// SAFETY: 同上
-const racesData = racesDataRaw as RaceSeedData[];
-// SAFETY: 同上
-const horsesData = horsesDataRaw as HorseSeedData[];
+const venuesData = parseSeedFile('venues.json', VenueSeedSchema, venuesDataRaw);
+const racesData = parseSeedFile('races.json', RaceSeedSchema, racesDataRaw);
+const horsesData = parseSeedFile('horses.json', HorseSeedSchema, horsesDataRaw);
 
 const getRandomCondition = () => RACE_CONDITIONS[Math.floor(Math.random() * RACE_CONDITIONS.length)];
 
@@ -249,7 +263,7 @@ async function seedVenues(tx: Tx): Promise<Record<string, string>> {
     if (existing) {
       venueMap[v.name] = existing.id;
     } else {
-      const [venue] = await tx
+      const insertedVenues = await tx
         .insert(schema.venues)
         .values({
           name: v.name,
@@ -259,7 +273,7 @@ async function seedVenues(tx: Tx): Promise<Record<string, string>> {
           area: v.area,
         })
         .returning();
-      venueMap[v.name] = venue.id;
+      venueMap[v.name] = firstRow(insertedVenues, '競馬場').id;
       createdVenueCount++;
       console.log(`Racecourse created: ${v.name}`);
     }
@@ -288,7 +302,12 @@ async function seedRaceDefinitions(
     if (existing) {
       raceDefinitionMap[def.name] = { id: existing.id, grade: existing.grade };
     } else {
-      const [inserted] = await tx
+      const defaultVenueId = venueMap[def.venue];
+      if (defaultVenueId === undefined) {
+        throw new Error(`レース定義「${def.name}」の既定競馬場「${def.venue}」が見つかりません`);
+      }
+
+      const insertedDefinitions = await tx
         .insert(schema.raceDefinitions)
         .values({
           name: def.name,
@@ -297,9 +316,10 @@ async function seedRaceDefinitions(
           defaultDirection: def.direction,
           defaultDistance: def.distance,
           defaultSurface: def.surface,
-          defaultVenueId: venueMap[def.venue],
+          defaultVenueId,
         })
         .returning();
+      const inserted = firstRow(insertedDefinitions, 'レース定義');
       raceDefinitionMap[def.name] = { id: inserted.id, grade: inserted.grade };
       createdDefCount++;
       console.log(`Race Definition created: ${def.name}`);
@@ -349,7 +369,7 @@ async function seedHorses(tx: Tx): Promise<SeededHorse[]> {
     if (existing) {
       allHorses.push(existing);
     } else {
-      const [horse] = await tx
+      const insertedHorses = await tx
         .insert(schema.horses)
         .values({
           name: cleanedName,
@@ -359,6 +379,7 @@ async function seedHorses(tx: Tx): Promise<SeededHorse[]> {
           type: horseData.type || 'REAL',
         })
         .returning();
+      const horse = firstRow(insertedHorses, '馬');
 
       if (horseData.tags && horseData.tags.length > 0) {
         await tx.insert(schema.horseTags).values(
@@ -400,7 +421,7 @@ async function seedUsers(tx: Tx): Promise<SeededUser[]> {
       }
       allUsers.push(existing);
     } else {
-      const [user] = await tx
+      const insertedUsers = await tx
         .insert(schema.users)
         .values({
           name: userData.name,
@@ -410,7 +431,7 @@ async function seedUsers(tx: Tx): Promise<SeededUser[]> {
           isOnboardingCompleted: true,
         })
         .returning();
-      allUsers.push(user);
+      allUsers.push(firstRow(insertedUsers, 'ユーザー'));
       createdUserCount++;
       console.log(`User created: ${userData.name} (${userData.role})`);
     }
@@ -444,6 +465,12 @@ async function seedForecasts(
   entryValues: RaceEntrySeedValue[]
 ): Promise<void> {
   const forecastSymbols = ['◎', '◯', '▲'];
+  // 印は上位の出走から順に割り当てる。出走が印より少ない開催では余った印を使わない
+  const forecastSelections: Record<string, string> = {};
+  forecastSymbols.forEach((symbol, index) => {
+    const entry = entryValues[index];
+    if (entry) forecastSelections[entry.horseId] = symbol;
+  });
   const forecastUsers = allUsers.filter((u) => u.role === ROLES.TIPSTER || u.role === ROLES.AI_TIPSTER);
   for (const forecastUser of forecastUsers) {
     await tx
@@ -452,7 +479,7 @@ async function seedForecasts(
         raceId,
         userId: forecastUser.id,
         comment: '軸は堅実に、相手は展開次第で手広く狙います。',
-        selections: Object.fromEntries(entryValues.slice(0, 3).map((e, idx) => [e.horseId, forecastSymbols[idx]])),
+        selections: forecastSelections,
       })
       .onConflictDoNothing();
   }
@@ -472,19 +499,19 @@ async function seedFinalizedPayout(tx: Tx, raceId: string, entryValues: RaceEntr
   const sortedEntries = [...entryValues].sort(() => Math.random() - 0.5);
   const top3 = sortedEntries.slice(0, Math.min(3, sortedEntries.length));
 
-  for (let pos = 0; pos < top3.length; pos++) {
+  for (const [pos, entry] of top3.entries()) {
     await tx
       .update(schema.raceEntries)
       .set({ finishPosition: pos + 1 })
-      .where(and(eq(schema.raceEntries.raceId, raceId), eq(schema.raceEntries.horseNumber, top3[pos].horseNumber)));
+      .where(and(eq(schema.raceEntries.raceId, raceId), eq(schema.raceEntries.horseNumber, entry.horseNumber)));
   }
 
-  const winnerNumber = top3[0]?.horseNumber ?? null;
-  if (winnerNumber !== null) {
+  const winner = top3.at(0);
+  if (winner) {
     await tx.insert(schema.payoutResults).values({
       raceId,
       type: 'win',
-      combinations: [{ numbers: [winnerNumber], payout: Math.round((2 + Math.random() * 20) * 10) * 10 }],
+      combinations: [{ numbers: [winner.horseNumber], payout: Math.round((2 + Math.random() * 20) * 10) * 10 }],
     });
   }
   console.log(`  Payout: result recorded (winner: No.${top3[0]?.horseNumber})`);
@@ -525,7 +552,7 @@ async function seedRaceInstance(tx: Tx, input: RaceInstanceSeedInput): Promise<R
 
   const raceStatus = seedRaceStatus(raceIndex);
 
-  const [race] = await tx
+  const insertedRaces = await tx
     .insert(schema.raceInstances)
     .values({
       eventId: eventId,
@@ -542,6 +569,7 @@ async function seedRaceInstance(tx: Tx, input: RaceInstanceSeedInput): Promise<R
       guaranteedOdds: DEFAULT_GUARANTEED_ODDS,
     })
     .returning();
+  const race = firstRow(insertedRaces, 'レース');
 
   console.log(`Race Instance created: ${race.name} (Event: ${eventTemplate.name})`);
 
@@ -565,13 +593,20 @@ async function seedRaceInstance(tx: Tx, input: RaceInstanceSeedInput): Promise<R
   const selectedHorses = shuffledHorses.slice(0, numEntries);
   const shuffledNumbers = Array.from({ length: numEntries }, (_, idx) => idx + 1).sort(() => Math.random() - 0.5);
 
-  const entryValues = selectedHorses.map((horse, j) => ({
-    raceId: race.id,
-    horseId: horse.id,
-    bracketNumber: calculateBracketNumber(shuffledNumbers[j], numEntries),
-    horseNumber: shuffledNumbers[j],
-    status: 'ENTRANT' as const,
-  }));
+  const entryValues = shuffledNumbers.flatMap((horseNumber, j) => {
+    const horse = selectedHorses[j];
+    return horse === undefined
+      ? []
+      : [
+          {
+            raceId: race.id,
+            horseId: horse.id,
+            bracketNumber: calculateBracketNumber(horseNumber, numEntries),
+            horseNumber,
+            status: 'ENTRANT' as const,
+          },
+        ];
+  });
   await tx.insert(schema.raceEntries).values(entryValues);
   console.log(`  Entries: ${numEntries} horses registered`);
 
@@ -633,7 +668,7 @@ async function seedEvent(tx: Tx, input: EventSeedInput): Promise<EventSeedResult
   if (existingEvent) {
     eventId = existingEvent.id;
   } else {
-    const [event] = await tx.insert(schema.events).values(eventValues).returning();
+    const event = firstRow(await tx.insert(schema.events).values(eventValues).returning(), 'イベント');
     console.log(`Event created: ${event.name} (${event.status})`);
     eventId = event.id;
   }
@@ -651,7 +686,8 @@ async function seedEvent(tx: Tx, input: EventSeedInput): Promise<EventSeedResult
   let betsTarget: BetsTarget | null = null;
 
   for (let i = 0; i < RACES_PER_EVENT; i++) {
-    const defInfo = raceDefinitionMap[raceDefinitionNames[(startIndex + i) % raceDefinitionNames.length]];
+    const defName = raceDefinitionNames[(startIndex + i) % raceDefinitionNames.length] ?? '';
+    const defInfo = raceDefinitionMap[defName];
     if (!defInfo) continue;
 
     const result = await seedRaceInstance(tx, {
@@ -668,18 +704,27 @@ async function seedEvent(tx: Tx, input: EventSeedInput): Promise<EventSeedResult
     betsTarget = result.betsTarget ?? betsTarget;
   }
 
-  if (eventTemplate.status === 'ACTIVE' && eventRaceIds.length === RACES_PER_EVENT) {
+  // BET5 は 5 レース固定の商品なので、RACES_PER_EVENT ではなく 5 で判定する。
+  // 分割代入で受けるのは、5 本すべて揃ったことを型でも示すため
+  const [bet5Race1, bet5Race2, bet5Race3, bet5Race4, bet5Race5] = eventRaceIds;
+  const hasFiveRaces =
+    bet5Race1 !== undefined &&
+    bet5Race2 !== undefined &&
+    bet5Race3 !== undefined &&
+    bet5Race4 !== undefined &&
+    bet5Race5 !== undefined;
+  if (eventTemplate.status === 'ACTIVE' && hasFiveRaces) {
     const existingBet5 = await tx.query.bet5Events.findFirst({
       where: (b, { eq }) => eq(b.eventId, eventId),
     });
     if (!existingBet5) {
       await tx.insert(schema.bet5Events).values({
         eventId,
-        race1Id: eventRaceIds[0],
-        race2Id: eventRaceIds[1],
-        race3Id: eventRaceIds[2],
-        race4Id: eventRaceIds[3],
-        race5Id: eventRaceIds[4],
+        race1Id: bet5Race1,
+        race2Id: bet5Race2,
+        race3Id: bet5Race3,
+        race4Id: bet5Race4,
+        race5Id: bet5Race5,
         initialPot: 50000,
         status: 'SCHEDULED',
       });
@@ -708,7 +753,7 @@ async function seedWallets(tx: Tx, allUsers: SeededUser[], seededEvents: SeededE
       });
 
       if (!existing) {
-        const [wallet] = await tx
+        const insertedWallets = await tx
           .insert(schema.wallets)
           .values({
             userId: user.id,
@@ -716,6 +761,7 @@ async function seedWallets(tx: Tx, allUsers: SeededUser[], seededEvents: SeededE
             balance: eventInfo.distributeAmount,
           })
           .returning();
+        const wallet = firstRow(insertedWallets, 'ウォレット');
 
         await tx.insert(schema.transactions).values({
           walletId: wallet.id,
@@ -757,7 +803,7 @@ async function seedBets(tx: Tx, allUsers: SeededUser[], betsTarget: BetsTarget):
     const combinations = betsTarget.horseNumbers.map((n) => [n]);
     const totalAmount = combinations.length * amountPerBet;
 
-    const [group] = await tx
+    const insertedGroups = await tx
       .insert(schema.betGroups)
       .values({
         userId: bettor.id,
@@ -767,6 +813,7 @@ async function seedBets(tx: Tx, allUsers: SeededUser[], betsTarget: BetsTarget):
         totalAmount,
       })
       .returning();
+    const group = firstRow(insertedGroups, '購入グループ');
 
     const insertedBets = await tx
       .insert(schema.bets)
@@ -825,9 +872,9 @@ async function main() {
     // 開催中イベントの受付中レース。あとで購入済み馬券のシードに使う
     let betsTarget: BetsTarget | null = null;
 
-    for (let eventIndex = 0; eventIndex < eventTemplates.length; eventIndex++) {
+    for (const [eventIndex, eventTemplate] of eventTemplates.entries()) {
       const result = await seedEvent(tx, {
-        eventTemplate: eventTemplates[eventIndex],
+        eventTemplate,
         eventIndex,
         raceDefinitionMap,
         allHorses,
@@ -843,7 +890,6 @@ async function main() {
   });
 
   console.log('--- Seeder Completed Successfully ---');
-  return;
 }
 
 main()

@@ -1,7 +1,6 @@
 'use client';
 
-import { ROLES, ROLE_LABELS } from '@/entities/user';
-import { LogoutButton } from '@/features/auth';
+import { LogoutButton, ROLES, ROLE_LABELS } from '@/entities/user';
 import { cn } from '@/shared/utils/cn';
 import { lookup } from '@/shared/utils/lookup';
 import {
@@ -90,9 +89,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     }
   }, [isOpen]);
 
-  const filteredGroups = NAV_GROUPS.filter(
-    (group) => !group.role || (user.role && group.role.some((role) => role === user.role))
-  );
+  const filteredGroups = NAV_GROUPS.filter((group) => group.role.some((role) => role === user.role));
 
   return (
     <>
@@ -113,7 +110,12 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setIsOpen(false)} />
+        <button
+          type="button"
+          aria-label="メニューを閉じる"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
       )}
 
       <aside

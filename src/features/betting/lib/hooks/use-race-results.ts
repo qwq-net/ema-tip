@@ -1,4 +1,4 @@
-import { BetType } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
 import { useCallback, useEffect, useRef, useState } from 'react';
 

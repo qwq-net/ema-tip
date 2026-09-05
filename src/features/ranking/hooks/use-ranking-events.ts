@@ -1,4 +1,5 @@
-import { SSEMessage, useSSE } from '@/shared/hooks/use-sse';
+import type { SSEMessage } from '@/shared/hooks/use-sse';
+import { useSSE } from '@/shared/hooks/use-sse';
 import { toast } from '@/shared/lib/toast';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';

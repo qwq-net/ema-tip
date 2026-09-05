@@ -1,4 +1,4 @@
-import { ForecastWithUser } from '@/features/forecasts/types';
+import type { ForecastWithUser } from '@/features/forecasts/types';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
 import { User } from 'lucide-react';

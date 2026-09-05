@@ -1,6 +1,7 @@
 import { db } from '@/shared/db';
 import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getUserBetGroupsForRace, placeBets } from './actions';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -310,9 +311,9 @@ describe('placeBets', () => {
     await placeBets(defaultArgs);
 
     expect(mockTx.execute).toHaveBeenCalledTimes(2);
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
-    const shareLockArg = JSON.stringify(mockTx.execute.mock.calls[1][0]);
+    const shareLockArg = JSON.stringify(mockTx.execute.mock.calls[1]![0]);
     expect(shareLockArg).toContain('FOR SHARE');
   });
 
@@ -322,7 +323,7 @@ describe('placeBets', () => {
 
     await placeBets(defaultArgs);
 
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain(walletId);
   });
 
@@ -437,7 +438,7 @@ describe('getUserBetGroupsForRace', () => {
     const result = await getUserBetGroupsForRace(raceId);
 
     expect(result).toHaveLength(1);
-    expect(result[0].bets[0].odds).toBeNull();
+    expect(result[0]!.bets[0]!.odds).toBeNull();
   });
 
   it('CLOSED レースでは想定オッズが付与される', async () => {
@@ -473,8 +474,8 @@ describe('getUserBetGroupsForRace', () => {
     const result = await getUserBetGroupsForRace(raceId);
 
     expect(result).toHaveLength(1);
-    expect(result[0].bets[0].odds).toBeDefined();
-    expect(result[0].bets[0].odds).toEqual(expect.any(String));
+    expect(result[0]!.bets[0]!.odds).toBeDefined();
+    expect(result[0]!.bets[0]!.odds).toEqual(expect.any(String));
   });
 
   it('FINALIZED レースではオッズ付与なしでグループを返す', async () => {
@@ -502,7 +503,7 @@ describe('getUserBetGroupsForRace', () => {
     const result = await getUserBetGroupsForRace(raceId);
 
     expect(result).toHaveLength(1);
-    expect(result[0].bets[0].odds).toBe('2.5');
+    expect(result[0]!.bets[0]!.odds).toBe('2.5');
   });
 
   it('ベットグループが空の場合は空配列を返す', async () => {

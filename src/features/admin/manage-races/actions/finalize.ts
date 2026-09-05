@@ -1,15 +1,15 @@
 'use server';
 
+import type { BetDetail, Finisher } from '@/entities/bet';
 import {
   BET_TYPES,
-  BetDetail,
   calculatePayoutRate,
-  Finisher,
   getWinningCombinations,
   isRefundedBet,
   isWinningBet,
   normalizeSelections,
   ODDS_UNIT,
+  parseSelectionKey,
   resolveInvalidSelections,
 } from '@/entities/bet';
 import type { NetkeibaPayoutEntry } from '@/features/admin/import-race/model/types';
@@ -19,7 +19,8 @@ import { bets, payoutResults as payoutResultsTable, raceEntries, raceInstances }
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ActionError, requireAdmin, revalidateRacePaths, runAction } from '@/shared/utils/admin';
 import { logAdminAction } from '@/shared/utils/admin-audit';
-import { eq, sql, SQL } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 /** 管理画面から渡される 1 頭分の着順入力 */
 interface RaceResultInput {
@@ -73,13 +74,13 @@ function aggregateBetPools(
       continue;
     }
 
-    poolByBetType[type] = (poolByBetType[type] || 0) + bet.amount;
+    poolByBetType[type] = (poolByBetType[type] ?? 0) + bet.amount;
 
     if (isWinningBet(betDetail, finishers)) {
       const selectionKey = normalizeSelections(type, betDetail.selections);
 
-      if (!winningSelectionAmounts[type]) winningSelectionAmounts[type] = {};
-      winningSelectionAmounts[type][selectionKey] = (winningSelectionAmounts[type][selectionKey] || 0) + bet.amount;
+      const selectionAmounts = (winningSelectionAmounts[type] ??= {});
+      selectionAmounts[selectionKey] = (selectionAmounts[selectionKey] ?? 0) + bet.amount;
     }
   }
 
@@ -104,22 +105,23 @@ function calculatePayoutsFromPools(pools: BetPools, guaranteedOdds: Record<strin
   const byType: PayoutCalculationsByType = {};
 
   for (const [type, selectionAmounts] of Object.entries(pools.winningSelectionAmounts)) {
+    // 的中が記録された券種は必ず同じ集計で総プールも積まれている
+    const poolAmount = pools.poolByBetType[type] ?? 0;
     const totalWinningAmount = Object.values(selectionAmounts).reduce((sum, amount) => sum + amount, 0);
     const winningCount = Object.keys(selectionAmounts).length;
 
-    if (!byType[type]) byType[type] = [];
+    const calculations = (byType[type] ??= []);
 
     for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
-      const rate = calculatePayoutRate(pools.poolByBetType[type], selectionAmount, totalWinningAmount, winningCount);
+      const rate = calculatePayoutRate(poolAmount, selectionAmount, totalWinningAmount, winningCount);
       const guaranteedRate = guaranteedOdds?.[type];
 
       // 保証で倍率が引き上げられた組み合わせはフラグを残し、UI で保証適用を示せるようにする
       const isGuaranteed = guaranteedRate !== undefined && rate < guaranteedRate;
       const appliedRate = isGuaranteed ? guaranteedRate : rate;
 
-      // SAFETY: selectionKey は normalizeSelections が number[] を JSON.stringify したもの
-      byType[type].push({
-        numbers: JSON.parse(selectionKey) as number[],
+      calculations.push({
+        numbers: parseSelectionKey(selectionKey),
         payout: Math.floor(ODDS_UNIT * appliedRate),
         ...(isGuaranteed && { guaranteed: true }),
       });
@@ -136,20 +138,20 @@ function fillGuaranteedCombinations(
   guaranteedOdds: Record<string, number> | undefined
 ): void {
   for (const type of Object.values(BET_TYPES)) {
-    if (!byType[type]) byType[type] = [];
+    const calculations = (byType[type] ??= []);
 
     const winningCombinations = getWinningCombinations(type, finishers);
-    const defaultRate = guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type] ?? 1.0;
+    const defaultRate = guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type];
 
     for (const combination of winningCombinations) {
       const key = normalizeSelections(type, combination);
-      const exists = byType[type].some((p) => normalizeSelections(type, p.numbers) === key);
+      const exists = calculations.some((p) => normalizeSelections(type, p.numbers) === key);
       if (exists) continue;
 
-      byType[type].push({ numbers: combination, payout: Math.floor(ODDS_UNIT * defaultRate), guaranteed: true });
+      calculations.push({ numbers: combination, payout: Math.floor(ODDS_UNIT * defaultRate), guaranteed: true });
     }
 
-    byType[type] = byType[type].sort((a, b) => a.numbers.join('-').localeCompare(b.numbers.join('-')));
+    calculations.sort((a, b) => a.numbers.join('-').localeCompare(b.numbers.join('-')));
   }
 }
 
@@ -178,7 +180,8 @@ async function finalizeRaceInner(
   }[] = [];
 
   await db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
+    const lockKey = `payout:${raceId}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
     const raceInstance = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),

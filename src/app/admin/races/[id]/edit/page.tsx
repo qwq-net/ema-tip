@@ -5,7 +5,7 @@ import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
 export default async function EditRacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,12 +18,6 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
 
   if (!race) {
     notFound();
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
-  async function onSuccess() {
-    'use server';
-    redirect(`/admin/races/${id}`);
   }
 
   return (
@@ -50,7 +44,7 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
           events={events}
           raceDefinitions={raceDefinitions}
           venues={venues}
-          onSuccess={onSuccess}
+          redirectTo={`/admin/races/${id}`}
         />
       </Card>
     </div>

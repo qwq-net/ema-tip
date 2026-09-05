@@ -4,6 +4,7 @@ import { DIRECTION_LABELS, RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTI
 import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
+import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { createRaceDefinition, updateRaceDefinition } from '../actions';
 
@@ -20,7 +21,8 @@ interface RaceDefinitionFormProps {
     defaultSurface: string;
   };
   venues: { id: string; name: string; defaultDirection?: string }[];
-  onSuccess?: () => void;
+  /** 保存に成功したあとに遷移する先のパス */
+  redirectTo: string;
 }
 
 const GRADE_LABELS = {
@@ -41,8 +43,9 @@ const TYPE_LABELS = {
   FICTIONAL: '架空',
 } satisfies Record<string, string>;
 
-export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefinitionFormProps) {
+export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefinitionFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   const venueSelectRef = useRef<HTMLSelectElement>(null);
   const directionSelectRef = useRef<HTMLSelectElement>(null);
@@ -57,7 +60,7 @@ export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefin
         formRef.current?.reset();
         toast.success('レース定義を登録しました');
       }
-      onSuccess?.();
+      router.push(redirectTo);
     } catch (error) {
       console.error(error);
       toast.error(initialData ? '更新に失敗しました' : '登録に失敗しました');

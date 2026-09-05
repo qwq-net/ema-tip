@@ -9,17 +9,20 @@ interface BetInput {
   status: 'PENDING' | 'HIT' | 'LOST' | 'REFUNDED';
 }
 
+/**
+ * 同一券種のベット群を、桁ごとの選択馬番の和集合へ畳んだ 1 行にまとめる。
+ * 桁数は先頭のベットに合わせ、それより長い選択のはみ出した桁は捨てる。
+ * ベットが 1 件も無ければ行を作らない。
+ */
 export function compressBetSelections(bets: BetInput[]): CompressedRow[] {
-  if (bets.length === 0) return [];
+  const [firstBet] = bets;
+  if (firstBet === undefined) return [];
 
-  const selectionLength = bets[0].selections.length;
-  const positions: Set<number>[] = Array.from({ length: selectionLength }, () => new Set());
+  const positions: Set<number>[] = Array.from({ length: firstBet.selections.length }, () => new Set());
 
   for (const bet of bets) {
     bet.selections.forEach((sel, index) => {
-      if (index < selectionLength) {
-        positions[index].add(sel);
-      }
+      positions[index]?.add(sel);
     });
   }
 

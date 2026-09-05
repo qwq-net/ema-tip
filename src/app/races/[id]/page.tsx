@@ -30,9 +30,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
 
+  const raceNumberLabel = race.raceNumber ? `${race.raceNumber}R` : '';
+
   return {
     title: race.name,
-    description: `${race.venue?.shortName} ${race.raceNumber ? `${race.raceNumber}R` : ''} ${race.name}の予想・オッズ情報`,
+    description: `${race.venue.shortName} ${raceNumberLabel} ${race.name}の予想・オッズ情報`,
   };
 }
 
@@ -48,15 +50,14 @@ interface LoanBannerValues {
 
 /**
  * イベント設定から融資バナーの表示値を組む。
- * 借入金額が未設定なら配布金額を代わりに使い、イベントが取れないときは融資を出さない値へ倒す。
+ * 借入金額が未設定なら配布金額を代わりに使う。
  */
 function toLoanBannerValues(event: RaceWithRelations['event']): LoanBannerValues {
-  const distributeAmount = event?.distributeAmount ?? 0;
   return {
-    distributeAmount,
-    loanAmount: event?.loanAmount ?? distributeAmount,
-    loanEnabled: event?.loanEnabled ?? false,
-    loanThresholdPercent: event?.loanThresholdPercent ?? 30,
+    distributeAmount: event.distributeAmount,
+    loanAmount: event.loanAmount ?? event.distributeAmount,
+    loanEnabled: event.loanEnabled,
+    loanThresholdPercent: event.loanThresholdPercent,
   };
 }
 
@@ -98,9 +99,9 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
 
         <div className="mb-8 space-y-4">
           <RacePageHeader
-            venueShortName={race.venue?.shortName}
+            venueShortName={race.venue.shortName}
             raceNumber={race.raceNumber}
-            eventName={race.event?.name}
+            eventName={race.event.name}
             name={race.name}
             netkeibaUrl={race.netkeibaUrl}
             surface={race.surface}

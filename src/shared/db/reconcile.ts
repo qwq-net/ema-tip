@@ -7,14 +7,15 @@ import { db } from './index';
  * 監査時の手動実行と、障害疑い時のヘルスチェックを想定している。読み取りのみで破壊的操作はない。
  */
 async function main() {
-  let failed = false;
+  // 破れた不変条件の名前。終了直前にまとめて出し、どれが落ちたか一目で分かるようにする
+  const failedLabels: string[] = [];
 
   const report = (label: string, rows: unknown[]) => {
     if (rows.length === 0) {
       console.log(`OK: ${label}`);
       return;
     }
-    failed = true;
+    failedLabels.push(label);
     console.error(`NG: ${label} (${rows.length}件)`);
     for (const row of rows.slice(0, 20)) {
       console.error('  ', JSON.stringify(row));
@@ -61,7 +62,11 @@ async function main() {
   `);
   report('FINALIZED レースに PENDING ベットなし', pendingOnFinalized);
 
-  process.exit(failed ? 1 : 0);
+  if (failedLabels.length > 0) {
+    console.error(`\n破れた不変条件: ${failedLabels.join(', ')}`);
+    process.exit(1);
+  }
+  process.exit(0);
 }
 
 main().catch((cause: unknown) => {

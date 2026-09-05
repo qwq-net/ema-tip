@@ -4,6 +4,7 @@ import { DIRECTION_LABELS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { toast } from '@/shared/lib/toast';
 import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
+import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { createVenue, updateVenue } from '../actions';
 
@@ -16,11 +17,13 @@ interface VenueFormProps {
     direction: 'LEFT' | 'RIGHT' | 'STRAIGHT';
     area: 'EAST_JAPAN' | 'WEST_JAPAN' | 'OVERSEAS';
   };
-  onSuccess?: () => void;
+  /** 保存に成功したあとに遷移する先のパス */
+  redirectTo: string;
 }
 
-export function VenueForm({ initialData, onSuccess }: VenueFormProps) {
+export function VenueForm({ initialData, redirectTo }: VenueFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   async function handleSubmit(formData: FormData) {
     try {
@@ -32,7 +35,7 @@ export function VenueForm({ initialData, onSuccess }: VenueFormProps) {
         formRef.current?.reset();
         toast.success('会場を登録しました');
       }
-      onSuccess?.();
+      router.push(redirectTo);
     } catch (error) {
       console.error(error);
       toast.error(initialData ? '更新に失敗しました' : '登録に失敗しました');

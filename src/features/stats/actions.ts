@@ -174,7 +174,7 @@ export async function getGlobalStats() {
   for (const transaction of allTransactions) {
     const eventId = transaction.wallet.eventId;
     const eventData = eventMap.get(eventId);
-    const transactionRaceName = transaction.bet?.race?.name;
+    const transactionRaceName = transaction.bet?.race.name;
     const actionName = getActionName(transaction.type);
     const eventName = eventData?.name || '';
 

@@ -1,6 +1,7 @@
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getUsers } from './queries';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -37,7 +38,7 @@ describe('getUsers', () => {
 
     await getUsers();
 
-    const args = (db.query.users.findMany as unknown as Mock).mock.calls[0][0];
+    const args = (db.query.users.findMany as unknown as Mock).mock.calls[0]![0];
     expect(args.columns).toBeDefined();
     expect(args.columns.password).toBeUndefined();
     expect(args.with.accounts.columns).toEqual({ provider: true });

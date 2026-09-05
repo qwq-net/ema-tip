@@ -56,11 +56,11 @@ describe('finalizePayout', () => {
       .values({
         name: 'Test Event',
         distributeAmount: 10000,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0]!,
         status: 'ACTIVE',
       })
       .returning();
-    eventId = event.id;
+    eventId = event!.id;
 
     const [wallet] = await db
       .insert(wallets)
@@ -70,7 +70,7 @@ describe('finalizePayout', () => {
         balance: 10000,
       })
       .returning();
-    walletId = wallet.id;
+    walletId = wallet!.id;
 
     const [race] = await db
       .insert(raceInstances)
@@ -78,13 +78,13 @@ describe('finalizePayout', () => {
         eventId: eventId,
         venueId: venueId,
         name: 'Test Race',
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0]!,
         distance: 2000,
         surface: '芝',
         status: 'CLOSED',
       })
       .returning();
-    raceId = race.id;
+    raceId = race!.id;
 
     createdBetGroupIds.length = 0;
     createdBetIds.length = 0;
@@ -128,7 +128,7 @@ describe('finalizePayout', () => {
         totalAmount: params.amount,
       })
       .returning();
-    createdBetGroupIds.push(betGroup.id);
+    createdBetGroupIds.push(betGroup!.id);
 
     const [bet] = await db
       .insert(bets)
@@ -136,15 +136,15 @@ describe('finalizePayout', () => {
         userId: uid,
         raceId: raceId,
         walletId: wid,
-        betGroupId: betGroup.id,
+        betGroupId: betGroup!.id,
         details: { type: params.type, selections: params.selections },
         amount: params.amount,
         status: 'PENDING',
       })
       .returning();
-    createdBetIds.push(bet.id);
+    createdBetIds.push(bet!.id);
 
-    return { betGroup, bet };
+    return { betGroup: betGroup!, bet: bet! };
   }
 
   async function createBulkBets(params: {
@@ -404,7 +404,7 @@ describe('finalizePayout', () => {
     await db.insert(raceEntries).values([
       {
         raceId,
-        horseId: horseIds[0],
+        horseId: horseIds[0]!,
         horseNumber: 1,
         bracketNumber: 1,
         finishPosition: 1,
@@ -412,7 +412,7 @@ describe('finalizePayout', () => {
       },
       {
         raceId,
-        horseId: horseIds[1],
+        horseId: horseIds[1]!,
         horseNumber: 4,
         bracketNumber: 4,
         status: 'SCRATCHED',
@@ -476,14 +476,14 @@ describe('finalizePayout', () => {
     await db.insert(raceEntries).values([
       {
         raceId,
-        horseId: horseIds[0],
+        horseId: horseIds[0]!,
         horseNumber: 1,
         bracketNumber: 1,
         status: 'ENTRANT',
       },
       {
         raceId,
-        horseId: horseIds[1],
+        horseId: horseIds[1]!,
         horseNumber: 4,
         bracketNumber: 4,
         status: 'SCRATCHED',
@@ -515,21 +515,21 @@ describe('finalizePayout', () => {
     await db.insert(raceEntries).values([
       {
         raceId,
-        horseId: horseIds[0],
+        horseId: horseIds[0]!,
         horseNumber: 11,
         bracketNumber: 1,
         status: 'ENTRANT',
       },
       {
         raceId,
-        horseId: horseIds[1],
+        horseId: horseIds[1]!,
         horseNumber: 22,
         bracketNumber: 2,
         status: 'ENTRANT',
       },
       {
         raceId,
-        horseId: horseIds[2],
+        horseId: horseIds[2]!,
         horseNumber: 44,
         bracketNumber: 4,
         status: 'SCRATCHED',
@@ -651,9 +651,9 @@ describe('finalizePayout', () => {
     const hitBets = allRaceBets.filter((bet) => bet.status === 'HIT');
     const lostBets = allRaceBets.filter((bet) => bet.status === 'LOST');
 
-    expect(hitBets.length).toBe(hitCount);
-    expect(lostBets.length).toBe(loseCount);
-    expect(allTx.length).toBe(hitCount);
+    expect(hitBets).toHaveLength(hitCount);
+    expect(lostBets).toHaveLength(loseCount);
+    expect(allTx).toHaveLength(hitCount);
     expect(allTx.every((txRecord) => txRecord.type === 'PAYOUT')).toBe(true);
 
     expect(Number(wallet?.balance)).toBe(10000 + hitCount * 200);
@@ -692,11 +692,11 @@ describe('finalizePayout', () => {
     const expectedPayoutTotal = perTypeCount * 200 + perTypeCount * 300 + perTypeCount * 1200;
     const expectedCarryover = perTypeCount * 100 + perTypeCount * 100;
 
-    expect(allRaceBets.filter((bet) => bet.status === 'HIT').length).toBe(hitCount);
-    expect(allRaceBets.filter((bet) => bet.status === 'LOST').length).toBe(lostCount);
-    expect(allRaceBets.filter((bet) => bet.status === 'REFUNDED').length).toBe(0);
+    expect(allRaceBets.filter((bet) => bet.status === 'HIT')).toHaveLength(hitCount);
+    expect(allRaceBets.filter((bet) => bet.status === 'LOST')).toHaveLength(lostCount);
+    expect(allRaceBets.filter((bet) => bet.status === 'REFUNDED')).toHaveLength(0);
 
-    expect(allTx.length).toBe(hitCount);
+    expect(allTx).toHaveLength(hitCount);
     expect(allTx.every((txRecord) => txRecord.type === 'PAYOUT')).toBe(true);
 
     expect(Number(wallet?.balance)).toBe(10000 + expectedPayoutTotal);

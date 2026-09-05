@@ -2,16 +2,9 @@ import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
 import { HorseForm } from '@/features/admin/manage-horses/ui/horse-form';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { redirect } from 'next/navigation';
 
 export default async function CreateHorsePage() {
   const tagOptions = await getHorseTags();
-
-  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
-  async function onSuccess() {
-    'use server';
-    redirect('/admin/horses');
-  }
 
   return (
     <div className="mx-auto max-w-2xl py-8">
@@ -24,7 +17,7 @@ export default async function CreateHorsePage() {
       </div>
 
       <Card className="p-6">
-        <HorseForm tagOptions={tagOptions} onSuccess={onSuccess} />
+        <HorseForm tagOptions={tagOptions} redirectTo="/admin/horses" />
       </Card>
     </div>
   );

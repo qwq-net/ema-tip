@@ -1,6 +1,7 @@
 'use client';
 
-import { BET_TYPE_LABELS, BET_TYPE_ORDER, BetType } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPE_LABELS, BET_TYPE_ORDER } from '@/entities/bet';
 import { toast } from '@/shared/lib/toast';
 import { Checkbox, Input, Label, NumericInput, SubmitButton, Textarea } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
@@ -53,10 +54,10 @@ function getInitialValues(initialData: EventFormProps['initialData']): EventForm
 
   return {
     date: initialData.date || defaults.date,
-    distributeAmount: initialData.distributeAmount ?? defaults.distributeAmount,
+    distributeAmount: initialData.distributeAmount,
     loanAmount: initialData.loanAmount ?? defaults.loanAmount,
-    loanEnabled: initialData.loanEnabled ?? defaults.loanEnabled,
-    loanThresholdPercent: initialData.loanThresholdPercent ?? defaults.loanThresholdPercent,
+    loanEnabled: initialData.loanEnabled,
+    loanThresholdPercent: initialData.loanThresholdPercent,
     restrictBetTypes: initialData.defaultAllowedBetTypes !== null,
     allowedBetTypes: new Set(initialData.defaultAllowedBetTypes ?? BET_TYPE_ORDER),
   };
@@ -201,6 +202,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             <input
               name="date"
               type="date"
+              aria-label="開催日"
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}

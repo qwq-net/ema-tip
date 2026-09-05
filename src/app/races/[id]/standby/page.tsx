@@ -1,4 +1,4 @@
-import { BetType } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
@@ -164,7 +164,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
         <StandbyClient
           race={{
             ...race,
-            location: race.venue?.shortName ?? '',
+            location: race.venue.shortName,
             closingAt: race.closingAt,
             status: race.status,
           }}

@@ -14,8 +14,10 @@ function readThemeTokens() {
   const theme = /@theme\s*\{([\s\S]*?)\n\}/.exec(css)?.[1];
   if (!theme) throw new Error('@theme ブロックが見つかりません');
   const tokens: Record<string, string> = {};
-  for (const [, name, value] of theme.matchAll(/(--color-[\w-]+):\s*([^;]+);/g)) {
-    tokens[name] = value.trim();
+  // コロン直後の空白は捨てずに取り込み、下の trim に任せる。
+  // \s* を挟むと [^;]+ と守備範囲が重なり、値の切り出しで後戻りが増える
+  for (const [, name, value] of theme.matchAll(/(--color-[\w-]+):([^;]+);/g)) {
+    tokens[name!] = value!.trim();
   }
   return tokens;
 }
@@ -28,7 +30,9 @@ function resolveHex(tokens: Record<string, string>, name: string): string {
     if (!ref) break;
     value = tokens[ref];
   }
-  if (!/^#[0-9a-f]{6}$/i.exec(value)) throw new Error(`${name} を hex に解決できません: ${value}`);
+  if (value === undefined || !/^#[0-9a-f]{6}$/i.exec(value)) {
+    throw new Error(`${name} を hex に解決できません: ${value}`);
+  }
   return value;
 }
 
@@ -43,7 +47,7 @@ function luminance(hex: string): number {
 
 function contrast(fg: string, bg: string): number {
   const [hi, lo] = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
-  return (hi + 0.05) / (lo + 0.05);
+  return (hi! + 0.05) / (lo! + 0.05);
 }
 
 const WHITE = '#ffffff';

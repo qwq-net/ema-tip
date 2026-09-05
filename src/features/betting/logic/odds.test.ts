@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { calculateAllProvisionalOdds, calculateOdds, getProvisionalOddsCached, getRaceOdds } from './odds';
 
 vi.mock('@/shared/db', () => ({
@@ -61,8 +62,8 @@ describe('calculateOdds', () => {
     await calculateOdds(raceId);
 
     expect(db.insert).toHaveBeenCalled();
-    const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = (db.insert as unknown as Mock).mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.raceId).toBe(raceId);
     expect(valuesArg.winOdds).toEqual({ '1': 1.5, '2': 3.0 });
   });
@@ -73,8 +74,8 @@ describe('calculateOdds', () => {
 
     await calculateOdds(raceId);
 
-    const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = (db.insert as unknown as Mock).mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.winOdds).toEqual({});
   });
 
@@ -88,8 +89,8 @@ describe('calculateOdds', () => {
 
     await calculateOdds(raceId);
 
-    const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = (db.insert as unknown as Mock).mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.winOdds['1']).toBe(1.5);
     expect(valuesArg.winOdds['2']).toBe(3.0);
   });
@@ -107,8 +108,8 @@ describe('calculateOdds', () => {
 
     await calculateOdds(raceId);
 
-    const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = (db.insert as unknown as Mock).mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.winOdds).toEqual({ '1': 5.0, '2': 5.0 });
   });
 
@@ -120,8 +121,8 @@ describe('calculateOdds', () => {
 
     await calculateOdds(raceId);
 
-    const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
-    const valuesArg = insertValues.mock.calls[0][0];
+    const insertValues = (db.insert as unknown as Mock).mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.winOdds['1']).toBe(1.0);
   });
 
@@ -255,8 +256,8 @@ describe('calculateAllProvisionalOdds', () => {
     const result = await calculateAllProvisionalOdds(raceId);
 
     expect(result.win).toBeDefined();
-    expect(result.win[JSON.stringify([1])]).toBe(1.5);
-    expect(result.win[JSON.stringify([2])]).toBe(3.0);
+    expect(result.win![JSON.stringify([1])]).toBe(1.5);
+    expect(result.win![JSON.stringify([2])]).toBe(3.0);
   });
 
   it('計算値が保証オッズを下回る場合は保証オッズが適用される', async () => {
@@ -272,8 +273,8 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    expect(result.win[JSON.stringify([1])]).toBe(2.0);
-    expect(result.win[JSON.stringify([2])]).toBe(10.0);
+    expect(result.win![JSON.stringify([1])]).toBe(2.0);
+    expect(result.win![JSON.stringify([2])]).toBe(10.0);
   });
 
   it('レースが見つからない場合は保証オッズなしで計算される', async () => {
@@ -285,7 +286,7 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    expect(result.win[JSON.stringify([1])]).toBe(1.0);
+    expect(result.win![JSON.stringify([1])]).toBe(1.0);
   });
 
   it('ベットがない場合は空のオブジェクトを返す', async () => {
@@ -308,8 +309,8 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    expect(result.quinella[JSON.stringify([1, 3])]).toBe(1.0);
-    expect(Object.keys(result.quinella)).toHaveLength(1);
+    expect(result.quinella![JSON.stringify([1, 3])]).toBe(1.0);
+    expect(Object.keys(result.quinella!)).toHaveLength(1);
   });
 
   it('馬単など順序依存のベットはselectionsそのままで集約される', async () => {
@@ -322,9 +323,9 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    expect(result.exacta[JSON.stringify([3, 1])]).toBe(2.0);
-    expect(result.exacta[JSON.stringify([1, 3])]).toBe(2.0);
-    expect(Object.keys(result.exacta)).toHaveLength(2);
+    expect(result.exacta![JSON.stringify([3, 1])]).toBe(2.0);
+    expect(result.exacta![JSON.stringify([1, 3])]).toBe(2.0);
+    expect(Object.keys(result.exacta!)).toHaveLength(2);
   });
 
   it('fixedOddsModeの場合は空のオブジェクトを返す', async () => {
@@ -371,7 +372,7 @@ describe('getProvisionalOddsCached', () => {
 
     const result = await getProvisionalOddsCached(raceId);
 
-    expect(result.win[JSON.stringify([1])]).toBe(1.0);
+    expect(result.win![JSON.stringify([1])]).toBe(1.0);
     expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:provisional_odds`, JSON.stringify(result), 'EX', 10);
   });
 
@@ -388,7 +389,7 @@ describe('getProvisionalOddsCached', () => {
     const result = await getProvisionalOddsCached(raceId);
     consoleSpy.mockRestore();
 
-    expect(result.win[JSON.stringify([1])]).toBe(1.0);
+    expect(result.win![JSON.stringify([1])]).toBe(1.0);
   });
 });
 

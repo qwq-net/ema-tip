@@ -2,16 +2,9 @@ import { RaceDefinitionForm } from '@/features/admin/manage-race-definitions/ui/
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { redirect } from 'next/navigation';
 
 export default async function CreateRaceDefinitionPage() {
   const venues = await getVenues();
-
-  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
-  async function onSuccess() {
-    'use server';
-    redirect('/admin/race-definitions');
-  }
 
   return (
     <div className="mx-auto max-w-2xl py-8">
@@ -24,7 +17,7 @@ export default async function CreateRaceDefinitionPage() {
       </div>
 
       <Card className="p-6">
-        <RaceDefinitionForm venues={venues} onSuccess={onSuccess} />
+        <RaceDefinitionForm venues={venues} redirectTo="/admin/race-definitions" />
       </Card>
     </div>
   );

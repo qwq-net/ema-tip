@@ -1,6 +1,7 @@
 'use client';
 
-import { BET_TYPE_LABELS, BET_TYPE_ORDER, BetType } from '@/entities/bet';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPE_LABELS, BET_TYPE_ORDER } from '@/entities/bet';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
 import { Button, Checkbox } from '@/shared/ui';

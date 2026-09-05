@@ -1,7 +1,9 @@
 'use client';
 
-import { BET_TYPE_LABELS, BetType } from '@/entities/bet';
-import { compressBetSelections, CompressedRow } from '@/features/betting/lib/compress-selections';
+import type { BetType } from '@/entities/bet';
+import { BET_TYPE_LABELS } from '@/entities/bet';
+import type { CompressedRow } from '@/features/betting/lib/compress-selections';
+import { compressBetSelections } from '@/features/betting/lib/compress-selections';
 import { Badge } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
@@ -166,7 +168,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
     return null;
   };
 
-  const unitAmount = group.bets[0]?.amount || 0;
+  const unitAmount = group.bets[0]?.amount ?? 0;
   const betCount = group.bets.length;
 
   const horseToBracket = new Map<number, number>();

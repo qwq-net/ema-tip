@@ -12,7 +12,8 @@ export async function resetRaceResults(raceId: string) {
   const session = await requireAdmin();
 
   await db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
+    const lockKey = `payout:${raceId}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
     const race = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),

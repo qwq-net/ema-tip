@@ -47,7 +47,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   const prunedSelections: Record<string, string[]> = {};
   for (const race of races) {
     const entrants = new Set(race.entries.filter((entry) => entry.status === 'ENTRANT').map((entry) => entry.horse.id));
-    const current = selections[race.id] || [];
+    const current = selections[race.id] ?? [];
     const filtered = current.filter((horseId) => entrants.has(horseId));
     if (filtered.length !== current.length) selectionsChanged = true;
     prunedSelections[race.id] = filtered;
@@ -58,7 +58,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
 
   const toggleSelection = (raceId: string, horseId: string) => {
     setSelections((prev) => {
-      const current = prev[raceId] || [];
+      const current = prev[raceId] ?? [];
       if (current.includes(horseId)) {
         return { ...prev, [raceId]: current.filter((id) => id !== horseId) };
       } else {
@@ -68,11 +68,11 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   };
 
   let points = 1;
-  const isEveryRaceSelected = races.every((race) => (selections[race.id]?.length || 0) > 0);
+  const isEveryRaceSelected = races.every((race) => (selections[race.id]?.length ?? 0) > 0);
 
   if (isEveryRaceSelected) {
     for (const race of races) {
-      points *= selections[race.id]?.length || 0;
+      points *= selections[race.id]?.length ?? 0;
     }
   } else {
     points = 0;
@@ -95,19 +95,15 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
 
   const handleConfirmSubmit = async () => {
     try {
-      const raceIds = races.map((r) => r.id);
+      const [race1 = [], race2 = [], race3 = [], race4 = [], race5 = []] = races.map(
+        (race) => selections[race.id] ?? []
+      );
 
       const result = await placeBet5BetAction({
         bet5EventId,
         eventId,
         unitAmount: amount,
-        selections: {
-          race1: selections[raceIds[0]] || [],
-          race2: selections[raceIds[1]] || [],
-          race3: selections[raceIds[2]] || [],
-          race4: selections[raceIds[3]] || [],
-          race5: selections[raceIds[4]] || [],
-        },
+        selections: { race1, race2, race3, race4, race5 },
       });
       if (!result.success) {
         toast.error(result.error);
@@ -125,14 +121,16 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   };
 
   const activeRace = races[activeTab];
-  const activeRaceSelections = selections[activeRace.id] || [];
+  // 対象レースが取れないのは races が空のときだけで、その場合は投票する対象がない
+  if (!activeRace) return null;
+  const activeRaceSelections = selections[activeRace.id] ?? [];
 
   return (
     <>
       <div className="space-y-6 pb-32">
         <div className="rounded-surface divide-y divide-gray-100 overflow-hidden border border-gray-200 bg-white">
           {races.map((race, index) => {
-            const selectionCount = selections[race.id]?.length || 0;
+            const selectionCount = selections[race.id]?.length ?? 0;
             return (
               <button
                 key={race.id}
@@ -169,7 +167,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
         <div className="flex overflow-x-auto border-b border-gray-200">
           {races.map((race, index) => {
             const isSelected = index === activeTab;
-            const selectionCount = selections[race.id]?.length || 0;
+            const selectionCount = selections[race.id]?.length ?? 0;
             return (
               <button
                 key={race.id}
@@ -215,14 +213,14 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 {activeRace.entries.map((entry) => {
                   const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
                   const isSelected = !isScratched && activeRaceSelections.includes(entry.horse.id);
+                  const selectedClass = isSelected ? 'bg-turf-50/70 hover:bg-turf-100/70' : '';
+                  const rowClass = isScratched
+                    ? 'text-text-sub bg-red-50/50 line-through'
+                    : `cursor-pointer transition-colors hover:bg-gray-50 ${selectedClass}`;
                   return (
                     <tr
                       key={entry.id}
-                      className={
-                        isScratched
-                          ? 'text-text-sub bg-red-50/50 line-through'
-                          : `cursor-pointer transition-colors hover:bg-gray-50 ${isSelected ? 'bg-turf-50/70 hover:bg-turf-100/70' : ''}`
-                      }
+                      className={rowClass}
                       onClick={() => !isScratched && toggleSelection(activeRace.id, entry.horse.id)}
                     >
                       <td className="px-4 py-3 text-center">
@@ -242,10 +240,11 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-center">
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => toggleSelection(activeRace.id, entry.horse.id)}
+                            onClick={(e) => e.stopPropagation()}
                             disabled={isScratched}
                             aria-label={`${entry.horseNumber ?? '-'}番 ${entry.horse.name}を選択`}
                             className="data-[state=checked]:border-turf-600 data-[state=checked]:bg-turf-600 h-5 w-5 border-gray-300"
@@ -302,7 +301,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
             以下の内容で投票します。よろしいですか？
             <span className="mt-4 block space-y-3 text-left">
               {races.map((race) => {
-                const raceSelections = selections[race.id] || [];
+                const raceSelections = selections[race.id] ?? [];
                 const selectedHorses = race.entries
                   .filter((e) => raceSelections.includes(e.horse.id))
                   .sort((a, b) => (a.horseNumber ?? 0) - (b.horseNumber ?? 0));

@@ -4,14 +4,10 @@ import { calculateNetBalance } from '@/entities/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
-import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireUser } from '@/shared/utils/admin';
 import { asc, desc, eq, sql } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 
-import { type RankingData } from '@/entities/ranking';
-
-export type RankingDisplayMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
+import { type RankingData, type RankingDisplayMode } from '@/entities/ranking';
 
 /**
  * イベント参加ウォレットをユーザー名付きで順位順に取得する。
@@ -170,20 +166,4 @@ export async function getAdminEventRanking(eventId: string): Promise<{
     displayMode: event.rankingDisplayMode,
     distributeAmount,
   };
-}
-
-export async function updateRankingDisplayMode(eventId: string, mode: RankingDisplayMode) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
-  }
-
-  await db.update(events).set({ rankingDisplayMode: mode }).where(eq(events.id, eventId));
-
-  raceEventEmitter.emit(RACE_EVENTS.RANKING_UPDATED, {
-    eventId,
-    mode,
-  });
-
-  revalidatePath('/ranking/[eventId]', 'page');
 }

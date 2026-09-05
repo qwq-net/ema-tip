@@ -47,9 +47,12 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
         }
 
         try {
-          // SAFETY: 呼び出し 2 箇所が渡す url はどちらも同一オリジンの自前 SSE ルートで、
-          // RaceStatusSSEMessage を JSON.stringify した値しか流さない。第三者が書き込む経路はない。
-          // 形が違っても直後の type 判定と呼び先の分岐で無視されるため実害は出ない
+          // SAFETY: url は呼び出し 2 箇所とも同一オリジンの /api/events/race-status で、
+          // 認証済みセッションへ RaceStatusSSEMessage を JSON.stringify した値しか流さない。
+          // 第三者が書き込む経路はなく、形が違っても直後の type 判定と呼び先の分岐で無視される。
+          // zod スキーマには置き換えない。RaceStatusSSEMessage は送信側の形を手で写した宣言で、
+          // スキーマを別に書くと二重管理になる。宣言と実態がずれた時に弾く側が増えると、
+          // 今は無視されて済む値でメッセージ全体が捨てられ、更新が画面へ届かなくなる
           const data = JSON.parse(event.data) as SSEMessage;
           if (data.type === 'connected') return;
 

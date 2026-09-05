@@ -16,8 +16,10 @@ function listTsxFiles(): string[] {
     .map((f) => join(SRC_ROOT, f));
 }
 
-// 既定スケールの角丸と方向付き角丸。rounded-full と自前トークン3種は後読みの除外で許可する
-const FORBIDDEN_RADIUS = /\brounded(?:-(?:xs|sm|md|lg|xl|2xl|3xl|4xl)|-[trbse][lre]?(?:-[\w[\]]+)?)?(?![\w-])/g;
+// 既定スケールの角丸と方向付き角丸。rounded-full と自前トークン3種は末尾の除外で許可する。
+// 2 本に分けているのは 1 本にまとめると選択肢が増えて読み解けなくなるため
+const FORBIDDEN_RADIUS_SCALE = /\brounded(?:-(?:xs|sm|md|lg|xl|2xl|3xl|4xl))?(?![\w-])/g;
+const FORBIDDEN_RADIUS_SIDE = /\brounded-[trbse][lre]?(?:-[\w[\]]+)?(?![\w-])/g;
 const FORBIDDEN_SHADOW = /\bshadow-(?:xs|sm)\b/g;
 
 // Tailwind v4 は色指定のない border / divide を currentColor で描画するため、色の併記を必須にする。
@@ -25,11 +27,11 @@ const FORBIDDEN_SHADOW = /\bshadow-(?:xs|sm)\b/g;
 const CLASSNAME_ATTR = /className="([^"]*)"/g;
 const BARE_BORDER = /(?:^|\s)(?:border(?:-[trblxy])?|divide-[xy])(?:\s|$)/;
 const BORDER_COLOR =
-  /(?:border|divide)-(?:[a-z]+-\d{2,3}(?:\/\d{1,3})?|white|black|transparent|current|primary|primary-hover|error|success|gold|none)/;
+  /(?:border|divide)-(?:[a-z]+-\d{2,3}(?:\/\d{1,3})?|white|black|transparent|current|primary|error|success|gold|none)/;
 
 function findColorlessBorders(content: string): string[] {
   const violations: string[] = [];
-  for (const [, classes] of content.matchAll(CLASSNAME_ATTR)) {
+  for (const [, classes = ''] of content.matchAll(CLASSNAME_ATTR)) {
     if (BARE_BORDER.test(classes) && !BORDER_COLOR.test(classes)) {
       violations.push(`色指定のない border/divide: ${classes.slice(0, 80)}`);
     }
@@ -49,7 +51,8 @@ describe('形状スケールの統一', () => {
     (_label, file) => {
       const content = readFileSync(file, 'utf8');
       const violations: string[] = [
-        ...(content.match(FORBIDDEN_RADIUS) ?? []),
+        ...(content.match(FORBIDDEN_RADIUS_SCALE) ?? []),
+        ...(content.match(FORBIDDEN_RADIUS_SIDE) ?? []),
         ...(content.match(FORBIDDEN_SHADOW) ?? []),
         ...findColorlessBorders(content),
       ];

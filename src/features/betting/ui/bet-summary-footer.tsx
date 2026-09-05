@@ -127,7 +127,12 @@ export function BetSummaryFooter({
                 </Button>
                 {showKeypad && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowKeypad(false)} />
+                    <button
+                      type="button"
+                      aria-label="キーパッドを閉じる"
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowKeypad(false)}
+                    />
                     <div className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2">
                       <NumericKeypad
                         onDigit={handleDigit}

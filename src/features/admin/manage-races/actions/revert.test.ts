@@ -1,5 +1,6 @@
 import { db } from '@/shared/db';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetRaceResults } from './revert';
 
 vi.mock('@/shared/utils/admin', async () => {
@@ -82,7 +83,7 @@ describe('resetRaceResults', () => {
     await resetRaceResults(raceId);
 
     expect(mockTx.execute).toHaveBeenCalledTimes(1);
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain('pg_advisory_xact_lock');
   });
 
@@ -91,7 +92,7 @@ describe('resetRaceResults', () => {
 
     await resetRaceResults(raceId);
 
-    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0]![0]);
     expect(lockArg).toContain(`payout:${raceId}`);
   });
 

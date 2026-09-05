@@ -1,6 +1,6 @@
 'use client';
 
-import { Role } from '@/entities/user';
+import type { Role } from '@/entities/user';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import clsx from 'clsx';
 import Image from 'next/image';

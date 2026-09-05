@@ -1,7 +1,8 @@
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import { revalidatePath } from 'next/cache';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRace } from './create';
 
 vi.mock('@/shared/utils/admin', async () => {

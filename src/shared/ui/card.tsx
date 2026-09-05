@@ -9,8 +9,12 @@ export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('p-6 pb-0', className)} {...props} />;
 }
 
-export function CardTitle({ className, ...props }: ComponentProps<'h3'>) {
-  return <h3 className={cn('text-lg font-semibold text-gray-900', className)} {...props} />;
+export function CardTitle({ className, children, ...props }: ComponentProps<'h3'>) {
+  return (
+    <h3 className={cn('text-lg font-semibold text-gray-900', className)} {...props}>
+      {children}
+    </h3>
+  );
 }
 
 export function CardContent({ className, ...props }: ComponentProps<'div'>) {

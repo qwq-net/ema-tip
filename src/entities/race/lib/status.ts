@@ -1,4 +1,4 @@
-import { RaceStatus } from '@/shared/constants/status';
+import type { RaceStatus } from '@/shared/constants/status';
 
 export type DisplayStatus = RaceStatus | 'RANKING_CONFIRMED';
 

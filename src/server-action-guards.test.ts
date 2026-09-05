@@ -9,12 +9,16 @@ import { describe, expect, it } from 'vitest';
  * 到達することを静的に検査する。意図的に未ガードで公開する関数は理由付きで下の許可リストへ追加する。
  */
 
-// 意図的に未ガードで公開している関数。「ファイル名:関数名」で指定する
+// 意図的に未ガードで公開している関数。src からの相対パスと関数名で指定する。
+// ファイル名だけだと actions.ts のような同名ファイルをまとめて許可してしまう
 const PUBLIC_ALLOWLIST = new Map<string, string>([
-  ['auth-actions.ts:discordSignIn', 'ログイン導線そのもの'],
-  ['auth-actions.ts:checkIpLockStatus', '返すのは呼び出し元IP自身のロック状態のみ'],
-  ['auth-actions.ts:validateGuestRegistration', '登録前検証。失敗をIPレート制限へ記録して総当たりを防ぐ'],
-  ['auth-actions.ts:logout', 'サインアウト導線'],
+  ['features/auth/actions/auth-actions.ts:discordSignIn', 'ログイン導線そのもの'],
+  ['features/auth/actions/auth-actions.ts:checkIpLockStatus', '返すのは呼び出し元IP自身のロック状態のみ'],
+  [
+    'features/auth/actions/auth-actions.ts:validateGuestRegistration',
+    '登録前検証。失敗をIPレート制限へ記録して総当たりを防ぐ',
+  ],
+  ['entities/user/actions.ts:logout', 'サインアウト導線'],
 ]);
 
 const GUARD_PATTERN = /requireAdmin\(|requireUser\(|requireLoginPage\(|await auth\(/;
@@ -37,7 +41,7 @@ function splitExportedFunctions(content: string): { name: string; body: string }
     const start = m.index;
     const nextExport = content.indexOf('\nexport ', start + 1);
     const end = nextExport === -1 ? content.length : nextExport;
-    return { name: m[1], body: content.slice(start, end) };
+    return { name: m[1]!, body: content.slice(start, end) };
   });
 }
 
@@ -57,10 +61,10 @@ describe('Server Action の認可ガード', () => {
 
     for (const file of actionFiles) {
       const content = readFileSync(file, 'utf-8');
-      const fileName = path.basename(file);
+      const relativePath = path.relative(srcDir, file);
 
       for (const fn of splitExportedFunctions(content)) {
-        const key = `${fileName}:${fn.name}`;
+        const key = `${relativePath}:${fn.name}`;
         if (GUARD_PATTERN.test(fn.body)) continue;
         if (PUBLIC_ALLOWLIST.has(key)) continue;
         violations.push(`${path.relative(srcDir, file)} の ${fn.name}`);
@@ -78,7 +82,7 @@ describe('Server Action の認可ガード', () => {
     const existing = new Set(
       actionFiles.flatMap((file) => {
         const content = readFileSync(file, 'utf-8');
-        return splitExportedFunctions(content).map((fn) => `${path.basename(file)}:${fn.name}`);
+        return splitExportedFunctions(content).map((fn) => `${path.relative(srcDir, file)}:${fn.name}`);
       })
     );
 

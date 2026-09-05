@@ -11,7 +11,7 @@ import { useActionState } from 'react';
 export function NameChangeForm({ initialName }: { initialName: string }) {
   const [state, action, isPending] = useActionState(async (_: { error?: string } | null, formData: FormData) => {
     const result = await updateUserOnboarding(formData);
-    if (result?.error) {
+    if (result.error) {
       toast.error(result.error);
       return { error: result.error };
     }

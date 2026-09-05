@@ -3,6 +3,7 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, transactions, wallets } from '@/shared/db/schema';
+import { firstRow } from '@/shared/utils/first-row';
 import { and, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -38,7 +39,7 @@ export async function claimEvent(eventId: string) {
       throw new Error('Already joined this event');
     }
 
-    const [newWallet] = await tx
+    const insertedWallets = await tx
       .insert(wallets)
       .values({
         userId,
@@ -46,6 +47,7 @@ export async function claimEvent(eventId: string) {
         balance: event.distributeAmount,
       })
       .returning();
+    const newWallet = firstRow(insertedWallets, 'ウォレット');
 
     await tx.insert(transactions).values({
       walletId: newWallet.id,

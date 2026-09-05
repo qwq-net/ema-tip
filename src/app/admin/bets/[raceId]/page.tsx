@@ -51,7 +51,7 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
             <div className="flex items-center gap-4">
               <span>{race.event.name}</span>
               <span>•</span>
-              <span>{race.venue?.shortName}</span>
+              <span>{race.venue.shortName}</span>
               <span>•</span>
               <span>
                 {race.surface} {race.distance}m
@@ -76,9 +76,9 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
             <TableRow key={bet.id}>
               <Td className="font-medium text-gray-900">{bet.user.name || 'Unknown'}</Td>
               <Td>
-                <Badge variant="status" label={BET_TYPE_LABELS[bet.details.type] || bet.details.type || 'Unknown'} />
+                <Badge variant="status" label={BET_TYPE_LABELS[bet.details.type]} />
               </Td>
-              <Td className="font-semibold text-gray-900">{JSON.stringify(bet.details.selections || [])}</Td>
+              <Td className="font-semibold text-gray-900">{JSON.stringify(bet.details.selections)}</Td>
               <Td className="font-semibold text-gray-900">{bet.amount.toLocaleString('ja-JP')}円</Td>
               <Td className="text-gray-500">
                 <FormattedDate date={bet.createdAt} />

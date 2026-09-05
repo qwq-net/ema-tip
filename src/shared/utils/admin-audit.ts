@@ -1,4 +1,4 @@
-import { db } from '@/shared/db';
+import type { db } from '@/shared/db';
 import { adminActionLogs, type AdminActionDetail } from '@/shared/db/schema';
 
 interface DbExecutor {

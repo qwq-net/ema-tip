@@ -4,16 +4,9 @@ import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
-import { redirect } from 'next/navigation';
 
 export default async function CreateRacePage() {
   const [events, raceDefinitions, venues] = await Promise.all([getEvents(), getRaceDefinitions(), getVenues()]);
-
-  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
-  async function onSuccess() {
-    'use server';
-    redirect('/admin/races');
-  }
 
   return (
     <div className="mx-auto max-w-2xl py-8">
@@ -26,7 +19,7 @@ export default async function CreateRacePage() {
       </div>
 
       <Card className="p-6">
-        <RaceForm events={events} raceDefinitions={raceDefinitions} venues={venues} onSuccess={onSuccess} />
+        <RaceForm events={events} raceDefinitions={raceDefinitions} venues={venues} redirectTo="/admin/races" />
       </Card>
     </div>
   );

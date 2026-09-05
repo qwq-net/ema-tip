@@ -16,7 +16,7 @@ function formatDisplayValue(value: number, allowDecimal: boolean): string {
 }
 
 function parseNumericString(str: string): number {
-  const cleaned = str.replace(/[^0-9]/g, '');
+  const cleaned = str.replace(/\D/g, '');
   if (cleaned === '') return 0;
   return parseInt(cleaned, 10);
 }
@@ -141,7 +141,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
           return;
         }
 
-        if (raw.replace(/[^0-9]/g, '') === '') {
+        if (raw.replace(/\D/g, '') === '') {
           setLocalValue('');
           emitChange(0);
           return;

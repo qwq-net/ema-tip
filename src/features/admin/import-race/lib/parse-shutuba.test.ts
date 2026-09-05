@@ -116,11 +116,12 @@ describe('parseShutuba', () => {
   it('騎手の a が空要素のときは null ではなく空文字になる', () => {
     const { horses } = parseShutuba(buildShutuba(NORMAL_ROW + EMPTY_JOCKEY_ROW), SOURCE_URL);
 
-    expect(horses[1].jockey).toBe('');
-    expect(horses[1].gender).toBe('GELDING');
-    expect(horses[1].age).toBe(5);
-    expect(horses[1].bracketNumber).toBe(3);
-    expect(horses[1].odds).toBe(12.7);
+    expect(horses[1]!.jockey).toBe('');
+    expect(horses[1]!.gender).toBe('GELDING');
+    expect(horses[1]!.age).toBe(5);
+    expect(horses[1]!.bracketNumber).toBe(3);
+    // オッズは実数なので IEEE754 の表現誤差だけを許容する
+    expect(horses[1]!.odds).toBeCloseTo(12.7, 10);
   });
 
   it('枠番セルが空の行は枠番を null にする', () => {
@@ -130,8 +131,8 @@ describe('parseShutuba', () => {
     );
     const { horses } = parseShutuba(buildShutuba(NORMAL_ROW + blankWaku), SOURCE_URL);
 
-    expect(horses[0].bracketNumber).toBe(1);
-    expect(horses[1].bracketNumber).toBeNull();
+    expect(horses[0]!.bracketNumber).toBe(1);
+    expect(horses[1]!.bracketNumber).toBeNull();
   });
 
   it('枠番が確定していない出馬表は例外にする', () => {

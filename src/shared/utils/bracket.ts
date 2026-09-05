@@ -12,11 +12,10 @@ export const BRACKET_COLORS = [
   'bg-pink-400 text-white',
 ] as const;
 
+/** 枠番に対応する配色クラスを返す。1 から 8 以外の枠番と未設定はグレーになる */
 export function getBracketColor(bracketNumber: number | null): string {
-  if (!bracketNumber || bracketNumber < 1 || bracketNumber > 8) {
-    return 'bg-gray-100 text-gray-500';
-  }
-  return BRACKET_COLORS[bracketNumber - 1];
+  const color = bracketNumber === null ? undefined : BRACKET_COLORS[bracketNumber - 1];
+  return color ?? 'bg-gray-100 text-gray-500';
 }
 
 export function calculateBracketNumber(horseNumber: number, totalHorses: number): number {

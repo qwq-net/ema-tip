@@ -1,6 +1,6 @@
-import { Role } from '@/entities/user';
-import { AdapterUser as DefaultAdapterUser } from '@auth/core/adapters';
-import { DefaultSession, DefaultUser } from 'next-auth';
+import type { Role } from '@/entities/user';
+import type { AdapterUser as DefaultAdapterUser } from '@auth/core/adapters';
+import type { DefaultSession, DefaultUser } from 'next-auth';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
