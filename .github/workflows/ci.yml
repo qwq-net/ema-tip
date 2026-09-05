@@ -132,3 +132,44 @@ jobs:
             fi
             echo "app-$index ok"
           done
+
+  # 画面の退行は E2E でしか捕まえられないため push ごとに回す。
+  # dev 構成の compose を起こし、Playwright 公式イメージの e2e サービスから localhost:3000 を叩く
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create env file
+        run: printf 'AUTH_SECRET=dummy-ci-secret\nNEXTAUTH_URL=http://localhost:3000\n' > .env
+
+      - name: Start services
+        run: docker compose up -d app db redis
+
+      - name: Wait for app
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3000/login; then exit 0; fi
+            sleep 5
+          done
+          echo 'app did not become ready' >&2
+          docker compose logs app | tail -50
+          exit 1
+
+      - name: Setup database
+        run: |
+          docker compose exec -T app pnpm drizzle-kit push
+          docker compose exec -T app pnpm tsx src/shared/db/seed.ts --master-only
+
+      - name: Run E2E
+        run: docker compose run --rm e2e
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7

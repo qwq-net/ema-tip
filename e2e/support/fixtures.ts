@@ -10,6 +10,8 @@ import postgres from 'postgres';
 export const E2E = {
   adminName: 'E2E管理者',
   guestName: 'E2Eゲスト太郎',
+  // 馬番2を買って外れる2人目。的中者と同じコードで登録し、LOST と残高不変を検証する
+  loserName: 'E2Eゲスト次郎',
   guestCode: 'E2ECODE',
   eventName: 'E2E検証イベント',
   raceName: 'E2E検証レース',
@@ -30,10 +32,11 @@ export interface Fixtures {
   raceId: string;
   eventId: string;
   horse1Name: string;
+  horse2Name: string;
 }
 
 // 管理者・ゲストコード・ACTIVEイベント・SCHEDULEDレース・出走馬5頭を作って ID を返す。
-// 出走馬はシード済みの horse を先頭から流用し、馬番1の馬が「1着候補」チェックの対象になる
+// 出走馬はシード済みの horse を先頭から流用し、馬番1と馬番2の馬名を購入操作のラベル特定に使う
 export async function setupFixtures(): Promise<Fixtures> {
   const sql = createSql();
   try {
@@ -76,7 +79,7 @@ export async function setupFixtures(): Promise<Fixtures> {
       `;
     }
 
-    return { raceId: race!.id, eventId: event!.id, horse1Name: horses[0]!.name };
+    return { raceId: race!.id, eventId: event!.id, horse1Name: horses[0]!.name, horse2Name: horses[1]!.name };
   } finally {
     await sql.end();
   }
@@ -92,7 +95,7 @@ async function cleanupWith(sql: postgres.Sql) {
   await sql`DELETE FROM event WHERE name = ${E2E.eventName}`;
   // user.guest_code_id が guest_code を参照するため、参照元のユーザーを先に消す。
   // 管理者の削除カスケードで guest_code も消えるが、単体で残るケースに備えて明示的にも消す
-  await sql`DELETE FROM "user" WHERE name IN (${E2E.adminName}, ${E2E.guestName})`;
+  await sql`DELETE FROM "user" WHERE name IN (${E2E.adminName}, ${E2E.guestName}, ${E2E.loserName})`;
   await sql`DELETE FROM guest_code WHERE code = ${E2E.guestCode}`;
 }
 
@@ -105,25 +108,26 @@ export async function cleanupFixtures() {
   }
 }
 
-// ゲストのウォレット残高と的中ベットを DB で直接検証する。
-// UI の表示揺れに依存せず、金額の正しさはここで担保する
-export async function fetchSettlementState(eventId: string) {
+// 指定利用者のウォレット残高と、対象レースのベット一覧を DB で直接検証する。
+// UI の表示揺れに依存せず、金額の正しさはここで担保する。
+// ベットは全件返し、件数の検証は呼び手が行う。1 行だけ拾うと別のベットを誤って検証しうる
+export async function fetchSettlementState(eventId: string, raceId: string, userName: string) {
   const sql = createSql();
   try {
     const [wallet] = await sql`
       SELECT w.balance FROM wallet w
       JOIN "user" u ON u.id = w.user_id
-      WHERE u.name = ${E2E.guestName} AND w.event_id = ${eventId}
+      WHERE u.name = ${userName} AND w.event_id = ${eventId}
     `;
-    const [bet] = await sql`
+    const bets = await sql`
       SELECT b.status, b.payout FROM bet b
       JOIN "user" u ON u.id = b.user_id
-      WHERE u.name = ${E2E.guestName}
+      WHERE u.name = ${userName} AND b.race_id = ${raceId}
+      ORDER BY b.created_at
     `;
     return {
       balance: wallet ? Number(wallet.balance) : null,
-      betStatus: bet ? String(bet.status) : null,
-      betPayout: bet ? Number(bet.payout) : null,
+      bets: bets.map((b) => ({ status: String(b.status), payout: Number(b.payout ?? 0) })),
     };
   } finally {
     await sql.end();

@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import Redis from 'ioredis';
 import { existsSync, readFileSync } from 'node:fs';
 import postgres from 'postgres';
 
@@ -17,6 +18,10 @@ import postgres from 'postgres';
  *   payout 締切→着順確定→払戻確定の所要時間を測る。レースが FINALIZED になるため最後に実行する
  *   bot    無認証のBOTアクセス。トップ・404・保護ルート・ログイン失敗を10並列で混合実行
  *   all    上記を login → bets → bulk → peak → sse → pages → bot → payout の順で実行する
+ *
+ * 応答時間の計測に加えて結果の正しさも検証する。購入シナリオは成功件数から期待支出を積み上げ、
+ * 末尾で各ウォレットの残高とベット件数を DB と照合する。payout は HIT / LOST の内訳と払戻込みの残高を照合する。
+ * いずれかの検証が失敗するかシナリオにエラーがあれば終了コード 1 で終わる
  */
 
 dotenv.config();
@@ -27,11 +32,16 @@ const ROUNDS = Number(process.env.PERF_ROUNDS ?? 3);
 const PAGE_ITERATIONS = Number(process.env.PERF_PAGE_ITERATIONS ?? 10);
 const ADMIN_NAME = 'PERF管理者';
 
+// baseline は実行開始時点のウォレット状態。検証は開始時点からの差分で行うため、
+// 直前に perf:setup をやり直していなくても前回の残りに惑わされない
+type WalletBaseline = { balance: number; betCount: number; payout: number };
+
 type Fixture = {
   raceId: string;
   eventId: string;
   users: { name: string; walletId: string }[];
   entryIds: string[];
+  baseline: Map<string, WalletBaseline>;
 };
 
 type ActionIds = {
@@ -43,6 +53,16 @@ type ActionIds = {
 };
 
 type CallResult = { ms: number; ok: boolean; status: number; body: string };
+
+// 成功した購入から積み上げる期待値。verifyLedger が DB と照合する
+const expected = { spend: new Map<string, number>(), bets: new Map<string, number>() };
+// エラー応答・検証不一致・SSE 未到達の数。0 でなければ終了コード 1
+let failures = 0;
+
+function recordPurchase(walletId: string, betCount: number, amountPerBet: number) {
+  expected.spend.set(walletId, (expected.spend.get(walletId) ?? 0) + betCount * amountPerBet);
+  expected.bets.set(walletId, (expected.bets.get(walletId) ?? 0) + betCount);
+}
 
 // 本番モードの proxy.ts は Secure Cookie 名でトークンを読むため、http 直アクセスでも
 // https 経由と同じ Cookie 名になるよう全リクエストでプロトコルを偽装する
@@ -126,6 +146,7 @@ function summarize(label: string, durations: number[], errors: number) {
   const pick = (p: number) =>
     sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))] ?? 0;
   const mean = sorted.length === 0 ? 0 : sorted.reduce((a, b) => a + b, 0) / sorted.length;
+  if (errors > 0) failures++;
   console.log(
     `${label}: n=${sorted.length} errors=${errors} mean=${mean.toFixed(0)}ms p50=${pick(50).toFixed(0)}ms p95=${pick(95).toFixed(0)}ms max=${(sorted.at(-1) ?? 0).toFixed(0)}ms`
   );
@@ -151,23 +172,116 @@ async function loadFixture(): Promise<Fixture> {
       WHERE u.name LIKE 'PERF利用者%' ORDER BY u.name
     `;
     const entries = await sql`SELECT id FROM race_entry WHERE race_id = ${race.id} ORDER BY horse_number`;
+    const walletIds = users.map((u) => u.wallet_id);
+    const baseline = new Map<string, WalletBaseline>();
+    for (const row of await readWallets(sql, race.id, walletIds)) {
+      baseline.set(row.walletId, row);
+    }
     return {
       raceId: race.id,
       eventId: race.event_id,
       users: users.map((u) => ({ name: u.name, walletId: u.wallet_id })),
       entryIds: entries.map((e) => e.id),
+      baseline,
     };
   } finally {
     await sql.end();
   }
 }
 
-// 認証付き GET の所要時間を測る。リダイレクトは追従し、最終応答が 200 以外は ok=false
+// 対象レースに関する各ウォレットの残高・ベット件数・払戻合計を読む
+async function readWallets(sql: postgres.Sql, raceId: string, walletIds: string[]) {
+  const rows = await sql`
+    SELECT w.id AS wallet_id, w.balance,
+      count(b.id)::int AS bet_count,
+      coalesce(sum(b.payout), 0) AS payout
+    FROM wallet w
+    LEFT JOIN bet b ON b.wallet_id = w.id AND b.race_id = ${raceId}
+    WHERE w.id = ANY(${walletIds}::uuid[])
+    GROUP BY w.id, w.balance
+  `;
+  return rows.map((r) => ({
+    walletId: String(r.wallet_id),
+    balance: Number(r.balance),
+    betCount: Number(r.bet_count),
+    payout: Number(r.payout),
+  }));
+}
+
+// 各ウォレットの残高とベット件数を開始時点からの差分で照合する。
+// 残高の減りは成功した購入の合計と一致し、増えた分は払戻の合計と一致しなければならない。
+// 応答が success でも台帳が動いていない、あるいは失敗応答なのに引き落とされている、といった
+// 複数プロセスで最も怖い不整合をここで捕まえる
+async function verifyLedger(fx: Fixture, label: string) {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL is not set');
+  const sql = postgres(url, { max: 1, prepare: false });
+  try {
+    const rows = await readWallets(
+      sql,
+      fx.raceId,
+      fx.users.map((u) => u.walletId)
+    );
+    let mismatches = 0;
+    for (const row of rows) {
+      const base = fx.baseline.get(row.walletId);
+      if (!base) continue;
+      const wantBalance = base.balance - (expected.spend.get(row.walletId) ?? 0) + (row.payout - base.payout);
+      const wantBets = base.betCount + (expected.bets.get(row.walletId) ?? 0);
+      if (row.balance !== wantBalance || row.betCount !== wantBets) {
+        mismatches++;
+        if (mismatches <= 3) {
+          console.error(
+            `  台帳不一致 wallet=${row.walletId} balance=${row.balance} 期待=${wantBalance} bets=${row.betCount} 期待=${wantBets}`
+          );
+        }
+      }
+    }
+    if (mismatches > 0) failures++;
+    console.log(`  ${label} 台帳照合: ${rows.length} ウォレット中 不一致 ${mismatches}`);
+  } finally {
+    await sql.end();
+  }
+}
+
+// 払戻確定後の的中判定を検証する。着順は馬番順で確定させるため、馬番 1 の単勝は全て HIT で
+// payout が正、それ以外の単勝は全て LOST で payout 0 になる。PENDING が残っていれば払戻漏れ
+async function verifyPayout(fx: Fixture) {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL is not set');
+  const sql = postgres(url, { max: 1, prepare: false });
+  try {
+    const [row] = await sql`
+      SELECT
+        count(*) FILTER (
+          WHERE details->>'type' = 'win' AND details->'selections' = '[1]'::jsonb
+            AND NOT (status = 'HIT' AND coalesce(payout, 0) > 0)
+        )::int AS bad_hit,
+        count(*) FILTER (
+          WHERE details->>'type' = 'win' AND details->'selections' <> '[1]'::jsonb
+            AND NOT (status = 'LOST' AND coalesce(payout, 0) = 0)
+        )::int AS bad_lost,
+        count(*) FILTER (WHERE status = 'PENDING')::int AS pending,
+        count(*)::int AS total
+      FROM bet WHERE race_id = ${fx.raceId}
+    `;
+    const bad = Number(row?.bad_hit) + Number(row?.bad_lost) + Number(row?.pending);
+    if (bad > 0) failures++;
+    console.log(
+      `  払戻照合: ${row?.total} 件中 的中誤り ${row?.bad_hit} 外れ誤り ${row?.bad_lost} 未確定 ${row?.pending}`
+    );
+  } finally {
+    await sql.end();
+  }
+}
+
+// 認証付き GET の所要時間を測る。リダイレクトは追従するが、飛ばされた時点で ok=false にする。
+// セッション切れで /login へ落ちても最終応答は 200 なので、status だけでは認証の破れを見逃す
 async function timedGet(cookie: string, path: string): Promise<{ ms: number; ok: boolean }> {
   const start = performance.now();
   const res = await fetch(`${BASE}${path}`, { headers: { Cookie: cookie, ...PROTO_HEADER } });
   await res.text();
-  return { ms: performance.now() - start, ok: res.status === 200 };
+  return { ms: performance.now() - start, ok: res.status === 200 && !res.redirected };
 }
 
 // イベント開始時の一斉ログインを再現する。bcrypt 照合が Node の単一スレッドを占有するため、
@@ -221,7 +335,9 @@ async function scenarioPeak(fx: Fixture, ids: ActionIds) {
           if (!page.ok) pageErrors++;
         }
         betDurations.push(bet.ms);
-        if (!bet.ok) {
+        if (bet.ok) {
+          recordPurchase(u.walletId, combinations.length, 100);
+        } else {
           betErrors++;
           reportError(bet);
         }
@@ -232,10 +348,14 @@ async function scenarioPeak(fx: Fixture, ids: ActionIds) {
   summarize('peak bets', betDurations, betErrors);
   summarize('peak pages', pageDurations, pageErrors);
 
-  const timeout = new Promise<number>((resolve) => setTimeout(() => resolve(NaN), 10_000));
-  const oddsArrivals = await Promise.all(subs.map((s) => Promise.race([s.arrival, timeout])));
-  console.log(`  オッズSSE到達: ${oddsArrivals.filter((t) => !Number.isNaN(t)).length}/${subs.length} 接続`);
+  const oddsArrivals = await Promise.all(subs.map((s) => withTimeout(s.arrival)));
+  const arrived = oddsArrivals.filter((a) => a !== null);
+  // Redis を往復した payload が壊れていないことも見る。到達しても中身が無ければ画面は更新されない
+  const withOdds = arrived.filter((a) => a.chunk.includes('"winOdds":{'));
+  if (withOdds.length < subs.length) failures++;
+  console.log(`  オッズSSE到達: ${arrived.length}/${subs.length} 接続、winOdds 付き ${withOdds.length}`);
   ac.abort();
+  await verifyLedger(fx, 'peak');
 }
 
 // 締切直前の一斉購入を再現する。全ユーザーが単勝8点を同時に投げるラウンドを ROUNDS 回実施
@@ -254,16 +374,19 @@ async function scenarioBets(fx: Fixture, ids: ActionIds) {
         ])
       )
     );
-    for (const r of results) {
+    results.forEach((r, i) => {
       durations.push(r.ms);
-      if (!r.ok) {
+      if (r.ok) {
+        recordPurchase(fx.users[i]?.walletId ?? '', combinations.length, 100);
+      } else {
         errors++;
         reportError(r);
       }
-    }
+    });
     console.log(`  round ${round}/${ROUNDS}: wall=${(performance.now() - wall).toFixed(0)}ms`);
   }
   summarize('bets', durations, errors);
+  await verifyLedger(fx, 'bets');
 }
 
 // 一人が行える1リクエストの最悪ケースを測る。18頭立て三連単の全4,896点を一括購入し、
@@ -288,22 +411,35 @@ async function scenarioBulk(fx: Fixture, ids: ActionIds) {
     { raceId: fx.raceId, walletId: user.walletId, betType: 'trifecta', combinations, amountPerBet: 100 },
   ]);
   console.log(`  三連単${combinations.length}点一括購入: ${r.ms.toFixed(0)}ms ok=${r.ok}`);
-  if (!r.ok) reportError(r);
+  if (r.ok) {
+    recordPurchase(user.walletId, combinations.length, 100);
+  } else {
+    failures++;
+    reportError(r);
+  }
+  await verifyLedger(fx, 'bulk');
 }
 
-// SSE を1本購読し、初回応答で ready、指定イベント到達時刻で arrival が解決する。
-// arrival はイベントが来なければ解決しないため、呼び手がタイムアウトを併用する
+type Arrival = { at: number; chunk: string };
+
+// 10 秒以内に解決しなければ null。SSE の到達待ちに使う
+function withTimeout<T>(p: Promise<T>): Promise<T | null> {
+  return Promise.race([p, new Promise<null>((resolve) => setTimeout(() => resolve(null), 10_000))]);
+}
+
+// SSE を1本購読し、初回応答で ready、指定イベント到達時に時刻と本文で arrival が解決する。
+// arrival はイベントが来なければ解決しないため、呼び手が withTimeout を併用する
 function subscribe(
   cookie: string,
   matchType: string,
   signal: AbortSignal
-): { ready: Promise<void>; arrival: Promise<number> } {
+): { ready: Promise<void>; arrival: Promise<Arrival> } {
   let readyResolve = () => {};
-  let arrivalResolve = (_: number) => {};
+  let arrivalResolve = (_: Arrival) => {};
   const ready = new Promise<void>((resolve) => {
     readyResolve = resolve;
   });
-  const arrival = new Promise<number>((resolve) => {
+  const arrival = new Promise<Arrival>((resolve) => {
     arrivalResolve = resolve;
   });
 
@@ -325,7 +461,7 @@ function subscribe(
         const chunk = buf.slice(0, idx);
         buf = buf.slice(idx + 2);
         if (chunk.includes('"type":"connected"')) readyResolve();
-        if (chunk.includes(`"type":"${matchType}"`)) arrivalResolve(performance.now());
+        if (chunk.includes(`"type":"${matchType}"`)) arrivalResolve({ at: performance.now(), chunk });
         idx = buf.indexOf('\n\n');
       }
     }
@@ -334,6 +470,24 @@ function subscribe(
   });
 
   return { ready, arrival };
+}
+
+// race-events チャンネルを購読している app プロセスの数を出す。
+// app を複数プロセスで動かす構成では、SSE 接続が全プロセスへ散っていれば台数と一致する
+async function reportSubscriberProcesses() {
+  const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+    lazyConnect: true,
+    maxRetriesPerRequest: 1,
+  });
+  try {
+    await redis.connect();
+    const result = await redis.pubsub('NUMSUB', 'race-events');
+    console.log(`  購読プロセス数: ${String(result[1])}`);
+  } catch (e) {
+    console.error(`  購読プロセス数の取得に失敗: ${e}`);
+  } finally {
+    redis.disconnect();
+  }
 }
 
 // 全ユーザーが SSE 接続中に管理者が締切を発火し、全接続への到達遅延を測る。
@@ -346,6 +500,7 @@ async function scenarioSse(fx: Fixture, ids: ActionIds) {
   const subs = fx.users.map((u) => subscribe(cookies.get(u.name) ?? '', 'RACE_CLOSED', ac.signal));
   await Promise.all(subs.map((s) => s.ready));
   console.log(`  ${subs.length} 接続確立`);
+  await reportSubscriberProcesses();
 
   const t0 = performance.now();
   const close = await callAction(adminCookie, `/admin/races/${fx.raceId}`, ids.closeRace, [fx.raceId]);
@@ -355,10 +510,9 @@ async function scenarioSse(fx: Fixture, ids: ActionIds) {
     throw new Error('closeRace が失敗したため SSE 計測を中止します');
   }
 
-  const timeout = new Promise<number>((resolve) => setTimeout(() => resolve(NaN), 10_000));
-  const arrivals = await Promise.all(subs.map((s) => Promise.race([s.arrival, timeout])));
-  const latencies = arrivals.filter((t) => !Number.isNaN(t)).map((t) => t - t0);
-  summarize('sse RACE_CLOSED 到達', latencies, arrivals.filter(Number.isNaN).length);
+  const arrivals = await Promise.all(subs.map((s) => withTimeout(s.arrival)));
+  const latencies = arrivals.filter((a) => a !== null).map((a) => a.at - t0);
+  summarize('sse RACE_CLOSED 到達', latencies, arrivals.filter((a) => a === null).length);
 
   const reopen = await callAction(adminCookie, `/admin/races/${fx.raceId}`, ids.reopenRace, [fx.raceId]);
   if (!reopen.ok) console.error('  reopenRace が失敗しました。レースが CLOSED のままです');
@@ -369,7 +523,8 @@ async function scenarioSse(fx: Fixture, ids: ActionIds) {
 // リダイレクトは実際の閲覧と同じく追従し、最終応答までを1回の所要時間とする
 async function scenarioPages(fx: Fixture) {
   const cookie = await login(fx.users[0].name);
-  const paths = ['/', `/races/${fx.raceId}`, `/ranking/${fx.eventId}`, '/stats', '/mypage'];
+  // / はログイン済みなら /mypage へリダイレクトするだけなので対象にせず、購入履歴の一覧を測る
+  const paths = ['/mypage/results', `/races/${fx.raceId}`, `/ranking/${fx.eventId}`, '/stats', '/mypage'];
 
   for (const path of paths) {
     await fetch(`${BASE}${path}`, { headers: { Cookie: cookie, ...PROTO_HEADER } }).then((r) => r.text());
@@ -380,7 +535,7 @@ async function scenarioPages(fx: Fixture) {
       const res = await fetch(`${BASE}${path}`, { headers: { Cookie: cookie, ...PROTO_HEADER } });
       await res.text();
       durations.push(performance.now() - start);
-      if (res.status !== 200) errors++;
+      if (res.status !== 200 || res.redirected) errors++;
     }
     summarize(`pages ${path}`, durations, errors);
   }
@@ -476,13 +631,20 @@ async function scenarioPayout(fx: Fixture, ids: ActionIds) {
   const finalize = await callAction(adminCookie, path, ids.finalizeRace, [fx.raceId, results]);
   console.log(`  finalizeRace: ${finalize.ms.toFixed(0)}ms ok=${finalize.ok}`);
   if (!finalize.ok) {
+    failures++;
     reportError(finalize);
     return;
   }
 
   const payout = await callAction(adminCookie, path, ids.finalizePayout, [fx.raceId]);
   console.log(`  finalizePayout: ${payout.ms.toFixed(0)}ms ok=${payout.ok}`);
-  if (!payout.ok) reportError(payout);
+  if (!payout.ok) {
+    failures++;
+    reportError(payout);
+    return;
+  }
+  await verifyPayout(fx);
+  await verifyLedger(fx, 'payout');
 }
 
 async function main() {
@@ -525,8 +687,16 @@ async function main() {
     else if (name === 'pages') await scenarioPages(fx);
     else if (name === 'bot') await scenarioBot();
     else if (name === 'payout') await scenarioPayout(fx, ids);
-    else console.error(`不明なシナリオ: ${name}`);
+    else {
+      failures++;
+      console.error(`不明なシナリオ: ${name}`);
+    }
   }
+  if (failures > 0) {
+    console.error(`検証失敗またはエラーあり: ${failures} 件`);
+    process.exit(1);
+  }
+  console.log('全シナリオの検証に成功しました');
   process.exit(0);
 }
 
