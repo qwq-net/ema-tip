@@ -1,5 +1,7 @@
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
+import type { SQL } from 'drizzle-orm';
+import { PgDialect } from 'drizzle-orm/pg-core';
 import { revalidatePath } from 'next/cache';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -25,6 +27,9 @@ vi.mock('@/shared/db', () => ({
       raceInstances: {
         findFirst: vi.fn().mockResolvedValue({ id: '123', status: 'SCHEDULED' }),
       },
+      payoutResults: {
+        findFirst: vi.fn(),
+      },
     },
   },
 }));
@@ -35,6 +40,7 @@ describe('updateRace', () => {
   const mockWhere = vi.fn();
   const mockTx = {
     update: mockUpdate,
+    execute: vi.fn().mockResolvedValue(undefined),
     query: {
       raceInstances: {
         findFirst: vi.fn().mockResolvedValue({ id: '123', status: 'SCHEDULED' }),
@@ -88,6 +94,57 @@ describe('updateRace', () => {
     );
     expect(mockWhere).toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith('/admin/races');
+  });
+});
+
+describe('updateRace の行ロック', () => {
+  const mockUpdate = vi.fn();
+  const mockSet = vi.fn();
+  const mockWhere = vi.fn();
+  const mockTx = {
+    update: mockUpdate,
+    execute: vi.fn().mockResolvedValue(undefined),
+    query: {
+      raceInstances: {
+        findFirst: vi.fn().mockResolvedValue({ id: '123', status: 'CLOSED' }),
+      },
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdate.mockReturnValue({ set: mockSet });
+    mockSet.mockReturnValue({ where: mockWhere });
+    (db.transaction as unknown as Mock).mockImplementation((cb: (tx: typeof mockTx) => Promise<void>) => cb(mockTx));
+  });
+
+  it('状態を読む前にレース行を FOR UPDATE し、払戻確定と同時に保存しても古い状態を書き戻さない', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    const order: string[] = [];
+    mockTx.execute.mockImplementation(() => {
+      order.push('lock');
+    });
+    mockTx.query.raceInstances.findFirst.mockImplementation(() => {
+      order.push('read');
+      return { id: '123', status: 'CLOSED' };
+    });
+
+    const formData = new FormData();
+    formData.append('eventId', '550e8400-e29b-41d4-a716-446655440000');
+    formData.append('date', '2024-01-02');
+    formData.append('name', 'Kyoto Cup');
+    formData.append('distance', '1600');
+    formData.append('surface', '芝');
+    formData.append('venueId', 'venue_id');
+
+    await updateRace('123', formData);
+
+    expect(order).toEqual(['lock', 'read']);
+    const lockArg = mockTx.execute.mock.calls[0]?.[0] as SQL;
+    const query = new PgDialect().sqlToQuery(lockArg);
+    expect(query.sql).toMatch(/FOR UPDATE/);
+    expect(query.params).toEqual(['123']);
   });
 });
 
@@ -220,6 +277,14 @@ describe('reopenRace', () => {
 
     expect(revalidatePath).toHaveBeenCalled();
   });
+  it('払戻表が残っているレースは再開できず、状態を更新しない', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    (db.query.payoutResults.findFirst as unknown as Mock).mockResolvedValueOnce({ id: 'payout-1' });
+
+    await expect(reopenRace('123')).rejects.toThrow('着順確定済みのレースは再開できません');
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
 });
 
 describe('setClosingTime', () => {
@@ -301,6 +366,15 @@ describe('setClosingTime', () => {
       expect.objectContaining({ raceId: '123', closingAt: expect.any(String) })
     );
   });
+  it('払戻表が残っている締切済みレースにはタイマーを設定できず、再開もしない', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: '123', status: 'CLOSED' });
+    (db.query.payoutResults.findFirst as unknown as Mock).mockResolvedValueOnce({ id: 'payout-1' });
+
+    await expect(setClosingTime('123', 10)).rejects.toThrow('着順確定済みのレースは再開できません');
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
 });
 
 describe('updateRace ステータス遷移', () => {
@@ -309,6 +383,7 @@ describe('updateRace ステータス遷移', () => {
   const mockWhere = vi.fn();
   const mockTx = {
     update: mockUpdate,
+    execute: vi.fn().mockResolvedValue(undefined),
     query: {
       raceInstances: {
         findFirst: vi.fn(),

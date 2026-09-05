@@ -51,9 +51,9 @@ vi.mock('@/shared/lib/redis', () => ({
 
 describe('placeBets', () => {
   const userId = 'user-123';
-  const raceId = 'race-456';
-  const walletId = 'wallet-789';
-  const eventId = 'event-abc';
+  const raceId = '11111111-1111-4111-8111-111111111111';
+  const walletId = '22222222-2222-4222-8222-222222222222';
+  const eventId = '33333333-3333-4333-8333-333333333333';
 
   const mockRace = {
     id: raceId,
@@ -454,6 +454,45 @@ describe('placeBets', () => {
         success: false,
         error: ADMIN_ERRORS.INVALID_AMOUNT,
       });
+    }
+  });
+
+  it('文字列の金額は数値へ強制変換せず INVALID_AMOUNT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    for (const amountPerBet of ['100', '0x64', [100]]) {
+      await expect(placeBets({ ...defaultArgs, amountPerBet: amountPerBet as unknown as number })).resolves.toEqual({
+        success: false,
+        error: ADMIN_ERRORS.INVALID_AMOUNT,
+      });
+    }
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('UUID でないレース ID やウォレット ID は DB を照会せず INVALID_INPUT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, raceId: 'race-456' })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
+    await expect(placeBets({ ...defaultArgs, walletId: "'; drop table bet; --" })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
+    expect(db.query.raceInstances.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('組み合わせが配列でない場合は INVALID_INPUT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    for (const combinations of ['abc', { length: 1 }, 123]) {
+      await expect(placeBets({ ...defaultArgs, combinations: combinations as unknown as number[][] })).resolves.toEqual(
+        { success: false, error: ADMIN_ERRORS.INVALID_INPUT }
+      );
     }
   });
 

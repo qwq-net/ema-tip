@@ -1,13 +1,28 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { raceInstances } from '@/shared/db/schema';
+import { payoutResults, raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { logAdminAction } from '@/shared/utils/admin-audit';
 import { parseJSTToUTC } from '@/shared/utils/date';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { raceSchema } from '../model/validation';
+
+/**
+ * 払戻表が残っているレースなら throw して受付再開を止める。
+ * 着順確定後に購入を受け付けると、古いプールで計算した払戻表のまま精算されるため。
+ * 再開したいときは先に着順リセットで払戻表を消す運用を前提とする。
+ */
+async function assertReopenable(raceId: string): Promise<void> {
+  const existing = await db.query.payoutResults.findFirst({
+    where: eq(payoutResults.raceId, raceId),
+    columns: { id: true },
+  });
+  if (existing) {
+    throw new Error('着順確定済みのレースは再開できません。先に着順をリセットしてください');
+  }
+}
 
 export async function updateRace(id: string, formData: FormData) {
   await requireAdmin();
@@ -41,6 +56,10 @@ export async function updateRace(id: string, formData: FormData) {
   const newClosingAt = parse.data.closingAt ? parseJSTToUTC(parse.data.closingAt) : null;
 
   await db.transaction(async (tx) => {
+    // 下の UPDATE は読んだ status を書き戻す。払戻確定と同時に保存すると FINALIZED を
+    // 古い状態で上書きするため、状態を読む前に行ロックを取り、確定のコミットを待ってから読む
+    await tx.execute(sql`SELECT 1 FROM race_instance WHERE id = ${id} FOR UPDATE`);
+
     const race = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, id),
     });
@@ -101,6 +120,7 @@ export async function closeRace(raceId: string) {
 
 export async function reopenRace(raceId: string) {
   const session = await requireAdmin();
+  await assertReopenable(raceId);
 
   const updated = await db
     .update(raceInstances)
@@ -129,6 +149,7 @@ export async function setClosingTime(raceId: string, minutes: number) {
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),
   });
+  if (race?.status === 'CLOSED') await assertReopenable(raceId);
 
   const updated = await db
     .update(raceInstances)

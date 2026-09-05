@@ -625,6 +625,32 @@ describe('finalizePayout', () => {
     expect(Number(wallet?.balance)).toBe(10000 + 1080 + 1520);
   });
 
+  it('再開のコミット待ちの間に始まった払戻確定は、コミット後に締切状態でないとして失敗しベットを触らない', async () => {
+    const { bet } = await createBet({ type: 'win', selections: [1], amount: 100 });
+    await db.insert(payoutResults).values({
+      raceId: raceId,
+      type: 'win',
+      combinations: [{ numbers: [1], payout: 250 }],
+    });
+
+    // 再開トランザクションを開いたまま保持する。行ロックが取られるため払戻側は状態を読む前に待つべき
+    const reopening = db.transaction(async (tx) => {
+      await tx.update(raceInstances).set({ status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
+    await reopening;
+
+    const untouchedBet = await db.query.bets.findFirst({ where: eq(bets.id, bet.id) });
+    const race = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    expect(untouchedBet?.status).toBe('PENDING');
+    expect(race?.status).toBe('SCHEDULED');
+    expect(Number(wallet?.balance)).toBe(10000);
+  });
+
   itSlow('1000件超の大量購入でもバッチ更新とPAYOUT記録が整合する', async () => {
     const hitCount = 1005;
     const loseCount = 205;

@@ -1,7 +1,7 @@
 'use server';
 
 import type { BetType } from '@/entities/bet';
-import { BET_TYPE_SELECTION_COUNTS, BET_TYPES, resolveAllowedBetTypes } from '@/entities/bet';
+import { BET_TYPE_ORDER, BET_TYPE_SELECTION_COUNTS, BET_TYPES, resolveAllowedBetTypes } from '@/entities/bet';
 import { normalizeSelections } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import {
@@ -18,6 +18,7 @@ import {
 import { ActionError, ADMIN_ERRORS, requireUser, runAction } from '@/shared/utils/admin';
 import { firstRow } from '@/shared/utils/first-row';
 import { eq, sql } from 'drizzle-orm';
+import { z } from 'zod';
 import { calculateOdds, getProvisionalOddsCached } from './logic/odds';
 
 const BATCH_SIZE = 100;
@@ -33,14 +34,36 @@ interface PlaceBetsArgs {
   amountPerBet: number;
 }
 
+// 引数の形だけを先に検証する。Server Action の引数はクライアントが自由に作れるため、
+// 文字列の金額が算術で数値に化けたり、UUID でない ID が DB エラーになる経路をここで閉じる。
+// 点数・金額・馬番の中身は後続の個別チェックが担い、エラー文言もそちらで出し分ける
+const placeBetsArgsSchema = z.object({
+  raceId: z.string().uuid(),
+  walletId: z.string().uuid(),
+  betType: z.enum(BET_TYPE_ORDER),
+  combinations: z.array(z.array(z.number())),
+  amountPerBet: z.number(),
+});
+
 // 馬券を購入する。本番では throw のメッセージがマスクされるため、
 // 締切・残高不足などの想定内エラーは throw せず { success: false, error } で返す。
 export async function placeBets(args: PlaceBetsArgs) {
   return runAction(() => placeBetsInner(args));
 }
 
-async function placeBetsInner({ raceId, walletId, betType, combinations, amountPerBet }: PlaceBetsArgs) {
+async function placeBetsInner(args: PlaceBetsArgs) {
   const session = await requireUser();
+
+  // 金額は先に単独で判定し、型違いも金額エラーとして返す
+  if (!Number.isInteger(args.amountPerBet) || args.amountPerBet <= 0 || args.amountPerBet % 100 !== 0) {
+    throw new ActionError(ADMIN_ERRORS.INVALID_AMOUNT);
+  }
+
+  const parsed = placeBetsArgsSchema.safeParse(args);
+  if (!parsed.success) {
+    throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
+  }
+  const { raceId, walletId, betType, combinations, amountPerBet } = parsed.data;
 
   if (combinations.length === 0) {
     throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
@@ -48,10 +71,6 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
 
   if (combinations.length > MAX_COMBINATIONS) {
     throw new ActionError(`購入点数は${MAX_COMBINATIONS.toLocaleString('ja-JP')}点以内にしてください`);
-  }
-
-  if (amountPerBet <= 0 || amountPerBet % 100 !== 0) {
-    throw new ActionError(ADMIN_ERRORS.INVALID_AMOUNT);
   }
 
   const totalAmount = amountPerBet * combinations.length;

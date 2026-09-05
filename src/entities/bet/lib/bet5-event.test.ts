@@ -2,7 +2,13 @@ import { db } from '@/shared/db';
 import { SQL } from 'drizzle-orm';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { calculateBet5Payout, closeBet5Event, createBet5Event, resolveBet5Winners } from './bet5-event';
+import {
+  Bet5SelectionSchema,
+  calculateBet5Payout,
+  closeBet5Event,
+  createBet5Event,
+  resolveBet5Winners,
+} from './bet5-event';
 
 // drizzle の SQL 式は実テーブル参照を含み JSON.stringify では循環参照になるため、
 // 式に埋め込まれた数値チャンクだけを取り出して比較する
@@ -447,5 +453,21 @@ describe('createBet5Event', () => {
 
     await expect(createBet5Event({ eventId, raceIds, initialPot: 0 })).rejects.toThrow('不正');
     expect(db.insert).not.toHaveBeenCalled();
+  });
+});
+
+describe('Bet5SelectionSchema', () => {
+  const h1 = '11111111-1111-4111-8111-111111111111';
+  const h2 = '22222222-2222-4222-8222-222222222222';
+  const base = { race1: [h1], race2: [h1], race3: [h1], race4: [h1], race5: [h1] };
+
+  it('同じレース内で同じ馬を重複して選んだ選択は拒否する', () => {
+    const result = Bet5SelectionSchema.safeParse({ ...base, race3: [h1, h2, h1] });
+    expect(result.success).toBe(false);
+  });
+
+  it('レースをまたいで同じ馬が現れるのは別の出走なので許容する', () => {
+    const result = Bet5SelectionSchema.safeParse({ ...base, race2: [h1, h2] });
+    expect(result.success).toBe(true);
   });
 });

@@ -6,12 +6,17 @@ import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from './bet5';
 
+// 1 レース分の選択。同じ馬の重複は点数と支払いだけを増やして的中単位を増やさないため拒否する
+const horseIdListSchema = z
+  .array(z.string().uuid())
+  .refine((ids) => new Set(ids).size === ids.length, { message: '同じ馬を重複して選択できません' });
+
 export const Bet5SelectionSchema = z.object({
-  race1: z.array(z.string().uuid()),
-  race2: z.array(z.string().uuid()),
-  race3: z.array(z.string().uuid()),
-  race4: z.array(z.string().uuid()),
-  race5: z.array(z.string().uuid()),
+  race1: horseIdListSchema,
+  race2: horseIdListSchema,
+  race3: horseIdListSchema,
+  race4: horseIdListSchema,
+  race5: horseIdListSchema,
 });
 
 export type Bet5Selection = z.infer<typeof Bet5SelectionSchema>;

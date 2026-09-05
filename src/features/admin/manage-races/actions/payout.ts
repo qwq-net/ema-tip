@@ -128,6 +128,11 @@ export async function finalizePayout(raceId: string) {
     const lockKey = `payout:${raceId}`;
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
+    // 再開や編集の UPDATE と直列化する行ロック。これがないと状態を読んだ後に再開がコミットされ、
+    // 追加購入を受けたレースへ古い払戻表で FINALIZED を書き込みうる。
+    // 購入側の FOR SHARE と同じ行を先に取るため、ウォレット行との取得順序も購入と揃う
+    await tx.execute(sql`SELECT 1 FROM race_instance WHERE id = ${raceId} FOR UPDATE`);
+
     const race = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),
       columns: { id: true, status: true, eventId: true },
