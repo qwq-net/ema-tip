@@ -16,8 +16,10 @@ import postgres from 'postgres';
  *   sse    全ユーザー接続中に締切イベントを発火し、SSE 到達遅延を測る。終了後は再開して戻す
  *   pages  主要ページの応答時間を直列計測する
  *   payout 締切→着順確定→払戻確定の所要時間を測る。レースが FINALIZED になるため最後に実行する
+ *   standby 全員が結果待機画面を開いた状態で締切→着順確定→払戻確定を行う。締切直後の一斉表示と、
+ *          RACE_BROADCAST を受けた各ブラウザが投げる再描画と払戻結果取得の一斉要求を測る。payout を含む
  *   bot    無認証のBOTアクセス。トップ・404・保護ルート・ログイン失敗を10並列で混合実行
- *   all    上記を login → bets → bulk → peak → sse → pages → bot → payout の順で実行する
+ *   all    上記を login → bets → bulk → peak → sse → pages → bot → standby の順で実行する
  *
  * 応答時間の計測に加えて結果の正しさも検証する。購入シナリオは成功件数から期待支出を積み上げ、
  * 末尾で各ウォレットの残高とベット件数を DB と照合する。payout は HIT / LOST の内訳と払戻込みの残高を照合する。
@@ -50,6 +52,7 @@ type ActionIds = {
   reopenRace: string;
   finalizeRace: string;
   finalizePayout: string;
+  getPayoutResults: string;
 };
 
 type CallResult = { ms: number; ok: boolean; status: number; body: string };
@@ -647,14 +650,104 @@ async function scenarioPayout(fx: Fixture, ids: ActionIds) {
   await verifyLedger(fx, 'payout');
 }
 
+// 結果待機画面に全員が揃った状態で払戻確定する。実際のブラウザは RACE_BROADCAST を受けると
+// router.refresh による待機ページの再描画と、払戻結果を取る Server Action を同時に投げるため、
+// 到達遅延に加えてその 2 本の一斉要求の応答時間とエラーを測る。
+// 締切直後の一斉表示も測る。CLOSED の待機ページは暫定オッズを全ベット走査で作り、
+// Redis キャッシュのミスが同時に重なると走査が人数分走るため、ここが最も重い瞬間になりうる。
+// payout と同じくレースを FINALIZED にするので最後に実行する
+async function scenarioStandby(fx: Fixture, ids: ActionIds) {
+  const cookies = await loginAll(fx.users.map((u) => u.name));
+  const adminCookie = await login(ADMIN_NAME);
+  const adminPath = `/admin/races/${fx.raceId}`;
+  const standbyPath = `/races/${fx.raceId}/standby`;
+
+  const close = await callAction(adminCookie, adminPath, ids.closeRace, [fx.raceId]);
+  console.log(`  closeRace: ${close.ms.toFixed(0)}ms ok=${close.ok}`);
+  if (!close.ok) {
+    failures++;
+    reportError(close);
+    return;
+  }
+
+  const firstViews = await Promise.all(fx.users.map((u) => timedGet(cookies.get(u.name) ?? '', standbyPath)));
+  summarize(
+    'standby 締切直後の一斉表示',
+    firstViews.map((v) => v.ms),
+    firstViews.filter((v) => !v.ok).length
+  );
+
+  const results = fx.entryIds.map((entryId, i) => ({ entryId, finishPosition: i + 1 }));
+  const finalize = await callAction(adminCookie, adminPath, ids.finalizeRace, [fx.raceId, results]);
+  console.log(`  finalizeRace: ${finalize.ms.toFixed(0)}ms ok=${finalize.ok}`);
+  if (!finalize.ok) {
+    failures++;
+    reportError(finalize);
+    return;
+  }
+
+  const ac = new AbortController();
+  const subs = fx.users.map((u) => subscribe(cookies.get(u.name) ?? '', 'RACE_BROADCAST', ac.signal));
+  await Promise.all(subs.map((s) => s.ready));
+  console.log(`  ${subs.length} 接続確立`);
+
+  // 到達した瞬間にブラウザと同じ 2 要求を投げる。getPayoutResults は配列を返すため成功判定は本文の形で行う
+  const reactions = subs.map((s, i) => {
+    const cookie = cookies.get(fx.users[i]?.name ?? '') ?? '';
+    return withTimeout(s.arrival).then(async (arrival) => {
+      if (!arrival) return null;
+      const [page, action] = await Promise.all([
+        timedGet(cookie, standbyPath),
+        callAction(cookie, standbyPath, ids.getPayoutResults, [fx.raceId]),
+      ]);
+      const actionOk = action.status === 200 && action.body.includes('"combinations"');
+      return { arrival, page, action: { ...action, ok: actionOk } };
+    });
+  });
+
+  const t0 = performance.now();
+  const payout = await callAction(adminCookie, adminPath, ids.finalizePayout, [fx.raceId]);
+  console.log(`  finalizePayout: ${payout.ms.toFixed(0)}ms ok=${payout.ok}`);
+  if (!payout.ok) {
+    failures++;
+    reportError(payout);
+    ac.abort();
+    return;
+  }
+
+  const settled = await Promise.all(reactions);
+  ac.abort();
+  const arrived = settled.filter((r) => r !== null);
+  summarize(
+    'standby RACE_BROADCAST 到達',
+    arrived.map((r) => r.arrival.at - t0),
+    settled.length - arrived.length
+  );
+  summarize(
+    'standby 再描画',
+    arrived.map((r) => r.page.ms),
+    arrived.filter((r) => !r.page.ok).length
+  );
+  summarize(
+    'standby 払戻結果取得',
+    arrived.map((r) => r.action.ms),
+    arrived.filter((r) => !r.action.ok).length
+  );
+  const firstBadAction = arrived.find((r) => !r.action.ok);
+  if (firstBadAction) reportError(firstBadAction.action);
+
+  await verifyPayout(fx);
+  await verifyLedger(fx, 'standby');
+}
+
 async function main() {
   const requested = process.argv.slice(2);
   if (requested.length === 0) {
-    console.log('使い方: task perf:load -- <bets|sse|pages|payout|all>');
+    console.log('使い方: task perf:load -- <login|bets|bulk|peak|sse|pages|bot|payout|standby|all>');
     process.exit(1);
   }
   const names = requested.includes('all')
-    ? ['login', 'bets', 'bulk', 'peak', 'sse', 'pages', 'bot', 'payout']
+    ? ['login', 'bets', 'bulk', 'peak', 'sse', 'pages', 'bot', 'standby']
     : requested;
 
   const fx = await loadFixture();
@@ -674,6 +767,7 @@ async function main() {
     reopenRace: loadActionId('src/features/admin/manage-races/actions/update.ts', 'reopenRace'),
     finalizeRace: loadActionId('src/features/admin/manage-races/actions/finalize.ts', 'finalizeRace'),
     finalizePayout: loadActionId('src/features/admin/manage-races/actions/payout.ts', 'finalizePayout'),
+    getPayoutResults: loadActionId('src/entities/race/actions.ts', 'getPayoutResults'),
   };
 
   console.log(`target=${BASE} users=${fx.users.length} race=${fx.raceId}`);
@@ -687,6 +781,7 @@ async function main() {
     else if (name === 'pages') await scenarioPages(fx);
     else if (name === 'bot') await scenarioBot();
     else if (name === 'payout') await scenarioPayout(fx, ids);
+    else if (name === 'standby') await scenarioStandby(fx, ids);
     else {
       failures++;
       console.error(`不明なシナリオ: ${name}`);
