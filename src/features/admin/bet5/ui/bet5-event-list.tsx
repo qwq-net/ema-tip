@@ -91,7 +91,7 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                       variant={isConfigured ? 'outline' : 'primary'}
                       className={cn('gap-1', !isConfigured && 'bg-turf-600 hover:bg-turf-700 text-white')}
                     >
-                      <Link href={`/admin/events/${event.id}/bet5`}>
+                      <Link href={`/admin/bet5/${event.id}`}>
                         <Trophy className="h-4 w-4" />
                         {isConfigured ? '管理' : '設定'}
                       </Link>

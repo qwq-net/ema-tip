@@ -15,19 +15,6 @@ export const metadata: Metadata = {
 export default async function AdminEventsPage() {
   const allEvents = await db.query.events.findMany({
     orderBy: [desc(events.date), desc(events.createdAt)],
-    // BET5 案内の判定に使う最小限だけ取る
-    with: {
-      bet5Event: {
-        columns: { status: true },
-        with: {
-          race1: { columns: { status: true } },
-          race2: { columns: { status: true } },
-          race3: { columns: { status: true } },
-          race4: { columns: { status: true } },
-          race5: { columns: { status: true } },
-        },
-      },
-    },
   });
 
   return (

@@ -37,7 +37,6 @@ export default async function EventDetailLayout({
         items={[
           { href: base, label: 'レース' },
           { href: `${base}/settings`, label: 'イベント設定' },
-          { href: `${base}/bet5`, label: 'BET5' },
           { href: `${base}/ranking`, label: 'ランキング' },
         ]}
       />

@@ -72,7 +72,6 @@ const SANCTIONED = new Set([
   'src/features/betting/ui/payout-result-modal.tsx',
   'src/features/forecasts/components/ForecastDisplay.tsx',
   'src/shared/ui/live-connection-status.tsx',
-  'src/features/admin/manage-events/lib/bet5-guide.ts',
 ]);
 
 // 意味色の手組みが残る既存ファイル。新規追加は禁止で、直書きを解消したらここから削除する
