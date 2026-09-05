@@ -16,7 +16,5 @@ export const adminActionLogs = pgTable(
     detail: jsonb('detail').$type<AdminActionDetail>(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    createdIdx: index('admin_action_log_created_idx').on(table.createdAt),
-  })
+  (table) => [index('admin_action_log_created_idx').on(table.createdAt)]
 );

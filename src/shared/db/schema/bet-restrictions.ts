@@ -13,9 +13,7 @@ export const raceAllowedBetTypes = pgTable(
       .references(() => raceInstances.id, { onDelete: 'cascade' }),
     betType: betTypeEnum('bet_type').notNull(),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.raceId, table.betType] }),
-  })
+  (table) => [primaryKey({ columns: [table.raceId, table.betType] })]
 );
 
 // イベント単位のデフォルト購入可能種別。行が0件のイベントは制限なしを意味する
@@ -27,7 +25,5 @@ export const eventDefaultAllowedBetTypes = pgTable(
       .references(() => events.id, { onDelete: 'cascade' }),
     betType: betTypeEnum('bet_type').notNull(),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.eventId, table.betType] }),
-  })
+  (table) => [primaryKey({ columns: [table.eventId, table.betType] })]
 );

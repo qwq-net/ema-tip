@@ -36,10 +36,7 @@ export const events = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
-    dateIdx: index('event_date_idx').on(table.date),
-    statusIdx: index('event_status_idx').on(table.status),
-  })
+  (table) => [index('event_date_idx').on(table.date), index('event_status_idx').on(table.status)]
 );
 
 export const guaranteedOddsMaster = pgTable('guaranteed_odds_master', {

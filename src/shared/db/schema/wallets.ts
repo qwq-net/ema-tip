@@ -19,12 +19,12 @@ export const wallets = pgTable(
     totalLoaned: bigint('total_loaned', { mode: 'number' }).default(0).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    userEventUniqueIdx: uniqueIndex('wallet_user_event_unique_idx').on(table.userId, table.eventId),
-    eventIdx: index('wallet_event_idx').on(table.eventId),
-    userCreatedIdx: index('wallet_user_created_idx').on(table.userId, table.createdAt),
-    balanceNonNegative: check('wallet_balance_non_negative', sql`balance >= 0`),
-  })
+  (table) => [
+    uniqueIndex('wallet_user_event_unique_idx').on(table.userId, table.eventId),
+    index('wallet_event_idx').on(table.eventId),
+    index('wallet_user_created_idx').on(table.userId, table.createdAt),
+    check('wallet_balance_non_negative', sql`balance >= 0`),
+  ]
 );
 
 // 取引はベット1点ごとに1行の粒度で記録する。1回の大量購入で数百行入る書き込み増幅は、
@@ -41,9 +41,9 @@ export const transactions = pgTable(
     referenceId: uuid('reference_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
+  (table) => [
     // walletId 単独の照会・カスケード削除も複合の先頭列で賄う。
     // referenceId と createdAt 単独で引くクエリは存在しないためインデックスは持たない
-    walletCreatedIdx: index('transaction_wallet_created_idx').on(table.walletId, table.createdAt),
-  })
+    index('transaction_wallet_created_idx').on(table.walletId, table.createdAt),
+  ]
 );

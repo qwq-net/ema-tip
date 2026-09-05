@@ -20,9 +20,9 @@ export const forecasts = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
+  (table) => [
     // raceId 単独の照会は複合ユニークの先頭列で賄う
-    userIdx: index('forecast_user_idx').on(table.userId),
-    raceUserUniqueIdx: uniqueIndex('forecast_race_user_unique_idx').on(table.raceId, table.userId),
-  })
+    index('forecast_user_idx').on(table.userId),
+    uniqueIndex('forecast_race_user_unique_idx').on(table.raceId, table.userId),
+  ]
 );

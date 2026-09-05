@@ -44,11 +44,11 @@ export const users = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
+  (table) => [
     // 名前はゲストログインの識別子。重複すると findFirst の解決先が不定になりログイン不能に陥る
-    nameIdx: uniqueIndex('user_name_idx').on(table.name),
-    guestCodeIdx: index('user_guest_code_idx').on(table.guestCodeId),
-  })
+    uniqueIndex('user_name_idx').on(table.name),
+    index('user_guest_code_idx').on(table.guestCodeId),
+  ]
 );
 
 export const accounts = pgTable(
@@ -68,11 +68,11 @@ export const accounts = pgTable(
     id_token: text('id_token'),
     session_state: text('session_state'),
   },
-  (account) => ({
-    compoundKey: primaryKey({
+  (account) => [
+    primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-  })
+  ]
 );
 
 export const guestCodes = pgTable('guest_code', {

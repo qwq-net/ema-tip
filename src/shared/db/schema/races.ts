@@ -69,13 +69,13 @@ export const raceInstances = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
-    eventIdx: index('race_instance_event_idx').on(table.eventId),
-    statusIdx: index('race_instance_status_idx').on(table.status),
-    dateIdx: index('race_instance_date_idx').on(table.date),
-    venueIdx: index('race_instance_venue_idx').on(table.venueId),
-    definitionIdx: index('race_instance_definition_idx').on(table.raceDefinitionId),
-  })
+  (table) => [
+    index('race_instance_event_idx').on(table.eventId),
+    index('race_instance_status_idx').on(table.status),
+    index('race_instance_date_idx').on(table.date),
+    index('race_instance_venue_idx').on(table.venueId),
+    index('race_instance_definition_idx').on(table.raceDefinitionId),
+  ]
 );
 
 export const raceEntries = pgTable(
@@ -99,16 +99,13 @@ export const raceEntries = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
+  (table) => [
     // raceId 単独の照会は race_pos_idx の先頭列で賄えるため単独インデックスは持たない
-    racePosIdx: index('race_entry_race_pos_idx').on(table.raceId, table.finishPosition),
-    horseIdx: index('race_entry_horse_idx').on(table.horseId),
-    raceHorseUniqueIdx: uniqueIndex('race_entry_race_horse_unique_idx').on(table.raceId, table.horseId),
-    raceHorseNumberUniqueIdx: uniqueIndex('race_entry_race_horse_number_unique_idx').on(
-      table.raceId,
-      table.horseNumber
-    ),
-  })
+    index('race_entry_race_pos_idx').on(table.raceId, table.finishPosition),
+    index('race_entry_horse_idx').on(table.horseId),
+    uniqueIndex('race_entry_race_horse_unique_idx').on(table.raceId, table.horseId),
+    uniqueIndex('race_entry_race_horse_number_unique_idx').on(table.raceId, table.horseNumber),
+  ]
 );
 
 export const raceOdds = pgTable('race_odds', {
@@ -141,8 +138,8 @@ export const payoutResults = pgTable(
       .notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
+  (table) => [
     // raceId 単独の照会は複合ユニークの先頭列で賄う
-    raceTypeUniqueIdx: uniqueIndex('payout_result_race_type_unique_idx').on(table.raceId, table.type),
-  })
+    uniqueIndex('payout_result_race_type_unique_idx').on(table.raceId, table.type),
+  ]
 );

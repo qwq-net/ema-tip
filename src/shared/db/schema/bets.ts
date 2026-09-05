@@ -37,12 +37,12 @@ export const betGroups = pgTable(
     totalAmount: bigint('total_amount', { mode: 'number' }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
+  (table) => [
     // 照会は常に userId と raceId の組。raceId 単独で引く経路はないため複合1本に集約する
-    userRaceIdx: index('bet_group_user_race_idx').on(table.userId, table.raceId),
+    index('bet_group_user_race_idx').on(table.userId, table.raceId),
     // ユーザー削除時のカスケードが betGroups を walletId で辿るため残す
-    walletIdx: index('bet_group_wallet_idx').on(table.walletId),
-  })
+    index('bet_group_wallet_idx').on(table.walletId),
+  ]
 );
 
 export const bets = pgTable(
@@ -68,12 +68,12 @@ export const bets = pgTable(
     status: betStatusEnum('status').default('PENDING').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    raceIdx: index('bet_race_idx').on(table.raceId),
-    userIdx: index('bet_user_idx').on(table.userId),
-    groupIdx: index('bet_group_idx').on(table.betGroupId),
-    walletIdx: index('bet_wallet_idx').on(table.walletId),
-  })
+  (table) => [
+    index('bet_race_idx').on(table.raceId),
+    index('bet_user_idx').on(table.userId),
+    index('bet_group_idx').on(table.betGroupId),
+    index('bet_wallet_idx').on(table.walletId),
+  ]
 );
 
 export const bet5Events = pgTable(
@@ -106,9 +106,7 @@ export const bet5Events = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => ({
-    eventIdUniqueIdx: uniqueIndex('bet5_event_event_id_unique_idx').on(table.eventId),
-  })
+  (table) => [uniqueIndex('bet5_event_event_id_unique_idx').on(table.eventId)]
 );
 
 export const bet5Tickets = pgTable(
@@ -134,8 +132,5 @@ export const bet5Tickets = pgTable(
     payout: bigint('payout', { mode: 'number' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    eventIdx: index('bet5_ticket_event_idx').on(table.bet5EventId),
-    userIdx: index('bet5_ticket_user_idx').on(table.userId),
-  })
+  (table) => [index('bet5_ticket_event_idx').on(table.bet5EventId), index('bet5_ticket_user_idx').on(table.userId)]
 );

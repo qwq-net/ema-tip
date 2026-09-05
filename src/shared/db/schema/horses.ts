@@ -34,10 +34,10 @@ export const horseTags = pgTable(
     content: text('content').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
+  (table) => [
     // タグは horseId で引く。馬削除時のカスケードもこの索引を使う
-    horseIdx: index('horse_tag_horse_idx').on(table.horseId),
-  })
+    index('horse_tag_horse_idx').on(table.horseId),
+  ]
 );
 
 export const horseTagMaster = pgTable('horse_tag_master', {
