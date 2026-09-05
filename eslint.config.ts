@@ -22,6 +22,15 @@ const testFiles = ['**/*.test.ts', '**/*.test.tsx', 'vitest.setup.ts', 'e2e/**/*
 const featureSlices = featureSliceNames();
 const noAppImport = { regex: '^@/app/', message: 'features から app は参照できません' };
 
+// 運用方針。ルールの採否とその理由はこのファイルのコメントが正本で、CLAUDE.md には書かない。
+// - warning は使わない。lint は --max-warnings 0 で、新しいルールは warn で入れて既存違反を潰し、
+//   0 件になった時点で error へ昇格する。複雑度などの閾値は上げず、超過したら関数を分ける
+// - eslint-disable は理由付きの行単位だけ。ファイル単位の無効化はしない。不要になった指定は
+//   reportUnusedDisableDirectives が検出する
+// - import/no-cycle は不採用。2026-09 の計測で循環は 0 件だったが、host の node_modules は
+//   alpine 向けバインディングしか無く、@/ の解決で ESLint 全体が落ちて VSCode の拡張も使えなくなる。
+//   再計測はコンテナ内で pnpm exec eslint src e2e --rule 'import/no-cycle: warn'
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
