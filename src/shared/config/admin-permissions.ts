@@ -8,7 +8,7 @@ export function canAccessAdminRoute(pathname: string, role: string | null | unde
   }
 
   if (role === ROLES.TIPSTER) {
-    return TIPSTER_ALLOWED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
+    return TIPSTER_ALLOWED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   }
 
   return false;

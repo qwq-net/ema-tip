@@ -121,7 +121,7 @@ const SYSTEM_ACTIONS = [
   },
 ] as const;
 
-export default async function AdminPage() {
+export default function AdminPage() {
   return (
     <div className="max-w-5xl space-y-8">
       <AdminPageHeader title="ダッシュボード" />

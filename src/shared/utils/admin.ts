@@ -1,5 +1,6 @@
 import { ROLES } from '@/entities/user/constants';
 import { auth } from '@/shared/config/auth';
+import type { Session } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -19,20 +20,25 @@ import { ActionError } from '@/shared/utils/action-result';
 
 export { ActionError, runAction, type ActionResult } from '@/shared/utils/action-result';
 
-export async function requireAdmin() {
+/** user が確実に存在するセッション。requireUser と requireAdmin と requireLoginPage が返す */
+export type AuthedSession = Session & { user: NonNullable<Session['user']> };
+
+/** 管理者ガード。ADMIN ロールでなければ ActionError を投げる。 */
+export async function requireAdmin(): Promise<AuthedSession> {
   const session = await auth();
   if (session?.user?.role !== ROLES.ADMIN) {
     throw new ActionError(ADMIN_ERRORS.UNAUTHORIZED);
   }
-  return session;
+  return { ...session, user: session.user };
 }
 
-export async function requireUser() {
+/** ログインガード。未ログインなら ActionError を投げる。 */
+export async function requireUser(): Promise<AuthedSession> {
   const session = await auth();
   if (!session?.user?.id) {
     throw new ActionError(ADMIN_ERRORS.UNAUTHORIZED);
   }
-  return session;
+  return { ...session, user: session.user };
 }
 
 /**
@@ -40,13 +46,12 @@ export async function requireUser() {
  * 未ログインなら /login へ redirect して戻らず、ログイン済みならセッションを返す。
  * エラー表示にしたい server action では requireUser を使うこと。
  */
-export async function requireLoginPage() {
+export async function requireLoginPage(): Promise<AuthedSession> {
   const session = await auth();
-  const user = session?.user;
-  if (!user?.id) {
+  if (!session?.user?.id) {
     redirect('/login');
   }
-  return { ...session!, user };
+  return { ...session, user: session.user };
 }
 
 export function revalidateRacePaths(raceId: string) {

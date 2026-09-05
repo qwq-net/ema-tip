@@ -6,7 +6,7 @@ import { Clock, Loader2, Timer, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { closeRace, setClosingTime } from '../actions/update';
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => undefined;
 
 interface KitchenTimerProps {
   raceId: string;
@@ -82,7 +82,7 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
       if (diff === 0 && !fired) {
         fired = true;
         if (timer) clearInterval(timer);
-        handleAutoClose();
+        void handleAutoClose();
       }
     };
 

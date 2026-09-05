@@ -32,21 +32,90 @@ interface Bet5ManageCardProps {
   bet5Event: Bet5Event;
   eventId: string;
   distributeAmount: number;
-  targetRaces: Array<{
+  targetRaces: {
     id: string;
     raceNumber: number | null;
     name: string;
     status: string;
     entryCount: number;
-  }>;
-  raceLiveStats: Array<{
+  }[];
+  raceLiveStats: {
     raceId: string;
     raceNumber: number | null;
     raceName: string;
     entryCount: number;
     hitCount: number | null;
     consecutiveHitCount: number | null;
-  }>;
+  }[];
+}
+
+interface Bet5ActionRowProps {
+  status: Bet5Event['status'];
+  isPending: boolean;
+  canCalculatePayout: boolean;
+  onClose: () => Promise<void>;
+  onCalculate: () => Promise<void>;
+}
+
+/**
+ * BET5 の状態に応じた操作列。受付中は締切、締切後は配当計算、払戻後は完了表示を出す。
+ * 実行できない状態では、その理由を操作の隣に添える。
+ */
+function Bet5ActionRow({ status, isPending, canCalculatePayout, onClose, onCalculate }: Bet5ActionRowProps) {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row">
+      {status === 'SCHEDULED' && (
+        <ConfirmDialog
+          trigger={
+            <Button variant="destructive" disabled={isPending}>
+              <Lock className="mr-2 h-4 w-4" />
+              受付を締め切る
+            </Button>
+          }
+          title="BET5を締め切りますか？"
+          description="ユーザーはこれ以降投票できなくなります。"
+          confirmLabel="締め切る"
+          onConfirm={onClose}
+        />
+      )}
+
+      {status === 'CLOSED' && (
+        <ConfirmDialog
+          trigger={
+            <Button variant="secondary" disabled={isPending || !canCalculatePayout}>
+              <Calculator className="mr-2 h-4 w-4" />
+              配当計算・払戻実行
+            </Button>
+          }
+          title="配当計算・払戻を実行しますか？"
+          description="的中を集計し、各ユーザーへ払い戻します。この操作は取り消せません。"
+          confirmLabel="実行する"
+          onConfirm={onCalculate}
+        />
+      )}
+
+      {status === 'CLOSED' && !canCalculatePayout && (
+        <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
+          <Info className="mr-1 h-4 w-4" />
+          全対象レースが「着順確定」または「払戻確定」になると実行できます。
+        </div>
+      )}
+
+      {status === 'SCHEDULED' && (
+        <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
+          <Info className="mr-1 h-4 w-4" />
+          払戻は締切後に実行できます。
+        </div>
+      )}
+
+      {status === 'FINALIZED' && (
+        <div className="flex items-center font-medium text-green-600">
+          <Calculator className="mr-2 h-4 w-4" />
+          集計・払戻完了済み
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function Bet5ManageCard({
@@ -202,58 +271,13 @@ export function Bet5ManageCard({
           </ul>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          {bet5Event.status === 'SCHEDULED' && (
-            <ConfirmDialog
-              trigger={
-                <Button variant="destructive" disabled={isPending}>
-                  <Lock className="mr-2 h-4 w-4" />
-                  受付を締め切る
-                </Button>
-              }
-              title="BET5を締め切りますか？"
-              description="ユーザーはこれ以降投票できなくなります。"
-              confirmLabel="締め切る"
-              onConfirm={handleClose}
-            />
-          )}
-
-          {bet5Event.status === 'CLOSED' && (
-            <ConfirmDialog
-              trigger={
-                <Button variant="secondary" disabled={isPending || !canCalculatePayout}>
-                  <Calculator className="mr-2 h-4 w-4" />
-                  配当計算・払戻実行
-                </Button>
-              }
-              title="配当計算・払戻を実行しますか？"
-              description="的中を集計し、各ユーザーへ払い戻します。この操作は取り消せません。"
-              confirmLabel="実行する"
-              onConfirm={handleCalculate}
-            />
-          )}
-
-          {bet5Event.status === 'CLOSED' && !canCalculatePayout && (
-            <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
-              <Info className="mr-1 h-4 w-4" />
-              全対象レースが「着順確定」または「払戻確定」になると実行できます。
-            </div>
-          )}
-
-          {bet5Event.status === 'SCHEDULED' && (
-            <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
-              <Info className="mr-1 h-4 w-4" />
-              払戻は締切後に実行できます。
-            </div>
-          )}
-
-          {bet5Event.status === 'FINALIZED' && (
-            <div className="flex items-center font-medium text-green-600">
-              <Calculator className="mr-2 h-4 w-4" />
-              集計・払戻完了済み
-            </div>
-          )}
-        </div>
+        <Bet5ActionRow
+          status={bet5Event.status}
+          isPending={isPending}
+          canCalculatePayout={canCalculatePayout}
+          onClose={handleClose}
+          onCalculate={handleCalculate}
+        />
         {isPending && (
           <div className="flex items-center text-sm text-gray-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

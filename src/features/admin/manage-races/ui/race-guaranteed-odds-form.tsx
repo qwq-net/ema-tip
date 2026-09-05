@@ -15,10 +15,10 @@ interface RaceGuaranteedOddsFormProps {
 }
 
 export function RaceGuaranteedOddsForm({ raceId, initialOdds, hideHeader = false }: RaceGuaranteedOddsFormProps) {
-  const [odds, setOdds] = useState<Record<string, number>>(initialOdds || {});
+  const [odds, setOdds] = useState<Record<string, number>>(initialOdds ?? {});
   const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     startTransition(async () => {
       try {

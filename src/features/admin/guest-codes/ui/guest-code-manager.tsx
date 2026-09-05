@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { generateGuestCode, invalidateGuestCode, invalidateUsersByCode } from '../actions/guest-actions';
 
-type GuestCode = {
+interface GuestCode {
   code: string;
   title: string;
   createdBy: string;
@@ -17,7 +17,7 @@ type GuestCode = {
   creator?: {
     name: string | null;
   };
-};
+}
 
 export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
   const router = useRouter();

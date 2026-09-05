@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 /** @theme ブロック内の --color-* 定義を { 名前: 値 } で返す。値は未解決のまま。 */
 function readThemeTokens() {
   const css = readFileSync(join(import.meta.dirname, 'globals.css'), 'utf8');
-  const theme = css.match(/@theme\s*\{([\s\S]*?)\n\}/)?.[1];
+  const theme = /@theme\s*\{([\s\S]*?)\n\}/.exec(css)?.[1];
   if (!theme) throw new Error('@theme ブロックが見つかりません');
   const tokens: Record<string, string> = {};
   for (const [, name, value] of theme.matchAll(/(--color-[\w-]+):\s*([^;]+);/g)) {
@@ -24,11 +24,11 @@ function readThemeTokens() {
 function resolveHex(tokens: Record<string, string>, name: string): string {
   let value = tokens[name];
   for (let i = 0; value && i < 10; i++) {
-    const ref = value.match(/^var\((--color-[\w-]+)\)$/)?.[1];
+    const ref = /^var\((--color-[\w-]+)\)$/.exec(value)?.[1];
     if (!ref) break;
     value = tokens[ref];
   }
-  if (!value?.match(/^#[0-9a-f]{6}$/i)) throw new Error(`${name} を hex に解決できません: ${value}`);
+  if (!/^#[0-9a-f]{6}$/i.exec(value)) throw new Error(`${name} を hex に解決できません: ${value}`);
   return value;
 }
 

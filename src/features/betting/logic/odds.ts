@@ -1,4 +1,3 @@
-import { isRefundedBet } from '@/entities/bet/lib/payout';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
@@ -11,6 +10,8 @@ import {
   calculatePlaceOddsRange,
   calculateProvisionalOdds,
   calculateWinPopularity,
+  isRefundedBet,
+  resolveInvalidSelections,
 } from '@/entities/bet';
 
 const THROTTLE_SECONDS = 10;
@@ -36,7 +37,7 @@ export async function calculateOdds(raceId: string) {
   // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す。
   // 保証オッズも適用し、表示オッズが実際の払戻下限を下回らないようにする
   const pool = aggregateOddsPool(displayBets);
-  const provisionalWin = calculateProvisionalOdds(pool, race?.guaranteedOdds || undefined)[BET_TYPES.WIN] ?? {};
+  const provisionalWin = calculateProvisionalOdds(pool, race?.guaranteedOdds ?? undefined)[BET_TYPES.WIN] ?? {};
   // SAFETY: key は normalizeSelections が number[] を JSON.stringify したもの
   const toHorseNumberKey = (key: string) => String((JSON.parse(key) as number[])[0]);
   const winOdds = Object.fromEntries(
@@ -92,11 +93,11 @@ export async function calculateOdds(raceId: string) {
     const result = await redis.set(updateScheduledKey, 'true', 'EX', ttl + 1, 'NX');
 
     if (result === 'OK') {
-      setTimeout(async () => {
+      const runTrailingUpdate = async () => {
         try {
           const latestOdds = await getRaceOdds(raceId);
           if (latestOdds) {
-            console.log(`[Odds] Executing trailing edge update for race: ${raceId}`);
+            console.info(`[Odds] Executing trailing edge update for race: ${raceId}`);
             raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
               raceId,
               data: {
@@ -113,6 +114,11 @@ export async function calculateOdds(raceId: string) {
         } finally {
           await redis.del(updateScheduledKey);
         }
+      };
+      setTimeout(() => {
+        runTrailingUpdate().catch((cause: unknown) => {
+          console.error('[Odds] Trailing edge update rejected:', cause);
+        });
       }, delay);
     }
   }
@@ -136,22 +142,14 @@ export async function calculateAllProvisionalOdds(raceId: string) {
 
   if (race?.fixedOddsMode) return {};
 
-  const invalidHorseIds = new Set(
-    entriesInRace.filter((e) => e.status === 'SCRATCHED' || e.status === 'EXCLUDED').map((e) => e.horseNumber!)
-  );
-  const validBrackets = new Set(
-    entriesInRace
-      .filter((e) => e.status === 'ENTRANT')
-      .map((e) => e.bracketNumber!)
-      .filter((b): b is number => b !== null)
-  );
+  const { invalidHorseIds, validBrackets } = resolveInvalidSelections(entriesInRace);
 
   const raceBets = raceBetsRaw.filter(
     (bet) => !isRefundedBet(bet.details.type, bet.details.selections, invalidHorseIds, validBrackets)
   );
 
   const pool = aggregateOddsPool(raceBets);
-  return calculateProvisionalOdds(pool, race?.guaranteedOdds || undefined);
+  return calculateProvisionalOdds(pool, race?.guaranteedOdds ?? undefined);
 }
 
 // 暫定オッズをレース単位で短時間キャッシュして返す。計算結果はユーザーに依存しない。

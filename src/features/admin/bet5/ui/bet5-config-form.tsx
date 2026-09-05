@@ -17,11 +17,11 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-type Race = {
+interface Race {
   id: string;
   raceNumber: number | null;
   name: string;
-};
+}
 
 interface Bet5ConfigFormProps {
   eventId: string;
@@ -36,7 +36,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
   const [initialPot, setInitialPot] = useState(defaultInitialPot);
   const [selectedRaces, setSelectedRaces] = useState<string[]>([]);
 
-  const sortedRaces = [...races].sort((a, b) => (a.raceNumber || 0) - (b.raceNumber || 0));
+  const sortedRaces = [...races].sort((a, b) => (a.raceNumber ?? 0) - (b.raceNumber ?? 0));
   const selectedInRaceOrder = sortedRaces.filter((race) => selectedRaces.includes(race.id));
   const raceLabel = (race: Race) => `${race.raceNumber ? `${race.raceNumber}R` : 'Ex'} ${race.name}`;
 

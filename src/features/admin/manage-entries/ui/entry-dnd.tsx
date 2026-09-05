@@ -38,16 +38,16 @@ import { GripVertical, Trash2 } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { saveEntries } from '../actions';
 
-type Horse = {
+interface Horse {
   id: string;
   name: string;
   gender: string;
   age: number | null;
   source: HorseSource;
   type: HorseType;
-};
+}
 
-type Entry = {
+interface Entry {
   id: string;
   horseId: string;
   horseName: string;
@@ -57,13 +57,13 @@ type Entry = {
   horseType: HorseType;
   bracketNumber: number | null;
   horseNumber: number | null;
-};
+}
 
-type Props = {
+interface Props {
   raceId: string;
   availableHorses: Horse[];
   existingEntries: Entry[];
-};
+}
 
 function SortableEntry({
   horse,
@@ -186,6 +186,25 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     setActiveId(String(event.active.id));
   };
 
+  // 登録馬一覧からのドラッグを出走馬一覧へ反映する。出走側の枠や行以外へ落とされたら何もしない
+  const dropIntoEntries = (activeIdStr: string, overIdStr: string) => {
+    if (overIdStr !== 'entries-list' && !entries.some((e) => e.id === overIdStr)) return;
+
+    const horse = available.find((h) => h.id === activeIdStr.replace('available-', ''));
+    if (!horse) return;
+
+    addToEntries(horse, overIdStr === 'entries-list' ? undefined : overIdStr);
+  };
+
+  // 出走馬一覧の中での並び替えを反映する。行を特定できない場合と同じ位置への移動は無視する
+  const reorderEntries = (activeIdStr: string, overIdStr: string) => {
+    const oldIndex = entries.findIndex((e) => e.id === activeIdStr);
+    const newIndex = entries.findIndex((e) => e.id === overIdStr);
+    if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+    setEntries((prev) => arrayMove(prev, oldIndex, newIndex));
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
@@ -196,29 +215,18 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     const overIdStr = String(over.id);
 
     if (activeIdStr.startsWith('available-')) {
-      const horseId = activeIdStr.replace('available-', '');
-
-      if (overIdStr === 'entries-list' || entries.some((e) => e.id === overIdStr)) {
-        const horse = available.find((h) => h.id === horseId);
-        if (horse) {
-          addToEntries(horse, overIdStr === 'entries-list' ? undefined : overIdStr);
-        }
-      }
+      dropIntoEntries(activeIdStr, overIdStr);
       return;
     }
 
-    if (entries.some((e) => e.id === activeIdStr)) {
-      if (overIdStr === 'available-list' || available.some((h) => `available-${h.id}` === overIdStr)) {
-        removeFromEntries(activeIdStr);
-        return;
-      }
+    if (!entries.some((e) => e.id === activeIdStr)) return;
 
-      const oldIndex = entries.findIndex((e) => e.id === activeIdStr);
-      const newIndex = entries.findIndex((e) => e.id === overIdStr);
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        setEntries((prev) => arrayMove(prev, oldIndex, newIndex));
-      }
+    if (overIdStr === 'available-list' || available.some((h) => `available-${h.id}` === overIdStr)) {
+      removeFromEntries(activeIdStr);
+      return;
     }
+
+    reorderEntries(activeIdStr, overIdStr);
   };
 
   // insertBeforeId のエントリの直前に挿入する。省略時は末尾に追加
@@ -270,7 +278,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
   const { setNodeRef: setEntriesRef } = useDroppable({ id: 'entries-list' });
 
   const activeHorse = activeId
-    ? available.find((h) => `available-${h.id}` === activeId) || entries.find((h) => h.id === activeId)
+    ? (available.find((h) => `available-${h.id}` === activeId) ?? entries.find((h) => h.id === activeId))
     : null;
 
   return (
@@ -299,10 +307,10 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
               />
             </div>
             <div ref={setAvailableRef} id="available-list" className="flex-1 space-y-2 overflow-y-auto p-4">
-              {available.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">すべての馬が出走登録済みです</div>
-              ) : visibleHorses.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">該当する馬がいません</div>
+              {visibleHorses.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  {available.length === 0 ? 'すべての馬が出走登録済みです' : '該当する馬がいません'}
+                </div>
               ) : (
                 <SortableContext
                   items={visibleHorses.map((h) => `available-${h.id}`)}

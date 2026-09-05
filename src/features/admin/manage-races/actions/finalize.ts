@@ -2,6 +2,7 @@
 
 import {
   BET_TYPES,
+  BetDetail,
   calculatePayoutRate,
   Finisher,
   getWinningCombinations,
@@ -9,6 +10,7 @@ import {
   isWinningBet,
   normalizeSelections,
   ODDS_UNIT,
+  resolveInvalidSelections,
 } from '@/entities/bet';
 import type { NetkeibaPayoutEntry } from '@/features/admin/import-race/model/types';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
@@ -19,11 +21,143 @@ import { ActionError, requireAdmin, revalidateRacePaths, runAction } from '@/sha
 import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq, sql, SQL } from 'drizzle-orm';
 
+/** 管理画面から渡される 1 頭分の着順入力 */
+interface RaceResultInput {
+  entryId: string;
+  finishPosition: number;
+}
+
+/** 払戻表に載る 1 組合せ。guaranteed は保証オッズで倍率が引き上げられたときだけ立つ */
+// 払戻組合せの形は payoutResults.combinations の $type が単一の管理点
+type PayoutCombination = (typeof payoutResultsTable.$inferSelect)['combinations'][number];
+
+type PayoutCalculationsByType = Record<string, PayoutCombination[]>;
+
+/** 集計に使う最小限のベット情報 */
+interface PoolBet {
+  details: BetDetail;
+  amount: number;
+}
+
+/** 券種別の投票総額と、的中した選択ごとの投票額 */
+interface BetPools {
+  poolByBetType: Record<string, number>;
+  winningSelectionAmounts: Record<string, Record<string, number>>;
+}
+
+/** 着順から entryId ごとの finishPosition を割り当てる CASE 式を組む。対象外の行は元の着順を保つ */
+function buildFinishPositionCase(results: RaceResultInput[]): SQL {
+  const sqlChunks: SQL[] = [sql`(case`];
+  for (const result of results) {
+    sqlChunks.push(sql`when ${raceEntries.id} = ${result.entryId} then ${result.finishPosition}`);
+  }
+  sqlChunks.push(sql`else ${raceEntries.finishPosition} end)`);
+  return sql.join(sqlChunks, sql` `);
+}
+
+/** 全ベットを券種別の総額と、的中選択ごとの投票額に集計する。返還対象の馬番と枠番を含むベットは除く */
+function aggregateBetPools(
+  allBets: PoolBet[],
+  finishers: Finisher[],
+  invalidHorseIds: Set<number>,
+  validBrackets: Set<number>
+): BetPools {
+  const poolByBetType: Record<string, number> = {};
+  const winningSelectionAmounts: Record<string, Record<string, number>> = {};
+
+  for (const bet of allBets) {
+    const betDetail = bet.details;
+    const type = betDetail.type;
+
+    if (isRefundedBet(type, betDetail.selections, invalidHorseIds, validBrackets)) {
+      continue;
+    }
+
+    poolByBetType[type] = (poolByBetType[type] || 0) + bet.amount;
+
+    if (isWinningBet(betDetail, finishers)) {
+      const selectionKey = normalizeSelections(type, betDetail.selections);
+
+      if (!winningSelectionAmounts[type]) winningSelectionAmounts[type] = {};
+      winningSelectionAmounts[type][selectionKey] = (winningSelectionAmounts[type][selectionKey] || 0) + bet.amount;
+    }
+  }
+
+  return { poolByBetType, winningSelectionAmounts };
+}
+
+/** netkeiba の払戻表から券種別の払戻組合せを取り出す。組合せが空の券種は取り込まない */
+function pickNetkeibaPayouts(netkeibaPayouts: Partial<Record<string, NetkeibaPayoutEntry[]>>) {
+  const byType: PayoutCalculationsByType = {};
+
+  for (const [type, entries] of Object.entries(netkeibaPayouts)) {
+    if (entries && entries.length > 0) {
+      byType[type] = entries;
+    }
+  }
+
+  return byType;
+}
+
+/** プールと的中投票額から券種別の払戻を計算する。保証オッズがあればそれを倍率の下限にする */
+function calculatePayoutsFromPools(pools: BetPools, guaranteedOdds: Record<string, number> | undefined) {
+  const byType: PayoutCalculationsByType = {};
+
+  for (const [type, selectionAmounts] of Object.entries(pools.winningSelectionAmounts)) {
+    const totalWinningAmount = Object.values(selectionAmounts).reduce((sum, amount) => sum + amount, 0);
+    const winningCount = Object.keys(selectionAmounts).length;
+
+    if (!byType[type]) byType[type] = [];
+
+    for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
+      const rate = calculatePayoutRate(pools.poolByBetType[type], selectionAmount, totalWinningAmount, winningCount);
+      const guaranteedRate = guaranteedOdds?.[type];
+
+      // 保証で倍率が引き上げられた組み合わせはフラグを残し、UI で保証適用を示せるようにする
+      const isGuaranteed = guaranteedRate !== undefined && rate < guaranteedRate;
+      const appliedRate = isGuaranteed ? guaranteedRate : rate;
+
+      // SAFETY: selectionKey は normalizeSelections が number[] を JSON.stringify したもの
+      byType[type].push({
+        numbers: JSON.parse(selectionKey) as number[],
+        payout: Math.floor(ODDS_UNIT * appliedRate),
+        ...(isGuaranteed && { guaranteed: true }),
+      });
+    }
+  }
+
+  return byType;
+}
+
+/** 保証オッズの対象で誰も買っていない的中組合せを byType へ補完する。券種ごとに組合せ順で並べ替える */
+function fillGuaranteedCombinations(
+  byType: PayoutCalculationsByType,
+  finishers: Finisher[],
+  guaranteedOdds: Record<string, number> | undefined
+): void {
+  for (const type of Object.values(BET_TYPES)) {
+    if (!byType[type]) byType[type] = [];
+
+    const winningCombinations = getWinningCombinations(type, finishers);
+    const defaultRate = guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type] ?? 1.0;
+
+    for (const combination of winningCombinations) {
+      const key = normalizeSelections(type, combination);
+      const exists = byType[type].some((p) => normalizeSelections(type, p.numbers) === key);
+      if (exists) continue;
+
+      byType[type].push({ numbers: combination, payout: Math.floor(ODDS_UNIT * defaultRate), guaranteed: true });
+    }
+
+    byType[type] = byType[type].sort((a, b) => a.numbers.join('-').localeCompare(b.numbers.join('-')));
+  }
+}
+
 // 着順を確定して払戻を計算する。本番では throw のメッセージがマスクされるため、
 // 未締切・確定済みなどの想定内エラーは throw せず { success: false, error } で返す。
 export async function finalizeRace(
   raceId: string,
-  results: { entryId: string; finishPosition: number }[],
+  results: RaceResultInput[],
   netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
 ) {
   return runAction(() => finalizeRaceInner(raceId, results, netkeibaPayouts));
@@ -31,7 +165,7 @@ export async function finalizeRace(
 
 async function finalizeRaceInner(
   raceId: string,
-  results: { entryId: string; finishPosition: number }[],
+  results: RaceResultInput[],
   netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
 ) {
   const session = await requireAdmin();
@@ -64,20 +198,13 @@ async function finalizeRaceInner(
     }
 
     // トランザクションが巻き戻ればログも消えるため、検証通過時点で記録してよい
-    await logAdminAction(tx, session, 'race.finalize_results', raceId);
+    await logAdminAction(tx, session.user, { action: 'race.finalize_results', targetId: raceId });
 
     if (results.length > 0) {
-      const sqlChunks: SQL[] = [];
-
-      sqlChunks.push(sql`(case`);
-      for (const result of results) {
-        sqlChunks.push(sql`when ${raceEntries.id} = ${result.entryId} then ${result.finishPosition}`);
-      }
-      sqlChunks.push(sql`else ${raceEntries.finishPosition} end)`);
-
-      const finalSql: SQL = sql.join(sqlChunks, sql` `);
-
-      await tx.update(raceEntries).set({ finishPosition: finalSql }).where(eq(raceEntries.raceId, raceId));
+      await tx
+        .update(raceEntries)
+        .set({ finishPosition: buildFinishPositionCase(results) })
+        .where(eq(raceEntries.raceId, raceId));
     }
 
     const raceEntriesWithInfo = await tx.query.raceEntries.findMany({
@@ -86,35 +213,33 @@ async function finalizeRaceInner(
       orderBy: [raceEntries.finishPosition],
     });
 
-    const finishers: Finisher[] = raceEntriesWithInfo
-      .filter((e) => e.finishPosition !== null)
-      .map((e) => ({
-        horseNumber: e.horseNumber!,
-        bracketNumber: e.bracketNumber!,
-      }));
+    // 着順の付いた出走馬。着順があるのに馬番か枠番が欠けているのはデータ不整合であり、
+    // 欠けたまま進めると的中判定と払戻が静かに狂うため、ここで払戻計算ごと止める
+    const finishedEntries = raceEntriesWithInfo.flatMap((e) => {
+      if (e.finishPosition === null) return [];
+      if (e.horseNumber === null || e.bracketNumber === null) {
+        throw new ActionError(`${e.horse.name} に着順が入っていますが、馬番または枠番が設定されていません`);
+      }
+      return [
+        {
+          finishPosition: e.finishPosition,
+          horseNumber: e.horseNumber,
+          bracketNumber: e.bracketNumber,
+          horseName: e.horse.name,
+        },
+      ];
+    });
+
+    const finishers: Finisher[] = finishedEntries.map(({ horseNumber, bracketNumber }) => ({
+      horseNumber,
+      bracketNumber,
+    }));
 
     if (finishers.length === 0) throw new ActionError('着順が指定されていません');
 
-    const invalidHorseIds = new Set(
-      raceEntriesWithInfo.filter((e) => e.status === 'SCRATCHED' || e.status === 'EXCLUDED').map((e) => e.horseNumber!)
-    );
+    const { invalidHorseIds, validBrackets } = resolveInvalidSelections(raceEntriesWithInfo);
 
-    const validBrackets = new Set(
-      raceEntriesWithInfo
-        .filter((e) => e.status === 'ENTRANT')
-        .map((e) => e.bracketNumber!)
-        .filter((b): b is number => b !== null)
-    );
-
-    rankingPayload = raceEntriesWithInfo
-      .filter((e) => e.finishPosition !== null)
-      .slice(0, 5)
-      .map((e) => ({
-        finishPosition: e.finishPosition!,
-        horseNumber: e.horseNumber!,
-        bracketNumber: e.bracketNumber!,
-        horseName: e.horse!.name,
-      }));
+    rankingPayload = finishedEntries.slice(0, 5);
 
     const allBets = await tx.query.bets.findMany({
       where: eq(bets.raceId, raceId),
@@ -122,80 +247,15 @@ async function finalizeRaceInner(
 
     const guaranteedOdds = raceInstance.guaranteedOdds ?? undefined;
 
-    const poolByBetType: Record<string, number> = {};
-    const winningSelectionAmounts: Record<string, Record<string, number>> = {};
+    const pools = aggregateBetPools(allBets, finishers, invalidHorseIds, validBrackets);
 
-    for (const bet of allBets) {
-      const betDetail = bet.details;
-      const type = betDetail.type;
-
-      if (isRefundedBet(type, betDetail.selections, invalidHorseIds, validBrackets)) {
-        continue;
-      }
-
-      poolByBetType[type] = (poolByBetType[type] || 0) + bet.amount;
-
-      if (isWinningBet(betDetail, finishers)) {
-        const selectionKey = normalizeSelections(type, betDetail.selections);
-
-        if (!winningSelectionAmounts[type]) winningSelectionAmounts[type] = {};
-        winningSelectionAmounts[type][selectionKey] = (winningSelectionAmounts[type][selectionKey] || 0) + bet.amount;
-      }
-    }
-
-    const payoutCalculationsByType: Record<string, { numbers: number[]; payout: number; guaranteed?: boolean }[]> = {};
+    let payoutCalculationsByType: PayoutCalculationsByType;
 
     if (netkeibaPayouts) {
-      for (const [type, entries] of Object.entries(netkeibaPayouts)) {
-        if (entries && entries.length > 0) {
-          payoutCalculationsByType[type] = entries;
-        }
-      }
+      payoutCalculationsByType = pickNetkeibaPayouts(netkeibaPayouts);
     } else {
-      for (const [type, selectionAmounts] of Object.entries(winningSelectionAmounts)) {
-        const totalWinningAmount = Object.values(selectionAmounts).reduce((sum, amount) => sum + amount, 0);
-        const winningCount = Object.keys(selectionAmounts).length;
-
-        if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
-
-        for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
-          let rate = calculatePayoutRate(poolByBetType[type], selectionAmount, totalWinningAmount, winningCount);
-
-          // 保証で倍率が引き上げられた組み合わせはフラグを残し、UI で保証適用を示せるようにする
-          const isGuaranteed = guaranteedOdds?.[type] !== undefined && rate < guaranteedOdds[type];
-          if (isGuaranteed) {
-            rate = guaranteedOdds[type];
-          }
-
-          const unitPayout = Math.floor(ODDS_UNIT * rate);
-          // SAFETY: selectionKey は normalizeSelections が number[] を JSON.stringify したもの
-          payoutCalculationsByType[type].push({
-            numbers: JSON.parse(selectionKey) as number[],
-            payout: unitPayout,
-            ...(isGuaranteed && { guaranteed: true }),
-          });
-        }
-      }
-
-      for (const type of Object.values(BET_TYPES)) {
-        if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
-
-        const winningCombinations = getWinningCombinations(type, finishers);
-        const defaultRate = guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type] ?? 1.0;
-
-        for (const combination of winningCombinations) {
-          const key = normalizeSelections(type, combination);
-          const exists = payoutCalculationsByType[type].some((p) => normalizeSelections(type, p.numbers) === key);
-          if (!exists) {
-            const payout = Math.floor(ODDS_UNIT * defaultRate);
-            payoutCalculationsByType[type].push({ numbers: combination, payout, guaranteed: true });
-          }
-        }
-
-        payoutCalculationsByType[type] = payoutCalculationsByType[type].sort((a, b) => {
-          return a.numbers.join('-').localeCompare(b.numbers.join('-'));
-        });
-      }
+      payoutCalculationsByType = calculatePayoutsFromPools(pools, guaranteedOdds);
+      fillGuaranteedCombinations(payoutCalculationsByType, finishers, guaranteedOdds);
     }
 
     await tx.delete(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));

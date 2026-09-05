@@ -27,13 +27,22 @@ const GENDER_LABELS = {
   GELDING: 'セ',
 } satisfies Record<string, string>;
 
-type EventItem = { id: string; name: string; date: string };
-type VenueItem = { id: string; name: string; shortName: string; code: string | null };
+interface EventItem {
+  id: string;
+  name: string;
+  date: string;
+}
+interface VenueItem {
+  id: string;
+  name: string;
+  shortName: string;
+  code: string | null;
+}
 
-type Props = {
+interface Props {
   events: EventItem[];
   venues: VenueItem[];
-};
+}
 
 export function ImportRaceClient({ events, venues }: Props) {
   const router = useRouter();
@@ -232,7 +241,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                 <TableBody>
                   {preview.horses.map((h) => (
                     <TableRow key={h.name} className={h.scratched ? 'text-text-sub bg-red-50/50 line-through' : ''}>
-                      <Td>{h.bracketNumber}</Td>
+                      <Td>{h.bracketNumber ?? '-'}</Td>
                       <Td>{h.horseNumber}</Td>
                       <Td className="font-medium">{h.name}</Td>
                       <Td>
@@ -243,13 +252,13 @@ export function ImportRaceClient({ events, venues }: Props) {
                       <Td>{h.weight?.toFixed(1) ?? '-'}</Td>
                       <Td>{h.scratched ? '-' : (h.odds?.toFixed(1) ?? '-')}</Td>
                       <Td className="no-underline">
-                        {h.scratched ? (
-                          <Badge label="取消" className="bg-red-100 text-red-600" />
-                        ) : h.existingHorseId ? (
-                          <Badge label="既存" className="bg-blue-100 text-blue-700" />
-                        ) : (
-                          <Badge label="新規" className="bg-green-100 text-green-700" />
-                        )}
+                        {h.scratched && <Badge label="取消" className="bg-red-100 text-red-600" />}
+                        {!h.scratched &&
+                          (h.existingHorseId ? (
+                            <Badge label="既存" className="bg-blue-100 text-blue-700" />
+                          ) : (
+                            <Badge label="新規" className="bg-green-100 text-green-700" />
+                          ))}
                       </Td>
                     </TableRow>
                   ))}

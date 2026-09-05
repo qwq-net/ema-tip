@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   title: '出走馬詳細',
 };
 
-type Props = {
+interface Props {
   params: Promise<{ raceId: string }>;
-};
+}
 
 export default async function RaceEntryPage({ params }: Props) {
   const { raceId } = await params;

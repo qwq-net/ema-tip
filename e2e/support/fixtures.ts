@@ -26,11 +26,11 @@ function createSql() {
   return postgres(url, { max: 1, prepare: false });
 }
 
-export type Fixtures = {
+export interface Fixtures {
   raceId: string;
   eventId: string;
   horse1Name: string;
-};
+}
 
 // 管理者・ゲストコード・ACTIVEイベント・SCHEDULEDレース・出走馬5頭を作って ID を返す。
 // 出走馬はシード済みの horse を先頭から流用し、馬番1の馬が「1着候補」チェックの対象になる

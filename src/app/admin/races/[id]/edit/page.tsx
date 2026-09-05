@@ -20,6 +20,7 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
   async function onSuccess() {
     'use server';
     redirect(`/admin/races/${id}`);

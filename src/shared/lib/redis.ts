@@ -19,7 +19,7 @@ function createRedis() {
   });
 
   client.on('connect', () => {
-    console.log('Redis connected');
+    console.info('Redis connected');
   });
 
   return client;

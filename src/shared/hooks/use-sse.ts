@@ -40,14 +40,17 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
         resetHeartbeat();
       };
 
-      eventSource.onmessage = (event) => {
+      eventSource.onmessage = (event: MessageEvent<string>) => {
         if (event.data === ': ping') {
           resetHeartbeat();
           return;
         }
 
         try {
-          const data: SSEMessage = JSON.parse(event.data);
+          // SAFETY: 呼び出し 2 箇所が渡す url はどちらも同一オリジンの自前 SSE ルートで、
+          // RaceStatusSSEMessage を JSON.stringify した値しか流さない。第三者が書き込む経路はない。
+          // 形が違っても直後の type 判定と呼び先の分岐で無視されるため実害は出ない
+          const data = JSON.parse(event.data) as SSEMessage;
           if (data.type === 'connected') return;
 
           onMessageRef.current?.(data);

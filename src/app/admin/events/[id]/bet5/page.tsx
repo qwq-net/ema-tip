@@ -23,7 +23,7 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
   const { event, races, bet5Event, horseMap } = adminData;
 
   let tickets: Awaited<ReturnType<typeof getBet5TicketsAction>> = [];
-  let winnerRows: Array<{ raceId: string; horseId: string }> = [];
+  let winnerRows: { raceId: string; horseId: string }[] = [];
 
   const targetRaceIds = bet5Event
     ? [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id]
@@ -62,14 +62,16 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
   const winnerHorseIdByRaceId = new Map<string, string | null>();
   const winnerSetByRaceId = new Map<string, Set<string>>();
   winnerRows.forEach((row) => {
-    if (!winnerSetByRaceId.has(row.raceId)) {
-      winnerSetByRaceId.set(row.raceId, new Set<string>());
+    let winners = winnerSetByRaceId.get(row.raceId);
+    if (!winners) {
+      winners = new Set<string>();
+      winnerSetByRaceId.set(row.raceId, winners);
     }
-    winnerSetByRaceId.get(row.raceId)!.add(row.horseId);
+    winners.add(row.horseId);
   });
   targetRaceIds.forEach((raceId) => {
     const set = winnerSetByRaceId.get(raceId);
-    winnerHorseIdByRaceId.set(raceId, set && set.size === 1 ? [...set][0] : null);
+    winnerHorseIdByRaceId.set(raceId, set?.size === 1 ? [...set][0] : null);
   });
 
   const isRaceResolved = (status: string) => status === 'RANKING_CONFIRMED' || status === 'FINALIZED';
@@ -151,8 +153,8 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
         <p className="mt-1 text-base text-gray-500">{event.name} のBET5設定と購入状況</p>
       </div>
 
-      {!bet5Event ? (
-        selectableRaces.length >= 5 ? (
+      {!bet5Event &&
+        (selectableRaces.length >= 5 ? (
           <Bet5ConfigForm
             eventId={id}
             eventName={event.name}
@@ -166,8 +168,8 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
               BET5の設定には締め切られていないレースが5件以上必要です。現在は {selectableRaces.length} 件です。
             </p>
           </div>
-        )
-      ) : (
+        ))}
+      {bet5Event && (
         <div className="space-y-8">
           <Bet5ManageCard
             bet5Event={bet5Event}

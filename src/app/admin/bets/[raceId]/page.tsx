@@ -3,12 +3,27 @@ import { getBetsByRace, getRaceWithBets } from '@/features/admin/manage-bets/act
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
+import { lookup } from '@/shared/utils/lookup';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: '馬券詳細',
 };
+
+// 馬券状態の日本語ラベル。REFUNDED はラベルを持たず、状態名をそのまま表示する
+const BET_STATUS_LABELS = {
+  PENDING: '未確定',
+  HIT: '的中',
+  LOST: '不的中',
+} satisfies Record<string, string>;
+
+// 馬券状態のバッジ色。的中だけを緑で強調する。REFUNDED は色を持たず Badge の既定に任せる
+const BET_STATUS_CLASSES = {
+  HIT: 'bg-green-100 text-green-800',
+  LOST: 'bg-gray-100 text-gray-600',
+  PENDING: 'bg-gray-100 text-gray-600',
+} satisfies Record<string, string>;
 
 interface BetDetailPageProps {
   params: Promise<{ raceId: string }>;
@@ -71,22 +86,8 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
               <Td>
                 <Badge
                   variant="status"
-                  label={
-                    bet.status === 'PENDING'
-                      ? '未確定'
-                      : bet.status === 'HIT'
-                        ? '的中'
-                        : bet.status === 'LOST'
-                          ? '不的中'
-                          : bet.status
-                  }
-                  className={
-                    bet.status === 'HIT'
-                      ? 'bg-green-100 text-green-800'
-                      : bet.status === 'LOST' || bet.status === 'PENDING'
-                        ? 'bg-gray-100 text-gray-600'
-                        : undefined
-                  }
+                  label={lookup(BET_STATUS_LABELS, bet.status) ?? bet.status}
+                  className={lookup(BET_STATUS_CLASSES, bet.status)}
                 />
               </Td>
             </TableRow>

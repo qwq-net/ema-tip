@@ -94,9 +94,9 @@ export function PayoutResultModal({ raceName, raceDate, results, open, onOpenCha
   );
 }
 
-function renderResultBlock(results: ResultItem[], type: BetType, minRows: number = 1, fullWidth: boolean = false) {
+function renderResultBlock(results: ResultItem[], type: BetType, minRows = 1, fullWidth = false) {
   const item = results.find((r) => r.type === type);
-  const data = item?.combinations || [];
+  const data = item?.combinations ?? [];
 
   const rows: ResultItem['combinations'] = [...data];
   while (rows.length < minRows) {

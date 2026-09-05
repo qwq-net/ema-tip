@@ -77,7 +77,7 @@ export function calculateProvisionalOdds(pool: OddsPool, guaranteedOdds?: Record
       let rate = effectivePool / amount;
       rate = Math.floor(rate * 10) / 10;
 
-      if (guaranteedOdds && guaranteedOdds[type]) {
+      if (guaranteedOdds?.[type]) {
         rate = Math.max(rate, guaranteedOdds[type]);
       }
 

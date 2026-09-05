@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'レース定義',
 };
 
-export default async function RaceDefinitionsPage() {
+export default function RaceDefinitionsPage() {
   return (
     <div className="space-y-6">
       <AdminPageHeader

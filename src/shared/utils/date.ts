@@ -1,7 +1,7 @@
 export const JST_TIMEZONE = 'Asia/Tokyo';
 
 export function parseJSTToUTC(jstString: string | null | undefined): Date | null {
-  if (!jstString || !jstString.includes('T')) return null;
+  if (!jstString?.includes('T')) return null;
 
   const date = new Date(`${jstString}:00+09:00`);
   return isNaN(date.getTime()) ? null : date;

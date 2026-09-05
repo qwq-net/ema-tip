@@ -8,81 +8,81 @@ export type PlaceOddsMap = Record<
   }
 >;
 
-export type RaceOddsData = {
+export interface RaceOddsData {
   winOdds: WinOddsMap;
   // 馬番→人気順。賭け金額から算出し、未購入の馬番は含まれない
   winPopularity?: Record<string, number> | null;
   placeOdds: PlaceOddsMap;
   updatedAt: Date | string;
-};
+}
 
-export type RaceResultItem = {
+export interface RaceResultItem {
   finishPosition: number;
   horseNumber: number;
   bracketNumber: number;
   horseName: string;
-};
+}
 
 export type RankingMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
 
-export type SSEConnectedMessage = {
+export interface SSEConnectedMessage {
   type: 'connected';
   id: string;
-};
+}
 
-export type SSERaceFinalizedMessage = {
+export interface SSERaceFinalizedMessage {
   type: 'RACE_FINALIZED';
   raceId: string;
-};
+}
 
-export type SSERaceBroadcastMessage = {
+export interface SSERaceBroadcastMessage {
   type: 'RACE_BROADCAST';
   raceId: string;
-};
+}
 
-export type SSERaceClosedMessage = {
+export interface SSERaceClosedMessage {
   type: 'RACE_CLOSED';
   raceId: string;
-};
+}
 
-export type SSERaceReopenedMessage = {
+export interface SSERaceReopenedMessage {
   type: 'RACE_REOPENED';
   raceId: string;
   // 再開と同時にタイマーが設定された場合の締切時刻。手動再開では null
   closingAt: string | null;
-};
+}
 
-export type SSERaceTimerSetMessage = {
+export interface SSERaceTimerSetMessage {
   type: 'RACE_TIMER_SET';
   raceId: string;
   closingAt: string;
-};
+}
 
-export type SSERaceOddsUpdatedMessage = {
+export interface SSERaceOddsUpdatedMessage {
   type: 'RACE_ODDS_UPDATED';
   raceId: string;
   data: RaceOddsData;
-};
+}
 
-export type SSERankingUpdatedMessage = {
+export interface SSERankingUpdatedMessage {
   type: 'RANKING_UPDATED';
   eventId: string;
   mode: RankingMode;
-};
+}
 
-export type SSERaceResultUpdatedMessage = {
+export interface SSERaceResultUpdatedMessage {
   type: 'RACE_RESULT_UPDATED';
   raceId: string;
   results: RaceResultItem[];
   timestamp: number;
-};
+}
 
 // レース単位の変更は raceId のみ、イベントデフォルトの変更は eventId のみが入る
-export type SSEBetRestrictionUpdatedMessage = {
+export interface SSEBetRestrictionUpdatedMessage {
   type: 'BET_RESTRICTION_UPDATED';
   raceId?: string;
   eventId?: string;
-};
+}
 
 export type RaceStatusSSEMessage =
   | SSEConnectedMessage

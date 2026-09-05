@@ -17,7 +17,7 @@ globalThis.__raceEventEmitter = raceEventEmitter;
  * SSE でクライアントへ JSON 配信するイベント内容。イベント種別ごとに使うフィールドが異なる。
  * JSON.stringify で直列化されるため、シリアライズ不能な値を入れないこと。
  */
-export type RaceEventPayload = {
+export interface RaceEventPayload {
   raceId?: string;
   eventId?: string;
   timestamp?: number;
@@ -35,7 +35,7 @@ export type RaceEventPayload = {
     bracketNumber: number;
     horseName: string;
   }[];
-};
+}
 
 export const RACE_EVENTS = {
   RACE_FINALIZED: 'RACE_FINALIZED',

@@ -9,6 +9,7 @@ import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
 import { Alert } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/forms';
+import { splitGraphemes } from '@/shared/utils/graphemes';
 import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -23,14 +24,14 @@ export function GuestSignupClient() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!username || !code || !password) {
       setError('すべての項目を入力してください');
       return;
     }
 
-    if ([...password].length < 3) {
+    if (splitGraphemes(password).length < 3) {
       setError('絵文字パスワードは3文字以上で入力してください');
       return;
     }
@@ -76,7 +77,7 @@ export function GuestSignupClient() {
         }
       }
 
-      setError(getAuthErrorMessage(result.error, SIGNUP_ERROR_MESSAGES, 'エラーが発生しました: ' + result.error));
+      setError(getAuthErrorMessage(result.error, SIGNUP_ERROR_MESSAGES, `エラーが発生しました: ${result.error}`));
     } else {
       router.push('/');
       router.refresh();

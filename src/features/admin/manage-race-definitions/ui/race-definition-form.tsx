@@ -19,7 +19,7 @@ interface RaceDefinitionFormProps {
     defaultVenueId: string;
     defaultSurface: string;
   };
-  venues: Array<{ id: string; name: string; defaultDirection?: string }>;
+  venues: { id: string; name: string; defaultDirection?: string }[];
   onSuccess?: () => void;
 }
 
@@ -67,7 +67,7 @@ export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefin
   const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const venueId = e.target.value;
     const selectedVenue = venues.find((v) => v.id === venueId);
-    if (selectedVenue && selectedVenue.defaultDirection && directionSelectRef.current && !initialData) {
+    if (selectedVenue?.defaultDirection && directionSelectRef.current && !initialData) {
       directionSelectRef.current.value = selectedVenue.defaultDirection;
     }
   };
@@ -131,7 +131,7 @@ export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefin
             type="number"
             required
             min={100}
-            defaultValue={initialData?.defaultDistance || 2400}
+            defaultValue={initialData?.defaultDistance ?? 2400}
             placeholder="2400"
           />
         </div>

@@ -18,6 +18,7 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const [horse, tagOptions] = await Promise.all([getHorse(id), getHorseTags()]);
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
   async function onSuccess() {
     'use server';
     redirect('/admin/horses');

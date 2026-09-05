@@ -32,7 +32,11 @@ export async function updateRaceAllowedBetTypes(raceId: string, allowedTypes: Be
     }
   });
 
-  await logAdminAction(db, session, 'race.update_allowed_bet_types', raceId, { allowedTypes: normalized });
+  await logAdminAction(db, session.user, {
+    action: 'race.update_allowed_bet_types',
+    targetId: raceId,
+    detail: { allowedTypes: normalized },
+  });
   raceEventEmitter.emit(RACE_EVENTS.BET_RESTRICTION_UPDATED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);

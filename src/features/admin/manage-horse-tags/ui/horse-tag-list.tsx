@@ -22,11 +22,11 @@ import { deleteHorseTag } from '../actions';
 import { HorseTagForm } from './horse-tag-form';
 
 interface HorseTagListProps {
-  tags: Array<{
+  tags: {
     id: string;
     type: HorseTagType;
     content: string;
-  }>;
+  }[];
 }
 
 export function HorseTagList({ tags }: HorseTagListProps) {
@@ -118,7 +118,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
         })}
       </div>
 
-      <Dialog open={!!editingTag} onOpenChange={(open) => !open && setEditingTag(null)}>
+      <Dialog open={Boolean(editingTag)} onOpenChange={(open) => !open && setEditingTag(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>タグの編集</DialogTitle>

@@ -99,10 +99,10 @@ describe('resetRaceResults', () => {
     await setupAdminAuth();
 
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => {
+    mockTx.execute.mockImplementation(() => {
       callOrder.push('lock');
     });
-    mockTx.query.raceInstances.findFirst.mockImplementation(async () => {
+    mockTx.query.raceInstances.findFirst.mockImplementation(() => {
       callOrder.push('readRace');
       return { id: raceId, status: 'CLOSED' };
     });

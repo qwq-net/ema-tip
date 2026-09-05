@@ -1,5 +1,5 @@
 import { revalidatePath } from 'next/cache';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { updateEvent, updateEventStatus } from './actions';
 
 vi.mock('@/shared/utils/admin', () => ({
@@ -54,7 +54,7 @@ beforeEach(() => {
   mockTx.delete.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
   mockInsertValues.mockResolvedValue(undefined);
   mockTx.insert.mockReturnValue({ values: mockInsertValues });
-  (db.transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
+  (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
     cb(mockTx)
   );
 });
@@ -111,6 +111,6 @@ describe('updateEvent の馬券種別デフォルト', () => {
   });
 
   it('不正な種別を含む JSON は拒否する', async () => {
-    await expect(updateEvent(eventId, makeFormData(['single' as never]))).rejects.toThrow('無効な入力です');
+    await expect(updateEvent(eventId, makeFormData(['single']))).rejects.toThrow('無効な入力です');
   });
 });

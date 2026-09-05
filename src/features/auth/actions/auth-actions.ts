@@ -35,7 +35,7 @@ export async function validateGuestRegistration(code: string, username: string) 
   const attemptRecord = await getLoginAttemptRecord(ip);
 
   if (isLoginLocked(attemptRecord)) {
-    const remaining = Math.ceil((attemptRecord!.lockedUntil! - Date.now()) / 60000);
+    const remaining = Math.ceil((attemptRecord.lockedUntil - Date.now()) / 60000);
     return { error: 'RateLimitExceeded', remainingMinutes: remaining };
   }
 

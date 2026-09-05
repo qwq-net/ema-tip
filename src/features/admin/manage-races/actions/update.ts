@@ -92,7 +92,7 @@ export async function closeRace(raceId: string) {
     throw new Error('受付中のレースのみ締め切れます');
   }
 
-  await logAdminAction(db, session, 'race.close', raceId);
+  await logAdminAction(db, session.user, { action: 'race.close', targetId: raceId });
   raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -112,7 +112,7 @@ export async function reopenRace(raceId: string) {
     throw new Error('締切済みのレースのみ再開できます');
   }
 
-  await logAdminAction(db, session, 'race.reopen', raceId);
+  await logAdminAction(db, session.user, { action: 'race.reopen', targetId: raceId });
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, closingAt: null, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -140,7 +140,7 @@ export async function setClosingTime(raceId: string, minutes: number) {
     throw new Error('払戻確定済みのレースには締切時刻を設定できません');
   }
 
-  await logAdminAction(db, session, 'race.set_closing_time', raceId, { minutes });
+  await logAdminAction(db, session.user, { action: 'race.set_closing_time', targetId: raceId, detail: { minutes } });
   const eventType = race?.status === 'CLOSED' ? RACE_EVENTS.RACE_REOPENED : RACE_EVENTS.RACE_TIMER_SET;
   raceEventEmitter.emit(eventType, { raceId, closingAt: closingAt.toISOString(), timestamp: Date.now() });
 

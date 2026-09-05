@@ -124,10 +124,10 @@ describe('calculateBet5Payout', () => {
 
   it('ロック順序を保証するため advisory lock 取得後に bet5Event を読み取る', async () => {
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => {
+    mockTx.execute.mockImplementation(() => {
       callOrder.push('lock');
     });
-    mockTx.query.bet5Events.findFirst.mockImplementation(async () => {
+    mockTx.query.bet5Events.findFirst.mockImplementation(() => {
       callOrder.push('read');
       return { ...baseBet5Event, status: 'FINALIZED' };
     });

@@ -24,17 +24,54 @@ interface EventFormProps {
   onSuccess?: () => void;
 }
 
+// フォームが state で持つ入力値の一式
+interface EventFormValues {
+  date: string;
+  distributeAmount: number;
+  loanAmount: number | null;
+  loanEnabled: boolean;
+  loanThresholdPercent: number;
+  restrictBetTypes: boolean;
+  allowedBetTypes: Set<BetType>;
+}
+
+/**
+ * 編集時は既存値、新規時は既定値でフォームの初期値を組む。
+ * 作成後のリセットは借入機能と融資条件を維持する仕様のため、この関数を流用しない。
+ */
+function getInitialValues(initialData: EventFormProps['initialData']): EventFormValues {
+  const defaults: EventFormValues = {
+    date: todayJST(),
+    distributeAmount: 100000,
+    loanAmount: null,
+    loanEnabled: true,
+    loanThresholdPercent: 30,
+    restrictBetTypes: false,
+    allowedBetTypes: new Set(BET_TYPE_ORDER),
+  };
+  if (!initialData) return defaults;
+
+  return {
+    date: initialData.date || defaults.date,
+    distributeAmount: initialData.distributeAmount ?? defaults.distributeAmount,
+    loanAmount: initialData.loanAmount ?? defaults.loanAmount,
+    loanEnabled: initialData.loanEnabled ?? defaults.loanEnabled,
+    loanThresholdPercent: initialData.loanThresholdPercent ?? defaults.loanThresholdPercent,
+    restrictBetTypes: initialData.defaultAllowedBetTypes !== null,
+    allowedBetTypes: new Set(initialData.defaultAllowedBetTypes ?? BET_TYPE_ORDER),
+  };
+}
+
 export function EventForm({ initialData, onSuccess }: EventFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [date, setDate] = useState(initialData?.date || todayJST());
-  const [distributeAmount, setDistributeAmount] = useState(initialData?.distributeAmount ?? 100000);
-  const [loanAmount, setLoanAmount] = useState<number | null>(initialData?.loanAmount ?? null);
-  const [loanEnabled, setLoanEnabled] = useState(initialData?.loanEnabled ?? true);
-  const [loanThresholdPercent, setLoanThresholdPercent] = useState(initialData?.loanThresholdPercent ?? 30);
-  const [restrictBetTypes, setRestrictBetTypes] = useState(initialData?.defaultAllowedBetTypes != null);
-  const [allowedBetTypes, setAllowedBetTypes] = useState<Set<BetType>>(
-    new Set(initialData?.defaultAllowedBetTypes ?? BET_TYPE_ORDER)
-  );
+  const initialValues = getInitialValues(initialData);
+  const [date, setDate] = useState(initialValues.date);
+  const [distributeAmount, setDistributeAmount] = useState(initialValues.distributeAmount);
+  const [loanAmount, setLoanAmount] = useState<number | null>(initialValues.loanAmount);
+  const [loanEnabled, setLoanEnabled] = useState(initialValues.loanEnabled);
+  const [loanThresholdPercent, setLoanThresholdPercent] = useState(initialValues.loanThresholdPercent);
+  const [restrictBetTypes, setRestrictBetTypes] = useState(initialValues.restrictBetTypes);
+  const [allowedBetTypes, setAllowedBetTypes] = useState<Set<BetType>>(initialValues.allowedBetTypes);
 
   const toggleBetType = (type: BetType) => {
     setAllowedBetTypes((prev) => {
@@ -51,7 +88,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
   async function handleSubmit(formData: FormData) {
     try {
       const types = restrictBetTypes ? BET_TYPE_ORDER.filter((t) => allowedBetTypes.has(t)) : null;
-      if (types && types.length === 0) {
+      if (types?.length === 0) {
         toast.error('馬券種別を1種類以上選択してください');
         return;
       }

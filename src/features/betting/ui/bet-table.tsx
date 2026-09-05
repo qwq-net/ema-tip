@@ -31,6 +31,9 @@ interface Entry {
   status: string;
 }
 
+// 出馬表の行。馬番が確定していない出走馬は行にしないため horseNumber が必ず入る
+type NumberedEntry = Entry & { horseNumber: number };
+
 // 単勝オッズの1セル。文字色は通常のまま、SSE 更新で値が変化したときだけ
 // 上昇は緑、下降は赤から本来の文字色へ減衰点灯する。
 // version を key にして更新イベントごとにアニメーションを最初から再生する
@@ -48,13 +51,16 @@ function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'd
 function PopularityCell({ rank, isScratched }: { rank?: number; isScratched: boolean }) {
   return (
     <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
-      {isScratched || rank === undefined ? (
-        '-'
-      ) : medalRankClass(rank) ? (
-        <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', medalRankClass(rank))}>{rank}人気</span>
-      ) : (
-        `${rank}人気`
-      )}
+      {(isScratched || rank === undefined) && '-'}
+      {!isScratched &&
+        rank !== undefined &&
+        (medalRankClass(rank) ? (
+          <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', medalRankClass(rank))}>
+            {rank}人気
+          </span>
+        ) : (
+          `${rank}人気`
+        ))}
     </td>
   );
 }
@@ -111,6 +117,44 @@ function PopularityHelp() {
         </span>
       )}
     </span>
+  );
+}
+
+interface OddsHeaderInfoProps {
+  fixedOddsMode: boolean;
+  updatedAt: Date | string | null | undefined;
+  oddsVersion: number;
+  guaranteedOdds?: Record<string, number> | null;
+}
+
+/**
+ * 出馬表の上に置くオッズの状態表示。固定オッズのレースでは Netkeiba 由来である旨だけを出す。
+ * 変動オッズでは最終更新時刻と、保証オッズの内訳を開くボタンを並べる。
+ */
+function OddsHeaderInfo({ fixedOddsMode, updatedAt, oddsVersion, guaranteedOdds }: OddsHeaderInfoProps) {
+  if (fixedOddsMode) {
+    return (
+      <span className="text-primary flex w-full items-center justify-end gap-1 text-sm font-semibold sm:w-auto">
+        <Lock className="h-3.5 w-3.5" />
+        Netkeibaオッズ（固定）
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
+      {updatedAt && (
+        // key と点灯クラスで SSE 更新のたびにブランド緑からグレーへ減衰再生する。初期表示では点灯しない
+        <span
+          key={oddsVersion}
+          className={cn('text-right text-sm text-gray-500', oddsVersion > 0 && 'animate-stamp-flash')}
+        >
+          オッズ最終更新:{' '}
+          <FormattedDate date={updatedAt} options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }} />
+        </span>
+      )}
+      <GuaranteedOddsDialog guaranteedOdds={guaranteedOdds} />
+    </div>
   );
 }
 
@@ -241,9 +285,17 @@ export function BetTable({
 
   const isBracketType = betType === BET_TYPES.BRACKET_QUINELLA;
 
+  // 馬番の無い出走馬は選択も購入もできないため行にしない。
+  // 枠連は枠番で選ぶので、useBetSelections 側の選択候補の条件とは一致しない
+  const rows = entries.filter((entry): entry is NumberedEntry => entry.horseNumber !== null);
+
   const bracketGroups = isBracketType
-    ? entries.reduce<Record<number, Entry[]>>((acc, entry) => {
-        const bracket = entry.bracketNumber!;
+    ? rows.reduce<Record<number, NumberedEntry[]>>((acc, entry) => {
+        const bracket = entry.bracketNumber;
+        // 枠番未設定の馬は枠連の対象外
+        if (bracket === null) {
+          return acc;
+        }
         if (!acc[bracket]) {
           acc[bracket] = [];
         }
@@ -252,7 +304,7 @@ export function BetTable({
       }, {})
     : {};
 
-  if (entries.length === 0) {
+  if (rows.length === 0) {
     return (
       <div className="space-y-6">
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
@@ -298,29 +350,12 @@ export function BetTable({
       )}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <BetTypeSelector betType={betType} onBetTypeChange={handleBetTypeChange} allowedBetTypes={allowedBetTypes} />
-        {fixedOddsMode ? (
-          <span className="text-primary flex w-full items-center justify-end gap-1 text-sm font-semibold sm:w-auto">
-            <Lock className="h-3.5 w-3.5" />
-            Netkeibaオッズ（固定）
-          </span>
-        ) : (
-          <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
-            {odds?.updatedAt && (
-              // key と点灯クラスで SSE 更新のたびにブランド緑からグレーへ減衰再生する。初期表示では点灯しない
-              <span
-                key={oddsVersion}
-                className={cn('text-right text-sm text-gray-500', oddsVersion > 0 && 'animate-stamp-flash')}
-              >
-                オッズ最終更新:{' '}
-                <FormattedDate
-                  date={odds.updatedAt}
-                  options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }}
-                />
-              </span>
-            )}
-            <GuaranteedOddsDialog guaranteedOdds={guaranteedOdds} />
-          </div>
-        )}
+        <OddsHeaderInfo
+          fixedOddsMode={fixedOddsMode}
+          updatedAt={odds?.updatedAt}
+          oddsVersion={oddsVersion}
+          guaranteedOdds={guaranteedOdds}
+        />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-text-sub text-sm">{BET_TYPE_DESCRIPTIONS[betType]}</p>
@@ -409,7 +444,7 @@ export function BetTable({
                             '-'
                           ) : (
                             <OddsValue
-                              value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
+                              value={odds?.winOdds?.[entry.horseNumber]?.toFixed(1) ?? '-.-'}
                               delta={oddsDeltas[String(entry.horseNumber)]}
                               version={oddsVersion}
                             />
@@ -437,7 +472,7 @@ export function BetTable({
                     );
                   })
                 )
-              : entries.map((entry) => {
+              : rows.map((entry) => {
                   const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
                   return (
                     <tr
@@ -468,7 +503,7 @@ export function BetTable({
                           '-'
                         ) : (
                           <OddsValue
-                            value={odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
+                            value={odds?.winOdds?.[entry.horseNumber]?.toFixed(1) ?? '-.-'}
                             delta={oddsDeltas[String(entry.horseNumber)]}
                             version={oddsVersion}
                           />
@@ -483,8 +518,8 @@ export function BetTable({
                       {Array.from({ length: displayColumnCount }).map((_, colIdx) => (
                         <td key={colIdx} className="px-2 py-2 text-center">
                           <Checkbox
-                            checked={!isScratched && selections[colIdx].has(entry.horseNumber!)}
-                            onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
+                            checked={!isScratched && selections[colIdx].has(entry.horseNumber)}
+                            onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber)}
                             disabled={isClosed || isPending || isScratched}
                             aria-label={`${displayColumnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
                             className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"

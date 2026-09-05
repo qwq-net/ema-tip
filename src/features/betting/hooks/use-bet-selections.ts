@@ -29,7 +29,7 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
   entries.forEach((entry) => {
     const bracket = entry.bracketNumber;
     if (entry.status === 'ENTRANT' && bracket !== null) {
-      bracketHorseCount.set(bracket, (bracketHorseCount.get(bracket) || 0) + 1);
+      bracketHorseCount.set(bracket, (bracketHorseCount.get(bracket) ?? 0) + 1);
     }
   });
 

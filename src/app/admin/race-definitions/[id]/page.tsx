@@ -9,6 +9,7 @@ export default async function EditRaceDefinitionPage({ params }: { params: Promi
   const { id } = await params;
   const [raceDefinition, venues] = await Promise.all([getRaceDefinition(id), getVenues()]);
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
   async function onSuccess() {
     'use server';
     redirect('/admin/race-definitions');

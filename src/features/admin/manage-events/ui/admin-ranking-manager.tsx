@@ -3,6 +3,7 @@
 import { type RankingData } from '@/entities/ranking';
 import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { type RankingDisplayMode, updateRankingDisplayMode } from '@/features/ranking';
+import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
 import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
 import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
@@ -140,13 +141,7 @@ export function AdminRankingManager({
                   <Td>
                     <div
                       className={`flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold ${
-                        user.rank === 1
-                          ? 'bg-amber-100 text-amber-700'
-                          : user.rank === 2
-                            ? 'bg-gray-200 text-gray-700'
-                            : user.rank === 3
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-gray-100 text-gray-500'
+                        medalRankClass(user.rank) ?? 'bg-gray-100 text-gray-500'
                       }`}
                     >
                       {user.rank}

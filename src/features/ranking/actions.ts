@@ -56,7 +56,7 @@ export async function getEventRanking(eventId: string): Promise<{
   displayMode: RankingDisplayMode;
 }> {
   const session = await requireUser();
-  const currentUserId = session.user!.id;
+  const currentUserId = session.user.id;
 
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),

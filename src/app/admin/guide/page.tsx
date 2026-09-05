@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title: 'クイックガイド | 管理画面',
 };
 
-type Step = {
+interface Step {
   title: string;
   description: string;
   href: string;
-};
+}
 
 const MASTER_STEPS: Step[] = [
   { title: '競馬場管理', description: '名前・略称・回り方向・エリアを登録します。', href: '/admin/venues' },
@@ -95,7 +95,7 @@ function StepList({ steps, tone, ordered = false }: { steps: Step[]; tone: keyof
   );
 }
 
-export default async function AdminGuidePage() {
+export default function AdminGuidePage() {
   return (
     <div className="max-w-3xl space-y-10 pb-12">
       <div>

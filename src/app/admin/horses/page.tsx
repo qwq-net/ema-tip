@@ -17,7 +17,7 @@ async function HorseListSection() {
   return <HorseList horses={horses} />;
 }
 
-export default async function HorsesPage() {
+export default function HorsesPage() {
   return (
     <div className="space-y-6">
       <AdminPageHeader title="馬マスタ管理" description="競走馬の新規登録と情報の管理を行います" />

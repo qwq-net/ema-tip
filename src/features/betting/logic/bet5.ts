@@ -15,25 +15,27 @@ export const Bet5SelectionSchema = z.object({
 
 export type Bet5Selection = z.infer<typeof Bet5SelectionSchema>;
 
-type Bet5WinnerRow = {
+interface Bet5WinnerRow {
   raceId: string;
   horseId: string;
-};
+}
 
 export function resolveBet5Winners(races: string[], winnerRows: Bet5WinnerRow[]): string[] | null {
   const winnerSetByRace = new Map<string, Set<string>>();
 
   for (const row of winnerRows) {
-    if (!winnerSetByRace.has(row.raceId)) {
-      winnerSetByRace.set(row.raceId, new Set<string>());
+    let winners = winnerSetByRace.get(row.raceId);
+    if (!winners) {
+      winners = new Set<string>();
+      winnerSetByRace.set(row.raceId, winners);
     }
-    winnerSetByRace.get(row.raceId)!.add(row.horseId);
+    winners.add(row.horseId);
   }
 
   const winners: string[] = [];
   for (const raceId of races) {
     const winnerSet = winnerSetByRace.get(raceId);
-    if (!winnerSet || winnerSet.size !== 1) {
+    if (winnerSet?.size !== 1) {
       return null;
     }
     winners.push([...winnerSet][0]);
@@ -185,8 +187,12 @@ export async function placeBet5Bet({
     });
     const entrantsByRace = new Map<string, Set<string>>();
     for (const entry of allEntries) {
-      if (!entrantsByRace.has(entry.raceId)) entrantsByRace.set(entry.raceId, new Set());
-      entrantsByRace.get(entry.raceId)!.add(entry.horseId);
+      let raceEntrants = entrantsByRace.get(entry.raceId);
+      if (!raceEntrants) {
+        raceEntrants = new Set<string>();
+        entrantsByRace.set(entry.raceId, raceEntrants);
+      }
+      raceEntrants.add(entry.horseId);
     }
     const selectionsByRace = [selections.race1, selections.race2, selections.race3, selections.race4, selections.race5];
     for (let i = 0; i < targetRaceIds.length; i++) {
@@ -217,7 +223,7 @@ export async function placeBet5Bet({
       where: eq(bet5Events.id, bet5EventId),
     });
 
-    if (!lockedEvent || lockedEvent.status !== 'SCHEDULED') {
+    if (lockedEvent?.status !== 'SCHEDULED') {
       throw new ActionError('BET5の投票受付は終了しています');
     }
 
@@ -358,7 +364,7 @@ export async function calculateBet5Payout(bet5EventId: string) {
 
       const walletPayouts = new Map<string, number>();
       for (const t of ticketUpdates) {
-        walletPayouts.set(t.walletId, (walletPayouts.get(t.walletId) || 0) + t.payout);
+        walletPayouts.set(t.walletId, (walletPayouts.get(t.walletId) ?? 0) + t.payout);
       }
 
       const walletEntries = [...walletPayouts.entries()];
@@ -391,10 +397,10 @@ export async function calculateBet5Payout(bet5EventId: string) {
       await tx.insert(transactions).values(transactionValues);
 
       // 並行する払戻確定の加算を消さないよう、絶対値SETではなく増減分の演算で更新する
-      if (Number(event.carryoverAmount) > 0) {
+      if (event.carryoverAmount > 0) {
         await tx
           .update(events)
-          .set({ carryoverAmount: sql`${events.carryoverAmount} - ${Number(event.carryoverAmount)}` })
+          .set({ carryoverAmount: sql`${events.carryoverAmount} - ${event.carryoverAmount}` })
           .where(eq(events.id, event.id));
       }
     } else {

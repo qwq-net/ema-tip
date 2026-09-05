@@ -24,4 +24,7 @@ async function main() {
   process.exit(0);
 }
 
-main();
+main().catch((cause: unknown) => {
+  console.error('Reset failed to run:', cause);
+  process.exit(1);
+});

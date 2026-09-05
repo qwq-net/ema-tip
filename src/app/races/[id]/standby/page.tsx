@@ -40,6 +40,31 @@ export const metadata: Metadata = {
   title: '結果待機',
 };
 
+/**
+ * 馬券の選択番号を表示用の馬情報へ解決する。枠連は選択番号を枠番として扱い、出馬表から引き当てない。
+ * 出馬表に無い馬番は馬名を不明として返す。
+ */
+function resolveSelection(num: number, betType: BetType, entries: Entry[]) {
+  // 枠連の selections は馬番ではなく枠番。馬番として引き当てると別の馬の枠色が表示される
+  if (betType === 'bracket_quinella') {
+    return {
+      horseNumber: num,
+      bracketNumber: num,
+      horseName: `${num}枠`,
+      horseGender: '',
+      horseAge: 0,
+    };
+  }
+  const entry = entries.find((e) => e.horseNumber === num);
+  return {
+    horseNumber: num,
+    bracketNumber: entry?.bracketNumber ?? undefined,
+    horseName: entry?.horseName || '不明',
+    horseGender: entry?.horseGender || '不明',
+    horseAge: entry?.horseAge ?? 0,
+  };
+}
+
 export default async function RaceStandbyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireLoginPage();
@@ -96,41 +121,28 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
               payoutCombinations: combinationsByType.get(group.type),
             }),
           createdAt: bet.createdAt,
-          selections: details.selections.map((num: number) => {
-            // 枠連の selections は馬番ではなく枠番。馬番として引き当てると別の馬の枠色が表示される
-            if (group.type === 'bracket_quinella') {
-              return {
-                horseNumber: num,
-                bracketNumber: num,
-                horseName: `${num}枠`,
-                horseGender: '',
-                horseAge: 0,
-              };
-            }
-            const entry = entries.find((e: Entry) => e.horseNumber === num);
-            return {
-              horseNumber: num,
-              bracketNumber: entry?.bracketNumber || undefined,
-              horseName: entry?.horseName || '不明',
-              horseGender: entry?.horseGender || '不明',
-              horseAge: entry?.horseAge || 0,
-            };
-          }),
+          selections: details.selections.map((num: number) => resolveSelection(num, group.type, entries)),
         };
       }),
     };
   });
 
+  // 馬番か枠番が欠けた行は着順カードに出せる情報が揃わないため除く。表示のみの画面なので落とさず飛ばす
   const initialRanking = entries
-    .filter((e) => e.finishPosition !== null)
-    .sort((a, b) => (a.finishPosition || 0) - (b.finishPosition || 0))
-    .slice(0, 5)
-    .map((e) => ({
-      finishPosition: e.finishPosition!,
-      horseNumber: e.horseNumber!,
-      bracketNumber: e.bracketNumber!,
-      horseName: e.horseName,
-    }));
+    .flatMap((e) =>
+      e.finishPosition === null || e.horseNumber === null || e.bracketNumber === null
+        ? []
+        : [
+            {
+              finishPosition: e.finishPosition,
+              horseNumber: e.horseNumber,
+              bracketNumber: e.bracketNumber,
+              horseName: e.horseName,
+            },
+          ]
+    )
+    .sort((a, b) => a.finishPosition - b.finishPosition)
+    .slice(0, 5);
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">

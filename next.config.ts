@@ -71,13 +71,13 @@ const nextConfig = (phase: string): NextConfig => {
         },
       ],
     },
-    async headers() {
-      return [
+    headers() {
+      return Promise.resolve([
         {
           source: '/(.*)',
           headers: securityHeaders,
         },
-      ];
+      ]);
     },
   };
 };

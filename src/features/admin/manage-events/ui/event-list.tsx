@@ -21,14 +21,14 @@ import Link from 'next/link';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 
-type Event = {
+interface Event {
   id: string;
   name: string;
   description: string | null;
   status: EventStatus;
   distributeAmount: number;
   date: string;
-};
+}
 
 export function EventList({ events }: { events: Event[] }) {
   const [isPending, startTransition] = useTransition();

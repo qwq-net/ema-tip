@@ -133,7 +133,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
                 <Td>
                   <UserActionsMenu
                     userId={user.id}
-                    isDisabled={!!user.disabledAt}
+                    isDisabled={Boolean(user.disabledAt)}
                     isCurrentUser={user.id === currentUserId}
                   />
                 </Td>

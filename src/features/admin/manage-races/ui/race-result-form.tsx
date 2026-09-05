@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition, type ReactNode } from 'react';
+import { useState, useTransition, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { closeRace, finalizePayout, finalizeRace, reopenRace } from '../actions';
 import { resetRaceResults } from '../actions/revert';
 import { KitchenTimer } from './kitchen-timer';
@@ -48,6 +48,23 @@ interface Entry {
   odds?: number | null;
 }
 
+// 着順設定画面が必要とするレースの情報。呼び出し側は取得結果をこの形へ変換して渡す
+export interface RaceResultFormRace {
+  id: string;
+  eventId: string;
+  date: string;
+  location: string;
+  name: string;
+  raceNumber: number | null;
+  status: string;
+  surface: '芝' | 'ダート';
+  distance: number;
+  condition: '良' | '稍重' | '重' | '不良' | null;
+  closingAt: string | null;
+  netkeibaUrl?: string | null;
+  fixedOddsMode: boolean;
+}
+
 interface RaceResultFormProps {
   raceId: string;
   entries: Entry[];
@@ -55,21 +72,7 @@ interface RaceResultFormProps {
   showBet5CloseReminder?: boolean;
   // サイドカラムのレース情報カードの下に差し込む追加カード
   sideChildren?: ReactNode;
-  race: {
-    id: string;
-    eventId: string;
-    date: string;
-    location: string;
-    name: string;
-    raceNumber: number | null;
-    status: string;
-    surface: '芝' | 'ダート';
-    distance: number;
-    condition: '良' | '稍重' | '重' | '不良' | null;
-    closingAt: string | null;
-    netkeibaUrl?: string | null;
-    fixedOddsMode: boolean;
-  };
+  race: RaceResultFormRace;
 }
 
 // 並べ替えリストの着順マーカー。1〜3着は共通の金銀銅、4着以下はグレー
@@ -88,7 +91,7 @@ function HorseInfo({ horseName, jockey, odds }: { horseName: string; jockey?: st
           <span className="shrink-0 text-sm text-gray-500">{jockey}</span>
         </>
       )}
-      {odds != null && (
+      {odds !== null && odds !== undefined && (
         <>
           <span className="text-text-sub shrink-0 text-sm">/</span>
           <span className="shrink-0 text-sm font-semibold text-gray-600">オッズ: {odds.toFixed(1)}倍</span>
@@ -107,10 +110,10 @@ function EntryBadges({ entry }: { entry: Entry }) {
           getBracketColor(entry.bracketNumber)
         )}
       >
-        {entry.bracketNumber || '?'}
+        {entry.bracketNumber ?? '?'}
       </span>
       <span className="text-primary bg-primary/10 ring-primary/10 rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold ring-1">
-        {entry.horseNumber || '?'}
+        {entry.horseNumber ?? '?'}
       </span>
     </div>
   );
@@ -178,6 +181,431 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
   );
 }
 
+interface ResultOrderingPanelProps {
+  raceId: string;
+  race: RaceResultFormRace;
+  entries: Entry[];
+  sortedEntries: Entry[];
+  setSortedEntries: Dispatch<SetStateAction<Entry[]>>;
+  isChanged: boolean;
+  onReset: () => void;
+}
+
+/**
+ * 着順設定の左カラム。受付終了後だけ並べ替えを受け付け、それ以外は読み取り専用の一覧を出す。
+ * 固定オッズのレースは Netkeiba の結果で確定するため、締切後も並べ替えさせない。
+ */
+function ResultOrderingPanel({
+  raceId,
+  race,
+  entries,
+  sortedEntries,
+  setSortedEntries,
+  isChanged,
+  onReset,
+}: ResultOrderingPanelProps) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (over && active.id !== over.id) {
+      setSortedEntries((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const activeEntry = activeId ? sortedEntries.find((e) => e.id === activeId) : null;
+  const activePosition = activeEntry ? sortedEntries.findIndex((e) => e.id === activeEntry.id) + 1 : 0;
+
+  return (
+    <div className="rounded-surface border border-gray-100 bg-white p-6 lg:col-span-2">
+      <div className="mb-4 border-b border-gray-50 pb-4">
+        <div className="flex items-center justify-between gap-2">
+          <AdminSectionTitle icon={ListOrdered}>着順設定</AdminSectionTitle>
+          {!race.fixedOddsMode && isChanged && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onReset}
+              className="text-text-sub h-auto p-0 font-semibold hover:bg-transparent hover:text-gray-600"
+            >
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+              リセット
+            </Button>
+          )}
+        </div>
+        {!race.fixedOddsMode && race.status === 'CLOSED' && (
+          <p className="text-text-sub mt-2 flex items-center gap-1.5 text-xs font-semibold">
+            <Info className="h-3.5 w-3.5" />
+            ドラッグして着順を並び替えてください
+          </p>
+        )}
+      </div>
+
+      {race.status === 'CLOSED' &&
+        (race.fixedOddsMode ? (
+          <div className="space-y-6">
+            <div className="text-text-sub flex flex-col items-center justify-center pt-6 pb-2 text-center">
+              <Loader2 className="mb-4 h-10 w-10 animate-spin opacity-20" />
+              <p className="text-sm font-semibold">
+                Netkeibaの実際のレース結果が確定するまでお待ちください。
+                <br />
+                確定後、右のボタンから結果を取得して着順を確定してください。
+              </p>
+            </div>
+            <ReadOnlyEntryList entries={entries} />
+          </div>
+        ) : (
+          <DndContext
+            id={`result-dnd-${raceId}`}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="space-y-2">
+              <SortableContext items={sortedEntries.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+                {sortedEntries.map((entry, index) => (
+                  <SortableResultItem key={entry.id} entry={entry} position={index + 1} />
+                ))}
+              </SortableContext>
+            </div>
+
+            <DragOverlay adjustScale={false}>
+              {activeEntry && (
+                <div className="border-primary ring-primary/10 rounded-surface flex items-center gap-3 border-2 bg-white p-2 ring-4">
+                  <div
+                    className={cn(
+                      'rounded-control flex h-8 w-8 shrink-0 items-center justify-center border text-lg font-semibold',
+                      getRankStyles(activePosition)
+                    )}
+                  >
+                    {activePosition}
+                  </div>
+                  <GripVertical className="text-primary h-4 w-4" />
+                  <EntryBadges entry={activeEntry} />
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <HorseInfo horseName={activeEntry.horseName} jockey={activeEntry.jockey} odds={activeEntry.odds} />
+                  </div>
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
+        ))}
+      {race.status !== 'CLOSED' && (
+        <div className="space-y-6">
+          <div className="text-text-sub flex flex-col items-center justify-center pt-6 pb-2 text-center">
+            <Settings2 className="mb-4 h-12 w-12 opacity-20" />
+            <p className="text-sm font-semibold">
+              受付が終了すると着順の操作が可能になります。
+              <br />
+              「自動タイマー」による締め切りか、「手動締切」を行ってください。
+            </p>
+            <div className="mt-6">
+              <KitchenTimer
+                raceId={raceId}
+                initialClosingAt={race.closingAt ? new Date(race.closingAt) : null}
+                status={race.status}
+              />
+            </div>
+          </div>
+          <ReadOnlyEntryList entries={entries} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface NetkeibaFinalizeActionsProps {
+  entries: Entry[];
+  canFinalizePayout?: boolean;
+  isPending: boolean;
+  isPayoutMoving: boolean;
+  netkeibaResult: NetkeibaRaceResult | null;
+  showNetkeibaConfirm: boolean;
+  onNetkeibaConfirmOpenChange: (open: boolean) => void;
+  onFetchResult: () => void;
+  onFinalize: () => Promise<void>;
+}
+
+/**
+ * 固定オッズのレースを Netkeiba の結果で確定する操作。
+ * 取得した上位3着を確認ダイアログに出してから確定させる。
+ */
+function NetkeibaFinalizeActions({
+  entries,
+  canFinalizePayout,
+  isPending,
+  isPayoutMoving,
+  netkeibaResult,
+  showNetkeibaConfirm,
+  onNetkeibaConfirmOpenChange,
+  onFetchResult,
+  onFinalize,
+}: NetkeibaFinalizeActionsProps) {
+  // Netkeiba から結果を取得するボタンのラベル。着順が確定済みならボタンは押せないため、その旨を出す
+  const netkeibaButtonLabel = canFinalizePayout ? '着順確定済み' : '確定';
+
+  return (
+    <>
+      {!canFinalizePayout && (
+        <div className="bg-turf-50 text-turf-800 ring-turf-100 rounded-control flex items-start gap-1.5 px-3 py-2 text-sm font-medium ring-1">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          Netkeiba上で結果が確定するまで確定はできません
+        </div>
+      )}
+      <Button
+        className="relative w-full py-6 text-lg font-semibold active:scale-[0.98]"
+        onClick={onFetchResult}
+        disabled={isPending || isPayoutMoving || canFinalizePayout}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            取得中...
+          </>
+        ) : (
+          netkeibaButtonLabel
+        )}
+      </Button>
+
+      <ConfirmDialog
+        open={showNetkeibaConfirm}
+        onOpenChange={onNetkeibaConfirmOpenChange}
+        icon={
+          <div className="bg-turf-50 text-turf-600 mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+            <CheckCircle2 className="h-8 w-8" />
+          </div>
+        }
+        title="Netkeibaの結果で確定しますか？"
+        description={
+          <>
+            Netkeibaの実際の払戻オッズで計算されます。
+            <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+              {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
+                const labels = ['1着', '2着', '3着'];
+                const entry = entries.find((e) => e.horseNumber === horseNumber);
+                return (
+                  <div key={horseNumber} className="flex justify-between py-1">
+                    <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', medalRankClass(index + 1))}>
+                      {labels[index]}
+                    </span>
+                    <span>{entry?.horseName ?? `${horseNumber}番`}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        }
+        confirmLabel="確定する"
+        confirmVariant="primary"
+        onConfirm={onFinalize}
+      />
+    </>
+  );
+}
+
+interface ManualFinalizeActionsProps {
+  sortedEntries: Entry[];
+  canFinalizePayout?: boolean;
+  isPending: boolean;
+  isPayoutMoving: boolean;
+  isChanged: boolean;
+  onFinalize: () => Promise<void>;
+}
+
+/** 手動で並べ替えた着順を確定する操作。確認ダイアログで上位3着を提示してから払戻計算へ進む。 */
+function ManualFinalizeActions({
+  sortedEntries,
+  canFinalizePayout,
+  isPending,
+  isPayoutMoving,
+  isChanged,
+  onFinalize,
+}: ManualFinalizeActionsProps) {
+  return (
+    <ConfirmDialog
+      trigger={
+        <Button
+          className={cn(
+            'relative w-full py-6 text-lg font-semibold active:scale-[0.98]',
+            isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
+          )}
+          disabled={isPending || isPayoutMoving || canFinalizePayout}
+        >
+          {canFinalizePayout ? '着順確定済み' : '着順を確定する'}
+          {isChanged && !isPending && (
+            <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
+          )}
+        </Button>
+      }
+      icon={
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+          <AlertCircle className="h-8 w-8" />
+        </div>
+      }
+      title="着順を確定しますか？"
+      description={
+        <>
+          この操作を行うと、購入された馬券の払戻計算が実行されます。
+          <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+            {[1, 2, 3].map((position) => (
+              <div key={position} className="flex justify-between py-1">
+                <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', medalRankClass(position))}>
+                  {position}着
+                </span>
+                <span>{sortedEntries[position - 1]?.horseName}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      }
+      confirmLabel="確定する"
+      confirmVariant="primary"
+      onConfirm={onFinalize}
+    />
+  );
+}
+
+interface FinalizeActionGroupProps {
+  race: RaceResultFormRace;
+  entries: Entry[];
+  sortedEntries: Entry[];
+  canFinalizePayout?: boolean;
+  isPending: boolean;
+  isPayoutMoving: boolean;
+  isChanged: boolean;
+  netkeibaResult: NetkeibaRaceResult | null;
+  showNetkeibaConfirm: boolean;
+  onNetkeibaConfirmOpenChange: (open: boolean) => void;
+  onManualClose: () => void;
+  onReopen: () => void;
+  onFetchNetkeibaResult: () => void;
+  onNetkeibaFinalize: () => Promise<void>;
+  onSubmit: () => Promise<void>;
+  onPayoutFinalize: () => Promise<void>;
+  onServerReset: () => Promise<void>;
+}
+
+/**
+ * レース状態ごとの操作ボタン群。出走前は締切、締切後は着順確定、着順確定後は払戻確定を出す。
+ * 着順の確定手段は固定オッズかどうかで Netkeiba 取得と手動並べ替えに分かれる。
+ */
+function FinalizeActionGroup({
+  race,
+  entries,
+  sortedEntries,
+  canFinalizePayout,
+  isPending,
+  isPayoutMoving,
+  isChanged,
+  netkeibaResult,
+  showNetkeibaConfirm,
+  onNetkeibaConfirmOpenChange,
+  onManualClose,
+  onReopen,
+  onFetchNetkeibaResult,
+  onNetkeibaFinalize,
+  onSubmit,
+  onPayoutFinalize,
+  onServerReset,
+}: FinalizeActionGroupProps) {
+  return (
+    <div className="mt-8 space-y-3">
+      {race.status === 'SCHEDULED' && (
+        <Button
+          variant="outline"
+          className="w-full py-6 text-sm font-semibold"
+          onClick={onManualClose}
+          disabled={isPending}
+        >
+          手動で受付を終了する
+        </Button>
+      )}
+
+      {race.status === 'CLOSED' && (
+        <div className="space-y-3">
+          <Button
+            variant="outline"
+            className="border-turf-100 text-turf-700 hover:bg-turf-50 w-full py-4 text-sm font-semibold"
+            onClick={onReopen}
+            disabled={isPending || canFinalizePayout}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            受付を再開する
+          </Button>
+
+          {race.fixedOddsMode ? (
+            <NetkeibaFinalizeActions
+              entries={entries}
+              canFinalizePayout={canFinalizePayout}
+              isPending={isPending}
+              isPayoutMoving={isPayoutMoving}
+              netkeibaResult={netkeibaResult}
+              showNetkeibaConfirm={showNetkeibaConfirm}
+              onNetkeibaConfirmOpenChange={onNetkeibaConfirmOpenChange}
+              onFetchResult={onFetchNetkeibaResult}
+              onFinalize={onNetkeibaFinalize}
+            />
+          ) : (
+            <ManualFinalizeActions
+              sortedEntries={sortedEntries}
+              canFinalizePayout={canFinalizePayout}
+              isPending={isPending}
+              isPayoutMoving={isPayoutMoving}
+              isChanged={isChanged}
+              onFinalize={onSubmit}
+            />
+          )}
+        </div>
+      )}
+
+      {canFinalizePayout && (
+        <div className="space-y-3">
+          <Button
+            className="relative w-full border-2 border-amber-500 bg-white py-6 text-lg font-semibold text-amber-600 hover:bg-amber-50"
+            onClick={onPayoutFinalize}
+            disabled={isPayoutMoving || isPending}
+          >
+            {isPayoutMoving ? '払戻処理中...' : '払戻を確定する'}
+          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                variant="ghost"
+                className="text-text-sub w-full text-sm font-semibold hover:text-red-500"
+                disabled={isPayoutMoving || isPending}
+              >
+                着順設定をリセットする
+              </Button>
+            }
+            icon={
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+                <AlertCircle className="h-8 w-8" />
+              </div>
+            }
+            title="着順設定をリセットしますか？"
+            description="確定済みの着順・払戻がリセットされます。この操作は元に戻せません。"
+            confirmLabel="リセットする"
+            onConfirm={onServerReset}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function RaceResultForm({
   raceId,
   entries: initialEntries,
@@ -198,31 +626,11 @@ export function RaceResultForm({
     setPrevSignature(initialSignature);
     setSortedEntries(initialEntries);
   }
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [isPayoutMoving, setIsPayoutMoving] = useState(false);
   const [netkeibaResult, setNetkeibaResult] = useState<NetkeibaRaceResult | null>(null);
   const [showNetkeibaConfirm, setShowNetkeibaConfirm] = useState(false);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-
   const isChanged = JSON.stringify(sortedEntries.map((e) => e.id)) !== JSON.stringify(initialEntries.map((e) => e.id));
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(String(event.active.id));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (over && active.id !== over.id) {
-      setSortedEntries((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
 
   const handleReset = () => {
     setSortedEntries(initialEntries);
@@ -352,105 +760,19 @@ export function RaceResultForm({
     }
   };
 
-  const activeEntry = activeId ? sortedEntries.find((e) => e.id === activeId) : null;
-  const activePosition = activeEntry ? sortedEntries.findIndex((e) => e.id === activeEntry.id) + 1 : 0;
   const entryCount = initialEntries.length;
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <div className="rounded-surface border border-gray-100 bg-white p-6 lg:col-span-2">
-        <div className="mb-4 border-b border-gray-50 pb-4">
-          <div className="flex items-center justify-between gap-2">
-            <AdminSectionTitle icon={ListOrdered}>着順設定</AdminSectionTitle>
-            {!race.fixedOddsMode && isChanged && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReset}
-                className="text-text-sub h-auto p-0 font-semibold hover:bg-transparent hover:text-gray-600"
-              >
-                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                リセット
-              </Button>
-            )}
-          </div>
-          {!race.fixedOddsMode && race.status === 'CLOSED' && (
-            <p className="text-text-sub mt-2 flex items-center gap-1.5 text-xs font-semibold">
-              <Info className="h-3.5 w-3.5" />
-              ドラッグして着順を並び替えてください
-            </p>
-          )}
-        </div>
-
-        {race.fixedOddsMode && race.status === 'CLOSED' ? (
-          <div className="space-y-6">
-            <div className="text-text-sub flex flex-col items-center justify-center pt-6 pb-2 text-center">
-              <Loader2 className="mb-4 h-10 w-10 animate-spin opacity-20" />
-              <p className="text-sm font-semibold">
-                Netkeibaの実際のレース結果が確定するまでお待ちください。
-                <br />
-                確定後、右のボタンから結果を取得して着順を確定してください。
-              </p>
-            </div>
-            <ReadOnlyEntryList entries={initialEntries} />
-          </div>
-        ) : race.status === 'CLOSED' ? (
-          <DndContext
-            id={`result-dnd-${raceId}`}
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="space-y-2">
-              <SortableContext items={sortedEntries.map((e) => e.id)} strategy={verticalListSortingStrategy}>
-                {sortedEntries.map((entry, index) => (
-                  <SortableResultItem key={entry.id} entry={entry} position={index + 1} />
-                ))}
-              </SortableContext>
-            </div>
-
-            <DragOverlay adjustScale={false}>
-              {activeEntry && (
-                <div className="border-primary ring-primary/10 rounded-surface flex items-center gap-3 border-2 bg-white p-2 ring-4">
-                  <div
-                    className={cn(
-                      'rounded-control flex h-8 w-8 shrink-0 items-center justify-center border text-lg font-semibold',
-                      getRankStyles(activePosition)
-                    )}
-                  >
-                    {activePosition}
-                  </div>
-                  <GripVertical className="text-primary h-4 w-4" />
-                  <EntryBadges entry={activeEntry} />
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <HorseInfo horseName={activeEntry.horseName} jockey={activeEntry.jockey} odds={activeEntry.odds} />
-                  </div>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
-        ) : (
-          <div className="space-y-6">
-            <div className="text-text-sub flex flex-col items-center justify-center pt-6 pb-2 text-center">
-              <Settings2 className="mb-4 h-12 w-12 opacity-20" />
-              <p className="text-sm font-semibold">
-                受付が終了すると着順の操作が可能になります。
-                <br />
-                「自動タイマー」による締め切りか、「手動締切」を行ってください。
-              </p>
-              <div className="mt-6">
-                <KitchenTimer
-                  raceId={raceId}
-                  initialClosingAt={race.closingAt ? new Date(race.closingAt) : null}
-                  status={race.status}
-                />
-              </div>
-            </div>
-            <ReadOnlyEntryList entries={initialEntries} />
-          </div>
-        )}
-      </div>
+      <ResultOrderingPanel
+        raceId={raceId}
+        race={race}
+        entries={initialEntries}
+        sortedEntries={sortedEntries}
+        setSortedEntries={setSortedEntries}
+        isChanged={isChanged}
+        onReset={handleReset}
+      />
 
       <div className="space-y-6">
         {showBet5CloseReminder && (
@@ -519,175 +841,25 @@ export function RaceResultForm({
             </div>
           </div>
 
-          <div className="mt-8 space-y-3">
-            {race.status === 'SCHEDULED' && (
-              <Button
-                variant="outline"
-                className="w-full py-6 text-sm font-semibold"
-                onClick={handleManualClose}
-                disabled={isPending}
-              >
-                手動で受付を終了する
-              </Button>
-            )}
-
-            {race.status === 'CLOSED' && (
-              <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="border-turf-100 text-turf-700 hover:bg-turf-50 w-full py-4 text-sm font-semibold"
-                  onClick={handleReopen}
-                  disabled={isPending || canFinalizePayout}
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  受付を再開する
-                </Button>
-
-                {race.fixedOddsMode ? (
-                  <>
-                    {!canFinalizePayout && (
-                      <div className="bg-turf-50 text-turf-800 ring-turf-100 rounded-control flex items-start gap-1.5 px-3 py-2 text-sm font-medium ring-1">
-                        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        Netkeiba上で結果が確定するまで確定はできません
-                      </div>
-                    )}
-                    <Button
-                      className="relative w-full py-6 text-lg font-semibold active:scale-[0.98]"
-                      onClick={handleFetchNetkeibaResult}
-                      disabled={isPending || isPayoutMoving || canFinalizePayout}
-                    >
-                      {isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          取得中...
-                        </>
-                      ) : canFinalizePayout ? (
-                        '着順確定済み'
-                      ) : (
-                        '確定'
-                      )}
-                    </Button>
-
-                    <ConfirmDialog
-                      open={showNetkeibaConfirm}
-                      onOpenChange={setShowNetkeibaConfirm}
-                      icon={
-                        <div className="bg-turf-50 text-turf-600 mb-4 flex h-14 w-14 items-center justify-center rounded-full">
-                          <CheckCircle2 className="h-8 w-8" />
-                        </div>
-                      }
-                      title="Netkeibaの結果で確定しますか？"
-                      description={
-                        <>
-                          Netkeibaの実際の払戻オッズで計算されます。
-                          <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                            {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
-                              const labels = ['1着', '2着', '3着'];
-                              const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
-                              return (
-                                <div key={horseNumber} className="flex justify-between py-1">
-                                  <span
-                                    className={cn(
-                                      'rounded-chip px-1.5 py-0.5 text-xs font-semibold',
-                                      medalRankClass(index + 1)
-                                    )}
-                                  >
-                                    {labels[index]}
-                                  </span>
-                                  <span>{entry?.horseName ?? `${horseNumber}番`}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      }
-                      confirmLabel="確定する"
-                      confirmVariant="primary"
-                      onConfirm={handleNetkeibaFinalize}
-                    />
-                  </>
-                ) : (
-                  <ConfirmDialog
-                    trigger={
-                      <Button
-                        className={cn(
-                          'relative w-full py-6 text-lg font-semibold active:scale-[0.98]',
-                          isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
-                        )}
-                        disabled={isPending || isPayoutMoving || canFinalizePayout}
-                      >
-                        {canFinalizePayout ? '着順確定済み' : '着順を確定する'}
-                        {isChanged && !isPending && (
-                          <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
-                        )}
-                      </Button>
-                    }
-                    icon={
-                      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-                        <AlertCircle className="h-8 w-8" />
-                      </div>
-                    }
-                    title="着順を確定しますか？"
-                    description={
-                      <>
-                        この操作を行うと、購入された馬券の払戻計算が実行されます。
-                        <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                          {[1, 2, 3].map((position) => (
-                            <div key={position} className="flex justify-between py-1">
-                              <span
-                                className={cn(
-                                  'rounded-chip px-1.5 py-0.5 text-xs font-semibold',
-                                  medalRankClass(position)
-                                )}
-                              >
-                                {position}着
-                              </span>
-                              <span>{sortedEntries[position - 1]?.horseName}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    }
-                    confirmLabel="確定する"
-                    confirmVariant="primary"
-                    onConfirm={handleSubmit}
-                  />
-                )}
-              </div>
-            )}
-
-            {canFinalizePayout && (
-              <div className="space-y-3">
-                <Button
-                  className="relative w-full border-2 border-amber-500 bg-white py-6 text-lg font-semibold text-amber-600 hover:bg-amber-50"
-                  onClick={handlePayoutFinalize}
-                  disabled={isPayoutMoving || isPending}
-                >
-                  {isPayoutMoving ? '払戻処理中...' : '払戻を確定する'}
-                </Button>
-                <ConfirmDialog
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      className="text-text-sub w-full text-sm font-semibold hover:text-red-500"
-                      disabled={isPayoutMoving || isPending}
-                    >
-                      着順設定をリセットする
-                    </Button>
-                  }
-                  icon={
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
-                      <AlertCircle className="h-8 w-8" />
-                    </div>
-                  }
-                  title="着順設定をリセットしますか？"
-                  description="確定済みの着順・払戻がリセットされます。この操作は元に戻せません。"
-                  confirmLabel="リセットする"
-                  onConfirm={handleServerReset}
-                />
-              </div>
-            )}
-          </div>
+          <FinalizeActionGroup
+            race={race}
+            entries={initialEntries}
+            sortedEntries={sortedEntries}
+            canFinalizePayout={canFinalizePayout}
+            isPending={isPending}
+            isPayoutMoving={isPayoutMoving}
+            isChanged={isChanged}
+            netkeibaResult={netkeibaResult}
+            showNetkeibaConfirm={showNetkeibaConfirm}
+            onNetkeibaConfirmOpenChange={setShowNetkeibaConfirm}
+            onManualClose={handleManualClose}
+            onReopen={handleReopen}
+            onFetchNetkeibaResult={handleFetchNetkeibaResult}
+            onNetkeibaFinalize={handleNetkeibaFinalize}
+            onSubmit={handleSubmit}
+            onPayoutFinalize={handlePayoutFinalize}
+            onServerReset={handleServerReset}
+          />
         </div>
         {sideChildren}
       </div>

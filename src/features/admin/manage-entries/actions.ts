@@ -53,7 +53,7 @@ export async function getRacesForSelect() {
       name: string;
       date: string;
       status: string;
-      races: Array<{
+      races: {
         id: string;
         name: string;
         raceNumber: number | null;
@@ -66,21 +66,23 @@ export async function getRacesForSelect() {
           shortName: string;
         };
         date: string;
-      }>;
+      }[];
     }
   >();
 
   for (const race of allRaces) {
-    if (!eventsMap.has(race.eventId)) {
-      eventsMap.set(race.eventId, {
+    let eventEntry = eventsMap.get(race.eventId);
+    if (!eventEntry) {
+      eventEntry = {
         id: race.event.id,
         name: race.event.name,
         date: race.event.date,
         status: race.event.status,
         races: [],
-      });
+      };
+      eventsMap.set(race.eventId, eventEntry);
     }
-    eventsMap.get(race.eventId)!.races.push({
+    eventEntry.races.push({
       id: race.id,
       name: race.name,
       raceNumber: race.raceNumber,

@@ -64,7 +64,7 @@ async function main() {
   process.exit(failed ? 1 : 0);
 }
 
-main().catch((err) => {
-  console.error('Reconcile failed to run:', err);
+main().catch((cause: unknown) => {
+  console.error('Reconcile failed to run:', cause);
   process.exit(1);
 });

@@ -7,13 +7,13 @@ import { Suspense } from 'react';
 export default async function ForecastsPage() {
   const races = await getRaces();
 
-  type EventGroup = {
+  interface EventGroup {
     id: string;
     name: string;
     date: string;
     status: string;
     races: typeof races;
-  };
+  }
 
   const eventGroups = races.reduce<Record<string, EventGroup>>((acc, race) => {
     const eventId = race.event.id;

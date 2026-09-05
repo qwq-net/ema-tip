@@ -9,7 +9,7 @@ import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 import { EventForm } from './event-form';
 
-type Event = {
+interface Event {
   id: string;
   name: string;
   description: string | null;
@@ -21,7 +21,7 @@ type Event = {
   loanThresholdPercent: number;
   updatedAt: Date;
   defaultAllowedBetTypes: BetType[] | null;
-};
+}
 
 interface AdminEventEditorProps {
   event: Event;

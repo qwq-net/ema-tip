@@ -1,6 +1,6 @@
 import { UserList, getUsers } from '@/features/admin/manage-users';
 import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
-import { auth } from '@/shared/config/auth';
+import { requireAdmin } from '@/shared/utils/admin';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminUsersPage() {
-  const session = await auth();
+  const session = await requireAdmin();
 
   const allUsers = await getUsers();
 
@@ -19,7 +19,7 @@ export default async function AdminUsersPage() {
         <div className="text-sm text-gray-500">総ユーザー数: {allUsers.length}</div>
       </div>
 
-      <UserList users={allUsers} currentUserId={session!.user!.id!} />
+      <UserList users={allUsers} currentUserId={session.user.id} />
     </div>
   );
 }

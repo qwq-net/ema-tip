@@ -32,7 +32,31 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   return {
     title: race.name,
-    description: `${race.venue?.shortName} ${race.raceNumber ? race.raceNumber + 'R' : ''} ${race.name}の予想・オッズ情報`,
+    description: `${race.venue?.shortName} ${race.raceNumber ? `${race.raceNumber}R` : ''} ${race.name}の予想・オッズ情報`,
+  };
+}
+
+type RaceWithRelations = NonNullable<Awaited<ReturnType<typeof getRaceById>>>;
+
+// 融資バナーへ渡す金額と表示条件
+interface LoanBannerValues {
+  distributeAmount: number;
+  loanAmount: number;
+  loanEnabled: boolean;
+  loanThresholdPercent: number;
+}
+
+/**
+ * イベント設定から融資バナーの表示値を組む。
+ * 借入金額が未設定なら配布金額を代わりに使い、イベントが取れないときは融資を出さない値へ倒す。
+ */
+function toLoanBannerValues(event: RaceWithRelations['event']): LoanBannerValues {
+  const distributeAmount = event?.distributeAmount ?? 0;
+  return {
+    distributeAmount,
+    loanAmount: event?.loanAmount ?? distributeAmount,
+    loanEnabled: event?.loanEnabled ?? false,
+    loanThresholdPercent: event?.loanThresholdPercent ?? 30,
   };
 }
 
@@ -58,6 +82,8 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
   if (!wallet) {
     return <WalletMissingCard showBackLink={true} />;
   }
+
+  const loanValues = toLoanBannerValues(race.event);
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
@@ -94,11 +120,11 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
         <LoanBanner
           eventId={race.eventId}
           balance={wallet.balance}
-          distributeAmount={race.event?.distributeAmount ?? 0}
-          loanAmount={race.event?.loanAmount ?? race.event?.distributeAmount ?? 0}
+          distributeAmount={loanValues.distributeAmount}
+          loanAmount={loanValues.loanAmount}
           hasLoaned={wallet.totalLoaned > 0}
-          loanEnabled={race.event?.loanEnabled ?? false}
-          loanThresholdPercent={race.event?.loanThresholdPercent ?? 30}
+          loanEnabled={loanValues.loanEnabled}
+          loanThresholdPercent={loanValues.loanThresholdPercent}
         />
 
         <BetTable

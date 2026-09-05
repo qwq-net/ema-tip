@@ -8,7 +8,7 @@ import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 interface RaceAccordionProps {
-  events: Array<{
+  events: {
     id: string;
     name: string;
     date: string;
@@ -22,7 +22,7 @@ interface RaceAccordionProps {
       race4?: { status: string } | null;
       race5?: { status: string } | null;
     } | null;
-    races: Array<{
+    races: {
       id: string;
       name: string;
       raceNumber: number | null;
@@ -31,15 +31,15 @@ interface RaceAccordionProps {
       condition: string | null;
       status: string;
       closingAt: Date | null;
-      entries?: Array<{ finishPosition: number | null }>;
+      entries?: { finishPosition: number | null }[];
       venueId?: string;
       raceDefinitionId?: string | null;
       direction?: string | null;
       venue?: {
         name: string;
       };
-    }>;
-  }>;
+    }[];
+  }[];
 }
 
 const STORAGE_KEY = 'race-accordion-open-items_v2';
@@ -50,6 +50,32 @@ function areBet5TargetRacesFinished(bet5Event: NonNullable<RaceAccordionProps['e
   );
 }
 
+type Bet5GuideKind = 'setup' | 'close' | 'payout';
+
+// BET5 導線の文言と配色の単一管理点。慣習色の直書きをこのファイルに閉じるためここに置く
+const BET5_GUIDES = {
+  setup: { label: 'BET5が設定できます', className: 'border-blue-200 text-blue-700 hover:bg-blue-50' },
+  close: { label: 'BET5を締め切り忘れていませんか？', className: 'border-amber-200 text-amber-700 hover:bg-amber-50' },
+  payout: { label: 'BET5の払戻を忘れていませんか？', className: 'border-red-200 text-red-700 hover:bg-red-50' },
+} satisfies Record<Bet5GuideKind, { label: string; className: string }>;
+
+/**
+ * イベントの BET5 状態から管理者へ案内する導線を選ぶ。案内不要なら null。
+ * 開催終了と BET5 払戻済みでは何も案内しない。3 つの状態は同時に成立しないため常に 1 つだけ返る。
+ */
+function getBet5Guide(event: RaceAccordionProps['events'][number]): Bet5GuideKind | null {
+  if (event.status === 'COMPLETED' || event.bet5Event?.status === 'FINALIZED') return null;
+
+  if (!event.bet5Event) {
+    return event.status === 'SCHEDULED' || event.status === 'ACTIVE' ? 'setup' : null;
+  }
+
+  if (event.status !== 'ACTIVE') return null;
+  if (event.bet5Event.status === 'SCHEDULED') return 'close';
+  if (event.bet5Event.status === 'CLOSED' && areBet5TargetRacesFinished(event.bet5Event)) return 'payout';
+  return null;
+}
+
 export function RaceAccordion({ events }: RaceAccordionProps) {
   return (
     <PersistedAccordion
@@ -58,21 +84,7 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
       emptyState="登録されているレースはありません"
     >
       {events.map((event) => {
-        const isEventCompleted = event.status === 'COMPLETED';
-        const isBet5Finalized = event.bet5Event?.status === 'FINALIZED';
-        const shouldHideBet5Guide = isEventCompleted || isBet5Finalized;
-
-        const showBet5SetupLink =
-          !shouldHideBet5Guide && (event.status === 'SCHEDULED' || event.status === 'ACTIVE') && !event.bet5Event;
-
-        const showBet5CloseReminder =
-          !shouldHideBet5Guide && event.status === 'ACTIVE' && event.bet5Event?.status === 'SCHEDULED';
-
-        const showBet5PayoutReminder =
-          !shouldHideBet5Guide &&
-          event.status === 'ACTIVE' &&
-          event.bet5Event?.status === 'CLOSED' &&
-          areBet5TargetRacesFinished(event.bet5Event);
+        const bet5Guide = getBet5Guide(event);
 
         return (
           <PersistedAccordionItem
@@ -85,36 +97,10 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                 badge={<Badge variant="status" label={getDisplayStatus(event.status, false)} />}
                 countLabel={`${event.races.length}レース`}
               >
-                {showBet5SetupLink && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                  >
+                {bet5Guide && (
+                  <Button asChild variant="outline" size="sm" className={BET5_GUIDES[bet5Guide].className}>
                     <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
-                      BET5が設定できます
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
-                )}
-                {showBet5CloseReminder && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="border-amber-200 text-amber-700 hover:bg-amber-50"
-                  >
-                    <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
-                      BET5を締め切り忘れていませんか？
-                      <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
-                )}
-                {showBet5PayoutReminder && (
-                  <Button asChild variant="outline" size="sm" className="border-red-200 text-red-700 hover:bg-red-50">
-                    <Link href={`/admin/events/${event.id}/bet5`} onClick={(e) => e.stopPropagation()}>
-                      BET5の払戻を忘れていませんか？
+                      {BET5_GUIDES[bet5Guide].label}
                       <ExternalLink className="ml-1 h-3.5 w-3.5" />
                     </Link>
                   </Button>

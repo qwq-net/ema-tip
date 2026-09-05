@@ -9,7 +9,7 @@ export async function getEventWallets() {
   const session = await requireUser();
 
   return db.query.wallets.findMany({
-    where: eq(wallets.userId, session.user!.id!),
+    where: eq(wallets.userId, session.user.id),
     orderBy: [desc(wallets.createdAt)],
     with: {
       event: true,
@@ -25,7 +25,7 @@ export async function getWalletTransactions(walletId: string) {
     columns: { id: true, userId: true },
   });
 
-  if (!wallet || wallet.userId !== session.user!.id) {
+  if (wallet?.userId !== session.user.id) {
     throw new Error(ADMIN_ERRORS.UNAUTHORIZED);
   }
 

@@ -21,12 +21,7 @@ interface RaceEventCallbacks {
  * SSE接続はページごとに1本にしたいため、締切・再開などの他イベントも
  * このフックの events コールバック経由で同じ接続から受け取る。
  */
-export function useRaceOdds(
-  raceId: string,
-  initialOdds: OddsData,
-  fixedOddsMode: boolean = false,
-  events?: RaceEventCallbacks
-) {
+export function useRaceOdds(raceId: string, initialOdds: OddsData, fixedOddsMode = false, events?: RaceEventCallbacks) {
   const [odds, setOdds] = useState<OddsData | RaceOddsData>(initialOdds);
   // 更新の連番。表示側が key に使い、同方向の連続更新でも点灯アニメーションを最初から再生する
   const [oddsVersion, setOddsVersion] = useState(0);

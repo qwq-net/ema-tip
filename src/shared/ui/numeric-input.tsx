@@ -2,17 +2,38 @@
 
 import { cn } from '@/shared/utils/cn';
 import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
-import React, { useCallback, useImperativeHandle, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 
 function formatWithCommas(value: number): string {
   if (isNaN(value) || value === 0) return '';
   return value.toLocaleString('en-US');
 }
 
+/** 入力欄に出す文字列を返す。小数入力では 0 を空欄として扱い、整数入力では 3 桁区切りにする。 */
+function formatDisplayValue(value: number, allowDecimal: boolean): string {
+  if (!allowDecimal) return formatWithCommas(value);
+  return value === 0 ? '' : value.toString();
+}
+
 function parseNumericString(str: string): number {
   const cleaned = str.replace(/[^0-9]/g, '');
   if (cleaned === '') return 0;
   return parseInt(cleaned, 10);
+}
+
+/** 小数入力の生文字列を数字と小数点だけに絞り、2 つ目以降の小数点を落とした文字列を返す。 */
+function sanitizeDecimalString(raw: string): string {
+  const cleaned = raw.replace(/[^0-9.]/g, '');
+  const parts = cleaned.split('.');
+  if (parts.length <= 2) return cleaned;
+  return `${parts[0]}.${parts.slice(1).join('')}`;
+}
+
+/** 値が min と max の範囲内かどうか。未指定の側は制限なしとして扱う。 */
+function isWithinRange(value: number, min: number | undefined, max: number | undefined): boolean {
+  if (max !== undefined && value > max) return false;
+  if (min !== undefined && value < min) return false;
+  return true;
 }
 
 interface NumericInputProps {
@@ -51,22 +72,18 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
     ref
   ) => {
     const ignoreAttrs = getPasswordManagerIgnoreAttributes(ignorePasswordManager);
-    const innerRef = useRef<HTMLInputElement>(null);
-    useImperativeHandle(ref, () => innerRef.current!);
     const isComposing = useRef(false);
     const isFocused = useRef(false);
     // この入力自身が onChange で親へ通知した最後の値。
     // これと異なる value が来たらキーパッドやリセットなど外部起点の変更なので、フォーカス中でも表示へ反映する
     const lastEmitted = useRef(value);
 
-    const [localValue, setLocalValue] = React.useState(
-      allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value)
-    );
+    const [localValue, setLocalValue] = React.useState(formatDisplayValue(value, allowDecimal));
 
     React.useEffect(() => {
       if (isComposing.current) return;
       if (isFocused.current && value === lastEmitted.current) return;
-      const nextValue = allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value);
+      const nextValue = formatDisplayValue(value, allowDecimal);
       setLocalValue(nextValue);
       lastEmitted.current = value;
     }, [value, allowDecimal]);
@@ -110,19 +127,17 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         }
 
         if (allowDecimal) {
-          const cleaned = raw.replace(/[^0-9.]/g, '');
-          const parts = cleaned.split('.');
-          const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-          const num = parseFloat(sanitized);
-          if (isNaN(num)) {
+          const sanitized = sanitizeDecimalString(raw);
+          const decimalValue = parseFloat(sanitized);
+          if (isNaN(decimalValue)) {
             setLocalValue('');
             emitChange(0);
-          } else {
-            if (max !== undefined && num > max) return;
-            if (min !== undefined && num < min) return;
-            setLocalValue(sanitized);
-            emitChange(num);
+            return;
           }
+          if (!isWithinRange(decimalValue, min, max)) return;
+
+          setLocalValue(sanitized);
+          emitChange(decimalValue);
           return;
         }
 
@@ -133,8 +148,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         }
 
         const num = parseNumericString(raw);
-        if (max !== undefined && num > max) return;
-        if (min !== undefined && num < min) return;
+        if (!isWithinRange(num, min, max)) return;
 
         setLocalValue(formatWithCommas(num));
         emitChange(num);
@@ -151,7 +165,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
 
     const handleBlur = useCallback(() => {
       isFocused.current = false;
-      const formatted = allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value);
+      const formatted = formatDisplayValue(value, allowDecimal);
       setLocalValue(formatted);
     }, [value, allowDecimal]);
 
@@ -167,7 +181,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
 
     const inputElement = (
       <input
-        ref={innerRef}
+        ref={ref}
         id={id}
         type="text"
         inputMode={allowDecimal ? 'decimal' : 'numeric'}

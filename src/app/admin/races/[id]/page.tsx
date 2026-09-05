@@ -5,7 +5,7 @@ import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update
 import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { RaceBetTypesForm } from '@/features/admin/manage-races/ui/race-bet-types-form';
 import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
-import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
+import { RaceResultForm, type RaceResultFormRace } from '@/features/admin/manage-races/ui/race-result-form';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import {
@@ -29,6 +29,162 @@ import { notFound } from 'next/navigation';
 export const metadata: Metadata = {
   title: 'レース詳細編集',
 };
+
+// 確定済み結果の着順バッジ色。1〜3着は金銀銅、4着以下は淡色で出す。
+// 枠線を持つぶん共通の rank-medal とは別の組で、この画面に閉じて持つ
+function resultRankClass(index: number): string {
+  if (index === 0) return 'border-amber-200 bg-amber-100 text-amber-700';
+  if (index === 1) return 'border-gray-200 bg-gray-100 text-gray-700';
+  if (index === 2) return 'border-orange-200 bg-orange-100 text-orange-700';
+  return 'text-text-sub border-gray-100 bg-gray-50';
+}
+
+type RaceWithRelations = NonNullable<Awaited<ReturnType<typeof getRaceById>>>;
+
+// BET5 の締切案内を出すかの判定に使うイベント情報
+interface Bet5CloseTarget {
+  status: string;
+  race1Id: string;
+  race2Id: string;
+  race3Id: string;
+  race4Id: string;
+  race5Id: string;
+}
+
+/** 出走前に BET5 の締切を促すかを返す。BET5 の対象レースで、かつ受付中のときだけ促す。 */
+function shouldRemindBet5Close(bet5Event: Bet5CloseTarget | undefined, raceId: string): boolean {
+  if (bet5Event === undefined) return false;
+  const targetRaceIds = [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id];
+  return targetRaceIds.includes(raceId) && bet5Event.status === 'SCHEDULED';
+}
+
+/** 払戻を確定できる状態かを返す。払戻結果が既にあるか、受付終了後に着順が入っていれば確定できる。 */
+function canFinalizePayoutFor(payoutResultCount: number, status: string, hasFinishPositions: boolean): boolean {
+  return payoutResultCount > 0 || (status === 'CLOSED' && hasFinishPositions);
+}
+
+/** レースの取得結果を着順設定フォームが求める形へ変換する。会場と締切は未設定でも描けるよう既定値へ倒す。 */
+function toResultFormRace(race: RaceWithRelations): RaceResultFormRace {
+  return {
+    id: race.id,
+    eventId: race.eventId,
+    date: race.date,
+    location: race.venue?.name || '',
+    name: race.name,
+    raceNumber: race.raceNumber,
+    status: race.status,
+    surface: race.surface,
+    distance: race.distance,
+    condition: race.condition,
+    closingAt: race.closingAt ? race.closingAt.toISOString() : null,
+    netkeibaUrl: race.netkeibaUrl ?? null,
+    fixedOddsMode: race.fixedOddsMode,
+  };
+}
+
+interface RaceDetailHeaderProps {
+  race: RaceWithRelations;
+  entrantCount: number;
+}
+
+/** レース詳細の見出し。Netkeiba 由来のレースにだけオッズ再取得の操作を添える。 */
+function RaceDetailHeader({ race, entrantCount }: RaceDetailHeaderProps) {
+  return (
+    <RacePageHeader
+      venueShortName={race.venue?.shortName}
+      raceNumber={race.raceNumber}
+      eventName={race.event?.name}
+      name={race.name}
+      netkeibaUrl={race.netkeibaUrl}
+      surface={race.surface}
+      distance={race.distance}
+      entrantCount={entrantCount}
+      actions={
+        <>
+          {race.netkeibaUrl && (
+            <UpdateNetkeibaOddsButton
+              raceId={race.id}
+              className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
+            />
+          )}
+          <Button variant="outline" asChild>
+            <Link href={`/admin/races/${race.id}/edit`}>
+              <Settings2 className="mr-2 h-4 w-4" />
+              レース情報を編集
+            </Link>
+          </Button>
+        </>
+      }
+    />
+  );
+}
+
+interface FinalizedRaceInfoCardProps {
+  race: RaceWithRelations;
+  oddsUpdatedAt: Date | undefined;
+}
+
+/** 払戻確定後のレース情報カード。オッズの更新時刻は記録がある場合だけ並べる。 */
+function FinalizedRaceInfoCard({ race, oddsUpdatedAt }: FinalizedRaceInfoCardProps) {
+  return (
+    <Card className="border-none">
+      <CardHeader className="border-b border-gray-50 pb-4">
+        <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-6 text-sm">
+        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+          <span className="font-medium text-gray-500">ステータス</span>
+          <Badge variant="status" label={race.status} />
+        </div>
+        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+          <span className="font-medium text-gray-500">コース</span>
+          <div className="flex items-center gap-2">
+            <Badge variant="surface" label={race.surface} />
+            <span className="font-semibold text-gray-900">{race.distance}m</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+          <span className="font-medium text-gray-500">馬場状態</span>
+          <Badge variant="condition" label={race.condition} />
+        </div>
+        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+          <span className="font-medium text-gray-500">確定日時</span>
+          <span className="font-semibold text-gray-900">
+            {race.finalizedAt ? (
+              <FormattedDate
+                date={race.finalizedAt}
+                options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
+              />
+            ) : (
+              '-'
+            )}
+          </span>
+        </div>
+        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+          <span className="font-medium text-gray-500">レース作成方法</span>
+          <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
+        </div>
+        {race.fixedOddsMode && (
+          <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+            <span className="font-medium text-gray-500">オッズ設定</span>
+            <span className="font-semibold text-blue-600">固定オッズ</span>
+          </div>
+        )}
+        {oddsUpdatedAt && (
+          <div className="flex items-center justify-between pb-2">
+            <span className="font-medium text-gray-500">オッズ更新</span>
+            <span className="text-text-sub text-sm">
+              <FormattedDate
+                date={oddsUpdatedAt}
+                options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
+              />
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default async function RaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -84,13 +240,11 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   const raceAllowed = toAllowedBetTypes(raceTypeRows.map((r) => r.betType));
   const eventDefault = toAllowedBetTypes(eventTypeRows.map((r) => r.betType));
 
-  const isBet5TargetRace =
-    bet5Event !== undefined &&
-    [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id].includes(race.id);
-  const showBet5CloseReminder = isBet5TargetRace && bet5Event?.status === 'SCHEDULED';
+  const entrantCount = entriesWithResult.filter((e) => e.status === 'ENTRANT').length;
+  const showBet5CloseReminder = shouldRemindBet5Close(bet5Event, race.id);
 
   const hasFinishPositions = entriesWithResult.some((e) => e.finishPosition !== null);
-  const canFinalizePayout = payoutResults.length > 0 || (race.status === 'CLOSED' && hasFinishPositions);
+  const canFinalizePayout = canFinalizePayoutFor(payoutResults.length, race.status, hasFinishPositions);
 
   const settingCards = (
     <>
@@ -114,38 +268,13 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </Link>
         <div className="flex-1">
-          <RacePageHeader
-            venueShortName={race.venue?.shortName}
-            raceNumber={race.raceNumber}
-            eventName={race.event?.name}
-            name={race.name}
-            netkeibaUrl={race.netkeibaUrl}
-            surface={race.surface}
-            distance={race.distance}
-            entrantCount={entriesWithResult.filter((e) => e.status === 'ENTRANT').length}
-            actions={
-              <>
-                {race.netkeibaUrl && (
-                  <UpdateNetkeibaOddsButton
-                    raceId={id}
-                    className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
-                  />
-                )}
-                <Button variant="outline" asChild>
-                  <Link href={`/admin/races/${race.id}/edit`}>
-                    <Settings2 className="mr-2 h-4 w-4" />
-                    レース情報を編集
-                  </Link>
-                </Button>
-              </>
-            }
-          />
+          <RaceDetailHeader race={race} entrantCount={entrantCount} />
         </div>
       </div>
 
       <div className={race.status === 'FINALIZED' ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={race.status === 'FINALIZED' ? 'lg:col-span-2' : ''}>
-          {race.status === 'FINALIZED' ? (
+          {race.status === 'FINALIZED' && (
             <Card className="border-none">
               <CardHeader className="flex flex-row items-center justify-between border-b border-gray-50 pb-4">
                 <div className="flex items-center gap-2">
@@ -165,13 +294,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                       <div
                         className={cn(
                           'rounded-control flex h-10 w-10 shrink-0 items-center justify-center border text-xl font-semibold transition-colors',
-                          index === 0
-                            ? 'border-amber-200 bg-amber-100 text-amber-700'
-                            : index === 1
-                              ? 'border-gray-200 bg-gray-100 text-gray-700'
-                              : index === 2
-                                ? 'border-orange-200 bg-orange-100 text-orange-700'
-                                : 'text-text-sub border-gray-100 bg-gray-50'
+                          resultRankClass(index)
                         )}
                       >
                         {index + 1}
@@ -184,10 +307,10 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                             getBracketColor(entry.bracketNumber)
                           )}
                         >
-                          {entry.bracketNumber || '?'}
+                          {entry.bracketNumber ?? '?'}
                         </span>
                         <span className="text-primary bg-primary/10 ring-primary/10 rounded-chip flex h-7 w-7 items-center justify-center text-sm font-semibold ring-1">
-                          {entry.horseNumber || '?'}
+                          {entry.horseNumber ?? '?'}
                         </span>
                       </div>
 
@@ -199,7 +322,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                             <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
                           </>
                         )}
-                        {oddsMap[String(entry.horseNumber)] != null && (
+                        {oddsMap[String(entry.horseNumber)] !== undefined && (
                           <>
                             <span className="text-text-sub shrink-0 text-sm">/</span>
                             <span className="shrink-0 text-sm font-semibold text-gray-600">
@@ -213,119 +336,52 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 </div>
               </CardContent>
             </Card>
-          ) : entriesWithResult.length > 0 ? (
-            <RaceResultForm
-              raceId={race.id}
-              canFinalizePayout={canFinalizePayout}
-              showBet5CloseReminder={showBet5CloseReminder}
-              entries={entriesWithResult.map((e) => ({
-                id: e.id,
-                horseNumber: e.horseNumber,
-                horseName: e.horseName,
-                bracketNumber: e.bracketNumber,
-                jockey: e.jockey,
-                odds: oddsMap[String(e.horseNumber)] ?? null,
-              }))}
-              race={{
-                id: race.id,
-                eventId: race.eventId,
-                date: race.date,
-                location: race.venue?.name || '',
-                name: race.name,
-                raceNumber: race.raceNumber,
-                status: race.status,
-                surface: race.surface,
-                distance: race.distance,
-                condition: race.condition,
-                closingAt: race.closingAt ? race.closingAt.toISOString() : null,
-                netkeibaUrl: race.netkeibaUrl ?? null,
-                fixedOddsMode: race.fixedOddsMode,
-              }}
-              sideChildren={settingCards}
-            />
-          ) : (
-            <div className="space-y-6">
-              <Card className="border-none">
-                <CardContent className="py-16 text-center">
-                  <div className="mb-4 flex justify-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
-                      <Info className="h-8 w-8" />
-                    </div>
-                  </div>
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
-                  <p className="text-sm text-gray-500">
-                    レース結果を確定するには、まず出走馬を登録する必要があります。
-                  </p>
-                  <Button asChild variant="outline" className="mt-6 font-semibold">
-                    <Link href={`/admin/entries/${race.id}`}>出走馬を登録する</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <div className="grid gap-6 lg:grid-cols-3">
-                <div className="space-y-6 lg:col-start-3">{settingCards}</div>
-              </div>
-            </div>
           )}
+          {race.status !== 'FINALIZED' &&
+            (entriesWithResult.length > 0 ? (
+              <RaceResultForm
+                raceId={race.id}
+                canFinalizePayout={canFinalizePayout}
+                showBet5CloseReminder={showBet5CloseReminder}
+                entries={entriesWithResult.map((e) => ({
+                  id: e.id,
+                  horseNumber: e.horseNumber,
+                  horseName: e.horseName,
+                  bracketNumber: e.bracketNumber,
+                  jockey: e.jockey,
+                  odds: oddsMap[String(e.horseNumber)] ?? null,
+                }))}
+                race={toResultFormRace(race)}
+                sideChildren={settingCards}
+              />
+            ) : (
+              <div className="space-y-6">
+                <Card className="border-none">
+                  <CardContent className="py-16 text-center">
+                    <div className="mb-4 flex justify-center">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
+                        <Info className="h-8 w-8" />
+                      </div>
+                    </div>
+                    <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
+                    <p className="text-sm text-gray-500">
+                      レース結果を確定するには、まず出走馬を登録する必要があります。
+                    </p>
+                    <Button asChild variant="outline" className="mt-6 font-semibold">
+                      <Link href={`/admin/entries/${race.id}`}>出走馬を登録する</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+                <div className="grid gap-6 lg:grid-cols-3">
+                  <div className="space-y-6 lg:col-start-3">{settingCards}</div>
+                </div>
+              </div>
+            ))}
         </div>
 
         {race.status === 'FINALIZED' && (
           <div className="space-y-6">
-            <Card className="border-none">
-              <CardHeader className="border-b border-gray-50 pb-4">
-                <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-6 text-sm">
-                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                  <span className="font-medium text-gray-500">ステータス</span>
-                  <Badge variant="status" label={race.status} />
-                </div>
-                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                  <span className="font-medium text-gray-500">コース</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="surface" label={race.surface} />
-                    <span className="font-semibold text-gray-900">{race.distance}m</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                  <span className="font-medium text-gray-500">馬場状態</span>
-                  <Badge variant="condition" label={race.condition} />
-                </div>
-                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                  <span className="font-medium text-gray-500">確定日時</span>
-                  <span className="font-semibold text-gray-900">
-                    {race.finalizedAt ? (
-                      <FormattedDate
-                        date={race.finalizedAt}
-                        options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
-                      />
-                    ) : (
-                      '-'
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                  <span className="font-medium text-gray-500">レース作成方法</span>
-                  <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
-                </div>
-                {race.fixedOddsMode && (
-                  <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                    <span className="font-medium text-gray-500">オッズ設定</span>
-                    <span className="font-semibold text-blue-600">固定オッズ</span>
-                  </div>
-                )}
-                {oddsRecord && (
-                  <div className="flex items-center justify-between pb-2">
-                    <span className="font-medium text-gray-500">オッズ更新</span>
-                    <span className="text-text-sub text-sm">
-                      <FormattedDate
-                        date={oddsRecord.updatedAt}
-                        options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
-                      />
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <FinalizedRaceInfoCard race={race} oddsUpdatedAt={oddsRecord?.updatedAt} />
             {settingCards}
           </div>
         )}

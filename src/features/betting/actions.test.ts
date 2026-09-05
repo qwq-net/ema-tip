@@ -331,14 +331,14 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => {
+    mockTx.execute.mockImplementation(() => {
       callOrder.push('lock');
     });
-    mockTx.query.raceInstances.findFirst.mockImplementation(async () => {
+    mockTx.query.raceInstances.findFirst.mockImplementation(() => {
       callOrder.push('readRace');
       return mockRace;
     });
-    mockTx.query.wallets.findFirst.mockImplementation(async () => {
+    mockTx.query.wallets.findFirst.mockImplementation(() => {
       callOrder.push('readWallet');
       return mockWallet;
     });

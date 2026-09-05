@@ -23,13 +23,13 @@ const BATCH_SIZE = 100;
 // UI のフォーメーションで組める最大点数なので、これを超えるのは不正リクエストだけ
 const MAX_COMBINATIONS = 4896;
 
-type PlaceBetsArgs = {
+interface PlaceBetsArgs {
   raceId: string;
   walletId: string;
   betType: BetType;
   combinations: number[][];
   amountPerBet: number;
-};
+}
 
 // 馬券を購入する。本番では throw のメッセージがマスクされるため、
 // 締切・残高不足などの想定内エラーは throw せず { success: false, error } で返す。
@@ -94,7 +94,7 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
   ]);
 
   // イベント終了後に SCHEDULED のまま残ったレースへのベットで順位確定後の残高が動くのを防ぐ
-  if (!event || event.status !== 'ACTIVE') {
+  if (event?.status !== 'ACTIVE') {
     throw new ActionError(ADMIN_ERRORS.RACE_CLOSED);
   }
 
@@ -107,55 +107,8 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
     throw new ActionError(ADMIN_ERRORS.BET_TYPE_NOT_ALLOWED);
   }
 
-  // 組み合わせの中身はクライアント任せにせず、要素数・整数性・実在番号・重複をここで検証する
-  const isBracket = betType === BET_TYPES.BRACKET_QUINELLA;
-  const validNumbers = new Set(
-    entries
-      .filter((e) => e.status === 'ENTRANT')
-      .map((e) => (isBracket ? e.bracketNumber : e.horseNumber))
-      .filter((n): n is number => n !== null)
-  );
-  const bracketEntrantCount = new Map<number, number>();
-  if (isBracket) {
-    for (const e of entries) {
-      if (e.status === 'ENTRANT' && e.bracketNumber !== null) {
-        bracketEntrantCount.set(e.bracketNumber, (bracketEntrantCount.get(e.bracketNumber) ?? 0) + 1);
-      }
-    }
-  }
-  // 枠連のゾロ目は同枠に出走中の馬が組合せ数以上いる場合のみ成立しうる
-  const isZoromeFeasible = (combo: number[]) => {
-    const counts = new Map<number, number>();
-    for (const n of combo) counts.set(n, (counts.get(n) ?? 0) + 1);
-    return [...counts].every(([bracket, needed]) => needed === 1 || (bracketEntrantCount.get(bracket) ?? 0) >= needed);
-  };
-  const selectionCount = BET_TYPE_SELECTION_COUNTS[betType];
-  for (const combo of combinations) {
-    const isValid =
-      Array.isArray(combo) &&
-      combo.length === selectionCount &&
-      combo.every((n) => Number.isInteger(n) && validNumbers.has(n)) &&
-      (isBracket ? isZoromeFeasible(combo) : new Set(combo).size === combo.length);
-    if (!isValid) {
-      throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
-    }
-  }
-
-  if (!wallet) {
-    throw new ActionError(ADMIN_ERRORS.NOT_FOUND);
-  }
-
-  if (wallet.userId !== session.user!.id) {
-    throw new ActionError(ADMIN_ERRORS.INVALID_WALLET);
-  }
-
-  if (wallet.eventId !== race.eventId) {
-    throw new ActionError(ADMIN_ERRORS.INVALID_WALLET);
-  }
-
-  if (wallet.balance < totalAmount) {
-    throw new ActionError(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
-  }
+  validateCombinations(combinations, betType, entries);
+  validateWallet(wallet, session.user.id, race.eventId, totalAmount);
 
   await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${walletId}`}))`);
@@ -168,7 +121,7 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
       where: eq(raceInstances.id, raceId),
     });
 
-    if (!lockedRace || lockedRace.status !== 'SCHEDULED') {
+    if (lockedRace?.status !== 'SCHEDULED') {
       throw new ActionError(ADMIN_ERRORS.RACE_CLOSED);
     }
 
@@ -187,7 +140,7 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
     const [betGroup] = await tx
       .insert(betGroups)
       .values({
-        userId: session.user!.id!,
+        userId: session.user.id,
         raceId,
         walletId,
         type: betType,
@@ -202,7 +155,7 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
         .insert(bets)
         .values(
           batch.map((combo) => ({
-            userId: session.user!.id!,
+            userId: session.user.id,
             raceId,
             walletId,
             betGroupId: betGroup.id,
@@ -236,9 +189,81 @@ async function placeBetsInner({ raceId, walletId, betType, combinations, amountP
   // 購入後は呼び手が router.refresh で取り直し、オッズは SSE が配信するため鮮度は保たれる
 
   // オッズ再計算は応答を待たないファイア・アンド・フォーゲット
-  void calculateOdds(raceId).catch((err) => {
-    console.error('Failed to calculate odds:', err);
+  void calculateOdds(raceId).catch((cause: unknown) => {
+    console.error('Failed to calculate odds:', cause);
   });
+}
+
+/** 組合せ検証で参照する出走馬の最小情報 */
+type EntryForValidation = Pick<typeof raceEntries.$inferSelect, 'horseNumber' | 'bracketNumber' | 'status'>;
+
+/**
+ * 組合せの中身が券種の要素数・整数性・実在番号・重複の規則を満たすかを検証する。
+ * 枠連のゾロ目は同枠の出走中頭数が足りるときだけ許容し、他の券種は同一番号の重複を認めない。
+ * 違反が1件でもあれば ActionError を投げ、全て満たせば何も返さない。
+ * 組み合わせの中身はクライアント任せにできないため、購入前に必ず通す前提の検証。
+ */
+function validateCombinations(combinations: number[][], betType: BetType, entries: EntryForValidation[]): void {
+  const isBracket = betType === BET_TYPES.BRACKET_QUINELLA;
+  const validNumbers = new Set(
+    entries
+      .filter((e) => e.status === 'ENTRANT')
+      .map((e) => (isBracket ? e.bracketNumber : e.horseNumber))
+      .filter((n): n is number => n !== null)
+  );
+  const bracketEntrantCount = new Map<number, number>();
+  if (isBracket) {
+    for (const e of entries) {
+      if (e.status === 'ENTRANT' && e.bracketNumber !== null) {
+        bracketEntrantCount.set(e.bracketNumber, (bracketEntrantCount.get(e.bracketNumber) ?? 0) + 1);
+      }
+    }
+  }
+  // 枠連のゾロ目は同枠に出走中の馬が組合せ数以上いる場合のみ成立しうる
+  const isZoromeFeasible = (combo: number[]) => {
+    const counts = new Map<number, number>();
+    for (const n of combo) counts.set(n, (counts.get(n) ?? 0) + 1);
+    return [...counts].every(([bracket, needed]) => needed === 1 || (bracketEntrantCount.get(bracket) ?? 0) >= needed);
+  };
+  const selectionCount = BET_TYPE_SELECTION_COUNTS[betType];
+  for (const combo of combinations) {
+    const isValid =
+      Array.isArray(combo) &&
+      combo.length === selectionCount &&
+      combo.every((n) => Number.isInteger(n) && validNumbers.has(n)) &&
+      (isBracket ? isZoromeFeasible(combo) : new Set(combo).size === combo.length);
+    if (!isValid) {
+      throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
+    }
+  }
+}
+
+/**
+ * ウォレットが存在し、購入者本人のもので、対象イベントに属し、購入総額を賄えるかを検証する。
+ * いずれかを満たさなければ ActionError を投げる。
+ * ここでの残高判定は締切前の早期エラー用で、確定判定はトランザクション内の再読み込みが担う前提。
+ */
+function validateWallet(
+  wallet: typeof wallets.$inferSelect | undefined,
+  userId: string,
+  eventId: string,
+  totalAmount: number
+): void {
+  if (!wallet) {
+    throw new ActionError(ADMIN_ERRORS.NOT_FOUND);
+  }
+
+  if (wallet.userId !== userId) {
+    throw new ActionError(ADMIN_ERRORS.INVALID_WALLET);
+  }
+
+  if (wallet.eventId !== eventId) {
+    throw new ActionError(ADMIN_ERRORS.INVALID_WALLET);
+  }
+
+  if (wallet.balance < totalAmount) {
+    throw new ActionError(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+  }
 }
 
 export async function getUserBetGroupsForRace(raceId: string) {
@@ -250,7 +275,7 @@ export async function getUserBetGroupsForRace(raceId: string) {
   });
 
   const groups = await db.query.betGroups.findMany({
-    where: (bg, { and, eq }) => and(eq(bg.userId, session.user!.id!), eq(bg.raceId, raceId)),
+    where: (bg, { and, eq }) => and(eq(bg.userId, session.user.id), eq(bg.raceId, raceId)),
     orderBy: (bg, { desc }) => [desc(bg.createdAt)],
     with: {
       bets: true,

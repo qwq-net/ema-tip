@@ -5,6 +5,7 @@ import { db } from '@/shared/db';
 import { eventDefaultAllowedBetTypes, events } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireAdmin } from '@/shared/utils/admin';
+import { formString } from '@/shared/utils/form';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -36,7 +37,7 @@ export async function createEvent(formData: FormData) {
 
   const parse = eventSchema.safeParse({
     name: formData.get('name'),
-    description: formData.get('description')?.toString() || undefined,
+    description: formString(formData, 'description') || undefined,
     distributeAmount: formData.get('distributeAmount'),
     loanAmount: formData.get('loanAmount') || undefined,
     loanEnabled: formData.get('loanEnabled'),
@@ -46,7 +47,7 @@ export async function createEvent(formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('無効な入力です: ' + JSON.stringify(parse.error.flatten()));
+    throw new Error(`無効な入力です: ${JSON.stringify(parse.error.flatten())}`);
   }
 
   // キャリーオーバーは前イベントからの「移動」。コピー元を残すと複数イベント作成時に二重計上される
@@ -55,7 +56,7 @@ export async function createEvent(formData: FormData) {
       orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
     });
 
-    const carryover = lastEvent ? Number(lastEvent.carryoverAmount) : 0;
+    const carryover = lastEvent?.carryoverAmount ?? 0;
 
     const [created] = await tx
       .insert(events)
@@ -91,7 +92,7 @@ export async function updateEvent(id: string, formData: FormData) {
 
   const parse = eventSchema.safeParse({
     name: formData.get('name'),
-    description: formData.get('description')?.toString() || undefined,
+    description: formString(formData, 'description') || undefined,
     distributeAmount: formData.get('distributeAmount'),
     loanAmount: formData.get('loanAmount') || undefined,
     loanEnabled: formData.get('loanEnabled'),
@@ -101,7 +102,7 @@ export async function updateEvent(id: string, formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('無効な入力です: ' + JSON.stringify(parse.error.flatten()));
+    throw new Error(`無効な入力です: ${JSON.stringify(parse.error.flatten())}`);
   }
 
   // 保存のたびに全レースページへ通知が飛ぶのを避けるため、種別が実際に変わったときだけ emit する

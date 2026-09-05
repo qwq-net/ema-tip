@@ -11,6 +11,21 @@ interface AssetChartProps {
   title?: string;
 }
 
+// dot と activeDot の描画関数が受け取るパラメータ。recharts は payload を any で渡すため、
+// このチャートが data に与えている1点の型をここで明示する
+interface AssetDotProps {
+  cx?: number;
+  cy?: number;
+  payload: AssetHistoryPoint;
+}
+
+// 増減額の文字色。プラスは青、マイナスは赤、増減なしは灰で出す
+function amountColorClass(amount: number): string {
+  if (amount > 0) return 'text-blue-600';
+  if (amount < 0) return 'text-red-600';
+  return 'text-gray-600';
+}
+
 export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
   const chartId = useId().replace(/:/g, '');
 
@@ -70,7 +85,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                 minTickGap={48}
               />
               <YAxis
-                tickFormatter={(value) => `¥${value.toLocaleString('ja-JP')}`}
+                tickFormatter={(value: number) => `¥${value.toLocaleString('ja-JP')}`}
                 tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
                 tickLine={false}
                 axisLine={false}
@@ -79,7 +94,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
               <ReferenceLine y={0} stroke="var(--color-text-sub)" strokeDasharray="3 3" />
               <Tooltip
                 content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
+                  if (active && payload?.length) {
                     // SAFETY: この Tooltip は AssetHistoryPoint[] を data に持つチャート専用
                     const data = payload[0].payload as AssetHistoryPoint;
                     return (
@@ -87,11 +102,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                         <div className="text-text-sub text-sm">{data.date}</div>
                         <div className="mb-1 font-semibold text-gray-900">{data.label || '不明な操作'}</div>
                         <div className="flex flex-col gap-0.5 tabular-nums">
-                          <div
-                            className={`text-lg font-semibold ${
-                              data.amount > 0 ? 'text-blue-600' : data.amount < 0 ? 'text-red-600' : 'text-gray-600'
-                            }`}
-                          >
+                          <div className={`text-lg font-semibold ${amountColorClass(data.amount)}`}>
                             {data.amount > 0 ? '+' : ''}
                             {data.amount.toLocaleString('ja-JP')}円
                           </div>
@@ -112,7 +123,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                 strokeWidth={2}
                 dot={
                   showDots
-                    ? (props) => {
+                    ? (props: AssetDotProps) => {
                         const { cx, cy, payload } = props;
                         const isPositive = payload.balance >= 0;
                         return (
@@ -129,7 +140,7 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                       }
                     : false
                 }
-                activeDot={(props) => {
+                activeDot={(props: AssetDotProps) => {
                   const { cx, cy, payload } = props;
                   const isPositive = payload.balance >= 0;
                   return (

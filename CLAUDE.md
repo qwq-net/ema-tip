@@ -25,6 +25,18 @@
 - 利用者が高頻度で呼ぶ Server Action に revalidatePath を足さない。応答に対象ページの再レンダリングが同梱され、待ち時間がほぼ倍になる。動的ページの鮮度は呼び手の router.refresh と SSE で担保し、画面反映は E2E で検証する。キャッシュされるページを導入する場合のみ revalidate を再検討する
 - SSE 起点のトーストは開催中に1回きりの状態変化に限る。購入のたびに全員へ届くオッズ更新のような高頻度イベントは、値の表示自体の更新で伝える
 
+## Lint
+
+- 型付きルールは typescript-eslint の strictTypeChecked と stylisticTypeChecked。誤検知を切る判断は eslint.config.ts のコメントに理由を書く
+- 複雑度は sonarjs の cognitive-complexity 15 が主軸で complexity 15 は粗い網。超過したら関数を分ける。閾値は上げない
+- FSD の層方向は no-restricted-imports で強制する。shared から entities は constants と types の葉モジュールのみ参照できる
+- eslint-disable は理由付きの行単位のみ。ファイル単位の無効化はしない。不要になった指定は reportUnusedDisableDirectives が検出する
+- 新しいルールを足すときは warn で入れて既存違反を潰し、ゼロになった時点で error へ昇格する
+- lint は `--max-warnings 0`。warning はそのまま CI の失敗になる
+- no-unnecessary-condition は off。tsconfig の noUncheckedIndexedAccess が無効な間は正しいガードを不要と誤判定するため、添字アクセスの厳格化とセットで有効化する
+- 見送り中の候補は3つ。noUncheckedIndexedAccess は tsc エラー約225件、exactOptionalPropertyTypes は約22件。import/no-cycle は WSL にネイティブ resolver が無く未計測なのでコンテナ内で測る
+- features 間の越境4件は今回制限していない。層境界の残る穴はここだけ
+
 ## デザインシステム
 
 - 色・角丸・書体・文字サイズは `src/app/styles/globals.css` の @theme が唯一の管理点。維持する慣習色の例外一覧もここのコメントにある

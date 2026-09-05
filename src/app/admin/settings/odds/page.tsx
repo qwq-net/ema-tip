@@ -2,9 +2,14 @@ import { updateSystemDefaultOdds } from '@/features/admin/manage-settings/action
 import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
+import { formString } from '@/shared/utils/form';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
 
 import { OddsForm } from './odds-form';
+
+// OddsForm は保証オッズの Record を JSON 文字列にして hidden 入力へ載せる。券種キーと倍率だけを受け付ける
+const oddsPayloadSchema = z.record(z.string(), z.number());
 
 export default async function DefaultOddsSettingsPage() {
   const guaranteedOddsMaster = await db.query.guaranteedOddsMaster.findMany();
@@ -16,11 +21,13 @@ export default async function DefaultOddsSettingsPage() {
 
   async function updateOdds(formData: FormData) {
     'use server';
-    const oddsStr = formData.get('odds');
+    const oddsStr = formString(formData, 'odds');
     if (!oddsStr) return;
 
-    const odds = JSON.parse(oddsStr.toString());
-    await updateSystemDefaultOdds(odds);
+    const odds = oddsPayloadSchema.safeParse(JSON.parse(oddsStr));
+    if (!odds.success) return;
+
+    await updateSystemDefaultOdds(odds.data);
     redirect('/admin');
   }
 

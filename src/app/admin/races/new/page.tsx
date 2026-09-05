@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 export default async function CreateRacePage() {
   const [events, raceDefinitions, venues] = await Promise.all([getEvents(), getRaceDefinitions(), getVenues()]);
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
   async function onSuccess() {
     'use server';
     redirect('/admin/races');

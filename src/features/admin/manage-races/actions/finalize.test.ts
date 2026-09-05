@@ -30,8 +30,8 @@ vi.mock('@/shared/db', () => ({
 }));
 
 describe('finalizeRace', () => {
-  const insertedValues: Array<Record<string, unknown>> = [];
-  const setCalls: Array<Record<string, unknown>> = [];
+  const insertedValues: Record<string, unknown>[] = [];
+  const setCalls: Record<string, unknown>[] = [];
 
   const mockTx = {
     execute: vi.fn().mockResolvedValue(undefined),
@@ -100,10 +100,10 @@ describe('finalizeRace', () => {
     mockTx.query.bets.findMany.mockResolvedValue([]);
 
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => {
+    mockTx.execute.mockImplementation(() => {
       callOrder.push('lock');
     });
-    mockTx.query.raceInstances.findFirst.mockImplementation(async () => {
+    mockTx.query.raceInstances.findFirst.mockImplementation(() => {
       callOrder.push('readRace');
       return { status: 'CLOSED', guaranteedOdds: {} };
     });
@@ -152,7 +152,7 @@ describe('finalizeRace', () => {
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
     expect(winInsert).toBeDefined();
-    const winCombinations = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const winCombinations = winInsert!.combinations as { numbers: number[]; payout: number }[];
     const winHit = winCombinations.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit).toBeDefined();
     expect(winHit!.payout).toBe(200);
@@ -170,7 +170,7 @@ describe('finalizeRace', () => {
 
     const quinellaInsert = insertedValues.find((v) => v.type === BET_TYPES.QUINELLA && v.raceId === 'race1');
     expect(quinellaInsert).toBeDefined();
-    const combos = quinellaInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = quinellaInsert!.combinations as { numbers: number[]; payout: number }[];
     const hitCombo = combos.find((c) => JSON.stringify([...c.numbers].sort()) === JSON.stringify([1, 2]));
     expect(hitCombo).toBeDefined();
     expect(hitCombo!.payout).toBe(200);
@@ -188,7 +188,7 @@ describe('finalizeRace', () => {
 
     const trifectaInsert = insertedValues.find((v) => v.type === BET_TYPES.TRIFECTA && v.raceId === 'race1');
     expect(trifectaInsert).toBeDefined();
-    const combos = trifectaInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = trifectaInsert!.combinations as { numbers: number[]; payout: number }[];
     const hitCombo = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1, 2, 3]));
     expect(hitCombo).toBeDefined();
     expect(hitCombo!.payout).toBe(200);
@@ -206,7 +206,7 @@ describe('finalizeRace', () => {
 
     const placeInsert = insertedValues.find((v) => v.type === BET_TYPES.PLACE && v.raceId === 'race1');
     expect(placeInsert).toBeDefined();
-    const combos = placeInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = placeInsert!.combinations as { numbers: number[]; payout: number }[];
     const hit1 = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     const hit3 = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([3]));
     expect(hit1).toBeDefined();
@@ -241,7 +241,7 @@ describe('finalizeRace', () => {
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
     expect(winInsert).toBeDefined();
-    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number }[];
     const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit).toBeDefined();
     expect(winHit!.payout).toBe(1000);
@@ -261,7 +261,7 @@ describe('finalizeRace', () => {
     await finalizeRace('race1', defaultResults);
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
-    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number; guaranteed?: boolean }>;
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number; guaranteed?: boolean }[];
     const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit!.guaranteed).toBe(true);
   });
@@ -281,7 +281,7 @@ describe('finalizeRace', () => {
     await finalizeRace('race1', defaultResults);
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
-    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number; guaranteed?: boolean }>;
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number; guaranteed?: boolean }[];
     const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit!.payout).toBe(200);
     expect(winHit!.guaranteed).toBeUndefined();
@@ -295,7 +295,7 @@ describe('finalizeRace', () => {
     await finalizeRace('race1', defaultResults);
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
-    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number; guaranteed?: boolean }>;
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number; guaranteed?: boolean }[];
     const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit!.guaranteed).toBe(true);
   });
@@ -309,7 +309,7 @@ describe('finalizeRace', () => {
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
     expect(winInsert).toBeDefined();
-    const winCombos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const winCombos = winInsert!.combinations as { numbers: number[]; payout: number }[];
     const winHit = winCombos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit).toBeDefined();
     expect(winHit!.payout).toBe(350);
@@ -328,7 +328,7 @@ describe('finalizeRace', () => {
 
     const wideInsert = insertedValues.find((v) => v.type === BET_TYPES.WIDE && v.raceId === 'race1');
     expect(wideInsert).toBeDefined();
-    const combos = wideInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = wideInsert!.combinations as { numbers: number[]; payout: number }[];
     expect(combos.length).toBeGreaterThanOrEqual(3);
   });
 
@@ -345,7 +345,7 @@ describe('finalizeRace', () => {
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
     expect(winInsert).toBeDefined();
-    const combos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number }[];
     const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit).toBeDefined();
     expect(winHit!.payout).toBe(200);
@@ -373,18 +373,18 @@ describe('finalizeRace', () => {
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
     expect(winInsert).toBeDefined();
-    const winCombos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const winCombos = winInsert!.combinations as { numbers: number[]; payout: number }[];
     expect(winCombos).toEqual([{ numbers: [1], payout: 540 }]);
 
     const placeInsert = insertedValues.find((v) => v.type === BET_TYPES.PLACE && v.raceId === 'race1');
     expect(placeInsert).toBeDefined();
-    const placeCombos = placeInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const placeCombos = placeInsert!.combinations as { numbers: number[]; payout: number }[];
     expect(placeCombos).toHaveLength(3);
     expect(placeCombos[0].payout).toBe(180);
 
     const trifectaInsert = insertedValues.find((v) => v.type === BET_TYPES.TRIFECTA && v.raceId === 'race1');
     expect(trifectaInsert).toBeDefined();
-    expect((trifectaInsert!.combinations as Array<{ numbers: number[]; payout: number }>)[0].payout).toBe(25600);
+    expect((trifectaInsert!.combinations as { numbers: number[]; payout: number }[])[0].payout).toBe(25600);
   });
 
   it('netkeibaPayouts を渡した場合、保証オッズやデフォルトオッズによる補完が行われない', async () => {
@@ -406,7 +406,7 @@ describe('finalizeRace', () => {
     expect(allTypes).toEqual([BET_TYPES.WIN]);
 
     const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN);
-    const winCombos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const winCombos = winInsert!.combinations as { numbers: number[]; payout: number }[];
     expect(winCombos).toEqual([{ numbers: [1], payout: 540 }]);
   });
 
@@ -434,7 +434,7 @@ describe('finalizeRace', () => {
 
     const placeInsert = insertedValues.find((v) => v.type === BET_TYPES.PLACE && v.raceId === 'race1');
     expect(placeInsert).toBeDefined();
-    const combos = placeInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    const combos = placeInsert!.combinations as { numbers: number[]; payout: number }[];
 
     const hit1 = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(hit1).toBeDefined();

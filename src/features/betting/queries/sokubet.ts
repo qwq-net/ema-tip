@@ -97,7 +97,7 @@ export async function getSokubetDashboardData(userId: string) {
         bet5Status: bet5?.status,
         hasPurchasedBet5: bet5TicketCount > 0,
         purchasedBet5Count: bet5TicketCount,
-        hasWallet: !!wallet,
+        hasWallet: Boolean(wallet),
       };
     }
     acc[eventId].races.push(race);
@@ -118,7 +118,7 @@ export async function getSokubetDashboardData(userId: string) {
 
       return {
         ...group,
-        races: group.races.sort((a, b) => (a.raceNumber || 999) - (b.raceNumber || 999)),
+        races: group.races.sort((a, b) => (a.raceNumber ?? 999) - (b.raceNumber ?? 999)),
         bet5TargetRaceNumbers: bet5TargetRaces.map((race) => race.raceNumber),
         bet5HasClosedRace: bet5TargetRaces.some((race) => race.status !== 'SCHEDULED'),
       };

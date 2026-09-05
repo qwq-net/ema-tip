@@ -8,6 +8,12 @@ interface BetTypeSelectorProps {
   allowedBetTypes?: BetType[] | null;
 }
 
+// 未選択ボタンの追加クラス。選択中は variant 側で色が付くため空にし、購入できない券種は取り消し線で示す
+function betTypeButtonClass(isSelected: boolean, isAllowed: boolean): string {
+  if (isSelected) return '';
+  return isAllowed ? 'bg-white text-gray-700 hover:bg-gray-50' : 'text-text-sub bg-gray-100 line-through';
+}
+
 export function BetTypeSelector({ betType, onBetTypeChange, allowedBetTypes }: BetTypeSelectorProps) {
   return (
     <div className="rounded-surface flex flex-wrap gap-2 bg-gray-100 p-2">
@@ -21,13 +27,7 @@ export function BetTypeSelector({ betType, onBetTypeChange, allowedBetTypes }: B
             aria-pressed={betType === type}
             disabled={!isAllowed}
             variant={betType === type ? 'primary' : 'ghost'}
-            className={`rounded-control px-4 py-2 text-sm font-medium transition ${
-              betType === type
-                ? ''
-                : isAllowed
-                  ? 'bg-white text-gray-700 hover:bg-gray-50'
-                  : 'text-text-sub bg-gray-100 line-through'
-            }`}
+            className={`rounded-control px-4 py-2 text-sm font-medium transition ${betTypeButtonClass(betType === type, isAllowed)}`}
           >
             {BET_TYPE_LABELS[type]}
           </Button>

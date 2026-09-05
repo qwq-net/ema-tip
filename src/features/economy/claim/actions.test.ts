@@ -126,10 +126,10 @@ describe('claimEvent', () => {
 
   it('イベントステータスはトランザクション外でのみチェックされ、ロック後の再チェックは行われない', async () => {
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => {
+    mockTx.execute.mockImplementation(() => {
       callOrder.push('lock');
     });
-    mockTx.query.wallets.findFirst.mockImplementation(async () => {
+    mockTx.query.wallets.findFirst.mockImplementation(() => {
       callOrder.push('readWallet');
       return null;
     });

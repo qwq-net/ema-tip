@@ -71,4 +71,7 @@ async function main() {
   process.exit(0);
 }
 
-main();
+main().catch((cause: unknown) => {
+  console.error('ロール変更スクリプトの実行に失敗しました:', cause);
+  process.exit(1);
+});

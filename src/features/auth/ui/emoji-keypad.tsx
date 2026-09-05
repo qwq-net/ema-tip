@@ -1,10 +1,10 @@
 'use client';
 
-type EmojiKeypadProps = {
+interface EmojiKeypadProps {
   onEmojiClick: (emoji: string) => void;
   onBackspace: () => void;
   onClear: () => void;
-};
+}
 
 const EMOJIS = ['🐶', '🐱', '🐮', '🐰', '🍔', '🍙', '🍖', '🍣', '🍎', '🍌', '🍇', '🍓'];
 

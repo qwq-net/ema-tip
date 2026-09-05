@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: '競馬場管理',
 };
 
-export default async function AdminVenuesPage() {
+export default function AdminVenuesPage() {
   return (
     <div className="space-y-6">
       <AdminPageHeader title="開催会場管理" description="開催会場の登録・管理を行います" />

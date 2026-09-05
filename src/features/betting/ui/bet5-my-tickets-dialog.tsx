@@ -86,7 +86,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                   const horseIds = selectionsByRace[raceIndex] || [];
                   const selectedHorses = race.entries
                     .filter((entry) => horseIds.includes(entry.horse.id))
-                    .sort((a, b) => (a.horseNumber || 0) - (b.horseNumber || 0));
+                    .sort((a, b) => (a.horseNumber ?? 0) - (b.horseNumber ?? 0));
 
                   return (
                     <div key={race.id} className="flex flex-col gap-1 border-b border-gray-100 pb-2 last:border-0">
@@ -100,9 +100,9 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                             className="rounded-chip flex items-center gap-1 border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
                           >
                             <span
-                              className={`rounded-chip inline-flex h-4 w-4 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber || 0)}`}
+                              className={`rounded-chip inline-flex h-4 w-4 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber ?? 0)}`}
                             >
-                              {entry.bracketNumber || '-'}
+                              {entry.bracketNumber ?? '-'}
                             </span>
                             <span className="font-mono font-semibold text-gray-900">{entry.horseNumber}</span>
                             <span className="text-sm text-gray-600">{entry.horse.name}</span>

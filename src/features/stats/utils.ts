@@ -1,7 +1,7 @@
 import { TRANSACTION_TYPE_LABELS, type Transaction } from '@/entities/wallet/ui/transaction-list';
 import { lookup } from '@/shared/utils/lookup';
 
-export type AssetHistoryPoint = {
+export interface AssetHistoryPoint {
   date: string;
   timestamp: number;
   balance: number;
@@ -10,9 +10,9 @@ export type AssetHistoryPoint = {
   type?: string;
   eventId?: string;
   raceName?: string;
-};
+}
 
-export type EventStats = {
+export interface EventStats {
   id: string;
   name: string;
   balance: number;
@@ -20,16 +20,16 @@ export type EventStats = {
   net: number;
   history: AssetHistoryPoint[];
   logs: Transaction[];
-};
+}
 
-export type TransactionWithDetails = {
+export interface TransactionWithDetails {
   type: string;
   bet: {
     race: {
       name: string;
     } | null;
   } | null;
-};
+}
 
 // 取引種別の表示名は TRANSACTION_TYPE_LABELS を単一管理点とし、未知の種別は生の値をそのまま返す
 export function getActionName(type: string): string {
@@ -61,7 +61,7 @@ const JST_ISO_DATE = new Intl.DateTimeFormat('en-CA', {
 });
 
 // サーバーが動くコンテナは UTC のため、ローカル TZ 依存の date-fns format は使わず JST 固定で整形する
-export function formatChartDate(date: Date, global: boolean = false): string {
+export function formatChartDate(date: Date, global = false): string {
   return global
     ? `${JST_ISO_DATE.format(date)} ${JST_TIME.format(date)}`
     : `${JST_MONTH_DAY.format(date)} ${JST_TIME.format(date)}`;

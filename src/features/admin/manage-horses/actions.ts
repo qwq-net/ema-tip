@@ -19,7 +19,9 @@ const horseSchema = z.object({
     .string()
     .transform((str) => {
       try {
-        return JSON.parse(str);
+        // 形状の検証は後続の pipe が担うため、ここでは未検証の値として渡す
+        const parsed: unknown = JSON.parse(str);
+        return parsed;
       } catch {
         return [];
       }

@@ -24,8 +24,8 @@ interface PersistedAccordionProps {
  * 「全て開く / 全て閉じる」ボタンと Accordion.Root を描画し、children には
  * Accordion.Item 群を渡す。
  *
- * 初期状態は全開。マウント後に storageKey の保存値があればそれを復元する。
- * 保存値が壊れていれば console.error のみで全開のまま続行する。
+ * 初期状態は全開。マウント後に storageKey の保存値が文字列配列であればそれを復元する。
+ * 保存値が壊れていれば全開のまま続行する。JSON として解析できない場合だけ console.error を出す。
  * SSR とハイドレーション不一致を避けるため、マウント前は null を返す。
  */
 export function PersistedAccordion({ storageKey, allIds, emptyState, children }: PersistedAccordionProps) {
@@ -36,8 +36,12 @@ export function PersistedAccordion({ storageKey, allIds, emptyState, children }:
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        setTimeout(() => setOpenItems(parsed), 0);
+        const parsed: unknown = JSON.parse(saved);
+        // 保存値は string[] のはず。形が違えば初期値の全開のまま無視する。
+        // 文字列判定に typeof を使わないのは anti-slop/no-runtime-typeof が禁じているため
+        if (Array.isArray(parsed) && parsed.every((item): item is string => item === String(item))) {
+          setTimeout(() => setOpenItems(parsed), 0);
+        }
       } catch (e) {
         console.error('Failed to parse saved accordion state', e);
       }

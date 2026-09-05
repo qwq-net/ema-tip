@@ -6,12 +6,12 @@ import { Badge } from '@/shared/ui';
 import { PersistedAccordion, PersistedAccordionHeader, PersistedAccordionItem } from '@/shared/ui/persisted-accordion';
 
 interface EntryRaceAccordionProps {
-  events: Array<{
+  events: {
     id: string;
     name: string;
     date: string;
     status: string;
-    races: Array<{
+    races: {
       id: string;
       name: string;
       raceNumber: number | null;
@@ -24,8 +24,8 @@ interface EntryRaceAccordionProps {
         name: string;
         shortName: string;
       };
-    }>;
-  }>;
+    }[];
+  }[];
 }
 
 const STORAGE_KEY = 'entry-race-accordion-open-items_v2';

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { splitGraphemes } from '../src/shared/utils/graphemes';
 import { cleanupFixtures, E2E, fetchSettlementState, setupFixtures, type Fixtures } from './support/fixtures';
 import { saveAndExpectToast } from './support/toast';
 
@@ -20,7 +21,7 @@ test.afterAll(async () => {
 
 // 絵文字キーパッドでパスワードを入力する。E2E.password と同じ内容を打つ
 async function typeEmojiPassword(page: Page) {
-  for (const emoji of [...E2E.password]) {
+  for (const emoji of splitGraphemes(E2E.password)) {
     await page.getByRole('button', { name: `${emoji} を入力` }).click();
   }
 }

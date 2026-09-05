@@ -2,12 +2,12 @@ import { redis } from '@/shared/lib/redis';
 
 const TTL_SECONDS = 24 * 60 * 60;
 
-export type LoginAttemptRecord = {
+export interface LoginAttemptRecord {
   attempts: number;
   blockLevel: number;
   lockedUntil: number | null;
   lastAttemptAt: number;
-};
+}
 
 function keyFor(ip: string): string {
   return `ratelimit:ip:${ip}`;
@@ -30,8 +30,21 @@ export async function getLoginAttemptRecord(ip: string): Promise<LoginAttemptRec
   }
 }
 
-export function isLoginLocked(record: LoginAttemptRecord | null): boolean {
-  return !!record?.lockedUntil && record.lockedUntil > Date.now();
+/** ロック中かを返す。真なら record と lockedUntil が確定するため、解除時刻をそのまま読める。 */
+export function isLoginLocked(
+  record: LoginAttemptRecord | null
+): record is LoginAttemptRecord & { lockedUntil: number } {
+  return (record?.lockedUntil ?? 0) > Date.now();
+}
+
+/**
+ * ロックを掛ける失敗回数のしきい値を返す。
+ * 通常の失敗は 5 回で掛かる。isStrict は総当たりを疑う失敗で、
+ * 未ロックの IP は 3 回、一度ロックされた IP は 1 回で再びロックする。
+ */
+function lockThreshold(isStrict: boolean, blockLevel: number): number {
+  if (!isStrict) return 5;
+  return blockLevel > 0 ? 1 : 3;
 }
 
 /**
@@ -46,14 +59,14 @@ export async function recordLoginFailure(
   record: LoginAttemptRecord | null,
   isStrict = false
 ): Promise<void> {
-  const currentAttempts = (record?.attempts || 0) + 1;
-  const currentBlockLevel = record?.blockLevel || 0;
+  const currentAttempts = (record?.attempts ?? 0) + 1;
+  const currentBlockLevel = record?.blockLevel ?? 0;
 
   let lockedUntil: number | null = null;
   let newBlockLevel = currentBlockLevel;
   let newAttempts = currentAttempts;
 
-  const threshold = isStrict ? (currentBlockLevel > 0 ? 1 : 3) : 5;
+  const threshold = lockThreshold(isStrict, currentBlockLevel);
 
   if (currentAttempts >= threshold) {
     let durationMinutes;

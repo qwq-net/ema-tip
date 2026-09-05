@@ -207,7 +207,7 @@ describe('calculateOdds', () => {
       (redis.set as unknown as Mock).mockResolvedValue('OK');
       (db.query.raceOdds.findFirst as unknown as Mock).mockRejectedValue(new Error('DB error'));
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       await calculateOdds(raceId);
       await vi.advanceTimersByTimeAsync(1000);
 
@@ -384,7 +384,7 @@ describe('getProvisionalOddsCached', () => {
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
     (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const result = await getProvisionalOddsCached(raceId);
     consoleSpy.mockRestore();
 

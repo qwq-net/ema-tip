@@ -7,21 +7,22 @@ import { redirect } from 'next/navigation';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  const user = session?.user;
 
-  if (!canAccessAdminPanel(session?.user)) {
+  if (!user || !canAccessAdminPanel(user)) {
     redirect('/');
   }
 
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') ?? '';
 
-  if (pathname && !canAccessAdminRoute(pathname, session?.user?.role)) {
+  if (pathname && !canAccessAdminRoute(pathname, user.role)) {
     redirect(TIPSTER_DEFAULT_ROUTE);
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <AdminSidebar user={session!.user!} />
+      <AdminSidebar user={user} />
       <main className="flex-1 overflow-y-auto p-6 pt-16 sm:p-8 md:pt-8 md:pl-72">{children}</main>
     </div>
   );

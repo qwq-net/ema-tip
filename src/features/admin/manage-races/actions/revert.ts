@@ -43,7 +43,7 @@ export async function resetRaceResults(raceId: string) {
       throw new Error('BET5精算済みのイベントに含まれるレースはリセットできません');
     }
 
-    await logAdminAction(tx, session, 'race.reset_results', raceId);
+    await logAdminAction(tx, session.user, { action: 'race.reset_results', targetId: raceId });
 
     await tx.update(raceEntries).set({ finishPosition: null }).where(eq(raceEntries.raceId, raceId));
 

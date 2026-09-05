@@ -39,7 +39,7 @@ export async function createRace(formData: FormData) {
       where: eq(raceInstances.eventId, parse.data.eventId),
       columns: { raceNumber: true },
     });
-    const maxNumber = existingRaces.reduce((max, race) => Math.max(max, race.raceNumber || 0), 0);
+    const maxNumber = existingRaces.reduce((max, race) => Math.max(max, race.raceNumber ?? 0), 0);
     raceNumber = maxNumber + 1;
   }
 

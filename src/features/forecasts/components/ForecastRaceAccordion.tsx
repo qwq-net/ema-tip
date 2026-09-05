@@ -8,12 +8,12 @@ import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 interface ForecastRaceAccordionProps {
-  events: Array<{
+  events: {
     id: string;
     name: string;
     date: string;
     status: string;
-    races: Array<{
+    races: {
       id: string;
       name: string;
       raceNumber: number | null;
@@ -22,15 +22,15 @@ interface ForecastRaceAccordionProps {
       condition: string | null;
       status: string;
       closingAt: Date | null;
-      entries?: Array<{ finishPosition: number | null }>;
+      entries?: { finishPosition: number | null }[];
       venueId?: string;
       raceDefinitionId?: string | null;
       direction?: string | null;
       venue?: {
         name: string;
       };
-    }>;
-  }>;
+    }[];
+  }[];
 }
 
 const STORAGE_KEY = 'forecast-race-accordion-open-items_v2';

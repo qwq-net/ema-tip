@@ -8,6 +8,7 @@ import { lookup } from '@/shared/utils/lookup';
 import { and, eq, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { inflateSync } from 'zlib';
+import { z } from 'zod';
 import { parseNetkeibaResult } from './lib/parse-result';
 import { parseShutuba } from './lib/parse-shutuba';
 import type { HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
@@ -52,11 +53,11 @@ async function fetchNetkeibaHtml(url: string): Promise<string> {
   const buffer = await res.arrayBuffer();
 
   const contentType = res.headers.get('content-type') ?? '';
-  let charset = contentType.match(/charset=([^\s;]+)/i)?.[1];
+  let charset = /charset=([^\s;]+)/i.exec(contentType)?.[1];
 
   if (!charset) {
     const head = new TextDecoder('latin1').decode(buffer.slice(0, 2048));
-    charset = head.match(/charset=["']?([^\s;"'>]+)/i)?.[1];
+    charset = /charset=["']?([^\s;"'>]+)/i.exec(head)?.[1];
   }
 
   charset ??= 'euc-jp';
@@ -65,6 +66,18 @@ async function fetchNetkeibaHtml(url: string): Promise<string> {
 }
 
 const NETKEIBA_SCRATCHED_ODDS = 999.9;
+
+// netkeiba API は data にオッズのオブジェクトか、deflate 圧縮を base64 にした文字列のどちらかを返す。
+// 読むのは単勝を表すキー 1 の 馬番→値 だけなので、他の券種は検証せず素通しする。
+// 値は先頭要素が倍率の配列で、要素数は netkeiba 側の都合で増えうる
+const netkeibaOddsPayloadSchema = z.object({
+  odds: z
+    .object({ '1': z.record(z.string(), z.array(z.string())).optional() })
+    .passthrough()
+    .optional(),
+});
+
+type NetkeibaOddsPayload = z.infer<typeof netkeibaOddsPayloadSchema>;
 
 async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, number>> {
   const apiUrl = `https://race.netkeiba.com/api/api_get_jra_odds.html?race_id=${raceId}&type=1&action=init&output=jsonp&callback=cb`;
@@ -80,22 +93,24 @@ async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, numb
   const text = await res.text();
   const jsonStr = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
   // SAFETY: netkeiba オッズ API の JSONP レスポンス形状。直後の status / data ガードで異形状は空扱いにする
-  const json = JSON.parse(jsonStr) as { status: string; data: string | unknown };
+  const json = JSON.parse(jsonStr) as { status: string; data: NetkeibaOddsPayload | string };
 
   if ((json.status !== 'result' && json.status !== 'middle') || !json.data) {
     return {};
   }
 
-  let oddsData: { odds?: Record<string, Record<string, [string, string, string]>> };
-  if (json.data instanceof Object) {
-    // SAFETY: netkeiba API は data にオブジェクトか base64 文字列のみを返す
-    oddsData = json.data as typeof oddsData;
-  } else {
-    const buf = Buffer.from(String(json.data), 'base64');
-    oddsData = JSON.parse(inflateSync(buf).toString('utf-8'));
+  const rawOddsData: unknown =
+    json.data instanceof Object
+      ? json.data
+      : JSON.parse(inflateSync(Buffer.from(json.data, 'base64')).toString('utf-8'));
+
+  const oddsData = netkeibaOddsPayloadSchema.safeParse(rawOddsData);
+  if (!oddsData.success) {
+    console.warn('[ImportRace] netkeiba オッズの形式が想定と違うため取り込みを見送ります:', oddsData.error);
+    return {};
   }
 
-  const winOddsRaw = oddsData.odds?.['1'] ?? {};
+  const winOddsRaw = oddsData.data.odds?.['1'] ?? {};
   const result: Record<string, number> = {};
   for (const [key, val] of Object.entries(winOddsRaw)) {
     const horseNum = parseInt(key, 10);
@@ -109,7 +124,8 @@ export async function fetchRacePreview(url: string): Promise<ActionResult<RacePr
   try {
     await requireAdmin();
     const normalizedUrl = normalizeNetkeibaUrl(url);
-    const raceId = new URL(normalizedUrl).searchParams.get('race_id')!;
+    const raceId = new URL(normalizedUrl).searchParams.get('race_id');
+    if (!raceId) throw new ActionError('race_idが取得できません');
 
     const [html, winOdds] = await Promise.all([
       fetchNetkeibaHtml(normalizedUrl),
@@ -137,7 +153,7 @@ export async function fetchRacePreview(url: string): Promise<ActionResult<RacePr
   }
 }
 
-type ImportRaceParams = {
+interface ImportRaceParams {
   url: string;
   eventId: string;
   venueId: string;
@@ -149,17 +165,17 @@ type ImportRaceParams = {
   direction: 'RIGHT' | 'LEFT' | null;
   condition: '良' | '稍重' | '重' | '不良' | null;
   fixedOddsMode: boolean;
-  horses: Array<{
+  horses: {
     horseNumber: number;
-    bracketNumber: number;
+    bracketNumber: number | null;
     name: string;
     gender: 'HORSE' | 'MARE' | 'GELDING';
     age: number | null;
     jockey: string | null;
     odds: number | null;
     scratched?: boolean;
-  }>;
-};
+  }[];
+}
 
 export async function importRace(params: ImportRaceParams): Promise<ActionResult<{ raceId: string }>> {
   try {
@@ -201,7 +217,11 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
 
       const horseIds: Record<number, string> = {};
       for (const h of params.horses) {
-        horseIds[h.horseNumber] = horseIdByName.get(h.name)!;
+        const horseId = horseIdByName.get(h.name);
+        if (!horseId) {
+          throw new ActionError(`馬「${h.name}」の登録に失敗しました`);
+        }
+        horseIds[h.horseNumber] = horseId;
       }
 
       const [race] = await tx

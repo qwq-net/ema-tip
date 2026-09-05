@@ -1,7 +1,7 @@
-type LogoMarkProps = {
+interface LogoMarkProps {
   size?: number;
   className?: string;
-};
+}
 
 // 絵馬に馬蹄を描いたブランドマーク。色は @theme の primary / gold トークンに追従する。
 // 隣にサービス名テキストを置く前提の装飾扱いで、aria-hidden を固定している。

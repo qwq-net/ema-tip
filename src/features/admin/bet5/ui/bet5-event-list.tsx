@@ -49,7 +49,7 @@ export function Bet5EventList({ events }: { events: Event[] }) {
         {events.map((event) => {
           // BET5に設定できるのは締め切られていないレースのみ
           const openRaceCount = event.races.filter((race) => race.status === 'SCHEDULED').length;
-          const isConfigured = !!event.bet5Event;
+          const isConfigured = Boolean(event.bet5Event);
           const isReady = openRaceCount >= 5;
 
           return (
@@ -59,13 +59,13 @@ export function Bet5EventList({ events }: { events: Event[] }) {
               </Td>
               <Td className="text-gray-500">{event.date}</Td>
               <Td>
-                {isConfigured ? (
-                  <Badge label="設定済み" className="border-blue-200 bg-blue-100 text-blue-700" />
-                ) : isReady ? (
-                  <Badge label="設定可能" className="border-green-200 bg-green-100 text-green-700" />
-                ) : (
-                  <Badge label="レース不足" variant="outline" className="text-text-sub" />
-                )}
+                {isConfigured && <Badge label="設定済み" className="border-blue-200 bg-blue-100 text-blue-700" />}
+                {!isConfigured &&
+                  (isReady ? (
+                    <Badge label="設定可能" className="border-green-200 bg-green-100 text-green-700" />
+                  ) : (
+                    <Badge label="レース不足" variant="outline" className="text-text-sub" />
+                  ))}
               </Td>
               <Td className="font-medium text-gray-600">
                 {event.bet5Event ? (

@@ -65,7 +65,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
         <TransactionHistoryDialog
           walletId={selectedWallet.id}
           eventName={selectedWallet.name}
-          open={!!selectedWallet}
+          open={Boolean(selectedWallet)}
           onOpenChange={(open) => !open && setSelectedWallet(null)}
         />
       )}

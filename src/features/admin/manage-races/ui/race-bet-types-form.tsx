@@ -35,7 +35,7 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
 
   const handleSave = () => {
     const types = isCustom ? BET_TYPE_ORDER.filter((t) => selected.has(t)) : null;
-    if (types && types.length === 0) {
+    if (types?.length === 0) {
       toast.error('1種類以上選択してください');
       return;
     }
@@ -62,11 +62,7 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
 
       <div className="space-y-4">
         <label className="flex items-center gap-2 text-sm text-gray-900">
-          <Checkbox
-            checked={isCustom}
-            onCheckedChange={(checked) => setIsCustom(checked === true)}
-            disabled={isPending}
-          />
+          <Checkbox checked={isCustom} onCheckedChange={(checked) => setIsCustom(checked)} disabled={isPending} />
           このレースで個別に指定する
         </label>
 

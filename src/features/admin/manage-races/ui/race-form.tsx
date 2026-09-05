@@ -24,8 +24,8 @@ interface RaceFormProps {
     raceDefinitionId?: string | null;
     direction?: string | null;
   };
-  events: Array<{ id: string; name: string; date: string }>;
-  raceDefinitions?: Array<{
+  events: { id: string; name: string; date: string }[];
+  raceDefinitions?: {
     id: string;
     name: string;
     grade: string;
@@ -33,44 +33,91 @@ interface RaceFormProps {
     defaultSurface: '芝' | 'ダート';
     defaultVenueId: string;
     defaultDirection: string;
-  }>;
-  venues?: Array<{ id: string; name: string; defaultDirection: string }>;
+  }[];
+  venues?: { id: string; name: string; defaultDirection: string }[];
   onSuccess?: () => void;
+}
+
+// フォームが state で持つ入力値の一式
+interface RaceFormValues {
+  eventId: string;
+  date: string;
+  surface: (typeof RACE_SURFACES)[number];
+  condition: (typeof RACE_CONDITIONS)[number];
+  raceDefinitionId: string;
+  venueId: string;
+  direction: string;
+  name: string;
+  distance: number;
+}
+
+/**
+ * 編集時は既存値、新規時は既定値でフォームの初期値を組む。
+ * 登録後のリセットも initialData を渡さずに呼び、初期表示と同じ値へ戻す。
+ */
+function getInitialValues(initialData: RaceFormProps['initialData'], events: RaceFormProps['events']): RaceFormValues {
+  const defaults: RaceFormValues = {
+    eventId: events[0]?.id || '',
+    date: todayJST(),
+    surface: '芝',
+    condition: '良',
+    raceDefinitionId: '',
+    venueId: '',
+    direction: '',
+    name: '',
+    distance: 2400,
+  };
+  if (!initialData) return defaults;
+
+  return {
+    eventId: initialData.eventId || defaults.eventId,
+    date: initialData.date || defaults.date,
+    surface: initialData.surface || defaults.surface,
+    condition: initialData.condition || defaults.condition,
+    raceDefinitionId: initialData.raceDefinitionId || defaults.raceDefinitionId,
+    venueId: initialData.venueId || defaults.venueId,
+    direction: initialData.direction || defaults.direction,
+    name: initialData.name || defaults.name,
+    distance: initialData.distance ?? defaults.distance,
+  };
 }
 
 export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], onSuccess }: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [eventId, setEventId] = useState(initialData?.eventId || events[0]?.id || '');
-  const [date, setDate] = useState(initialData?.date || todayJST());
-  const [surface, setSurface] = useState(initialData?.surface || '芝');
-  const [condition, setCondition] = useState(initialData?.condition || '良');
+  const initialValues = getInitialValues(initialData, events);
+  const [eventId, setEventId] = useState(initialValues.eventId);
+  const [date, setDate] = useState(initialValues.date);
+  const [surface, setSurface] = useState(initialValues.surface);
+  const [condition, setCondition] = useState(initialValues.condition);
 
-  const [raceDefinitionId, setRaceDefinitionId] = useState(initialData?.raceDefinitionId || '');
-  const [venueId, setVenueId] = useState(initialData?.venueId || '');
-  const [direction, setDirection] = useState(initialData?.direction || '');
-  const [name, setName] = useState(initialData?.name || '');
-  const [distance, setDistance] = useState(initialData?.distance || 2400);
+  const [raceDefinitionId, setRaceDefinitionId] = useState(initialValues.raceDefinitionId);
+  const [venueId, setVenueId] = useState(initialValues.venueId);
+  const [direction, setDirection] = useState(initialValues.direction);
+  const [name, setName] = useState(initialValues.name);
+  const [distance, setDistance] = useState(initialValues.distance);
 
   const handleDefinitionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const defId = e.target.value;
     setRaceDefinitionId(defId);
 
     const def = raceDefinitions.find((d) => d.id === defId);
-    if (def) {
-      setName(def.name);
-      setDistance(def.defaultDistance);
-      setSurface(def.defaultSurface);
+    if (!def) return;
 
-      if (def.defaultVenueId) {
-        setVenueId(def.defaultVenueId);
-        if (def.defaultDirection) {
-          setDirection(def.defaultDirection);
-        } else {
-          const venue = venues.find((v) => v.id === def.defaultVenueId);
-          if (venue) setDirection(venue.defaultDirection);
-        }
-      }
+    setName(def.name);
+    setDistance(def.defaultDistance);
+    setSurface(def.defaultSurface);
+
+    if (!def.defaultVenueId) return;
+    setVenueId(def.defaultVenueId);
+
+    // 定義が方向を持つならそれを優先し、持たないときだけ会場の既定方向で補う
+    if (def.defaultDirection) {
+      setDirection(def.defaultDirection);
+      return;
     }
+
+    const venue = venues.find((v) => v.id === def.defaultVenueId);
+    if (venue) setDirection(venue.defaultDirection);
   };
 
   const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -90,15 +137,16 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
       } else {
         await createRace(formData);
         formRef.current?.reset();
-        setEventId(events[0]?.id || '');
-        setDate(todayJST());
-        setSurface('芝');
-        setCondition('良');
-        setRaceDefinitionId('');
-        setVenueId('');
-        setDirection('');
-        setName('');
-        setDistance(2400);
+        const cleared = getInitialValues(undefined, events);
+        setEventId(cleared.eventId);
+        setDate(cleared.date);
+        setSurface(cleared.surface);
+        setCondition(cleared.condition);
+        setRaceDefinitionId(cleared.raceDefinitionId);
+        setVenueId(cleared.venueId);
+        setDirection(cleared.direction);
+        setName(cleared.name);
+        setDistance(cleared.distance);
 
         toast.success('レースを登録しました');
       }
@@ -183,8 +231,9 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
           </Select>
           <p className="mt-1 text-sm text-gray-500">
             {venueId
-              ? '会場のデフォルト: ' +
-                (lookup(DIRECTION_LABELS, venues.find((v) => v.id === venueId)?.defaultDirection ?? '') ?? '-')
+              ? `会場のデフォルト: ${
+                  lookup(DIRECTION_LABELS, venues.find((v) => v.id === venueId)?.defaultDirection ?? '') ?? '-'
+                }`
               : '会場を選択してください'}
           </p>
         </div>
@@ -208,7 +257,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
           name="raceNumber"
           type="number"
           min="1"
-          defaultValue={initialData?.raceNumber || ''}
+          defaultValue={initialData?.raceNumber ?? ''}
           placeholder="自動採番"
         />
         <p className="mt-1 text-sm text-gray-500">未入力の場合は自動で採番されます</p>

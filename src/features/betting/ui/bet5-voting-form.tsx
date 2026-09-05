@@ -227,12 +227,12 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                     >
                       <td className="px-4 py-3 text-center">
                         <span
-                          className={`rounded-chip inline-flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber || 0)}`}
+                          className={`rounded-chip inline-flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber ?? 0)}`}
                         >
-                          {entry.bracketNumber || '-'}
+                          {entry.bracketNumber ?? '-'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center font-mono font-medium">{entry.horseNumber || '-'}</td>
+                      <td className="px-4 py-3 text-center font-mono font-medium">{entry.horseNumber ?? '-'}</td>
                       <td className="px-4 py-3 font-medium">
                         {entry.horse.name}
                         {isScratched && (
@@ -269,7 +269,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                   {activeRace.entries
                     .filter((e) => activeRaceSelections.includes(e.horse.id))
                     .map((e) => e.horseNumber)
-                    .sort((a, b) => (a || 0) - (b || 0))
+                    .sort((a, b) => (a ?? 0) - (b ?? 0))
                     .join(', ')}
                   番
                 </span>
@@ -305,7 +305,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 const raceSelections = selections[race.id] || [];
                 const selectedHorses = race.entries
                   .filter((e) => raceSelections.includes(e.horse.id))
-                  .sort((a, b) => (a.horseNumber || 0) - (b.horseNumber || 0));
+                  .sort((a, b) => (a.horseNumber ?? 0) - (b.horseNumber ?? 0));
 
                 return (
                   <span key={race.id} className="flex flex-col gap-1 border-b border-gray-100 pb-2 last:border-0">
@@ -319,9 +319,9 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                           className="rounded-chip flex items-center gap-1 border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-sm"
                         >
                           <span
-                            className={`rounded-chip inline-flex h-4 w-4 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber || 0)}`}
+                            className={`rounded-chip inline-flex h-4 w-4 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber ?? 0)}`}
                           >
-                            {entry.bracketNumber || '-'}
+                            {entry.bracketNumber ?? '-'}
                           </span>
                           <span className="font-mono font-semibold text-gray-900">{entry.horseNumber}</span>
                           <span className="text-sm text-gray-600">{entry.horse.name}</span>

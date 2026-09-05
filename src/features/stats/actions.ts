@@ -8,7 +8,7 @@ import { formatChartDate, getActionName, getTransactionDescription } from './uti
 
 import type { AssetHistoryPoint, EventStats } from './utils';
 
-type StatTransaction = {
+interface StatTransaction {
   id: string;
   type: string;
   amount: number;
@@ -21,7 +21,7 @@ type StatTransaction = {
       name: string;
     } | null;
   } | null;
-};
+}
 
 // 直前の履歴ポイントと type・eventId・label が一致する同種の取引かを判定する。
 // true なら新規ポイントを追加せず直前ポイントへ合算する。履歴が空なら false。
@@ -46,9 +46,57 @@ function shouldGroupEventHistoryPoint(
   return lastPoint.type === transaction.type && lastPoint.raceName === raceName && lastPoint.label === label;
 }
 
+interface AppendEventHistoryInput {
+  eventData: EventStats;
+  transaction: StatTransaction;
+  // イベントIDごとの現在残高。このイベントの分を書き換えて次の取引へ引き継ぐ
+  eventCurrentBalances: Map<string, number>;
+  raceName: string | undefined;
+  actionName: string;
+}
+
+// 取引1件をイベント別の資産推移と取引ログへ反映する。eventData と eventCurrentBalances を書き換える。
+// 借入は資産の増加ではないため残高へ加算せず、推移ポイントとログにだけ残す
+function appendEventHistory({
+  eventData,
+  transaction,
+  eventCurrentBalances,
+  raceName,
+  actionName,
+}: AppendEventHistoryInput) {
+  const eventId = transaction.wallet.eventId;
+  let eventBalance = eventCurrentBalances.get(eventId) ?? 0;
+  if (transaction.type !== 'LOAN') {
+    eventBalance += transaction.amount;
+    eventCurrentBalances.set(eventId, eventBalance);
+  }
+
+  const lastEventPoint = eventData.history[eventData.history.length - 1];
+  const eventLabel = raceName ? `${raceName} ${actionName}` : actionName;
+  const shouldGroupEvent = shouldGroupEventHistoryPoint(lastEventPoint, transaction, raceName, eventLabel);
+
+  updateHistoryPoint({
+    history: eventData.history,
+    transaction,
+    currentBalance: eventBalance,
+    shouldGroup: shouldGroupEvent,
+    label: eventLabel,
+    raceName,
+    isGlobal: false,
+  });
+
+  eventData.logs.push({
+    id: transaction.id,
+    createdAt: transaction.createdAt,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: getTransactionDescription(transaction),
+  });
+}
+
 export async function getGlobalStats() {
   const session = await requireUser();
-  const userId = session.user!.id!;
+  const userId = session.user.id;
 
   const userWallets = await db.query.wallets.findMany({
     where: eq(wallets.userId, userId),
@@ -141,53 +189,17 @@ export async function getGlobalStats() {
     const lastGlobalPoint = globalHistory[globalHistory.length - 1];
     const shouldGroupGlobal = shouldGroupGlobalHistoryPoint(lastGlobalPoint, transaction, eventId, globalLabel);
 
-    updateHistoryPoint(
-      globalHistory,
+    updateHistoryPoint({
+      history: globalHistory,
       transaction,
-      currentGlobalBalance,
-      shouldGroupGlobal,
-      globalLabel,
-      undefined,
-      true
-    );
+      currentBalance: currentGlobalBalance,
+      shouldGroup: shouldGroupGlobal,
+      label: globalLabel,
+      isGlobal: true,
+    });
 
     if (eventData) {
-      if (!eventCurrentBalances.has(eventId)) {
-        eventCurrentBalances.set(eventId, 0);
-      }
-
-      let eventBalance = eventCurrentBalances.get(eventId)!;
-      if (transaction.type !== 'LOAN') {
-        eventBalance += transaction.amount;
-        eventCurrentBalances.set(eventId, eventBalance);
-      }
-
-      const lastEventPoint = eventData.history[eventData.history.length - 1];
-      const eventLabel = transactionRaceName ? `${transactionRaceName} ${actionName}` : actionName;
-      const shouldGroupEvent = shouldGroupEventHistoryPoint(
-        lastEventPoint,
-        transaction,
-        transactionRaceName,
-        eventLabel
-      );
-
-      updateHistoryPoint(
-        eventData.history,
-        transaction,
-        eventBalance,
-        shouldGroupEvent,
-        eventLabel,
-        transactionRaceName,
-        false
-      );
-
-      eventData.logs.push({
-        id: transaction.id,
-        createdAt: transaction.createdAt,
-        type: transaction.type,
-        amount: transaction.amount,
-        description: getTransactionDescription(transaction),
-      });
+      appendEventHistory({ eventData, transaction, eventCurrentBalances, raceName: transactionRaceName, actionName });
     }
   }
 
@@ -204,15 +216,25 @@ export async function getGlobalStats() {
   };
 }
 
-function updateHistoryPoint(
-  history: AssetHistoryPoint[],
-  transaction: StatTransaction,
-  currentBalance: number,
-  shouldGroup: boolean,
-  label: string,
-  raceName: string | undefined,
-  isGlobal: boolean
-) {
+interface UpdateHistoryPointInput {
+  history: AssetHistoryPoint[];
+  transaction: StatTransaction;
+  currentBalance: number;
+  shouldGroup: boolean;
+  label: string;
+  raceName?: string;
+  isGlobal: boolean;
+}
+
+function updateHistoryPoint({
+  history,
+  transaction,
+  currentBalance,
+  shouldGroup,
+  label,
+  raceName,
+  isGlobal,
+}: UpdateHistoryPointInput) {
   const lastPoint = history[history.length - 1];
 
   if (lastPoint && shouldGroup) {

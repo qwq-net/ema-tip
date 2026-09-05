@@ -53,7 +53,7 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
 
   const totalAmount = ticketGroups.reduce((sum, group) => sum + group.totalAmount, 0);
   const totalPayout = ticketGroups.reduce(
-    (sum, group) => sum + group.bets.reduce((bSum, bet) => bSum + (bet.payout || 0), 0),
+    (sum, group) => sum + group.bets.reduce((bSum, bet) => bSum + (bet.payout ?? 0), 0),
     0
   );
 
@@ -81,13 +81,71 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
   );
 }
 
+interface GroupPayoutSummaryProps {
+  groupPayout: number;
+  isAllRefunded: boolean;
+  fixedOddsMode: boolean;
+  hasProvisional: boolean;
+  hasGuaranteedProvisional: boolean;
+  minProvisional: number;
+  maxProvisional: number;
+}
+
+/**
+ * 買い目グループ 1 件の払戻表示。確定した払戻がある場合は返還か払戻額を出す。
+ * 未確定なら固定オッズは確定待ちの案内、変動オッズは想定払戻の幅を出し、
+ * 未確定の馬券が 1 点も無ければ何も出さない。
+ */
+function GroupPayoutSummary({
+  groupPayout,
+  isAllRefunded,
+  fixedOddsMode,
+  hasProvisional,
+  hasGuaranteedProvisional,
+  minProvisional,
+  maxProvisional,
+}: GroupPayoutSummaryProps) {
+  if (groupPayout > 0) {
+    if (isAllRefunded) {
+      return (
+        <span className="block text-sm text-gray-500 tabular-nums">返還 {groupPayout.toLocaleString('ja-JP')}円</span>
+      );
+    }
+    return (
+      <span className="block text-sm font-semibold text-red-600 tabular-nums">
+        +{groupPayout.toLocaleString('ja-JP')}円
+      </span>
+    );
+  }
+
+  if (fixedOddsMode) {
+    return <span className="text-text-sub mt-0.5 block text-sm">Netkeibaオッズで払戻</span>;
+  }
+
+  if (!hasProvisional) return null;
+
+  return (
+    <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
+      {hasGuaranteedProvisional && (
+        <span className="bg-turf-100 text-turf-800 rounded-chip px-1.5 py-0.5 text-sm font-semibold">保証</span>
+      )}
+      <span className="tabular-nums">
+        想定払戻:{' '}
+        {minProvisional === maxProvisional
+          ? `${minProvisional.toLocaleString('ja-JP')}円`
+          : `${minProvisional.toLocaleString('ja-JP')}〜${maxProvisional.toLocaleString('ja-JP')}円`}
+      </span>
+    </span>
+  );
+}
+
 function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsMode: boolean }) {
   const [isOpen, setIsOpen] = useState(true);
 
-  const groupPayout = group.bets.reduce((sum, bet) => sum + (bet.payout || 0), 0);
-  const provisionalPayouts = group.bets
-    .filter((bet) => bet.status === 'PENDING' && bet.odds)
-    .map((bet) => Math.floor(bet.amount * parseFloat(bet.odds!)));
+  const groupPayout = group.bets.reduce((sum, bet) => sum + (bet.payout ?? 0), 0);
+  const provisionalPayouts = group.bets.flatMap((bet) =>
+    bet.status === 'PENDING' && bet.odds ? [Math.floor(bet.amount * parseFloat(bet.odds))] : []
+  );
 
   const hasProvisional = provisionalPayouts.length > 0;
   const minProvisional = Math.min(...provisionalPayouts);
@@ -128,14 +186,14 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
   if (winningBets.length > 0) {
     const winningRows = compressBetSelections(
       winningBets.map((b) => ({
-        selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
+        selections: b.selections.map((s) => s.horseNumber || (s.bracketNumber ?? 0)),
         status: b.status,
       }))
     );
 
     const otherRows = compressBetSelections(
       otherBets.map((b) => ({
-        selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
+        selections: b.selections.map((s) => s.horseNumber || (s.bracketNumber ?? 0)),
         status: b.status,
       }))
     );
@@ -144,7 +202,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
   } else {
     compressedRows = compressBetSelections(
       group.bets.map((b) => ({
-        selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
+        selections: b.selections.map((s) => s.horseNumber || (s.bracketNumber ?? 0)),
         status: b.status,
       }))
     );
@@ -178,35 +236,15 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
           <span className="block text-sm font-semibold text-gray-900 tabular-nums">
             {unitAmount.toLocaleString('ja-JP')}円 × {betCount}点 = {group.totalAmount.toLocaleString('ja-JP')}円
           </span>
-          {groupPayout > 0 ? (
-            isAllRefunded ? (
-              <span className="block text-sm text-gray-500 tabular-nums">
-                返還 {groupPayout.toLocaleString('ja-JP')}円
-              </span>
-            ) : (
-              <span className="block text-sm font-semibold text-red-600 tabular-nums">
-                +{groupPayout.toLocaleString('ja-JP')}円
-              </span>
-            )
-          ) : fixedOddsMode ? (
-            <span className="text-text-sub mt-0.5 block text-sm">Netkeibaオッズで払戻</span>
-          ) : (
-            hasProvisional && (
-              <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
-                {hasGuaranteedProvisional && (
-                  <span className="bg-turf-100 text-turf-800 rounded-chip px-1.5 py-0.5 text-sm font-semibold">
-                    保証
-                  </span>
-                )}
-                <span className="tabular-nums">
-                  想定払戻:{' '}
-                  {minProvisional === maxProvisional
-                    ? `${minProvisional.toLocaleString('ja-JP')}円`
-                    : `${minProvisional.toLocaleString('ja-JP')}〜${maxProvisional.toLocaleString('ja-JP')}円`}
-                </span>
-              </span>
-            )
-          )}
+          <GroupPayoutSummary
+            groupPayout={groupPayout}
+            isAllRefunded={isAllRefunded}
+            fixedOddsMode={fixedOddsMode}
+            hasProvisional={hasProvisional}
+            hasGuaranteedProvisional={hasGuaranteedProvisional}
+            minProvisional={minProvisional}
+            maxProvisional={maxProvisional}
+          />
         </span>
       </button>
 
@@ -223,6 +261,14 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
   );
 }
 
+/** 選択馬番を並べるグリッドの列数クラスを返す。1 つの着順に選んだ点数が多いほど列を増やす。 */
+function selectionGridColsClass(count: number): string {
+  if (count > 6) return 'grid-cols-3 sm:grid-cols-4';
+  if (count > 4) return 'grid-cols-2 sm:grid-cols-3';
+  if (count > 2) return 'grid-cols-2';
+  return 'grid-cols-1';
+}
+
 function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseToBracket: Map<number, number> }) {
   return (
     <div
@@ -235,18 +281,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
         {row.positions.map((posGroup, posIdx) => (
           <div key={posIdx} className="flex items-center gap-2">
             {posIdx > 0 && <Play size={10} className="text-text-sub" fill="currentColor" />}
-            <div
-              className={cn(
-                'grid gap-1',
-                posGroup.length > 6
-                  ? 'grid-cols-3 sm:grid-cols-4'
-                  : posGroup.length > 4
-                    ? 'grid-cols-2 sm:grid-cols-3'
-                    : posGroup.length > 2
-                      ? 'grid-cols-2'
-                      : 'grid-cols-1'
-              )}
-            >
+            <div className={cn('grid gap-1', selectionGridColsClass(posGroup.length))}>
               {posGroup.map((num) => (
                 <div
                   key={num}

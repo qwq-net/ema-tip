@@ -4,6 +4,7 @@ import { Transaction, TransactionList } from '@/entities/wallet/ui/transaction-l
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui';
 import { useEffect, useState } from 'react';
 import { getWalletTransactions } from '../queries';
+import { describeTransaction } from './describe-transaction';
 
 interface TransactionHistoryDialogProps {
   walletId: string;
@@ -11,8 +12,6 @@ interface TransactionHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-type WalletTransaction = Awaited<ReturnType<typeof getWalletTransactions>>[number];
 
 export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChange }: TransactionHistoryDialogProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -33,40 +32,19 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
       getWalletTransactions(walletId)
         .then((data) => {
           if (active) {
-            const mapped = data.map((tx: WalletTransaction) => {
-              let description = null;
-              if ((tx.type === 'BET' || tx.type === 'PAYOUT') && tx.bet5Ticket) {
-                const bet5EventName = tx.bet5Ticket.bet5Event?.event?.name;
-                // BET5 は画面全体で「投票」の語に統一している。通常馬券の「購入」と使い分ける
-                description = bet5EventName
-                  ? `${bet5EventName} BET5 ${tx.type === 'PAYOUT' ? '払戻' : '投票'}`
-                  : `BET5 ${tx.type === 'PAYOUT' ? '払戻' : '投票'}`;
-              } else if (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND') {
-                const raceName = tx.bet?.race?.name;
-                const venueShortName = tx.bet?.race?.venue?.shortName;
-                if (raceName) {
-                  description = venueShortName ? `${venueShortName} ${raceName}` : raceName;
-                }
-              } else if (tx.type === 'DISTRIBUTION') {
-                description = tx.event?.name || '配布金';
-              } else if (tx.type === 'LOAN') {
-                description = tx.event?.name ? `${tx.event.name} 借入金` : '借入金';
-              }
-
-              return {
-                id: tx.id,
-                amount: tx.amount,
-                type: tx.type,
-                description,
-                createdAt: tx.createdAt,
-              };
-            });
+            const mapped = data.map((tx) => ({
+              id: tx.id,
+              amount: tx.amount,
+              type: tx.type,
+              description: describeTransaction(tx),
+              createdAt: tx.createdAt,
+            }));
             setTransactions(mapped);
             setIsLoading(false);
           }
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((cause: unknown) => {
+          console.error(cause);
           if (active) setIsLoading(false);
         });
     }

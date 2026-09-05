@@ -11,10 +11,9 @@ interface GuaranteedOddsInputsProps {
 
 export function GuaranteedOddsInputs({ value, onChange }: GuaranteedOddsInputsProps) {
   const handleChange = (type: string, numValue: number) => {
-    const newValue = { ...value };
-    if (numValue === 0) {
-      delete newValue[type];
-    } else {
+    // いったん対象のキーを外し、0 以外なら入れ直す。0 は未設定を意味するためキーごと残さない
+    const newValue = Object.fromEntries(Object.entries(value).filter(([key]) => key !== type));
+    if (numValue !== 0) {
       newValue[type] = numValue;
     }
     onChange(newValue);

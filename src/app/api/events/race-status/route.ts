@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       controller.enqueue(encoder.encode(`data: {"type":"connected","id":"${raceEventEmitter.id}"}\n\n`));
 
       let closed = false;
-      const handlers: Array<[string, (data: RaceEventPayload) => void]> = [];
+      const handlers: [string, (data: RaceEventPayload) => void][] = [];
 
       const cleanup = () => {
         if (closed) return;

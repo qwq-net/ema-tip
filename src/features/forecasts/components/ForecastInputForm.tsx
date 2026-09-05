@@ -31,7 +31,7 @@ interface ForecastInputFormProps {
 }
 
 export function ForecastInputForm({ raceId, entries, initialForecast }: ForecastInputFormProps) {
-  const [selections, setSelections] = useState<ForecastSelection>(initialForecast?.selections || {});
+  const [selections, setSelections] = useState<ForecastSelection>(initialForecast?.selections ?? {});
   const [comment, setComment] = useState(initialForecast?.comment || '');
   const [isPending, startTransition] = useTransition();
 
@@ -51,13 +51,11 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
 
   const handleSymbolSelect = (horseId: string, symbol: string) => {
     setSelections((prev) => {
-      const next = { ...prev };
-      if (next[horseId] === symbol) {
-        delete next[horseId];
-      } else {
-        next[horseId] = symbol;
+      // 同じ印をもう一度押したら選択解除
+      if (prev[horseId] === symbol) {
+        return Object.fromEntries(Object.entries(prev).filter(([id]) => id !== horseId));
       }
-      return next;
+      return { ...prev, [horseId]: symbol };
     });
   };
 
@@ -108,10 +106,10 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
                     {FORECAST_SYMBOLS.map((symbol) => (
                       <button
                         key={symbol}
-                        onClick={() => handleSymbolSelect(entry.horseId!, symbol)}
+                        onClick={() => handleSymbolSelect(entry.horseId, symbol)}
                         className={cn(
                           'flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition-colors',
-                          selections[entry.horseId!] === symbol
+                          selections[entry.horseId] === symbol
                             ? 'border-primary bg-primary text-white'
                             : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                         )}

@@ -2,7 +2,7 @@ import { BET_TYPES, type BetType } from '@/entities/bet/constants';
 import { parse } from 'node-html-parser';
 import type { NetkeibaPayoutEntry, NetkeibaRaceResult } from '../model/types';
 
-const BET_TYPE_CLASS_MAP: Array<[string, BetType, number]> = [
+const BET_TYPE_CLASS_MAP: [string, BetType, number][] = [
   ['Tansho', BET_TYPES.WIN, 1],
   ['Fukusho', BET_TYPES.PLACE, 1],
   ['Wakuren', BET_TYPES.BRACKET_QUINELLA, 2],

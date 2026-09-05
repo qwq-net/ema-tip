@@ -12,7 +12,7 @@ export function OddsForm({
   initialOdds?: Record<string, number>;
   action: (formData: FormData) => Promise<void>;
 }) {
-  const [odds, setOdds] = useState(initialOdds || {});
+  const [odds, setOdds] = useState(initialOdds ?? {});
 
   return (
     <form action={action} onKeyDown={preventEnterSubmit} className="space-y-6">

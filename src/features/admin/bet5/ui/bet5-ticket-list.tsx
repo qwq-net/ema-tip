@@ -20,12 +20,13 @@ interface Bet5Ticket {
   createdAt: Date;
 }
 
-interface HorseMap {
-  [horseId: string]: {
+type HorseMap = Record<
+  string,
+  {
     horseNumber: number | null;
     name: string;
-  };
-}
+  }
+>;
 
 interface Bet5TicketListProps {
   tickets: Bet5Ticket[];
@@ -38,7 +39,7 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
     return ids
       .map((id) => {
         const horse = horseMap[id];
-        return horse ? `${horse.horseNumber || '?'}.${horse.name}` : '不明';
+        return horse ? `${horse.horseNumber ?? '?'}.${horse.name}` : '不明';
       })
       .join(', ');
   };
@@ -93,18 +94,20 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
               </Td>
               <Td className="font-semibold text-gray-700">{formatYen(ticket.amount)}円</Td>
               <Td>
-                {ticket.isWin ? (
+                {ticket.isWin && (
                   <div className="flex flex-col items-start gap-1">
                     <Badge label="的中" className="bg-red-100 text-red-700 ring-red-200" />
                     {ticket.payout && (
                       <span className="text-sm font-semibold text-red-600">{formatYen(ticket.payout)}円</span>
                     )}
                   </div>
-                ) : isFinalized ? (
-                  <Badge label="不的中" className="bg-gray-100 text-gray-500 ring-gray-200" />
-                ) : (
-                  <Badge label="未確定" className="bg-blue-100 text-blue-600 ring-blue-200" />
                 )}
+                {!ticket.isWin &&
+                  (isFinalized ? (
+                    <Badge label="不的中" className="bg-gray-100 text-gray-500 ring-gray-200" />
+                  ) : (
+                    <Badge label="未確定" className="bg-blue-100 text-blue-600 ring-blue-200" />
+                  ))}
               </Td>
             </TableRow>
           ))}

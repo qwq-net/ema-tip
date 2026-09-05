@@ -28,7 +28,9 @@ export function useRaceResults(raceId: string, initialResults: PayoutResult[] = 
   useEffect(() => {
     if (isFinalized && !hasFetched.current) {
       hasFetched.current = true;
-      const timer = setTimeout(() => fetchResults(), 0);
+      const timer = setTimeout(() => {
+        void fetchResults();
+      }, 0);
       return () => clearTimeout(timer);
     }
   }, [isFinalized, fetchResults]);

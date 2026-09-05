@@ -49,7 +49,7 @@ describe('updateRace', () => {
 
     mockUpdate.mockReturnValue({ set: mockSet });
     mockSet.mockReturnValue({ where: mockWhere });
-    (db.transaction as unknown as Mock).mockImplementation(async (cb) => cb(mockTx));
+    (db.transaction as unknown as Mock).mockImplementation((cb: (tx: typeof mockTx) => Promise<void>) => cb(mockTx));
     (db.update as unknown as Mock).mockImplementation(mockUpdate);
   });
 

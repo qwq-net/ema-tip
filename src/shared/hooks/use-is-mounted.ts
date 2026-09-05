@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => undefined;
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
 

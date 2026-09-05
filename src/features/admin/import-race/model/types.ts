@@ -1,8 +1,9 @@
 import type { BetType } from '@/entities/bet';
 
-export type ScrapedHorse = {
+export interface ScrapedHorse {
   horseNumber: number;
-  bracketNumber: number;
+  // 枠番は出馬表から読めないことがある。未確定は null で持ち、0 をセンチネルに使わない
+  bracketNumber: number | null;
   name: string;
   gender: 'HORSE' | 'MARE' | 'GELDING';
   age: number | null;
@@ -10,9 +11,9 @@ export type ScrapedHorse = {
   weight: number | null;
   odds: number | null;
   scratched: boolean;
-};
+}
 
-export type ScrapedRaceInfo = {
+export interface ScrapedRaceInfo {
   raceName: string;
   distance: number;
   surface: '芝' | 'ダート';
@@ -20,30 +21,30 @@ export type ScrapedRaceInfo = {
   condition: '良' | '稍重' | '重' | '不良' | null;
   raceNumber: number;
   netkeibaVenueCode: string;
-};
+}
 
-export type RacePreviewData = {
+export interface RacePreviewData {
   raceInfo: ScrapedRaceInfo;
   horses: ScrapedHorse[];
   sourceUrl: string;
-};
+}
 
 export type HorsePreviewItem = ScrapedHorse & {
   existingHorseId: string | null;
 };
 
-export type RacePreviewWithHorseStatus = {
+export interface RacePreviewWithHorseStatus {
   raceInfo: ScrapedRaceInfo;
   horses: HorsePreviewItem[];
   sourceUrl: string;
-};
+}
 
-export type NetkeibaPayoutEntry = {
+export interface NetkeibaPayoutEntry {
   numbers: number[];
   payout: number;
-};
+}
 
-export type NetkeibaRaceResult = {
+export interface NetkeibaRaceResult {
   finishOrder: number[];
   payouts: Partial<Record<BetType, NetkeibaPayoutEntry[]>>;
-};
+}

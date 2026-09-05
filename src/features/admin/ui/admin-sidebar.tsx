@@ -141,7 +141,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 const isActive =
                   item.href === '/admin'
                     ? pathname === '/admin'
-                    : pathname === item.href || pathname.startsWith(item.href + '/');
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <Link
                     key={item.href}

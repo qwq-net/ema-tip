@@ -123,14 +123,14 @@ describe('borrowLoan', () => {
 
   it('競合対策としてadvisory lock取得後にイベントとウォレットを再読み込みする', async () => {
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => {
+    mockTx.execute.mockImplementation(() => {
       callOrder.push('lock');
     });
-    mockTx.query.events.findFirst.mockImplementation(async () => {
+    mockTx.query.events.findFirst.mockImplementation(() => {
       callOrder.push('readEvent');
       return mockEvent;
     });
-    mockTx.query.wallets.findFirst.mockImplementation(async () => {
+    mockTx.query.wallets.findFirst.mockImplementation(() => {
       callOrder.push('readWallet');
       return mockWallet;
     });

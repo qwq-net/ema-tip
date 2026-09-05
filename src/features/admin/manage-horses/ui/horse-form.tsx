@@ -21,17 +21,39 @@ interface HorseFormProps {
     origin: 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED';
     notes: string | null;
     type: 'REAL' | 'FICTIONAL';
-    tags: Array<{ type: HorseTagType; content: string }>;
+    tags: { type: HorseTagType; content: string }[];
   };
-  tagOptions: Array<{ id: string; type: HorseTagType; content: string }>;
+  tagOptions: { id: string; type: HorseTagType; content: string }[];
   onSuccess?: () => void;
 }
 
+// 各入力の初期値。編集時は initialData がそのまま同じ形で使われる
+interface HorseFormValues {
+  name?: string;
+  gender: (typeof GENDER_INPUTS)[number];
+  age: number | null;
+  origin: 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED';
+  notes: string | null;
+  type: (typeof HORSE_TYPES)[number];
+  tags: { type: HorseTagType; content: string }[];
+}
+
+// 新規登録時の初期値
+const HORSE_FORM_DEFAULTS: HorseFormValues = {
+  gender: '牡',
+  age: null,
+  origin: 'DOMESTIC',
+  notes: null,
+  type: 'REAL',
+  tags: [],
+};
+
 export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [gender, setGender] = useState(initialData?.gender || '牡');
-  const [type, setType] = useState(initialData?.type || 'REAL');
-  const [tags, setTags] = useState<Array<{ type: HorseTagType; content: string }>>(initialData?.tags || []);
+  const values = initialData ?? HORSE_FORM_DEFAULTS;
+  const [gender, setGender] = useState(values.gender);
+  const [type, setType] = useState(values.type);
+  const [tags, setTags] = useState<{ type: HorseTagType; content: string }[]>(values.tags);
 
   const toggleTag = (masterTag: { type: HorseTagType; content: string }) => {
     const exists = tags.some((t) => t.type === masterTag.type && t.content === masterTag.content);
@@ -80,13 +102,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>馬名</Label>
-          <Input
-            name="name"
-            type="text"
-            required
-            defaultValue={initialData?.name}
-            placeholder="例: ディープインパクト"
-          />
+          <Input name="name" type="text" required defaultValue={values.name} placeholder="例: ディープインパクト" />
         </div>
         <div>
           <Label>種別</Label>
@@ -149,13 +165,13 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
           <Label>
             年齢 <span className="text-text-sub font-normal">(任意)</span>
           </Label>
-          <Input name="age" type="number" min="2" max="20" defaultValue={initialData?.age ?? ''} placeholder="例: 4" />
+          <Input name="age" type="number" min="2" max="20" defaultValue={values.age ?? ''} placeholder="例: 4" />
         </div>
       </div>
 
       <div>
         <Label>産地</Label>
-        <Select name="origin" required defaultValue={initialData?.origin || 'DOMESTIC'}>
+        <Select name="origin" required defaultValue={values.origin}>
           <option value="DOMESTIC">日本産</option>
           <option value="FOREIGN_BRED">外国産</option>
           <option value="FOREIGN_TRAINED">外来馬</option>
@@ -236,7 +252,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
         <Textarea
           name="notes"
           rows={3}
-          defaultValue={initialData?.notes ?? ''}
+          defaultValue={values.notes ?? ''}
           placeholder="馬の特徴や評価など"
           className="resize-none"
         />

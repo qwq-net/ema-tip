@@ -31,10 +31,10 @@ function collectTsFiles(dir: string): string[] {
 // エクスポート関数ごとに、次の export 宣言までをその関数の担当領域として切り出す。
 // runAction(() => inner()) のように非公開の inner 関数へ委譲するパターンでは、
 // inner の本体が同じ領域に含まれるため、そこにあるガードも検出できる
-function splitExportedFunctions(content: string): Array<{ name: string; body: string }> {
+function splitExportedFunctions(content: string): { name: string; body: string }[] {
   const matches = [...content.matchAll(/^export async function (\w+)/gm)];
   return matches.map((m) => {
-    const start = m.index!;
+    const start = m.index;
     const nextExport = content.indexOf('\nexport ', start + 1);
     const end = nextExport === -1 ? content.length : nextExport;
     return { name: m[1], body: content.slice(start, end) };

@@ -1,4 +1,4 @@
-import { BET_TYPES } from '@/entities/bet';
+import { BET_TYPES } from '@/entities/bet/constants';
 
 export const DEFAULT_GUARANTEED_ODDS = {
   [BET_TYPES.WIN]: 3.5,

@@ -54,7 +54,7 @@ export async function borrowLoan(eventId: string) {
       where: eq(events.id, eventId),
     });
 
-    if (!lockedEvent || lockedEvent.status !== 'ACTIVE') {
+    if (lockedEvent?.status !== 'ACTIVE') {
       throw new Error('このイベントは現在開催中ではありません');
     }
 

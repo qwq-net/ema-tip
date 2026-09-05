@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 export default async function CreateHorsePage() {
   const tagOptions = await getHorseTags();
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- Server Action は async 関数である必要がある
   async function onSuccess() {
     'use server';
     redirect('/admin/horses');
