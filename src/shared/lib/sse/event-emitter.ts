@@ -49,8 +49,12 @@ class RaceEventEmitter extends EventEmitter {
       const { type, payload } = JSON.parse(message) as Envelope;
       super.emit(type, payload);
     });
-    subscriber.subscribe(CHANNEL).catch((cause: unknown) => {
-      console.error('[SSE] subscribe に失敗しました:', cause);
+    // 初回接続と再接続の両方で購読する。ioredis の自動再購読は成功済みのチャンネルしか覚えないため、
+    // Redis 停止中に初回の subscribe が失敗した場合も復帰時に取り直せるようにする
+    subscriber.on('ready', () => {
+      subscriber.subscribe(CHANNEL).catch((cause: unknown) => {
+        console.error('[SSE] subscribe に失敗しました:', cause);
+      });
     });
     return subscriber;
   }
