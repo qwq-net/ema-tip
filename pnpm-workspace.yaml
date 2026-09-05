@@ -13,3 +13,8 @@ overrides:
 allowBuilds:
   esbuild: false
   unrs-resolver: false
+
+# pnpm 11 は pnpm <script> の前に依存の状態を確認し、既定では不足があれば pnpm install を走らせる。
+# 本番イメージは非 root で /app に書けず、install の一時ファイル作成で起動が落ちるため無効にする。
+# 依存の整合は Dockerfile の --frozen-lockfile と dev 起動時の pnpm install が担う
+verifyDepsBeforeRun: false

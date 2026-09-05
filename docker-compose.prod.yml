@@ -12,6 +12,10 @@ x-logging: &logging
 # 万一の異常増加時は OOM kill と restart で自己回復させ、VM 全体を巻き込ませない
 services:
   app:
+    # VM は 2 コア。1 プロセス 1 イベントループの待ち行列を分割する。
+    # tunnel は app:3000 を Docker DNS で解決し、接続ごとに別コンテナへ振り分けられる。
+    # SSE は Redis pub/sub で全プロセスへ届く。src/shared/lib/sse/event-emitter.ts を参照
+    scale: 2
     restart: unless-stopped
     mem_limit: 1g
     <<: *logging

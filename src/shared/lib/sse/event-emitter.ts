@@ -1,7 +1,59 @@
+import { redis } from '@/shared/lib/redis';
 import { EventEmitter } from 'events';
+import type Redis from 'ioredis';
+import type { RaceOddsData, RaceResultItem } from './types';
 
+const CHANNEL = 'race-events';
+
+interface Envelope {
+  type: string;
+  payload: RaceEventPayload;
+}
+
+/**
+ * 全 app プロセスへ届くレースイベントの発行元。app は compose の scale で複数台になる。
+ *
+ * emit は Redis の race-events チャンネルへ publish するだけで、ローカル配信はしない。
+ * 各プロセスは初回の on で購読を始め、message 受信時に EventEmitter の配信へ変換する。
+ * 単一プロセスでも同じ経路を通るため、リスナーは emit の完了後に非同期で呼ばれる。
+ *
+ * モジュール読み込み時には Redis へ接続しない。next build と単体テストは Redis なしで動く。
+ * Redis 切断中に emit したイベントは失われる。
+ * ponytail: 切断時のローカル配信フォールバックなし。必要なら publish 失敗時に super.emit へ落とす
+ */
 class RaceEventEmitter extends EventEmitter {
   public id = Math.random().toString(36).substring(7);
+  private subscriber: Redis | undefined;
+
+  override emit(type: string, payload: RaceEventPayload): boolean {
+    const envelope: Envelope = { type, payload };
+    redis.publish(CHANNEL, JSON.stringify(envelope)).catch((cause: unknown) => {
+      console.error('[SSE] publish に失敗しました:', cause);
+    });
+    return true;
+  }
+
+  override on(type: string, listener: (payload: RaceEventPayload) => void): this {
+    this.subscriber ??= this.subscribe();
+    return super.on(type, listener);
+  }
+
+  private subscribe(): Redis {
+    // 購読モードの接続は他コマンドを受け付けないため、共有クライアントとは別に持つ
+    const subscriber = redis.duplicate();
+    subscriber.on('error', (cause: unknown) => {
+      console.error('[SSE] 購読接続でエラー:', cause);
+    });
+    subscriber.on('message', (_channel: string, message: string) => {
+      // SAFETY: このチャンネルへ書くのは同じコードの emit だけで、中身は Envelope を JSON.stringify した文字列に限られる
+      const { type, payload } = JSON.parse(message) as Envelope;
+      super.emit(type, payload);
+    });
+    subscriber.subscribe(CHANNEL).catch((cause: unknown) => {
+      console.error('[SSE] subscribe に失敗しました:', cause);
+    });
+    return subscriber;
+  }
 }
 
 declare global {
@@ -16,6 +68,7 @@ globalThis.__raceEventEmitter = raceEventEmitter;
 /**
  * SSE でクライアントへ JSON 配信するイベント内容。イベント種別ごとに使うフィールドが異なる。
  * JSON.stringify で直列化されるため、シリアライズ不能な値を入れないこと。
+ * Redis を往復するため、Date は受け手側では ISO 文字列になっている。
  */
 export interface RaceEventPayload {
   raceId?: string;
@@ -24,17 +77,8 @@ export interface RaceEventPayload {
   mode?: string;
   // ISO 8601 の締切時刻。null はタイマーなしの受付再開を表す
   closingAt?: string | null;
-  data?: {
-    winOdds: Record<string, number>;
-    placeOdds: Record<string, { min: number; max: number }>;
-    updatedAt: Date;
-  };
-  results?: {
-    finishPosition: number;
-    horseNumber: number;
-    bracketNumber: number;
-    horseName: string;
-  }[];
+  data?: RaceOddsData;
+  results?: RaceResultItem[];
 }
 
 export const RACE_EVENTS = {

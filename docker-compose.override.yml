@@ -3,6 +3,9 @@ services:
   app:
     # 本番イメージは非 root だが、dev はバインドマウントへ .next と node_modules を書くため root で動かす
     user: root
+    # host からの直接アクセスは開発時のみ。本番は tunnel が app:3000 へ内部接続し、scale で複数台になる
+    ports:
+      - '127.0.0.1:3000:3000'
     volumes:
       - .:/app
     command: sh -c "CI=true pnpm install && pnpm dev"
