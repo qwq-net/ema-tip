@@ -38,8 +38,6 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
             raceNumber: race.raceNumber,
             condition: race.condition,
             surface: race.surface,
-            venueId: race.venueId || undefined,
-            direction: race.direction || undefined,
           }}
           events={events}
           raceDefinitions={raceDefinitions}

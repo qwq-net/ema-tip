@@ -8,7 +8,7 @@ type BadgeVariant = 'surface' | 'condition' | 'status' | 'gender' | 'role' | 'or
 interface BadgeProps {
   label: string | null;
   variant?: BadgeVariant;
-  className?: string;
+  className?: string | undefined;
   children?: React.ReactNode;
 }
 

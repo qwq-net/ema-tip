@@ -24,7 +24,6 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
           key={JSON.stringify(venue)}
           initialData={{
             ...venue,
-            code: venue.code || undefined,
             direction: venue.defaultDirection,
             area: venue.area,
           }}

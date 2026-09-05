@@ -60,7 +60,7 @@ export interface RaceResultFormRace {
 interface RaceResultFormProps {
   raceId: string;
   entries: Entry[];
-  canFinalizePayout?: boolean;
+  canFinalizePayout?: boolean | undefined;
   showBet5CloseReminder?: boolean;
   // サイドカラムのレース情報カードの下に差し込む追加カード
   sideChildren?: ReactNode;
@@ -73,7 +73,15 @@ const getRankStyles = (position: number) => {
   return medal ? `${medal} border-transparent` : 'bg-gray-100 text-gray-600 border-gray-100';
 };
 
-function HorseInfo({ horseName, jockey, odds }: { horseName: string; jockey?: string | null; odds?: number | null }) {
+function HorseInfo({
+  horseName,
+  jockey,
+  odds,
+}: {
+  horseName: string;
+  jockey?: string | null | undefined;
+  odds?: number | null | undefined;
+}) {
   return (
     <>
       <span className="truncate text-sm font-semibold text-gray-900">{horseName}</span>
@@ -321,7 +329,7 @@ function ResultOrderingPanel({
 
 interface NetkeibaFinalizeActionsProps {
   entries: Entry[];
-  canFinalizePayout?: boolean;
+  canFinalizePayout?: boolean | undefined;
   isPending: boolean;
   isPayoutMoving: boolean;
   netkeibaResult: NetkeibaRaceResult | null;
@@ -410,7 +418,7 @@ function NetkeibaFinalizeActions({
 
 interface ManualFinalizeActionsProps {
   sortedEntries: Entry[];
-  canFinalizePayout?: boolean;
+  canFinalizePayout?: boolean | undefined;
   isPending: boolean;
   isPayoutMoving: boolean;
   isChanged: boolean;
@@ -474,7 +482,7 @@ interface FinalizeActionGroupProps {
   race: RaceResultFormRace;
   entries: Entry[];
   sortedEntries: Entry[];
-  canFinalizePayout?: boolean;
+  canFinalizePayout?: boolean | undefined;
   isPending: boolean;
   isPayoutMoving: boolean;
   isChanged: boolean;

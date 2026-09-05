@@ -14,8 +14,8 @@ interface AssetChartProps {
 // dot と activeDot の描画関数が受け取るパラメータ。recharts は payload を any で渡すため、
 // このチャートが data に与えている1点の型をここで明示する
 interface AssetDotProps {
-  cx?: number;
-  cy?: number;
+  cx?: number | undefined;
+  cy?: number | undefined;
   payload: AssetHistoryPoint;
 }
 

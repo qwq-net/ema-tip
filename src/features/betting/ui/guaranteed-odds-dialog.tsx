@@ -5,7 +5,7 @@ import { Button, Dialog, DialogContent, DialogDescription, DialogTitle, DialogTr
 import { ShieldCheck } from 'lucide-react';
 
 interface GuaranteedOddsDialogProps {
-  guaranteedOdds?: Record<string, number> | null;
+  guaranteedOdds?: Record<string, number> | null | undefined;
 }
 
 // 投票画面用の保証オッズ表示ボタン。押すとモーダルで券種別の保証倍率一覧を表示する。

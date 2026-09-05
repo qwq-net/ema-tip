@@ -222,7 +222,7 @@ interface UpdateHistoryPointInput {
   currentBalance: number;
   shouldGroup: boolean;
   label: string;
-  raceName?: string;
+  raceName?: string | undefined;
   isGlobal: boolean;
 }
 

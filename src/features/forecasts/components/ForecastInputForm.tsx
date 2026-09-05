@@ -24,10 +24,13 @@ interface ForecastInputFormProps {
     horseAge: number;
     bracketNumber: number | null;
   }[];
-  initialForecast?: {
-    selections: ForecastSelection;
-    comment: string | null;
-  } | null;
+  initialForecast?:
+    | {
+        selections: ForecastSelection;
+        comment: string | null;
+      }
+    | null
+    | undefined;
 }
 
 export function ForecastInputForm({ raceId, entries, initialForecast }: ForecastInputFormProps) {

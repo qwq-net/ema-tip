@@ -75,8 +75,8 @@ export async function getSokubetDashboardData(userId: string) {
         races: typeof activeRaces;
         balance: number;
         totalLoaned: number;
-        bet5Id?: string;
-        bet5Status?: string;
+        bet5Id?: string | undefined;
+        bet5Status?: string | undefined;
         hasPurchasedBet5: boolean;
         purchasedBet5Count: number;
         hasWallet: boolean;

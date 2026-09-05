@@ -15,15 +15,15 @@ interface BetTicket {
   type: BetType;
   selections: {
     horseNumber: number;
-    bracketNumber?: number;
+    bracketNumber?: number | undefined;
     horseName: string;
     horseGender: string;
     horseAge: number;
   }[];
   amount: number;
   status: 'PENDING' | 'HIT' | 'LOST' | 'REFUNDED';
-  payout?: number;
-  odds?: string;
+  payout?: number | undefined;
+  odds?: string | undefined;
   guaranteed?: boolean;
   createdAt: Date;
 }

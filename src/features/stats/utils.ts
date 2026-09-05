@@ -9,7 +9,7 @@ export interface AssetHistoryPoint {
   amount: number;
   type?: string;
   eventId?: string;
-  raceName?: string;
+  raceName?: string | undefined;
 }
 
 export interface EventStats {

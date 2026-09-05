@@ -23,7 +23,6 @@ export default async function EditRaceDefinitionPage({ params }: { params: Promi
           key={JSON.stringify(raceDefinition)}
           initialData={{
             ...raceDefinition,
-            code: raceDefinition.code || undefined,
             defaultVenueId: raceDefinition.defaultVenueId,
             defaultSurface: raceDefinition.defaultSurface,
           }}

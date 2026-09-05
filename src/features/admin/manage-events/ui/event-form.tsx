@@ -22,7 +22,7 @@ interface EventFormProps {
     date: string;
     defaultAllowedBetTypes: BetType[] | null;
   };
-  onSuccess?: () => void;
+  onSuccess?: (() => void) | undefined;
 }
 
 // フォームが state で持つ入力値の一式

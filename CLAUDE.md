@@ -39,7 +39,8 @@
 - features のスライスは互いを参照しない。スライス一覧は tools/eslint/feature-slices.mjs がディレクトリから導出する。共有したい処理は entities か shared へ下ろす
 - jsx-a11y は strict を全ルール error。アイコンだけのボタンには aria-label を付ける
 - sonarjs は recommended を error。除外は prefer-read-only-props と pseudo-random の2つだけで、理由は eslint.config.ts にある
-- 見送り中の候補は2つ。exactOptionalPropertyTypes は tsc エラー約22件。import/no-cycle は WSL にネイティブ resolver が無く未計測なのでコンテナ内で測る
+- exactOptionalPropertyTypes は有効。undefined を明示的に渡し得る任意プロパティは `prop?: T | undefined` と書く。null を受ける型へ `|| undefined` で変換して渡さない
+- import/no-cycle は不採用。循環は 0 件だったが、host の node_modules は alpine 向けバインディングしか無く、VSCode の ESLint 拡張を含む host 側の lint が全ファイルで落ちる。再計測はコンテナ内で `pnpm exec eslint src e2e --rule 'import/no-cycle: warn'`
 
 ## デザインシステム
 

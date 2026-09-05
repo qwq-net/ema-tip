@@ -11,7 +11,7 @@ export function isGuaranteedBet(params: {
   selections: number[];
   odds?: string | null;
   guaranteedOdds?: Record<string, number> | null;
-  payoutCombinations?: { numbers: number[]; payout?: number; guaranteed?: boolean }[];
+  payoutCombinations?: { numbers: number[]; payout?: number; guaranteed?: boolean }[] | undefined;
 }): boolean {
   const { status, type, selections, odds, guaranteedOdds, payoutCombinations } = params;
 

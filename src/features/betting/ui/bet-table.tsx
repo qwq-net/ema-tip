@@ -38,7 +38,7 @@ type NumberedEntry = Entry & { horseNumber: number };
 // 単勝オッズの1セル。文字色は通常のまま、SSE 更新で値が変化したときだけ
 // 上昇は緑、下降は赤から本来の文字色へ減衰点灯する。
 // version を key にして更新イベントごとにアニメーションを最初から再生する
-function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'down'; version: number }) {
+function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'down' | undefined; version: number }) {
   return (
     <span key={version} className={cn(delta === 'up' && 'animate-odds-up', delta === 'down' && 'animate-odds-down')}>
       {value}
@@ -49,7 +49,7 @@ function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'd
 // 人気順の1セル。賭け金額由来の順位で、未購入の馬と取消馬は「-」を表示する。
 // 1〜3人気はランキングと共通の金銀銅チップで強調し、4人気以下は素のテキストで出す。
 // オッズ列と人気列の両ブランチで同一実装を共有し、渡し漏れの分岐差を作らない
-function PopularityCell({ rank, isScratched }: { rank?: number; isScratched: boolean }) {
+function PopularityCell({ rank, isScratched }: { rank?: number | undefined; isScratched: boolean }) {
   return (
     <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
       {(isScratched || rank === undefined) && '-'}
@@ -68,7 +68,13 @@ function PopularityCell({ rank, isScratched }: { rank?: number; isScratched: boo
 
 // 複勝オッズの1セル。値は「最小-最大」の幅表示で、幅がなければ単一値を出す。
 // 未購入の馬と取消馬は単勝オッズ列と同じ「-.-」「-」の表記に合わせる
-function PlaceOddsCell({ range, isScratched }: { range?: { min: number; max: number }; isScratched: boolean }) {
+function PlaceOddsCell({
+  range,
+  isScratched,
+}: {
+  range?: { min: number; max: number } | undefined;
+  isScratched: boolean;
+}) {
   const format = () => {
     if (!range) return '-.-';
     return range.min === range.max ? range.min.toFixed(1) : `${range.min.toFixed(1)}-${range.max.toFixed(1)}`;
@@ -170,7 +176,7 @@ interface OddsHeaderInfoProps {
   fixedOddsMode: boolean;
   updatedAt: Date | string | null | undefined;
   oddsVersion: number;
-  guaranteedOdds?: Record<string, number> | null;
+  guaranteedOdds?: Record<string, number> | null | undefined;
 }
 
 /**
