@@ -1,5 +1,7 @@
 import { db } from '@/shared/db';
 import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
+import type { SQL } from 'drizzle-orm';
+import { PgDialect } from 'drizzle-orm/pg-core';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getUserBetGroupsForRace, placeBets } from './actions';
@@ -397,6 +399,166 @@ describe('placeBets', () => {
     mockTx.query.wallets.findFirst.mockResolvedValue(null);
 
     await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INSUFFICIENT_BALANCE });
+  });
+
+  it('他人のウォレットを指定すると INVALID_WALLET エラーを返し、トランザクションを開始しない', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, userId: 'someone-else' });
+
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_WALLET });
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('別イベントのウォレットを指定すると INVALID_WALLET エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, eventId: 'other-event' });
+
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INVALID_WALLET });
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('ウォレットが存在しない場合は NOT_FOUND エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue(undefined);
+
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.NOT_FOUND });
+  });
+
+  it('事前チェックで残高不足なら INSUFFICIENT_BALANCE を返し、トランザクションを開始しない', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, balance: 199 });
+
+    await expect(placeBets(defaultArgs)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.INSUFFICIENT_BALANCE });
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('残高ちょうどの購入は事前チェックを通過する', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, balance: 200 });
+    mockTx.query.wallets.findFirst.mockResolvedValue({ ...mockWallet, balance: 200 });
+
+    await expect(placeBets(defaultArgs)).resolves.toMatchObject({ success: true });
+  });
+
+  it('負の金額・NaN・Infinity は INVALID_AMOUNT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    for (const amountPerBet of [-100, Number.NaN, Number.POSITIVE_INFINITY]) {
+      await expect(placeBets({ ...defaultArgs, amountPerBet })).resolves.toEqual({
+        success: false,
+        error: ADMIN_ERRORS.INVALID_AMOUNT,
+      });
+    }
+  });
+
+  it('存在しない券種名は INVALID_INPUT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, betType: 'jackpot' as unknown as 'win' })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
+  });
+
+  it('組み合わせの要素が null や文字列の馬番なら INVALID_INPUT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    for (const combinations of [[[null]], [['1']], [[{}]], [null], ['1']]) {
+      await expect(placeBets({ ...defaultArgs, combinations: combinations as unknown as number[][] })).resolves.toEqual(
+        { success: false, error: ADMIN_ERRORS.INVALID_INPUT }
+      );
+    }
+  });
+
+  it('馬単と3連単で同一馬番を含む組み合わせは INVALID_INPUT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, betType: 'exacta', combinations: [[3, 3]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
+    await expect(placeBets({ ...defaultArgs, betType: 'trifecta', combinations: [[1, 2, 1]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
+  });
+
+  it('取消馬の馬番を含む組み合わせは INVALID_INPUT エラーを返す', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([
+      { horseNumber: 1, bracketNumber: 1, status: 'SCRATCHED' },
+      { horseNumber: 2, bracketNumber: 2, status: 'ENTRANT' },
+    ]);
+
+    await expect(placeBets({ ...defaultArgs, combinations: [[1]] })).resolves.toEqual({
+      success: false,
+      error: ADMIN_ERRORS.INVALID_INPUT,
+    });
+    await expect(placeBets({ ...defaultArgs, combinations: [[2]] })).resolves.toMatchObject({ success: true });
+  });
+
+  it('18頭立て3連単の全4896点は上限ちょうどとして受け付ける', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue(
+      Array.from({ length: 18 }, (_, i) => ({
+        horseNumber: i + 1,
+        bracketNumber: Math.ceil((i + 1) / 2),
+        status: 'ENTRANT',
+      }))
+    );
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, balance: 489600 });
+    mockTx.query.wallets.findFirst.mockResolvedValue({ ...mockWallet, balance: 489600 });
+
+    const numbers = Array.from({ length: 18 }, (_, i) => i + 1);
+    const combinations = numbers
+      .flatMap((a) => numbers.flatMap((b) => numbers.map((c) => [a, b, c])))
+      .filter(([a, b, c]) => a !== b && b !== c && a !== c);
+    expect(combinations).toHaveLength(4896);
+
+    await expect(placeBets({ ...defaultArgs, betType: 'trifecta', combinations })).resolves.toMatchObject({
+      success: true,
+    });
+    // 100 点ずつのバッチで bet と transaction を交互に挿入するため、グループ 1 回 + 49 バッチ × 2 回
+    expect(mockTx.insert).toHaveBeenCalledTimes(1 + 49 * 2);
+  });
+
+  it('挿入される合計金額・各ベット金額・取引金額が入力と一致する', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    mockTx._insertChain.returning
+      .mockResolvedValueOnce([{ id: 'group-1' }])
+      .mockResolvedValueOnce([{ id: 'bet-1' }, { id: 'bet-2' }, { id: 'bet-3' }]);
+
+    await placeBets({ ...defaultArgs, combinations: [[1], [2], [3]], amountPerBet: 300 });
+
+    const valuesCalls = mockTx._insertChain.values.mock.calls.map((call) => call[0]);
+    expect(valuesCalls[0]).toMatchObject({ userId, raceId, walletId, type: 'win', totalAmount: 900 });
+    expect(valuesCalls[1]).toEqual([
+      expect.objectContaining({ amount: 300, details: { type: 'win', selections: [1] }, status: 'PENDING' }),
+      expect.objectContaining({ amount: 300, details: { type: 'win', selections: [2] }, status: 'PENDING' }),
+      expect.objectContaining({ amount: 300, details: { type: 'win', selections: [3] }, status: 'PENDING' }),
+    ]);
+    expect(valuesCalls[2]).toEqual([
+      { walletId, type: 'BET', amount: -300, referenceId: 'bet-1' },
+      { walletId, type: 'BET', amount: -300, referenceId: 'bet-2' },
+      { walletId, type: 'BET', amount: -300, referenceId: 'bet-3' },
+    ]);
+    // balance は残高から合計を引く SQL 式。ダイアレクトで文字列化して減算額を確かめる
+    const setArg = mockTx._updateChain.set.mock.calls[0]?.[0] as { balance: SQL };
+    const query = new PgDialect().sqlToQuery(setArg.balance);
+    expect(query.sql).toMatch(/"balance" - \$1$/);
+    expect(query.params).toEqual([900]);
   });
 });
 
