@@ -96,6 +96,26 @@ tasks:
     cmds:
       - docker compose exec -T db pg_restore -U postgres -d webapp --clean --if-exists
 
+  db:upgrade:
+    desc: 'PostgreSQL の大版更新。旧コンテナからダンプし、新イメージと新ボリュームで起動して復元します。compose の image とボリュームを変えた後、up の前に実行します'
+    vars:
+      COMPOSE: '{{.COMPOSE | default "docker compose"}}'
+      DUMP: backups/pre-upgrade-{{now | date "20060102-150405"}}.dump
+    cmds:
+      - mkdir -p backups
+      - '{{.COMPOSE}} exec -T db pg_dump -U postgres -d webapp --format=custom > {{.DUMP}}'
+      - '{{.COMPOSE}} stop db'
+      - '{{.COMPOSE}} up -d --wait db'
+      - '{{.COMPOSE}} exec -T db pg_restore -U postgres -d webapp --no-owner < {{.DUMP}}'
+      - '{{.COMPOSE}} run --rm --no-deps app pnpm tsx src/shared/db/reconcile.ts'
+
+  db:upgrade:prod:
+    desc: VM 上の本番構成で db:upgrade を実行します。git pull の後、task prod:up の前に実行します
+    cmds:
+      - task: db:upgrade
+        vars:
+          COMPOSE: '{{.PROD}}'
+
   db:audit-log:
     desc: 管理操作の監査ログを新しい順に50件表示します
     cmds:

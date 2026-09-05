@@ -10,5 +10,7 @@ yarn-error.log
 pnpm-debug.log
 Dockerfile
 docker-compose.yml
+docker-compose.override.yml
+docker-compose.prod.yml
 README.md
 docs

@@ -1,6 +1,8 @@
 # 開発用の差分。docker compose 実行時に自動で読み込まれる。
 services:
   app:
+    # 本番イメージは非 root だが、dev はバインドマウントへ .next と node_modules を書くため root で動かす
+    user: root
     volumes:
       - .:/app
     command: sh -c "CI=true pnpm install && pnpm dev"
@@ -15,7 +17,7 @@ services:
       - '127.0.0.1:6379:6379'
 
   tunnel:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.8.3
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}

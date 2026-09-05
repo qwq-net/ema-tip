@@ -17,7 +17,7 @@ services:
         condition: service_started
 
   db:
-    image: postgres:15-alpine
+    image: postgres:18-alpine
     # pg_stat_statements でクエリ別統計を常時収集し、100ms超のクエリをログに残す。
     # 参照は task perf:stats、リセットは task perf:stats:reset
     command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c log_min_duration_statement=100
@@ -26,7 +26,9 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: webapp
     volumes:
-      - db-data:/var/lib/postgresql/data
+      # 18 以降の公式イメージはデータを /var/lib/postgresql/<major>/docker に置く。
+      # 15 のボリューム db-data は復元確認後に docker volume rm で削除する
+      - db-data-18:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d webapp']
       interval: 5s
@@ -34,10 +36,11 @@ services:
       retries: 5
 
   redis:
-    image: redis:alpine
+    image: redis:8-alpine
     volumes:
       - redis-data:/data
 
 volumes:
   db-data:
+  db-data-18:
   redis-data:
