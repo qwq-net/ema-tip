@@ -131,7 +131,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
   });
 
   await test.step('管理者が発生条件を100%へ変更すると案内が出る', async () => {
-    await adminPage.goto(`/admin/events/${fx.eventId}`);
+    await adminPage.goto(`/admin/events/${fx.eventId}/settings`);
     await adminPage.getByLabel('融資の発生条件').fill('100');
     await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
 

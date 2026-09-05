@@ -70,5 +70,5 @@ export async function createRace(formData: FormData) {
     guaranteedOdds: defaultGuaranteedOdds,
   });
 
-  revalidatePath('/admin/races');
+  revalidatePath(`/admin/events/${eventId}`);
 }

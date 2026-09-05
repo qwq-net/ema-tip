@@ -16,10 +16,12 @@ import {
   Td,
   Th,
 } from '@/shared/ui';
+import { cn } from '@/shared/utils/cn';
 import { ChevronDown, Pause, Play, RefreshCw, Square, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
+import { BET5_GUIDES, type Bet5GuideEvent, getBet5Guide } from '../lib/bet5-guide';
 
 interface Event {
   id: string;
@@ -28,6 +30,21 @@ interface Event {
   status: EventStatus;
   distributeAmount: number;
   date: string;
+  bet5Event?: Bet5GuideEvent['bet5Event'];
+}
+
+/** BET5 の設定・締切・払戻の忘れをステータス直下で促すリンク。案内不要なら描かない。 */
+function bet5GuideFor(event: Event) {
+  const guide = getBet5Guide(event);
+  if (!guide) return null;
+  return (
+    <Link
+      href={`/admin/events/${event.id}/bet5`}
+      className={cn('mt-1.5 block text-sm font-medium underline underline-offset-2', BET5_GUIDES[guide].className)}
+    >
+      {BET5_GUIDES[guide].label}
+    </Link>
+  );
 }
 
 export function EventList({ events }: { events: Event[] }) {
@@ -63,6 +80,7 @@ export function EventList({ events }: { events: Event[] }) {
             <Td className="text-gray-500">{event.date}</Td>
             <Td>
               <Badge label={event.status} variant="status" />
+              {bet5GuideFor(event)}
             </Td>
             <Td className="font-semibold text-gray-600">{event.distributeAmount.toLocaleString('ja-JP')} 円</Td>
             <Td className="text-right">

@@ -101,38 +101,6 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-gray-50">
-            <CardContent className="flex items-center justify-between p-4">
-              <div>
-                <p className="font-medium text-gray-900">WIN5 (BET5) 設定</p>
-                <p className="text-sm text-gray-500">5レース的中投票の設定を行います</p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => (window.location.href = `/admin/events/${event.id}/bet5`)}
-              >
-                設定へ移動
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gray-50">
-            <CardContent className="flex items-center justify-between p-4">
-              <div>
-                <p className="font-medium text-gray-900">ランキング管理</p>
-                <p className="text-sm text-gray-500">順位確認と公開設定を行います</p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => (window.location.href = `/admin/events/${event.id}/ranking`)}
-              >
-                ランキングへ移動
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

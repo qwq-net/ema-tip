@@ -12,7 +12,6 @@ import {
   Key,
   MapPin,
   Ticket,
-  Trophy,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -45,19 +44,7 @@ const OPERATION_ACTIONS = [
     href: '/admin/events',
     icon: Calendar,
     label: 'イベント管理',
-    description: 'イベントの追加・編集・確定処理',
-  },
-  {
-    href: '/admin/races',
-    icon: Trophy,
-    label: 'レース管理',
-    description: 'レースの作成・管理',
-  },
-  {
-    href: '/admin/entries',
-    icon: ClipboardList,
-    label: '出走馬管理',
-    description: 'レースへの競走馬の割り当て',
+    description: 'イベントとレース・出走馬の登録、確定処理',
   },
   {
     href: '/admin/bet5',

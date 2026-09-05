@@ -1,7 +1,5 @@
 import { toAllowedBetTypes } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
-import { RacePageHeader } from '@/entities/race/ui/race-page-header';
-import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
 import { RaceBetTypesForm } from '@/features/admin/manage-races/ui/race-bet-types-form';
 import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
@@ -21,7 +19,7 @@ import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { eq } from 'drizzle-orm';
-import { ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
+import { Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -80,43 +78,6 @@ function toResultFormRace(race: RaceWithRelations): RaceResultFormRace {
     netkeibaUrl: race.netkeibaUrl ?? null,
     fixedOddsMode: race.fixedOddsMode,
   };
-}
-
-interface RaceDetailHeaderProps {
-  race: RaceWithRelations;
-  entrantCount: number;
-}
-
-/** レース詳細の見出し。Netkeiba 由来のレースにだけオッズ再取得の操作を添える。 */
-function RaceDetailHeader({ race, entrantCount }: RaceDetailHeaderProps) {
-  return (
-    <RacePageHeader
-      venueShortName={race.venue.shortName}
-      raceNumber={race.raceNumber}
-      eventName={race.event.name}
-      name={race.name}
-      netkeibaUrl={race.netkeibaUrl}
-      surface={race.surface}
-      distance={race.distance}
-      entrantCount={entrantCount}
-      actions={
-        <>
-          {race.netkeibaUrl && (
-            <UpdateNetkeibaOddsButton
-              raceId={race.id}
-              className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
-            />
-          )}
-          <Button variant="outline" asChild>
-            <Link href={`/admin/races/${race.id}/edit`}>
-              <Settings2 className="mr-2 h-4 w-4" />
-              レース情報を編集
-            </Link>
-          </Button>
-        </>
-      }
-    />
-  );
 }
 
 interface FinalizedRaceInfoCardProps {
@@ -240,7 +201,6 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   const raceAllowed = toAllowedBetTypes(raceTypeRows.map((r) => r.betType));
   const eventDefault = toAllowedBetTypes(eventTypeRows.map((r) => r.betType));
 
-  const entrantCount = entriesWithResult.filter((e) => e.status === 'ENTRANT').length;
   const showBet5CloseReminder = shouldRemindBet5Close(bet5Event, race.id);
 
   const hasFinishPositions = entriesWithResult.some((e) => e.finishPosition !== null);
@@ -260,18 +220,6 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <Link
-          href="/admin/races"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
-        >
-          <ChevronLeft className="h-5 w-5 text-gray-600" />
-        </Link>
-        <div className="flex-1">
-          <RaceDetailHeader race={race} entrantCount={entrantCount} />
-        </div>
-      </div>
-
       <div className={race.status === 'FINALIZED' ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={race.status === 'FINALIZED' ? 'lg:col-span-2' : ''}>
           {race.status === 'FINALIZED' && (
@@ -371,7 +319,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                       レース結果を確定するには、まず出走馬を登録する必要があります。
                     </p>
                     <Button asChild variant="outline" className="mt-6 font-semibold">
-                      <Link href={`/admin/entries/${race.id}`}>出走馬を登録する</Link>
+                      <Link href={`/admin/races/${race.id}/entries`}>出走馬を登録する</Link>
                     </Button>
                   </CardContent>
                 </Card>

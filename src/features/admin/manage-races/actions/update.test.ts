@@ -93,7 +93,7 @@ describe('updateRace', () => {
       })
     );
     expect(mockWhere).toHaveBeenCalled();
-    expect(revalidatePath).toHaveBeenCalledWith('/admin/races');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/races/123');
   });
 });
 

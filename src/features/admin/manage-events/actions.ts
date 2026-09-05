@@ -10,6 +10,7 @@ import { formString } from '@/shared/utils/form';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
+import { cache } from 'react';
 import { z } from 'zod';
 
 const eventSchema = z.object({
@@ -156,7 +157,8 @@ export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' 
   revalidatePath(`/admin/events/${eventId}`);
 }
 
-export async function getEvent(id: string) {
+/** イベント 1 件を既定券種つきで返す。レイアウトと配下ページが同一リクエスト内で二重取得するため cache で束ねる。 */
+export const getEvent = cache(async (id: string) => {
   await requireAdmin();
 
   const event = await db.query.events.findFirst({
@@ -170,4 +172,4 @@ export async function getEvent(id: string) {
     .where(eq(eventDefaultAllowedBetTypes.eventId, id));
 
   return { ...event, defaultAllowedBetTypes: toAllowedBetTypes(typeRows.map((r) => r.betType)) };
-}
+});

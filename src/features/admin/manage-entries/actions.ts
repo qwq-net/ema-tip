@@ -5,101 +5,9 @@ import { db } from '@/shared/db';
 import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
 import { requireAdmin, requireUser, revalidateRacePaths } from '@/shared/utils/admin';
 import { calculateBracketNumber, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
-import { count, eq, notInArray } from 'drizzle-orm';
+import { eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-
-export async function getRacesForSelect() {
-  await requireAdmin();
-
-  // UIは頭数しか使わないため、全entriesを載せず件数だけ返す
-  const [allRaces, entryCounts] = await Promise.all([
-    db.query.raceInstances.findMany({
-      where: eq(raceInstances.status, 'SCHEDULED'),
-      columns: {
-        id: true,
-        eventId: true,
-        name: true,
-        raceNumber: true,
-        distance: true,
-        surface: true,
-        condition: true,
-        finalizedAt: true,
-        date: true,
-      },
-      with: {
-        event: true,
-        venue: {
-          columns: {
-            name: true,
-            shortName: true,
-          },
-        },
-      },
-      orderBy: (raceInstances, { asc, desc }) => [
-        desc(raceInstances.date),
-        asc(raceInstances.raceNumber),
-        asc(raceInstances.name),
-      ],
-    }),
-    db.select({ raceId: raceEntries.raceId, entryCount: count() }).from(raceEntries).groupBy(raceEntries.raceId),
-  ]);
-
-  const countByRace = new Map(entryCounts.map((c) => [c.raceId, c.entryCount]));
-
-  const eventsMap = new Map<
-    string,
-    {
-      id: string;
-      name: string;
-      date: string;
-      status: string;
-      races: {
-        id: string;
-        name: string;
-        raceNumber: number | null;
-        distance: number;
-        surface: string;
-        condition: string | null;
-        entryCount: number;
-        venue: {
-          name: string;
-          shortName: string;
-        };
-        date: string;
-      }[];
-    }
-  >();
-
-  for (const race of allRaces) {
-    let eventEntry = eventsMap.get(race.eventId);
-    if (!eventEntry) {
-      eventEntry = {
-        id: race.event.id,
-        name: race.event.name,
-        date: race.event.date,
-        status: race.event.status,
-        races: [],
-      };
-      eventsMap.set(race.eventId, eventEntry);
-    }
-    eventEntry.races.push({
-      id: race.id,
-      name: race.name,
-      raceNumber: race.raceNumber,
-      distance: race.distance,
-      surface: race.surface,
-      condition: race.condition,
-      entryCount: countByRace.get(race.id) ?? 0,
-      venue: {
-        name: race.venue.name,
-        shortName: race.venue.shortName,
-      },
-      date: race.date,
-    });
-  }
-
-  return Array.from(eventsMap.values());
-}
+import { cache } from 'react';
 
 export async function getHorsesForSelect() {
   await requireAdmin();
@@ -109,7 +17,8 @@ export async function getHorsesForSelect() {
 
 // 未ログインには null を返す。throw すると generateMetadata 経由の呼び出しが
 // ログインページへの redirect より先に 500 になるため、レース不在と同じ扱いに落とす
-export async function getRaceById(raceId: string) {
+/** レース 1 件をイベント・会場つきで返す。レイアウトと配下ページが同一リクエスト内で二重取得するため cache で束ねる。 */
+export const getRaceById = cache(async (raceId: string) => {
   const session = await auth();
   if (!session?.user?.id) return null;
 
@@ -120,7 +29,7 @@ export async function getRaceById(raceId: string) {
       venue: true,
     },
   });
-}
+});
 
 export async function getEntriesForRace(raceId: string) {
   await requireUser();
@@ -228,7 +137,6 @@ export async function saveEntries(raceId: string, horseIds: string[]) {
     }
   });
 
-  revalidatePath(`/admin/entries/${raceId}`);
-  revalidatePath('/admin/entries');
+  revalidatePath(`/admin/races/${raceId}/entries`);
   revalidateRacePaths(raceId);
 }

@@ -7,8 +7,6 @@ import { getBet5TicketsAction } from '@/features/betting/actions/bet5';
 import { db } from '@/shared/db';
 import { raceEntries } from '@/shared/db/schema';
 import { and, eq, inArray } from 'drizzle-orm';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export default async function Bet5AdminPage({ params }: { params: Promise<{ id: string }> }) {
@@ -140,19 +138,7 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
   const selectableRaces = races.filter((race) => race.status === 'SCHEDULED');
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
-      <div>
-        <Link
-          href={`/admin/events/${id}`}
-          className="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
-        >
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          イベント編集に戻る
-        </Link>
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">BET5 管理</h1>
-        <p className="mt-1 text-base text-gray-500">{event.name} のBET5設定と購入状況</p>
-      </div>
-
+    <div className="max-w-4xl space-y-6">
       {!bet5Event &&
         (selectableRaces.length >= 5 ? (
           <Bet5ConfigForm

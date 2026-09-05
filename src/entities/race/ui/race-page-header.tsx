@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 /**
@@ -6,12 +7,14 @@ import type { ReactNode } from 'react';
  * 馬場・距離・頭数のメタ行を表示する。投票画面と管理詳細で同一の情報構成を保つための部品。
  * entrantCount は出走中の頭数を渡す前提。取消・除外馬は呼び手側で除外する。
  * 開催日は表示しない。操作時点がレース当日である運用前提のため。
+ * eventHref を渡すとイベント名が親イベントへのリンクになる。管理画面の親子導線用で、投票画面は渡さない。
  * actions は右側に並べる画面固有の操作ボタン群。
  */
 export function RacePageHeader({
   venueShortName,
   raceNumber,
   eventName,
+  eventHref,
   name,
   netkeibaUrl,
   surface,
@@ -22,6 +25,7 @@ export function RacePageHeader({
   venueShortName?: string | null;
   raceNumber: number | null;
   eventName?: string | null;
+  eventHref?: string;
   name: string;
   netkeibaUrl?: string | null;
   surface: string;
@@ -41,7 +45,13 @@ export function RacePageHeader({
         {eventName && (
           <>
             <span className="text-gray-300">/</span>
-            <span className="truncate text-sm text-gray-500">{eventName}</span>
+            {eventHref ? (
+              <Link href={eventHref} className="truncate text-sm text-gray-500 hover:text-gray-900 hover:underline">
+                {eventName}
+              </Link>
+            ) : (
+              <span className="truncate text-sm text-gray-500">{eventName}</span>
+            )}
           </>
         )}
       </div>

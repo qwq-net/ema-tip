@@ -57,7 +57,6 @@ export async function resetRaceResults(raceId: string) {
     timestamp: Date.now(),
   });
 
-  revalidatePath('/admin/races');
   revalidatePath(`/admin/races/${raceId}`);
   revalidatePath(`/races/${raceId}`);
 

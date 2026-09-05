@@ -55,7 +55,6 @@ export async function requireLoginPage(): Promise<AuthedSession> {
 }
 
 export function revalidateRacePaths(raceId: string) {
-  revalidatePath('/admin/races');
   revalidatePath(`/admin/races/${raceId}`);
   revalidatePath(`/races/${raceId}`);
   revalidatePath(`/races/${raceId}/standby`);

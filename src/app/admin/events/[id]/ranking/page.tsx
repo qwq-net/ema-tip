@@ -17,10 +17,9 @@ export default async function AdminRankingPage({ params }: AdminRankingPageProps
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="max-w-5xl">
       <AdminRankingManager
         eventId={event.id}
-        eventName={event.name}
         initialRanking={rankingData.ranking}
         initialDisplayMode={rankingData.displayMode}
         distributeAmount={rankingData.distributeAmount}

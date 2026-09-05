@@ -273,7 +273,7 @@ export async function importRace(params: ImportRaceParams): Promise<ActionResult
       return { raceId: race.id };
     });
 
-    revalidatePath('/admin/races');
+    revalidatePath(`/admin/events/${params.eventId}`);
     return { success: true, data: result };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : '予期しないエラーが発生しました' };

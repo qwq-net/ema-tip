@@ -26,6 +26,8 @@ interface RaceFormProps {
     direction?: string | null;
   };
   events: { id: string; name: string; date: string }[];
+  /** 新規登録時に初期選択するイベント。未指定や一致なしなら先頭のイベントを選ぶ。 */
+  defaultEventId?: string | undefined;
   raceDefinitions?: {
     id: string;
     name: string;
@@ -57,9 +59,13 @@ interface RaceFormValues {
  * 編集時は既存値、新規時は既定値でフォームの初期値を組む。
  * 登録後のリセットも initialData を渡さずに呼び、初期表示と同じ値へ戻す。
  */
-function getInitialValues(initialData: RaceFormProps['initialData'], events: RaceFormProps['events']): RaceFormValues {
+function getInitialValues(
+  initialData: RaceFormProps['initialData'],
+  events: RaceFormProps['events'],
+  defaultEventId?: string
+): RaceFormValues {
   const defaults: RaceFormValues = {
-    eventId: events[0]?.id || '',
+    eventId: events.find((e) => e.id === defaultEventId)?.id ?? events[0]?.id ?? '',
     date: todayJST(),
     surface: '芝',
     condition: '良',
@@ -84,10 +90,17 @@ function getInitialValues(initialData: RaceFormProps['initialData'], events: Rac
   };
 }
 
-export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], redirectTo }: RaceFormProps) {
+export function RaceForm({
+  initialData,
+  events,
+  defaultEventId,
+  raceDefinitions = [],
+  venues = [],
+  redirectTo,
+}: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
-  const initialValues = getInitialValues(initialData, events);
+  const initialValues = getInitialValues(initialData, events, defaultEventId);
   const [eventId, setEventId] = useState(initialValues.eventId);
   const [date, setDate] = useState(initialValues.date);
   const [surface, setSurface] = useState(initialValues.surface);
@@ -140,7 +153,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
       } else {
         await createRace(formData);
         formRef.current?.reset();
-        const cleared = getInitialValues(undefined, events);
+        const cleared = getInitialValues(undefined, events, defaultEventId);
         setEventId(cleared.eventId);
         setDate(cleared.date);
         setSurface(cleared.surface);

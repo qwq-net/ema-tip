@@ -36,7 +36,11 @@ const FLOW_STEPS: Step[] = [
     description: '会場とレース番号を選びます。条件はマスタから読み込めます。',
     href: '/admin/races/new',
   },
-  { title: '出走馬登録', description: 'ドラッグで枠順を確定すると馬券が購入可能になります。', href: '/admin/entries' },
+  {
+    title: '出走馬登録',
+    description: 'イベントのレース一覧から出走馬タブを開き、ドラッグで枠順を確定すると馬券が購入可能になります。',
+    href: '/admin/events',
+  },
   { title: 'BET5設定', description: '5重勝の対象レースを指定します。', href: '/admin/bet5' },
 ];
 

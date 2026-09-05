@@ -83,7 +83,7 @@ describe('createRace', () => {
         distance: 2000,
       })
     );
-    expect(revalidatePath).toHaveBeenCalledWith('/admin/races');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/events/550e8400-e29b-41d4-a716-446655440000');
   });
 
   it('raceNumberが未指定の場合、既存レースの最大番号+1が自動付与される', async () => {

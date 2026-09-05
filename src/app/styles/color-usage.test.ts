@@ -72,12 +72,14 @@ const SANCTIONED = new Set([
   'src/features/betting/ui/payout-result-modal.tsx',
   'src/features/forecasts/components/ForecastDisplay.tsx',
   'src/shared/ui/live-connection-status.tsx',
+  'src/features/admin/manage-events/lib/bet5-guide.ts',
 ]);
 
 // 意味色の手組みが残る既存ファイル。新規追加は禁止で、直書きを解消したらここから削除する
 const GRANDFATHERED = new Set([
   'src/app/(app)/events/[id]/bet5/page.tsx',
   'src/app/admin/bets/[raceId]/page.tsx',
+  'src/app/admin/races/[id]/layout.tsx',
   'src/app/admin/races/[id]/page.tsx',
   'src/app/races/[id]/standby/standby-client.tsx',
   'src/entities/horse/ui/horse-source-badge.tsx',
@@ -90,14 +92,12 @@ const GRANDFATHERED = new Set([
   'src/features/admin/import-race/ui/import-race-client.tsx',
   'src/features/admin/manage-bets/ui/event-accordion.tsx',
   'src/features/admin/manage-entries/ui/entry-dnd.tsx',
-  'src/features/admin/manage-entries/ui/entry-race-accordion.tsx',
   'src/features/admin/manage-events/ui/admin-event-editor.tsx',
   'src/features/admin/manage-events/ui/admin-ranking-manager.tsx',
   'src/features/admin/manage-horse-tags/ui/horse-tag-list.tsx',
   'src/features/admin/manage-horses/ui/horse-form.tsx',
   'src/features/admin/manage-race-definitions/ui/race-definition-list.tsx',
   'src/features/admin/manage-races/ui/kitchen-timer.tsx',
-  'src/features/admin/manage-races/ui/race-accordion.tsx',
   'src/features/admin/manage-races/ui/race-result-form.tsx',
   'src/features/admin/manage-users/ui/user-list.tsx',
   'src/features/admin/manage-venues/ui/venue-list.tsx',

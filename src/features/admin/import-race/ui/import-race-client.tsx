@@ -125,7 +125,7 @@ export function ImportRaceClient({ events, venues }: Props) {
         return;
       }
       toast.success('インポートが完了しました');
-      router.push('/admin/races');
+      router.push(`/admin/events/${eventId}`);
     });
   }
 

@@ -2,7 +2,7 @@
 
 import type { RankingData, RankingDisplayMode } from '@/entities/ranking';
 import { updateRankingDisplayMode } from '@/entities/ranking/actions';
-import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
 import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
@@ -11,7 +11,6 @@ import { useOptimistic, useTransition } from 'react';
 
 interface AdminRankingManagerProps {
   eventId: string;
-  eventName: string;
   initialRanking: RankingData[];
   initialDisplayMode: RankingDisplayMode;
   distributeAmount: number;
@@ -19,7 +18,6 @@ interface AdminRankingManagerProps {
 
 export function AdminRankingManager({
   eventId,
-  eventName,
   initialRanking,
   initialDisplayMode,
   distributeAmount,
@@ -62,11 +60,6 @@ export function AdminRankingManager({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <AdminBackLink href={`/admin/events/${eventId}`}>イベント詳細へ戻る</AdminBackLink>
-        <AdminPageHeader title="ランキング管理" description={`${eventName} のランキング確認と公開設定`} />
-      </div>
-
       <div className="rounded-surface border border-gray-100 bg-white p-6">
         <AdminSectionTitle className="mb-4">公開設定</AdminSectionTitle>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
