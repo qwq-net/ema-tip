@@ -39,18 +39,21 @@ describe('saveEntries', () => {
     );
   });
 
-  it('ベットが存在するレースでは保存を拒否し、エントリを削除しないこと', async () => {
+  it('ベットが存在するレースでは保存せず、理由をエラーとして返すこと', async () => {
     mockTx.query.bets.findFirst.mockResolvedValue({ id: 'bet-1' });
 
-    await expect(saveEntries('race-1', ['horse-1', 'horse-2'])).rejects.toThrow();
+    const result = await saveEntries('race-1', ['horse-1', 'horse-2']);
+
+    expect(result).toEqual({ success: false, error: '馬券が購入済みのため、出走馬を変更できません' });
     expect(mockTx.delete).not.toHaveBeenCalled();
   });
 
   it('ベットがないレースではエントリを再作成できること', async () => {
     mockTx.query.bets.findFirst.mockResolvedValue(undefined);
 
-    await saveEntries('race-1', ['horse-1', 'horse-2']);
+    const result = await saveEntries('race-1', ['horse-1', 'horse-2']);
 
+    expect(result.success).toBe(true);
     expect(mockTx.delete).toHaveBeenCalled();
     expect(mockTx.insert).toHaveBeenCalled();
   });
@@ -58,7 +61,10 @@ describe('saveEntries', () => {
   it('19頭以上の登録は拒否し、エントリを削除しないこと', async () => {
     const horseIds = Array.from({ length: 19 }, (_, i) => `horse-${i + 1}`);
 
-    await expect(saveEntries('race-1', horseIds)).rejects.toThrow('18頭まで');
+    const result = await saveEntries('race-1', horseIds);
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain('18頭まで');
     expect(mockTx.delete).not.toHaveBeenCalled();
   });
 
@@ -75,7 +81,10 @@ describe('saveEntries', () => {
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'FINALIZED' });
     mockTx.query.bets.findFirst.mockResolvedValue(undefined);
 
-    await expect(saveEntries('race-1', ['horse-1'])).rejects.toThrow('出走前');
+    const result = await saveEntries('race-1', ['horse-1']);
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain('出走前');
     expect(mockTx.delete).not.toHaveBeenCalled();
   });
 });

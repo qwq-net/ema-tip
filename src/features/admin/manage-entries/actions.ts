@@ -3,7 +3,7 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bets, horses, raceEntries, raceInstances } from '@/shared/db/schema';
-import { requireAdmin, requireUser, revalidateRacePaths } from '@/shared/utils/admin';
+import { ActionError, requireAdmin, requireUser, revalidateRacePaths, runAction } from '@/shared/utils/admin';
 import { calculateBracketNumber, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
 import { eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -88,51 +88,69 @@ export async function getAvailableHorses(raceId: string) {
     .orderBy(horses.name);
 }
 
-export async function saveEntries(raceId: string, horseIds: string[]) {
+// 出走馬編集を受け付けられないレースかを返す。全削除して馬番を振り直すため、
+// 馬券が 1 枚でもあると購入済みの馬番の意味が変わってしまう。編集画面の表示可否と保存時の拒否で同じ判定を使う
+export async function hasBetsForRace(raceId: string) {
   await requireAdmin();
 
-  // 19頭以上は枠番を正しく割り当てられない
-  if (horseIds.length > MAX_HORSES_PER_RACE) {
-    throw new Error(`出走馬は${MAX_HORSES_PER_RACE}頭まで登録できます`);
-  }
-
-  await db.transaction(async (tx) => {
-    // 全削除して馬番を振り直すため、締切後・確定後のレースを触ると着順や払戻の根拠が消えてしまう
-    const race = await tx.query.raceInstances.findFirst({
-      where: eq(raceInstances.id, raceId),
-      columns: { status: true },
-    });
-    if (!race) {
-      throw new Error('レースが見つかりません');
-    }
-    if (race.status !== 'SCHEDULED') {
-      throw new Error('出走前のレースのみ出走馬を変更できます');
-    }
-
-    // 全削除して馬番を振り直すため、ベットが存在すると既存ベットの馬番の意味が変わってしまう
-    const existingBet = await tx.query.bets.findFirst({
-      where: eq(bets.raceId, raceId),
-      columns: { id: true },
-    });
-    if (existingBet) {
-      throw new Error('このレースには既にベットが存在するため、出走馬を変更できません');
-    }
-
-    await tx.delete(raceEntries).where(eq(raceEntries.raceId, raceId));
-
-    if (horseIds.length > 0) {
-      const totalHorses = horseIds.length;
-      const entries = horseIds.map((horseId, index) => ({
-        raceId,
-        horseId,
-        horseNumber: index + 1,
-        bracketNumber: calculateBracketNumber(index + 1, totalHorses),
-      }));
-
-      await tx.insert(raceEntries).values(entries);
-    }
+  const existingBet = await db.query.bets.findFirst({
+    where: eq(bets.raceId, raceId),
+    columns: { id: true },
   });
+  return existingBet !== undefined;
+}
 
-  revalidatePath(`/admin/races/${raceId}/entries`);
-  revalidateRacePaths(raceId);
+const ENTRIES_LOCKED_BY_BETS = '馬券が購入済みのため、出走馬を変更できません';
+
+// 出走馬を horseIds の並び順で全置換し、馬番と枠番を振り直す。
+// 出走前以外・馬券購入済み・19 頭以上は保存せずエラーを返す
+export async function saveEntries(raceId: string, horseIds: string[]) {
+  return runAction(async () => {
+    await requireAdmin();
+
+    // 19頭以上は枠番を正しく割り当てられない
+    if (horseIds.length > MAX_HORSES_PER_RACE) {
+      throw new ActionError(`出走馬は${MAX_HORSES_PER_RACE}頭まで登録できます`);
+    }
+
+    await db.transaction(async (tx) => {
+      // 締切後・確定後のレースを触ると着順や払戻の根拠が消えてしまう
+      const race = await tx.query.raceInstances.findFirst({
+        where: eq(raceInstances.id, raceId),
+        columns: { status: true },
+      });
+      if (!race) {
+        throw new ActionError('レースが見つかりません');
+      }
+      if (race.status !== 'SCHEDULED') {
+        throw new ActionError('出走前のレースのみ出走馬を変更できます');
+      }
+
+      // 画面表示後に購入が入る場合があるため、同じトランザクション内で再確認する
+      const existingBet = await tx.query.bets.findFirst({
+        where: eq(bets.raceId, raceId),
+        columns: { id: true },
+      });
+      if (existingBet) {
+        throw new ActionError(ENTRIES_LOCKED_BY_BETS);
+      }
+
+      await tx.delete(raceEntries).where(eq(raceEntries.raceId, raceId));
+
+      if (horseIds.length > 0) {
+        const totalHorses = horseIds.length;
+        const entries = horseIds.map((horseId, index) => ({
+          raceId,
+          horseId,
+          horseNumber: index + 1,
+          bracketNumber: calculateBracketNumber(index + 1, totalHorses),
+        }));
+
+        await tx.insert(raceEntries).values(entries);
+      }
+    });
+
+    revalidatePath(`/admin/races/${raceId}/entries`);
+    revalidateRacePaths(raceId);
+  });
 }

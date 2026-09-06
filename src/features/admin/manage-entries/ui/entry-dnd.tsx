@@ -260,18 +260,15 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
   const handleSave = () => {
     startTransition(async () => {
-      const promise = saveEntries(
+      const result = await saveEntries(
         raceId,
         entries.map((e) => e.id)
       );
-
-      toast.promise(promise, {
-        loading: '保存中...',
-        success: '出走馬を保存しました',
-        error: '保存に失敗しました',
-      });
-
-      await promise;
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success('出走馬を保存しました');
     });
   };
 
