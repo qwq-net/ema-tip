@@ -5,15 +5,15 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
-import { asc, desc, eq, sql } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 
-import { type RankingData, type RankingDisplayMode } from '@/entities/ranking';
+import { type RankingData, type RankingDisplayMode, rankByBasis } from '@/entities/ranking';
 
 /**
- * イベント参加ウォレットをユーザー名付きで順位順に取得する。
- * orderByNet が true の場合は借入額を差し引いた純資産の降順、false の場合は残高の降順で並べる。
+ * イベント参加ウォレットをユーザー名付きで取得する。
+ * 順位付けは呼び手が rankByBasis で行うため、同値の並びを決めるために作成順・ユーザー ID 順で返す。
  */
-async function fetchRankedWallets(eventId: string, orderByNet: boolean) {
+async function fetchEventWallets(eventId: string) {
   return db.query.wallets.findMany({
     where: eq(wallets.eventId, eventId),
     with: {
@@ -24,25 +24,14 @@ async function fetchRankedWallets(eventId: string, orderByNet: boolean) {
         },
       },
     },
-    orderBy: orderByNet
-      ? [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`), asc(wallets.createdAt), asc(wallets.userId)]
-      : [desc(wallets.balance), asc(wallets.createdAt), asc(wallets.userId)],
+    orderBy: [asc(wallets.createdAt), asc(wallets.userId)],
   });
 }
 
-/**
- * 直前と同じ基準額なら同じ順位を返す。同額は同順位とし、次の順位は人数分飛ぶ方式。
- * 呼び出し側は基準額の降順で並んだ配列を index 順に処理すること。
- */
-function createCompetitionRanker() {
-  let lastBasis: number | null = null;
-  let lastRank = 0;
-  return (basis: number, index: number): number => {
-    const rank = lastBasis !== null && basis === lastBasis ? lastRank : index + 1;
-    lastBasis = basis;
-    lastRank = rank;
-    return rank;
-  };
+/** 借金込み表示では借入を差し引いた純資産、それ以外は所持金で順位を決める。 */
+function rankBasisFor(includeLoan: boolean) {
+  return (wallet: { balance: number; totalLoaned: number }) =>
+    includeLoan ? calculateNetBalance(wallet.balance, wallet.totalLoaned) : wallet.balance;
 }
 
 export async function getEventRanking(eventId: string): Promise<{
@@ -66,51 +55,31 @@ export async function getEventRanking(eventId: string): Promise<{
   const distributeAmount = event.distributeAmount;
   const isFullWithLoan = event.rankingDisplayMode === 'FULL_WITH_LOAN';
 
-  const eventWallets = await fetchRankedWallets(eventId, isFullWithLoan);
+  const eventWallets = await fetchEventWallets(eventId);
 
   const isHidden = event.rankingDisplayMode === 'HIDDEN';
   const isAnonymous = event.rankingDisplayMode === 'ANONYMOUS';
 
-  // HIDDEN では残高降順の並びから実際の順位が漏れるため、順位と無関係な作成順に並べ直す
-  const walletsForDisplay = isHidden
-    ? [...eventWallets].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    : eventWallets;
+  // HIDDEN では順位が漏れないよう作成順に並べて返し、順位も伏せる
+  const rankedWallets = isHidden
+    ? [...eventWallets]
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        .map((wallet) => ({ ...wallet, rank: '?' as const }))
+    : rankByBasis(eventWallets, rankBasisFor(isFullWithLoan));
 
-  const rankOf = createCompetitionRanker();
-  const ranking: RankingData[] = walletsForDisplay.map((wallet, index) => {
+  const ranking: RankingData[] = rankedWallets.map((wallet, index) => {
     const isCurrentUser = wallet.userId === currentUserId;
-
-    let name = wallet.user.name || 'Unknown';
-    const rankBasis = isFullWithLoan ? calculateNetBalance(wallet.balance, wallet.totalLoaned) : wallet.balance;
-    let rank: number | string = rankOf(rankBasis, index);
-    let balance: number | '???' = wallet.balance;
-    let totalLoaned: number | undefined = undefined;
-
-    if (isFullWithLoan) {
-      balance = calculateNetBalance(wallet.balance, wallet.totalLoaned);
-      if (wallet.totalLoaned > 0) {
-        totalLoaned = wallet.totalLoaned;
-      }
-    }
-
-    if (isHidden) {
-      name = '???';
-      rank = '?';
-      balance = '???';
-    } else if (isAnonymous && !isCurrentUser) {
-      name = '???';
-    }
-
-    // マスク時は userId から匿名化が破られないよう、実IDの代わりに表示用のキーを返す
-    const shouldMaskId = isHidden || (isAnonymous && !isCurrentUser);
+    const masked = isHidden || (isAnonymous && !isCurrentUser);
 
     return {
-      rank,
-      userId: shouldMaskId ? `masked-${index}` : wallet.userId,
-      name,
-      balance,
+      rank: wallet.rank,
+      // マスク時は userId から匿名化が破られないよう、実 ID の代わりに表示用のキーを返す
+      userId: masked ? `masked-${index}` : wallet.userId,
+      name: masked ? '???' : wallet.user.name || 'Unknown',
+      // 所持金はそのまま出し、借入は別項目で返す。収支への反映は表示側が resultDiff で行う
+      balance: isHidden ? '???' : wallet.balance,
       isCurrentUser,
-      totalLoaned,
+      totalLoaned: isFullWithLoan && wallet.totalLoaned > 0 ? wallet.totalLoaned : undefined,
     };
   });
 
@@ -143,25 +112,16 @@ export async function getAdminEventRanking(eventId: string): Promise<{
 
   const distributeAmount = event.distributeAmount;
 
-  const eventWallets = await fetchRankedWallets(eventId, true);
-
-  const rankOf = createCompetitionRanker();
-  const ranking: RankingData[] = eventWallets.map((wallet, index) => {
-    const isCurrentUser = wallet.userId === session.user?.id;
-    const name = wallet.user.name || 'Unknown';
-    const balance = calculateNetBalance(wallet.balance, wallet.totalLoaned);
-    const rank = rankOf(balance, index);
-    const totalLoaned = wallet.totalLoaned > 0 ? wallet.totalLoaned : undefined;
-
-    return {
-      rank,
-      userId: wallet.userId,
-      name,
-      balance,
-      isCurrentUser,
-      totalLoaned,
-    };
-  });
+  // 管理者ビューは通常と借入有りを切り替えて見るため、所持金と借入をそのまま返し順位は表示側で付け直す
+  const eventWallets = await fetchEventWallets(eventId);
+  const ranking: RankingData[] = rankByBasis(eventWallets, rankBasisFor(false)).map((wallet) => ({
+    rank: wallet.rank,
+    userId: wallet.userId,
+    name: wallet.user.name || 'Unknown',
+    balance: wallet.balance,
+    isCurrentUser: wallet.userId === session.user?.id,
+    totalLoaned: wallet.totalLoaned > 0 ? wallet.totalLoaned : undefined,
+  }));
 
   return {
     ranking,

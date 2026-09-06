@@ -13,10 +13,10 @@ vi.mock('@/shared/db', () => ({
   },
 }));
 
-const makeWallet = (userId: string, balance: number, createdAt: Date) => ({
+const makeWallet = (userId: string, balance: number, createdAt: Date, totalLoaned = 0) => ({
   userId,
   balance,
-  totalLoaned: 0,
+  totalLoaned,
   createdAt,
   user: { id: userId, name: `name-${userId}` },
 });
@@ -92,5 +92,26 @@ describe('getEventRanking の表示モード別マスク', () => {
 
     expect(result.ranking.map((r) => r.userId)).toEqual(['user-b', 'user-a', 'user-c']);
     expect(result.ranking.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it('FULL_WITH_LOAN では借入を差し引いた純資産で順位を付け、所持金と借入額はそのまま返すこと', async () => {
+    (db.query.events.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'event-1',
+      distributeAmount: 10000,
+      rankingDisplayMode: 'FULL_WITH_LOAN',
+    });
+    (db.query.wallets.findMany as unknown as Mock).mockResolvedValue([
+      makeWallet('user-c', 1000, new Date('2026-01-01')),
+      makeWallet('user-a', 2000, new Date('2026-01-02'), 1500),
+      makeWallet('user-b', 3000, new Date('2026-01-03')),
+    ]);
+
+    const result = await getEventRanking('event-1');
+
+    expect(result.ranking.map((r) => [r.userId, r.rank, r.balance, r.totalLoaned])).toEqual([
+      ['user-b', 1, 3000, undefined],
+      ['user-c', 2, 1000, undefined],
+      ['user-a', 3, 2000, 1500],
+    ]);
   });
 });
