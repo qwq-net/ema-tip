@@ -57,7 +57,6 @@ const NAV_GROUPS = [
       { label: '馬タグ管理', href: '/admin/horse-tags', icon: ClipboardList },
       { label: '馬マスタ管理', href: '/admin/horses', icon: Carrot },
       { label: 'レースマスタ管理', href: '/admin/race-definitions', icon: BookOpen },
-      { label: '保証オッズ設定', href: '/admin/settings/odds', icon: Coins },
     ],
   },
   {
@@ -66,6 +65,7 @@ const NAV_GROUPS = [
     items: [
       { label: 'ユーザー管理', href: '/admin/users', icon: Users },
       { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
+      { label: '保証オッズ設定', href: '/admin/settings/odds', icon: Coins },
     ],
   },
 ];

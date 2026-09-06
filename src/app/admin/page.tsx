@@ -88,12 +88,6 @@ const MASTER_ACTIONS = [
     label: 'レースマスタ管理',
     description: '重賞名・条件マスタ',
   },
-  {
-    href: '/admin/settings/odds',
-    icon: Coins,
-    label: '保証オッズ設定',
-    description: 'デフォルト保証オッズ',
-  },
 ] as const;
 
 const SYSTEM_ACTIONS = [
@@ -108,6 +102,12 @@ const SYSTEM_ACTIONS = [
     icon: Key,
     label: 'ゲストコード管理',
     description: 'ログインコードの管理',
+  },
+  {
+    href: '/admin/settings/odds',
+    icon: Coins,
+    label: '保証オッズ設定',
+    description: '払戻計算に使う最低保証倍率の既定値',
   },
 ] as const;
 
@@ -234,29 +234,27 @@ export default async function AdminPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <Card className="flex flex-col">
-          <CardHeader>
-            <h2 className="text-secondary text-xl font-semibold">マスタデータ</h2>
-          </CardHeader>
-          <CardContent className="grid flex-1 grid-cols-1 gap-4">
-            {MASTER_ACTIONS.map((action) => (
-              <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.neutral} />
-            ))}
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <h2 className="text-secondary text-xl font-semibold">マスタデータ</h2>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {MASTER_ACTIONS.map((action) => (
+            <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.neutral} />
+          ))}
+        </CardContent>
+      </Card>
 
-        <Card className="flex flex-col">
-          <CardHeader>
-            <h2 className="text-secondary text-xl font-semibold">システム</h2>
-          </CardHeader>
-          <CardContent className="grid flex-1 grid-cols-1 gap-4">
-            {SYSTEM_ACTIONS.map((action) => (
-              <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.neutral} />
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <h2 className="text-secondary text-xl font-semibold">システム</h2>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {SYSTEM_ACTIONS.map((action) => (
+            <ActionLink key={action.href} action={action} colors={COLOR_VARIANTS.neutral} />
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
