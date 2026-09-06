@@ -11,7 +11,7 @@ import { updateRankingDisplayMode } from '@/entities/ranking/actions';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
+import { Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
 import { useOptimistic, useState, useTransition } from 'react';
@@ -27,7 +27,7 @@ interface AdminRankingManagerProps {
 const ADMIN_VIEWS = ['normal', 'loan'] as const;
 type AdminView = (typeof ADMIN_VIEWS)[number];
 
-const VIEW_LABELS = { normal: '通常', loan: '借入有り' } satisfies Record<AdminView, string>;
+const VIEW_LABELS = { normal: '通常', loan: '借入あり' } satisfies Record<AdminView, string>;
 
 const MODE_LABELS = {
   HIDDEN: '非公開',
@@ -137,28 +137,27 @@ export function AdminRankingManager({
       <div className="rounded-surface overflow-hidden border border-gray-100 bg-white">
         <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <AdminSectionTitle icon={Trophy}>ランキング一覧</AdminSectionTitle>
-          <fieldset className="flex flex-wrap items-center gap-4 text-sm">
-            <legend className="sr-only">表示の切り替え</legend>
-            <span className="text-gray-500">表示</span>
-            {ADMIN_VIEWS.map((candidate) => (
-              <span key={candidate} className="flex items-center gap-1.5">
-                <input
-                  id={`admin-ranking-view-${candidate}`}
-                  type="radio"
-                  name="admin-ranking-view"
-                  value={candidate}
-                  aria-label={VIEW_LABELS[candidate]}
-                  checked={view === candidate}
-                  onChange={() => setViewOverride({ mode: optimisticMode, view: candidate })}
-                  className="accent-turf-700 h-4 w-4"
-                />
-                <label htmlFor={`admin-ranking-view-${candidate}`} className="text-gray-900">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <div role="group" aria-label="表示の切り替え" className="rounded-control inline-flex bg-gray-100 p-0.5">
+              {ADMIN_VIEWS.map((candidate) => (
+                <button
+                  key={candidate}
+                  type="button"
+                  aria-pressed={view === candidate}
+                  onClick={() => setViewOverride({ mode: optimisticMode, view: candidate })}
+                  className={cn(
+                    'rounded-control px-3 py-1 font-medium transition-colors',
+                    view === candidate
+                      ? 'bg-white text-gray-900 ring-1 ring-gray-200'
+                      : 'text-gray-500 hover:text-gray-900'
+                  )}
+                >
                   {VIEW_LABELS[candidate]}
-                </label>
-              </span>
-            ))}
+                </button>
+              ))}
+            </div>
             <span className="text-gray-500">公開設定に合わせて自動で切り替わります</span>
-          </fieldset>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -197,10 +196,9 @@ export function AdminRankingManager({
                     {includeLoan && (
                       <Td className="text-right">
                         {user.totalLoaned && user.totalLoaned > 0 ? (
-                          <Badge
-                            label={`借入有り ${user.totalLoaned.toLocaleString('ja-JP')}円`}
-                            className="bg-orange-100 text-orange-800 tabular-nums ring-orange-200"
-                          />
+                          <span className="font-medium text-red-500 tabular-nums">
+                            -{user.totalLoaned.toLocaleString('ja-JP')}円
+                          </span>
                         ) : (
                           <span className="text-gray-300">-</span>
                         )}
