@@ -1,5 +1,5 @@
 import { db } from '@/shared/db';
-import { ADMIN_ERRORS } from '@/shared/utils/admin';
+import { ADMIN_ERRORS, ActionError } from '@/shared/utils/admin';
 import type { SQL } from 'drizzle-orm';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { revalidatePath } from 'next/cache';
@@ -60,12 +60,12 @@ describe('updateRace', () => {
     (db.update as unknown as Mock).mockImplementation(mockUpdate);
   });
 
-  it('ユーザーが管理者でない場合、Unauthorizedエラーをスローすること', async () => {
+  it('ユーザーが管理者でない場合、Unauthorized をエラーとして返すこと', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    (requireAdmin as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
     const formData = new FormData();
 
-    await expect(updateRace('123', formData)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+    await expect(updateRace('123', formData)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
   });
 
   it('レースを正常に更新すること', async () => {
@@ -450,12 +450,15 @@ describe('updateRace ステータス遷移', () => {
     expect(setArgs.status).toBe('SCHEDULED');
   });
 
-  it('FINALIZED状態のレースは更新できずエラーになること', async () => {
+  it('FINALIZED状態のレースは更新せずエラーを返すこと', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'FINALIZED' });
 
-    await expect(updateRace('123', createFormData({ name: '変更後のレース名' }))).rejects.toThrow();
+    await expect(updateRace('123', createFormData({ name: '変更後のレース名' }))).resolves.toEqual({
+      success: false,
+      error: '払戻確定済みのレースは編集できません',
+    });
 
     expect(mockUpdate).not.toHaveBeenCalled();
   });

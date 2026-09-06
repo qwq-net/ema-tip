@@ -2,8 +2,8 @@
 
 import { RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { db } from '@/shared/db';
-import { raceDefinitions } from '@/shared/db/schema';
-import { requireAdmin } from '@/shared/utils/admin';
+import { raceDefinitions, raceInstances } from '@/shared/db/schema';
+import { ActionError, requireAdmin, runAction } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -87,29 +87,35 @@ export async function updateRaceDefinition(id: string, formData: FormData) {
   revalidatePath('/admin/race-definitions');
 }
 
+// レース定義を削除する。レースから参照されている定義は FK 違反になる前に止め、{ success: false, error } で返す
 export async function deleteRaceDefinition(id: string) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  await db.delete(raceDefinitions).where(eq(raceDefinitions.id, id));
+    const race = await db.query.raceInstances.findFirst({
+      where: eq(raceInstances.raceDefinitionId, id),
+      columns: { id: true },
+    });
+    if (race) {
+      throw new ActionError('レースで使用中のレース定義は削除できません');
+    }
 
-  revalidatePath('/admin/race-definitions');
+    await db.delete(raceDefinitions).where(eq(raceDefinitions.id, id));
+
+    revalidatePath('/admin/race-definitions');
+  });
 }
 
+// レース定義 1 件を既定会場つきで返す。存在しなければ undefined を返し、呼び手のページが notFound へ倒す
 export async function getRaceDefinition(id: string) {
   await requireAdmin();
 
-  const definition = await db.query.raceDefinitions.findFirst({
+  return db.query.raceDefinitions.findFirst({
     where: eq(raceDefinitions.id, id),
     with: {
       defaultVenue: true,
     },
   });
-
-  if (!definition) {
-    throw new Error('指定されたレース定義が見つかりません');
-  }
-
-  return definition;
 }
 
 export async function getRaceDefinitions() {

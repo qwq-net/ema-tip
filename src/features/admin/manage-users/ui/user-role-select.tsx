@@ -9,21 +9,22 @@ import { updateUserRole } from '../actions';
 interface UserRoleSelectProps {
   userId: string;
   currentRole: Role;
+  // 操作者自身の行。サーバーが自分の管理者権限の変更を拒否するため、操作できない状態で見せる
+  isCurrentUser: boolean;
 }
 
-export function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
+export function UserRoleSelect({ userId, currentRole, isCurrentUser }: UserRoleSelectProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRole = narrowToOption(Object.values(ROLES), e.target.value) ?? currentRole;
     startTransition(async () => {
-      try {
-        await updateUserRole(userId, newRole);
-        toast.success('役割を変更しました');
-      } catch (error) {
-        toast.error('役割の変更に失敗しました');
-        console.error(error);
+      const result = await updateUserRole(userId, newRole);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success('役割を変更しました');
     });
   };
 
@@ -32,8 +33,13 @@ export function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
       value={currentRole}
       onChange={handleChange}
       disabled={
-        isPending || currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
+        isPending ||
+        isCurrentUser ||
+        currentRole === ROLES.AI_USER ||
+        currentRole === ROLES.AI_TIPSTER ||
+        currentRole === ROLES.GUEST
       }
+      title={isCurrentUser ? '自身の管理者権限は変更できません' : undefined}
       className={`rounded-chip w-32 border px-2 py-1 text-sm ${ROLE_COLORS[currentRole]} ${
         currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
           ? 'cursor-not-allowed appearance-none opacity-80'

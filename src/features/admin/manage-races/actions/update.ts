@@ -3,7 +3,7 @@
 import { db } from '@/shared/db';
 import { payoutResults, raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { ActionError, ADMIN_ERRORS, requireAdmin, revalidateRacePaths, runAction } from '@/shared/utils/admin';
 import { logAdminAction } from '@/shared/utils/admin-audit';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { and, eq, inArray, sql } from 'drizzle-orm';
@@ -24,7 +24,12 @@ async function assertReopenable(raceId: string): Promise<void> {
   }
 }
 
+// レース情報を更新する。入力不備・レース不在・払戻確定済みは throw せず { success: false, error } で返す
 export async function updateRace(id: string, formData: FormData) {
+  return runAction(() => updateRaceInner(id, formData));
+}
+
+async function updateRaceInner(id: string, formData: FormData) {
   await requireAdmin();
 
   const conditionValue = formData.get('condition');
@@ -46,7 +51,7 @@ export async function updateRace(id: string, formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error Details:', parse.error.format());
-    throw new Error(ADMIN_ERRORS.INVALID_INPUT);
+    throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
   }
 
   const now = new Date();
@@ -64,8 +69,8 @@ export async function updateRace(id: string, formData: FormData) {
       where: eq(raceInstances.id, id),
     });
 
-    if (!race) throw new Error(ADMIN_ERRORS.NOT_FOUND);
-    if (race.status === 'FINALIZED') throw new Error('払戻確定済みのレースは編集できません');
+    if (!race) throw new ActionError(ADMIN_ERRORS.NOT_FOUND);
+    if (race.status === 'FINALIZED') throw new ActionError('払戻確定済みのレースは編集できません');
 
     let newStatus = race.status;
     if (closingAtProvided && race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {

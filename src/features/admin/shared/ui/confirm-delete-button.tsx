@@ -2,6 +2,7 @@
 
 import { toast } from '@/shared/lib/toast';
 import { Button, ConfirmDialog } from '@/shared/ui';
+import type { ActionResult } from '@/shared/utils/action-result';
 import { Trash2 } from 'lucide-react';
 
 interface ConfirmDeleteButtonProps {
@@ -9,8 +10,8 @@ interface ConfirmDeleteButtonProps {
   title: string;
   /** 確認文とトーストに表示する対象名。 */
   itemName: string;
-  /** 削除を実行する処理。サーバーアクションを bind して渡す想定。失敗時は throw すること。 */
-  onDelete: () => Promise<void>;
+  /** 削除を実行する処理。サーバーアクションを bind して渡す想定。失敗は ActionResult の error で返すこと。 */
+  onDelete: () => Promise<ActionResult<void>>;
 }
 
 /**
@@ -29,15 +30,13 @@ export function ConfirmDeleteButton({ title, itemName, onDelete }: ConfirmDelete
       description={`本当に「${itemName}」を削除してもよろしいですか？この操作は取り消せません。`}
       confirmLabel="削除する"
       onConfirm={async () => {
-        try {
-          await onDelete();
-          toast.success(`「${itemName}」を削除しました`);
-        } catch (error) {
-          console.error(error);
-          const message = error instanceof Error && error.message ? error.message : '削除に失敗しました';
-          toast.error(message);
-          throw error;
+        const result = await onDelete();
+        if (!result.success) {
+          toast.error(result.error);
+          // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
+          throw new Error(result.error);
         }
+        toast.success(`「${itemName}」を削除しました`);
       }}
     />
   );

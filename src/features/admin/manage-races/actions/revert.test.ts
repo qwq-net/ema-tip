@@ -1,4 +1,5 @@
 import { db } from '@/shared/db';
+import { ActionError } from '@/shared/utils/admin';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetRaceResults } from './revert';
@@ -72,7 +73,9 @@ describe('resetRaceResults', () => {
     await setupAdminAuth();
     mockTx.query.bet5Events.findFirst.mockResolvedValue({ id: 'bet5-1' });
 
-    await expect(resetRaceResults(raceId)).rejects.toThrow('BET5');
+    const result = await resetRaceResults(raceId);
+
+    expect(result).toEqual({ success: false, error: 'BET5精算済みのイベントに含まれるレースはリセットできません' });
     expect(mockTx.update).not.toHaveBeenCalled();
     expect(mockTx.delete).not.toHaveBeenCalled();
   });
@@ -114,18 +117,21 @@ describe('resetRaceResults', () => {
     expect(callOrder[1]).toBe('readRace');
   });
 
-  it('競合シナリオでロック後にレースが FINALIZED になっていた場合はエラーをスローする', async () => {
+  it('競合シナリオでロック後にレースが FINALIZED になっていた場合はエラーを返す', async () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: raceId, status: 'FINALIZED' });
 
-    await expect(resetRaceResults(raceId)).rejects.toThrow('確定済みのレースはリセットできません');
+    await expect(resetRaceResults(raceId)).resolves.toEqual({
+      success: false,
+      error: '確定済みのレースはリセットできません',
+    });
   });
 
-  it('レースが見つからない場合はエラーをスローする', async () => {
+  it('レースが見つからない場合はエラーを返す', async () => {
     await setupAdminAuth();
     mockTx.query.raceInstances.findFirst.mockResolvedValue(null);
 
-    await expect(resetRaceResults(raceId)).rejects.toThrow('レースが見つかりませんでした');
+    await expect(resetRaceResults(raceId)).resolves.toEqual({ success: false, error: 'レースが見つかりませんでした' });
   });
 
   it('正常系: 着順リセットと払戻結果の削除が行われる', async () => {
@@ -133,7 +139,7 @@ describe('resetRaceResults', () => {
 
     const result = await resetRaceResults(raceId);
 
-    expect(result).toEqual({ success: true });
+    expect(result.success).toBe(true);
     expect(mockTx.update).toHaveBeenCalled();
     expect(mockTx.delete).toHaveBeenCalled();
   });
@@ -153,11 +159,11 @@ describe('resetRaceResults', () => {
     );
   });
 
-  it('管理者でない場合はエラーをスローする', async () => {
+  it('管理者でない場合はエラーを返す', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error('認証されていません'));
+    (requireAdmin as unknown as Mock).mockRejectedValue(new ActionError('認証されていません'));
 
-    await expect(resetRaceResults(raceId)).rejects.toThrow('認証されていません');
+    await expect(resetRaceResults(raceId)).resolves.toEqual({ success: false, error: '認証されていません' });
   });
 
   it('CLOSED状態のレースはリセットできる', async () => {

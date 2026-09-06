@@ -1,7 +1,7 @@
 import { db } from '@/shared/db';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getEventRanking } from './actions';
+import { getAdminEventRanking, getEventRanking } from './actions';
 
 vi.mock('@/shared/db', () => ({
   db: {
@@ -113,5 +113,15 @@ describe('getEventRanking の表示モード別マスク', () => {
       ['user-c', 2, 1000, undefined],
       ['user-a', 3, 2000, 1500],
     ]);
+  });
+});
+
+describe('getAdminEventRanking', () => {
+  it('イベントが無ければ throw せず null を返す', async () => {
+    const { auth } = await import('@/shared/config/auth');
+    (auth as unknown as Mock).mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    (db.query.events.findFirst as unknown as Mock).mockResolvedValue(undefined);
+
+    await expect(getAdminEventRanking('missing')).resolves.toBeNull();
   });
 });

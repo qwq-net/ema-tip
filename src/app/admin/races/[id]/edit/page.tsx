@@ -24,6 +24,11 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
+  // updateRace は払戻確定後の編集を拒否するため、操作できない状態では編集 UI を出さない
+  if (race.status === 'FINALIZED') {
+    return <Card className="max-w-2xl p-6 text-sm text-gray-500">払戻確定後はレース情報を変更できません。</Card>;
+  }
+
   return (
     <Card className="max-w-2xl p-6">
       <RaceForm

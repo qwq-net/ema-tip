@@ -13,6 +13,7 @@ import {
   wallets,
 } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
+import { ActionError, runAction } from '@/shared/utils/action-result';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { logAdminAction } from '@/shared/utils/admin-audit';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
@@ -121,7 +122,13 @@ function sumCarryover(salesByType: Map<string, number>, hasWinnerByType: Map<str
   return carryover;
 }
 
+// 払戻を確定してベットの精算とウォレットへの加算を行う。未締切・確定済み・払戻表なしなどの
+// 想定内エラーは throw せず { success: false, error } で返す
 export async function finalizePayout(raceId: string) {
+  return runAction(() => finalizePayoutInner(raceId));
+}
+
+async function finalizePayoutInner(raceId: string) {
   const session = await requireAdmin();
 
   await db.transaction(async (tx) => {
@@ -139,15 +146,15 @@ export async function finalizePayout(raceId: string) {
     });
 
     if (!race) {
-      throw new Error(ADMIN_ERRORS.NOT_FOUND);
+      throw new ActionError(ADMIN_ERRORS.NOT_FOUND);
     }
 
     if (race.status === 'FINALIZED') {
-      throw new Error('すでに払戻確定済みです');
+      throw new ActionError('すでに払戻確定済みです');
     }
 
     if (race.status !== 'CLOSED') {
-      throw new Error('レースが締切状態ではありません');
+      throw new ActionError('レースが締切状態ではありません');
     }
 
     // トランザクションが巻き戻ればログも消えるため、検証通過時点で記録してよい
@@ -155,7 +162,7 @@ export async function finalizePayout(raceId: string) {
 
     const results = await tx.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
     if (results.length === 0) {
-      throw new Error('払戻計算結果が存在しません');
+      throw new ActionError('払戻計算結果が存在しません');
     }
 
     const resultsMap = new Map<string, PayoutCombination[]>();

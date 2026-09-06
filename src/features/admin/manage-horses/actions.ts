@@ -3,7 +3,7 @@
 import { HORSE_TAG_TYPES, HORSE_TYPES } from '@/shared/constants/horse';
 import { db } from '@/shared/db';
 import { horseTags, horses, raceEntries } from '@/shared/db/schema';
-import { requireAdmin } from '@/shared/utils/admin';
+import { ActionError, requireAdmin, runAction } from '@/shared/utils/admin';
 import { firstRow } from '@/shared/utils/first-row';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -149,36 +149,34 @@ export async function getHorses() {
   });
 }
 
+// 馬を削除する。出走記録がある馬は削除せず { success: false, error } で返す
 export async function deleteHorse(id: string) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  // race_entry.horseId は cascade 削除のため、無条件で消すと確定済みレースの出走・着順記録が消える
-  const entry = await db.query.raceEntries.findFirst({
-    where: eq(raceEntries.horseId, id),
-    columns: { id: true },
+    // race_entry.horseId は cascade 削除のため、無条件で消すと確定済みレースの出走・着順記録が消える
+    const entry = await db.query.raceEntries.findFirst({
+      where: eq(raceEntries.horseId, id),
+      columns: { id: true },
+    });
+    if (entry) {
+      throw new ActionError('出走記録がある馬は削除できません');
+    }
+
+    await db.delete(horses).where(eq(horses.id, id));
+
+    revalidatePath('/admin/horses');
   });
-  if (entry) {
-    throw new Error('出走記録がある馬は削除できません');
-  }
-
-  await db.delete(horses).where(eq(horses.id, id));
-
-  revalidatePath('/admin/horses');
 }
 
+// 馬 1 件をタグつきで返す。存在しなければ undefined を返し、呼び手のページが notFound へ倒す
 export async function getHorse(id: string) {
   await requireAdmin();
 
-  const horse = await db.query.horses.findFirst({
+  return db.query.horses.findFirst({
     where: eq(horses.id, id),
     with: {
       tags: true,
     },
   });
-
-  if (!horse) {
-    throw new Error('指定された馬が見つかりません');
-  }
-
-  return horse;
 }

@@ -92,11 +92,12 @@ export async function getEventRanking(eventId: string): Promise<{
   };
 }
 
+// 管理者向けのランキングを返す。イベントが無ければ null を返し、呼び手のページが notFound へ倒す
 export async function getAdminEventRanking(eventId: string): Promise<{
   ranking: RankingData[];
   displayMode: RankingDisplayMode;
   distributeAmount: number;
-}> {
+} | null> {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
     throw new Error('Unauthorized');
@@ -107,7 +108,7 @@ export async function getAdminEventRanking(eventId: string): Promise<{
   });
 
   if (!event) {
-    throw new Error('Event not found');
+    return null;
   }
 
   const distributeAmount = event.distributeAmount;

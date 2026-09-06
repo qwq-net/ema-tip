@@ -349,20 +349,20 @@ describe('finalizePayout', () => {
 
   it('既にFINALIZED済みのレースはエラーになる', async () => {
     await db.update(raceInstances).set({ status: 'FINALIZED' }).where(eq(raceInstances.id, raceId));
-    await expect(finalizePayout(raceId)).rejects.toThrow('すでに払戻確定済みです');
+    await expect(finalizePayout(raceId)).resolves.toEqual({ success: false, error: 'すでに払戻確定済みです' });
   });
 
   it('SCHEDULED状態のレースは払戻確定できない', async () => {
     await db.update(raceInstances).set({ status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
-    await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
+    await expect(finalizePayout(raceId)).resolves.toEqual({ success: false, error: 'レースが締切状態ではありません' });
   });
 
   it('存在しないレースIDではエラーになる', async () => {
-    await expect(finalizePayout('00000000-0000-0000-0000-000000000000')).rejects.toThrow();
+    await expect(finalizePayout('00000000-0000-0000-0000-000000000000')).resolves.toMatchObject({ success: false });
   });
 
   it('払戻計算結果がない場合はエラーになる', async () => {
-    await expect(finalizePayout(raceId)).rejects.toThrow('払戻計算結果が存在しません');
+    await expect(finalizePayout(raceId)).resolves.toEqual({ success: false, error: '払戻計算結果が存在しません' });
   });
 
   it('ワイド: 複数の的中組み合わせが正しく処理される', async () => {
@@ -640,7 +640,7 @@ describe('finalizePayout', () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
+    await expect(finalizePayout(raceId)).resolves.toEqual({ success: false, error: 'レースが締切状態ではありません' });
     await reopening;
 
     const untouchedBet = await db.query.bets.findFirst({ where: eq(bets.id, bet.id) });

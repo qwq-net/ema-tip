@@ -148,7 +148,11 @@ export function RaceForm({
   async function handleSubmit(formData: FormData) {
     try {
       if (initialData) {
-        await updateRace(initialData.id, formData);
+        const result = await updateRace(initialData.id, formData);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('レース情報を更新しました');
       } else {
         await createRace(formData);

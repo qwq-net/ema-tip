@@ -663,31 +663,27 @@ export function RaceResultForm({
 
   const handlePayoutFinalize = async () => {
     setIsPayoutMoving(true);
-    try {
-      await finalizePayout(raceId);
-      toast.success('払戻確定通知を送信しました', {
-        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-      });
-      router.refresh();
-    } catch (error) {
-      console.error(error);
-      toast.error('エラーが発生しました');
-    } finally {
-      setIsPayoutMoving(false);
+    const result = await finalizePayout(raceId);
+    setIsPayoutMoving(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    toast.success('払戻確定通知を送信しました', {
+      icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+    });
+    router.refresh();
   };
 
   const handleServerReset = async () => {
-    try {
-      await resetRaceResults(raceId);
-      toast.success('着順設定を初期状態にリセットしました');
-      router.refresh();
-    } catch (error) {
-      toast.error('リセットに失敗しました');
-      console.error(error);
+    const result = await resetRaceResults(raceId);
+    if (!result.success) {
+      toast.error(result.error);
       // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
-      throw error;
+      throw new Error(result.error);
     }
+    toast.success('着順設定を初期状態にリセットしました');
+    router.refresh();
   };
 
   const handleSubmit = async () => {

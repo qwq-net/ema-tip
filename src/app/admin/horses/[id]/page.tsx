@@ -4,6 +4,7 @@ import { HorseForm } from '@/features/admin/manage-horses/ui/horse-form';
 import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
+import { notFound } from 'next/navigation';
 
 // DB は英語 enum、フォームは日本語表記のため編集初期値をここで変換する
 const GENDER_TO_FORM = {
@@ -17,6 +18,9 @@ const GENDER_TO_FORM = {
 export default async function EditHorsePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [horse, tagOptions] = await Promise.all([getHorse(id), getHorseTags()]);
+  if (!horse) {
+    notFound();
+  }
 
   return (
     <div className="mx-auto max-w-2xl py-8">

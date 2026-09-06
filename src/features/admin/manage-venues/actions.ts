@@ -2,8 +2,8 @@
 
 import { VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { db } from '@/shared/db';
-import { venues } from '@/shared/db/schema';
-import { requireAdmin } from '@/shared/utils/admin';
+import { raceDefinitions, raceInstances, venues } from '@/shared/db/schema';
+import { ActionError, requireAdmin, runAction } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -71,12 +71,24 @@ export async function updateVenue(id: string, formData: FormData) {
   revalidatePath('/admin/venues');
 }
 
+// 会場を削除する。レースかレース定義から参照されている会場は FK 違反になる前に止め、
+// { success: false, error } で返す
 export async function deleteVenue(id: string) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  await db.delete(venues).where(eq(venues.id, id));
+    const [race, definition] = await Promise.all([
+      db.query.raceInstances.findFirst({ where: eq(raceInstances.venueId, id), columns: { id: true } }),
+      db.query.raceDefinitions.findFirst({ where: eq(raceDefinitions.defaultVenueId, id), columns: { id: true } }),
+    ]);
+    if (race || definition) {
+      throw new ActionError('レースまたはレース定義で使用中の会場は削除できません');
+    }
 
-  revalidatePath('/admin/venues');
+    await db.delete(venues).where(eq(venues.id, id));
+
+    revalidatePath('/admin/venues');
+  });
 }
 
 export async function getVenues() {

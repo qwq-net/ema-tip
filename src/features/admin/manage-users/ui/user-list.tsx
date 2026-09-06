@@ -125,7 +125,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
                   </div>
                 </Td>
                 <Td>
-                  <UserRoleSelect userId={user.id} currentRole={user.role} />
+                  <UserRoleSelect userId={user.id} currentRole={user.role} isCurrentUser={user.id === currentUserId} />
                 </Td>
                 <Td>
                   {user.disabledAt ? <Badge variant="status" label="無効" /> : <Badge variant="status" label="有効" />}

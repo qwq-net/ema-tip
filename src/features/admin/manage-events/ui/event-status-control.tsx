@@ -31,8 +31,13 @@ export function EventStatusAction({ eventId, next, label, icon, variant, done, c
 
   const run = () => {
     startTransition(async () => {
-      await updateEventStatus(eventId, next);
-      toast.success(done);
+      try {
+        await updateEventStatus(eventId, next);
+        toast.success(done);
+      } catch (error) {
+        console.error(error);
+        toast.error('イベントの状態を変更できませんでした');
+      }
     });
   };
 

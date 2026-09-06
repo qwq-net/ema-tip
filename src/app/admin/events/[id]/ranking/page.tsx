@@ -12,7 +12,7 @@ export default async function AdminRankingPage({ params }: AdminRankingPageProps
 
   const [event, rankingData] = await Promise.all([getEvent(id), getAdminEventRanking(id)]);
 
-  if (!event) {
+  if (!event || !rankingData) {
     notFound();
   }
 
