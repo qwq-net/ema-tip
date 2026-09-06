@@ -24,9 +24,6 @@ vi.mock('@/shared/db', () => ({
       venues: {
         findFirst: vi.fn().mockResolvedValue({ shortName: 'Tok' }),
       },
-      guaranteedOddsMaster: {
-        findMany: vi.fn().mockResolvedValue([]),
-      },
     },
   },
 }));
@@ -141,13 +138,9 @@ describe('createRace', () => {
     await expect(createRace(formData)).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
   });
 
-  it('guaranteedOddsMaster のデータが保証オッズとして設定される', async () => {
+  it('レース単位の保証オッズは未設定で作成し、デフォルト設定の参照に任せる', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
-    (db.query.guaranteedOddsMaster.findMany as unknown as Mock).mockResolvedValue([
-      { key: 'win', odds: '3.5' },
-      { key: 'place', odds: '1.5' },
-    ]);
 
     const formData = new FormData();
     formData.append('eventId', 'event-1');
@@ -159,11 +152,7 @@ describe('createRace', () => {
 
     await createRace(formData);
 
-    expect(mockValues).toHaveBeenCalledWith(
-      expect.objectContaining({
-        guaranteedOdds: { win: 3.5, place: 1.5 },
-      })
-    );
+    expect(mockValues.mock.calls[0]![0]).not.toHaveProperty('guaranteedOdds');
   });
 
   it('作成時のステータスはSCHEDULEDで初期化される', async () => {

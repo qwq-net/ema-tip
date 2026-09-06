@@ -1,5 +1,6 @@
 import type { BetType } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
+import { getDefaultGuaranteedOdds, resolveGuaranteedOdds } from '@/entities/race/lib/guaranteed-odds';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { isGuaranteedBet } from '@/features/betting/lib/guaranteed';
@@ -69,10 +70,11 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
   const { id } = await params;
   await requireLoginPage();
 
-  const [race, entriesData, betGroupsData] = await Promise.all([
+  const [race, entriesData, betGroupsData, defaultGuaranteedOdds] = await Promise.all([
     getRaceById(id),
     getEntriesForRace(id),
     getUserBetGroupsForRace(id),
+    getDefaultGuaranteedOdds(),
   ]);
   const entries: Entry[] = entriesData;
 
@@ -91,7 +93,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     }));
   }
 
-  const guaranteedOdds = race.guaranteedOdds ?? {};
+  const guaranteedOdds = resolveGuaranteedOdds(defaultGuaranteedOdds, race.guaranteedOdds);
   const hasGuaranteedOdds = !race.fixedOddsMode && Object.keys(guaranteedOdds).length > 0;
   const combinationsByType = new Map(initialResults.map((r) => [r.type, r.combinations]));
 

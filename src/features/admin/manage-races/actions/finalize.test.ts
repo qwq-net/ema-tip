@@ -1,4 +1,5 @@
 import { BET_TYPES } from '@/entities/bet';
+import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
 import { ActionError, ADMIN_ERRORS } from '@/shared/utils/admin';
 import type { Mock } from 'vitest';
@@ -52,6 +53,8 @@ describe('finalizeRace', () => {
       raceEntries: { findMany: vi.fn() },
       bets: { findMany: vi.fn() },
       raceInstances: { findFirst: vi.fn().mockResolvedValue({ status: 'CLOSED', guaranteedOdds: {} }) },
+      // 既定はデフォルト保証オッズなし。デフォルトへのフォールバックを見るテストだけ seedMasterRows を差し込む
+      guaranteedOddsMaster: { findMany: vi.fn().mockResolvedValue([]) },
     },
   };
 
@@ -59,6 +62,9 @@ describe('finalizeRace', () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
   };
+
+  // seed と同じシステム既定値の guaranteed_odds_master 行
+  const seedMasterRows = Object.entries(DEFAULT_GUARANTEED_ODDS).map(([key, odds]) => ({ key, odds: String(odds) }));
 
   const threeFinishers = [
     { id: 'e1', horseNumber: 1, bracketNumber: 1, finishPosition: 1, horse: { name: 'ホース1' } },
@@ -250,6 +256,44 @@ describe('finalizeRace', () => {
     expect(winHit!.payout).toBe(1000);
   });
 
+  it('レースに無い券種の保証はデフォルト保証オッズが下限になる', async () => {
+    await setupAdminAuth();
+    mockTx.query.guaranteedOddsMaster.findMany.mockResolvedValueOnce(seedMasterRows);
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({
+      status: 'CLOSED',
+      guaranteedOdds: { [BET_TYPES.PLACE]: 2.0 },
+    });
+    mockTx.query.bets.findMany.mockResolvedValue([
+      { id: 'b1', amount: 100, details: { type: BET_TYPES.WIN, selections: [1] } },
+    ]);
+
+    await finalizeRace('race1', defaultResults);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number; guaranteed?: boolean }[];
+    const winHit = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
+    expect(winHit!.payout).toBe(350);
+    expect(winHit!.guaranteed).toBe(true);
+  });
+
+  it('デフォルトにも無い券種は補完されず、保証なしで計算される', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.bets.findMany.mockResolvedValue([
+      { id: 'b1', amount: 100, details: { type: BET_TYPES.WIN, selections: [1] } },
+      { id: 'b2', amount: 100, details: { type: BET_TYPES.WIN, selections: [2] } },
+    ]);
+
+    await finalizeRace('race1', defaultResults);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
+    const combos = winInsert!.combinations as { numbers: number[]; payout: number; guaranteed?: boolean }[];
+    expect(combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]))!.payout).toBe(200);
+    const placeInsert = insertedValues.find((v) => v.type === BET_TYPES.PLACE && v.raceId === 'race1');
+    expect(placeInsert).toBeUndefined();
+  });
+
   it('保証倍率が採用された組み合わせには guaranteed フラグが付与される', async () => {
     await setupAdminAuth();
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
@@ -292,6 +336,7 @@ describe('finalizeRace', () => {
 
   it('誰も買っていない的中組み合わせの補完にも guaranteed フラグが付与される', async () => {
     await setupAdminAuth();
+    mockTx.query.guaranteedOddsMaster.findMany.mockResolvedValueOnce(seedMasterRows);
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.bets.findMany.mockResolvedValue([]);
 
@@ -305,6 +350,7 @@ describe('finalizeRace', () => {
 
   it('賭けがないレースでもデフォルト保証オッズで勝利組み合わせが生成される', async () => {
     await setupAdminAuth();
+    mockTx.query.guaranteedOddsMaster.findMany.mockResolvedValueOnce(seedMasterRows);
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.bets.findMany.mockResolvedValue([]);
 
@@ -392,6 +438,7 @@ describe('finalizeRace', () => {
 
   it('netkeibaPayouts を渡した場合、保証オッズやデフォルトオッズによる補完が行われない', async () => {
     await setupAdminAuth();
+    mockTx.query.guaranteedOddsMaster.findMany.mockResolvedValueOnce(seedMasterRows);
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.raceInstances.findFirst.mockResolvedValue({
       status: 'CLOSED',

@@ -9,6 +9,7 @@ vi.mock('@/shared/db', () => ({
       raceInstances: { findFirst: vi.fn() },
       raceEntries: { findMany: vi.fn() },
       raceOdds: { findFirst: vi.fn() },
+      guaranteedOddsMaster: { findMany: vi.fn().mockResolvedValue([]) },
     },
     insert: vi.fn(),
   },
@@ -93,6 +94,25 @@ describe('calculateOdds', () => {
     const valuesArg = insertValues.mock.calls[0]![0];
     expect(valuesArg.winOdds['1']).toBe(1.5);
     expect(valuesArg.winOdds['2']).toBe(3.0);
+  });
+
+  it('レースに保証オッズが無くてもデフォルト保証オッズが表示オッズの下限になる', async () => {
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValueOnce({
+      fixedOddsMode: false,
+      guaranteedOdds: null,
+    });
+    (db.query.guaranteedOddsMaster.findMany as unknown as Mock).mockResolvedValueOnce([{ key: 'win', odds: '5.0' }]);
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 1000, details: { type: 'win', selections: [1] } },
+      { amount: 500, details: { type: 'win', selections: [2] } },
+    ]);
+    (redis.set as unknown as Mock).mockResolvedValue('OK');
+
+    await calculateOdds(raceId);
+
+    const insertValues = (db.insert as unknown as Mock).mock.results[0]!.value.values;
+    const valuesArg = insertValues.mock.calls[0]![0];
+    expect(valuesArg.winOdds).toEqual({ '1': 5.0, '2': 5.0 });
   });
 
   it('保証オッズが設定されている場合、単勝の表示オッズが保証倍率を下回らない', async () => {
@@ -258,6 +278,23 @@ describe('calculateAllProvisionalOdds', () => {
     expect(result.win).toBeDefined();
     expect(result.win![JSON.stringify([1])]).toBe(1.5);
     expect(result.win![JSON.stringify([2])]).toBe(3.0);
+  });
+
+  it('レースに無い券種の保証はデフォルト保証オッズで補われる', async () => {
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 900, details: { type: 'win', selections: [1] } },
+      { amount: 100, details: { type: 'win', selections: [2] } },
+    ]);
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({
+      guaranteedOdds: { place: 1.5 },
+      fixedOddsMode: false,
+    });
+    (db.query.guaranteedOddsMaster.findMany as unknown as Mock).mockResolvedValueOnce([{ key: 'win', odds: '2.0' }]);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
+
+    const result = await calculateAllProvisionalOdds(raceId);
+
+    expect(result.win![JSON.stringify([1])]).toBe(2.0);
   });
 
   it('計算値が保証オッズを下回る場合は保証オッズが適用される', async () => {

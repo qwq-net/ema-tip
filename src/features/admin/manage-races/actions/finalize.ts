@@ -12,8 +12,8 @@ import {
   parseSelectionKey,
   resolveInvalidSelections,
 } from '@/entities/bet';
+import { getDefaultGuaranteedOdds, resolveGuaranteedOdds } from '@/entities/race/lib/guaranteed-odds';
 import type { NetkeibaPayoutEntry } from '@/features/admin/import-race/model/types';
-import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
 import { bets, payoutResults as payoutResultsTable, raceEntries, raceInstances } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
@@ -101,7 +101,7 @@ function pickNetkeibaPayouts(netkeibaPayouts: Partial<Record<string, NetkeibaPay
 }
 
 /** プールと的中投票額から券種別の払戻を計算する。保証オッズがあればそれを倍率の下限にする */
-function calculatePayoutsFromPools(pools: BetPools, guaranteedOdds: Record<string, number> | undefined) {
+function calculatePayoutsFromPools(pools: BetPools, guaranteedOdds: Record<string, number>) {
   const byType: PayoutCalculationsByType = {};
 
   for (const [type, selectionAmounts] of Object.entries(pools.winningSelectionAmounts)) {
@@ -114,7 +114,7 @@ function calculatePayoutsFromPools(pools: BetPools, guaranteedOdds: Record<strin
 
     for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
       const rate = calculatePayoutRate(poolAmount, selectionAmount, totalWinningAmount, winningCount);
-      const guaranteedRate = guaranteedOdds?.[type];
+      const guaranteedRate = guaranteedOdds[type];
 
       // 保証で倍率が引き上げられた組み合わせはフラグを残し、UI で保証適用を示せるようにする
       const isGuaranteed = guaranteedRate !== undefined && rate < guaranteedRate;
@@ -131,27 +131,34 @@ function calculatePayoutsFromPools(pools: BetPools, guaranteedOdds: Record<strin
   return byType;
 }
 
-/** 保証オッズの対象で誰も買っていない的中組合せを byType へ補完する。券種ごとに組合せ順で並べ替える */
+/**
+ * 保証オッズのある券種について、誰も買っていない的中組合せを保証倍率で byType へ補完する。
+ * 保証の無い券種は補完せず、購入も無ければ払戻表に載らない。券種ごとに組合せ順で並べ替える
+ */
 function fillGuaranteedCombinations(
   byType: PayoutCalculationsByType,
   finishers: Finisher[],
-  guaranteedOdds: Record<string, number> | undefined
+  guaranteedOdds: Record<string, number>
 ): void {
+  const byCombination = (a: PayoutCombination, b: PayoutCombination) =>
+    a.numbers.join('-').localeCompare(b.numbers.join('-'));
+
   for (const type of Object.values(BET_TYPES)) {
+    const guaranteedRate = guaranteedOdds[type];
+    if (guaranteedRate === undefined) {
+      byType[type]?.sort(byCombination);
+      continue;
+    }
+
     const calculations = (byType[type] ??= []);
-
-    const winningCombinations = getWinningCombinations(type, finishers);
-    const defaultRate = guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type];
-
-    for (const combination of winningCombinations) {
+    for (const combination of getWinningCombinations(type, finishers)) {
       const key = normalizeSelections(type, combination);
       const exists = calculations.some((p) => normalizeSelections(type, p.numbers) === key);
       if (exists) continue;
 
-      calculations.push({ numbers: combination, payout: Math.floor(ODDS_UNIT * defaultRate), guaranteed: true });
+      calculations.push({ numbers: combination, payout: Math.floor(ODDS_UNIT * guaranteedRate), guaranteed: true });
     }
-
-    calculations.sort((a, b) => a.numbers.join('-').localeCompare(b.numbers.join('-')));
+    calculations.sort(byCombination);
   }
 }
 
@@ -248,7 +255,8 @@ async function finalizeRaceInner(
       where: eq(bets.raceId, raceId),
     });
 
-    const guaranteedOdds = raceInstance.guaranteedOdds ?? undefined;
+    // レースに無い券種はシステム既定値へフォールバックする
+    const guaranteedOdds = resolveGuaranteedOdds(await getDefaultGuaranteedOdds(tx), raceInstance.guaranteedOdds);
 
     const pools = aggregateBetPools(allBets, finishers, invalidHorseIds, validBrackets);
 

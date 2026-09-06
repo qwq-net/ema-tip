@@ -1,15 +1,22 @@
 'use server';
 
+import { guaranteedOddsOverrideSchema } from '@/entities/race/lib/guaranteed-odds';
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
-import { requireAdmin } from '@/shared/utils/admin';
+import { ActionError, requireAdmin, revalidateRacePaths, runAction } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 
+// レース単位の保証オッズ上書きを置き換える。載っていない券種はデフォルト設定を使う意味になる。
+// 1.1 倍未満や券種以外のキーが含まれていれば何も保存せずエラーを返す
 export async function updateGuaranteedOdds(raceId: string, guaranteedOdds: Record<string, number>) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  await db.update(raceInstances).set({ guaranteedOdds }).where(eq(raceInstances.id, raceId));
+    const parsed = guaranteedOddsOverrideSchema.safeParse(guaranteedOdds);
+    if (!parsed.success) throw new ActionError(parsed.error.issues[0]?.message ?? '入力内容が無効です');
 
-  revalidatePath(`/admin/races/${raceId}`);
+    await db.update(raceInstances).set({ guaranteedOdds: parsed.data }).where(eq(raceInstances.id, raceId));
+
+    revalidateRacePaths(raceId);
+  });
 }

@@ -1,9 +1,11 @@
 import { toAllowedBetTypes } from '@/entities/bet';
 import { getPayoutResults } from '@/entities/race/actions';
+import { getDefaultGuaranteedOdds } from '@/entities/race/lib/guaranteed-odds';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
+import { updateGuaranteedOdds } from '@/features/admin/manage-races/actions/update-odds';
 import { RaceBetTypesForm } from '@/features/admin/manage-races/ui/race-bet-types-form';
-import { RaceGuaranteedOddsForm } from '@/features/admin/manage-races/ui/race-guaranteed-odds-form';
 import { RaceResultForm, type RaceResultFormRace } from '@/features/admin/manage-races/ui/race-result-form';
+import { GuaranteedOddsForm } from '@/features/admin/shared/ui/guaranteed-odds-form';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import {
@@ -176,7 +178,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   ]);
   const oddsMap = oddsRecord?.winOdds ?? {};
 
-  const [bet5Event, raceTypeRows, eventTypeRows] = await Promise.all([
+  const [bet5Event, raceTypeRows, eventTypeRows, defaultGuaranteedOdds] = await Promise.all([
     db.query.bet5Events.findFirst({
       where: eq(bet5Events.eventId, race.eventId),
       columns: {
@@ -197,6 +199,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
       .select({ betType: eventDefaultAllowedBetTypes.betType })
       .from(eventDefaultAllowedBetTypes)
       .where(eq(eventDefaultAllowedBetTypes.eventId, race.eventId)),
+    getDefaultGuaranteedOdds(),
   ]);
   const raceAllowed = toAllowedBetTypes(raceTypeRows.map((r) => r.betType));
   const eventDefault = toAllowedBetTypes(eventTypeRows.map((r) => r.betType));
@@ -208,7 +211,15 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
   const settingCards = (
     <>
-      <RaceGuaranteedOddsForm raceId={race.id} initialOdds={race.guaranteedOdds ?? {}} />
+      <GuaranteedOddsForm
+        key={JSON.stringify(race.guaranteedOdds)}
+        title="保証オッズ設定"
+        description="このレースだけ変える券種を入力します。空欄の券種はデフォルト設定の値を使い、その値を薄く表示しています。"
+        initialOdds={race.guaranteedOdds ?? {}}
+        placeholders={defaultGuaranteedOdds}
+        action={updateGuaranteedOdds.bind(null, race.id)}
+        successMessage="保証オッズを更新しました"
+      />
       <RaceBetTypesForm
         key={JSON.stringify(raceAllowed)}
         raceId={race.id}

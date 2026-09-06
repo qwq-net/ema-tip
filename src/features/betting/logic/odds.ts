@@ -1,3 +1,4 @@
+import { getDefaultGuaranteedOdds, resolveGuaranteedOdds } from '@/entities/race/lib/guaranteed-odds';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
@@ -23,12 +24,17 @@ const PROVISIONAL_ODDS_CACHE_SECONDS = 10;
 const provisionalOddsCacheSchema = z.record(z.string(), z.record(z.string(), z.number()));
 
 export async function calculateOdds(raceId: string) {
-  const race = await db.query.raceInstances.findFirst({
-    where: eq(raceInstances.id, raceId),
-    columns: { fixedOddsMode: true, guaranteedOdds: true },
-  });
+  const [race, defaultGuaranteedOdds] = await Promise.all([
+    db.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+      columns: { fixedOddsMode: true, guaranteedOdds: true },
+    }),
+    getDefaultGuaranteedOdds(),
+  ]);
 
   if (race?.fixedOddsMode) return;
+
+  const guaranteedOdds = resolveGuaranteedOdds(defaultGuaranteedOdds, race?.guaranteedOdds);
 
   // 購入のたびに呼ばれるホットパス。表示に使う単勝・複勝オッズだけ計算するため、
   // SQL側で両ベットに絞り、必要な2カラムだけ取得して転送量を抑える
@@ -42,7 +48,7 @@ export async function calculateOdds(raceId: string) {
   // 暫定オッズ計算と同一ロジックに統合。キーは "[3]" 形式で返るため馬番文字列に戻す。
   // 保証オッズも適用し、表示オッズが実際の払戻下限を下回らないようにする
   const pool = aggregateOddsPool(displayBets);
-  const provisionalWin = calculateProvisionalOdds(pool, race?.guaranteedOdds ?? undefined)[BET_TYPES.WIN] ?? {};
+  const provisionalWin = calculateProvisionalOdds(pool, guaranteedOdds)[BET_TYPES.WIN] ?? {};
   const toHorseNumberKey = (key: string) => String(parseSelectionKey(key)[0]);
   const winOdds = Object.fromEntries(
     Object.entries(provisionalWin).map(([key, rate]) => [toHorseNumberKey(key), rate])
@@ -59,7 +65,7 @@ export async function calculateOdds(raceId: string) {
       amount,
     ])
   );
-  const placeOdds = calculatePlaceOddsRange(placeAmountByHorse, race?.guaranteedOdds?.[BET_TYPES.PLACE]);
+  const placeOdds = calculatePlaceOddsRange(placeAmountByHorse, guaranteedOdds[BET_TYPES.PLACE]);
 
   await db
     .insert(raceOdds)
@@ -132,7 +138,7 @@ export async function calculateOdds(raceId: string) {
 }
 
 export async function calculateAllProvisionalOdds(raceId: string) {
-  const [raceBetsRaw, race, entriesInRace] = await Promise.all([
+  const [raceBetsRaw, race, entriesInRace, defaultGuaranteedOdds] = await Promise.all([
     db.query.bets.findMany({
       where: eq(bets.raceId, raceId),
       columns: { details: true, amount: true },
@@ -145,6 +151,7 @@ export async function calculateAllProvisionalOdds(raceId: string) {
       where: eq(raceEntries.raceId, raceId),
       columns: { horseNumber: true, bracketNumber: true, status: true },
     }),
+    getDefaultGuaranteedOdds(),
   ]);
 
   if (race?.fixedOddsMode) return {};
@@ -156,7 +163,7 @@ export async function calculateAllProvisionalOdds(raceId: string) {
   );
 
   const pool = aggregateOddsPool(raceBets);
-  return calculateProvisionalOdds(pool, race?.guaranteedOdds ?? undefined);
+  return calculateProvisionalOdds(pool, resolveGuaranteedOdds(defaultGuaranteedOdds, race?.guaranteedOdds));
 }
 
 // 暫定オッズをレース単位で短時間キャッシュして返す。計算結果はユーザーに依存しない。

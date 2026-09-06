@@ -1,4 +1,5 @@
 import { getAllowedBetTypesForRace } from '@/entities/bet/actions';
+import { getDefaultGuaranteedOdds, resolveGuaranteedOdds } from '@/entities/race/lib/guaranteed-odds';
 import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getRaceOdds } from '@/features/betting/logic/odds';
@@ -67,11 +68,12 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   await requireLoginPage();
 
-  const [race, entries, wallets, initialOdds] = await Promise.all([
+  const [race, entries, wallets, initialOdds, defaultGuaranteedOdds] = await Promise.all([
     getRaceCached(id),
     getEntriesForRace(id),
     getEventWallets(),
     getRaceOdds(id),
+    getDefaultGuaranteedOdds(),
   ]);
 
   if (!race) {
@@ -146,7 +148,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           closingAt={race.closingAt ? race.closingAt.toISOString() : null}
           initialOdds={initialOdds}
           fixedOddsMode={race.fixedOddsMode}
-          guaranteedOdds={race.guaranteedOdds}
+          guaranteedOdds={resolveGuaranteedOdds(defaultGuaranteedOdds, race.guaranteedOdds)}
           allowedBetTypes={allowedBetTypes}
         />
 

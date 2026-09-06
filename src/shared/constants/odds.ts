@@ -1,5 +1,7 @@
 import { BET_TYPES } from '@/entities/bet/constants';
 
+// seed が guaranteed_odds_master へ入れる初期値と、デフォルト設定画面の placeholder。
+// 実行時の保証はマスタとレース上書きだけで決まり、この定数へはフォールバックしない
 export const DEFAULT_GUARANTEED_ODDS = {
   [BET_TYPES.WIN]: 3.5,
   [BET_TYPES.PLACE]: 1.5,

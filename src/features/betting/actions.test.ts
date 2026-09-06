@@ -27,6 +27,7 @@ vi.mock('@/shared/db', () => ({
       raceOdds: { findFirst: vi.fn() },
       raceAllowedBetTypes: { findMany: vi.fn() },
       eventDefaultAllowedBetTypes: { findMany: vi.fn() },
+      guaranteedOddsMaster: { findMany: vi.fn().mockResolvedValue([]) },
     },
     insert: vi.fn(),
   },

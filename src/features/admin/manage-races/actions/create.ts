@@ -46,13 +46,6 @@ export async function createRace(formData: FormData) {
   const venueId = parse.data.venueId;
   const eventId = parse.data.eventId;
 
-  const guaranteedOddsMaster = await db.query.guaranteedOddsMaster.findMany();
-
-  const defaultGuaranteedOdds = guaranteedOddsMaster.reduce<Record<string, number>>((acc, item) => {
-    acc[item.key] = Number(item.odds);
-    return acc;
-  }, {});
-
   await db.insert(raceInstances).values({
     eventId,
     date: parse.data.date,
@@ -67,7 +60,6 @@ export async function createRace(formData: FormData) {
     direction: parse.data.direction,
     closingAt: parse.data.closingAt ? parseJSTToUTC(parse.data.closingAt) : null,
     status: 'SCHEDULED',
-    guaranteedOdds: defaultGuaranteedOdds,
   });
 
   revalidatePath(`/admin/events/${eventId}`);

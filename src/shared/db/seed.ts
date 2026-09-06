@@ -566,7 +566,6 @@ async function seedRaceInstance(tx: Tx, input: RaceInstanceSeedInput): Promise<R
       direction: def.defaultDirection,
       condition: getRandomCondition(),
       status: raceStatus,
-      guaranteedOdds: DEFAULT_GUARANTEED_ODDS,
     })
     .returning();
   const race = firstRow(insertedRaces, 'レース');
