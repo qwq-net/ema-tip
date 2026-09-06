@@ -90,7 +90,6 @@ const GRANDFATHERED = new Set([
   'src/features/admin/guest-codes/ui/guest-code-manager.tsx',
   'src/features/admin/import-race/ui/import-race-client.tsx',
   'src/features/admin/manage-entries/ui/entry-dnd.tsx',
-  'src/features/admin/manage-events/ui/admin-event-editor.tsx',
   'src/features/admin/manage-events/ui/admin-ranking-manager.tsx',
   'src/features/admin/manage-horse-tags/ui/horse-tag-list.tsx',
   'src/features/admin/manage-horses/ui/horse-form.tsx',

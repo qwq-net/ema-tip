@@ -53,13 +53,13 @@ const OPERATION_ACTIONS = [
     href: '/admin/events/new',
     icon: Plus,
     label: '新規イベント作成',
-    description: '開催日と配布金額を決めて作成',
+    description: 'イベントの作成',
   },
   {
     href: '/admin/import-race',
     icon: Download,
     label: '出馬表インポート',
-    description: 'Netkeiba の出馬表からレースを作成',
+    description: 'Netkeibaの出馬表から作成',
   },
 ] as const;
 
@@ -80,7 +80,7 @@ const MASTER_ACTIONS = [
     href: '/admin/horses',
     icon: Carrot,
     label: '馬マスタ管理',
-    description: '競走馬の管理',
+    description: '競走馬のマスタ',
   },
   {
     href: '/admin/race-definitions',
@@ -107,7 +107,7 @@ const SYSTEM_ACTIONS = [
     href: '/admin/settings/odds',
     icon: Coins,
     label: '保証オッズ設定',
-    description: '払戻計算に使う最低保証倍率の既定値',
+    description: '最低保証倍率の既定値',
   },
 ] as const;
 

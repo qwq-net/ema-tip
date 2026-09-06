@@ -63,11 +63,11 @@ beforeEach(() => {
 // 更新系アクションは、管理者が開いている詳細ページも再検証しないと
 // アクション応答で画面が更新されず、保存が反映されないように見える
 describe('manage-events actions の再検証パス', () => {
-  it('updateEventStatus は一覧と詳細ページの両方を再検証すること', async () => {
+  it('updateEventStatus は一覧と、ヘッダーを持つ詳細レイアウト配下を再検証すること', async () => {
     await updateEventStatus(eventId, 'ACTIVE');
 
     expect(revalidatePath).toHaveBeenCalledWith('/admin/events');
-    expect(revalidatePath).toHaveBeenCalledWith(`/admin/events/${eventId}`);
+    expect(revalidatePath).toHaveBeenCalledWith(`/admin/events/${eventId}`, 'layout');
   });
 
   it('updateEvent は一覧と詳細ページの両方を再検証すること', async () => {

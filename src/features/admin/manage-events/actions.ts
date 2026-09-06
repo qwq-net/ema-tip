@@ -154,7 +154,8 @@ export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' 
   await db.update(events).set({ status: newStatus }).where(eq(events.id, eventId));
 
   revalidatePath('/admin/events');
-  revalidatePath(`/admin/events/${eventId}`);
+  // ヘッダーの状態表示はレイアウトが持つため、配下のタブごと作り直す
+  revalidatePath(`/admin/events/${eventId}`, 'layout');
 }
 
 /** イベント 1 件を既定券種つきで返す。レイアウトと配下ページが同一リクエスト内で二重取得するため cache で束ねる。 */

@@ -1,7 +1,7 @@
 import { getEvent } from '@/features/admin/manage-events/actions';
+import { EventStatusPanel } from '@/features/admin/manage-events/ui/event-status-control';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
-import { Badge } from '@/shared/ui';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
@@ -24,15 +24,10 @@ export default async function EventDetailLayout({
   return (
     <div className="space-y-6">
       <AdminBackLink href="/admin/events" />
-      <AdminPageHeader
-        title={event.name}
-        description={
-          <span className="flex items-center gap-3">
-            <span>{event.date}</span>
-            <Badge variant="status" label={event.status} />
-          </span>
-        }
-      />
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <AdminPageHeader title={event.name} description={event.date} />
+        <EventStatusPanel eventId={id} status={event.status} className="md:min-w-96" />
+      </div>
       <AdminTabs
         items={[
           { href: base, label: 'レース' },
