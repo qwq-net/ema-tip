@@ -46,6 +46,7 @@ function createCompetitionRanker() {
 }
 
 export async function getEventRanking(eventId: string): Promise<{
+  eventName: string;
   ranking: RankingData[];
   published: boolean;
   distributeAmount: number;
@@ -114,6 +115,7 @@ export async function getEventRanking(eventId: string): Promise<{
   });
 
   return {
+    eventName: event.name,
     ranking,
     published: event.rankingDisplayMode !== 'HIDDEN',
     displayMode: event.rankingDisplayMode,

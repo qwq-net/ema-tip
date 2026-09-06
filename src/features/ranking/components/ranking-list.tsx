@@ -3,7 +3,7 @@
 import type { RankingData, RankingDisplayMode } from '@/entities/ranking';
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
 import { medalRankClass } from '@/shared/constants/rank-medal';
-import { Badge, LiveConnectionStatus } from '@/shared/ui';
+import { Badge, LiveStatusPill } from '@/shared/ui';
 import { Trophy, Users } from 'lucide-react';
 
 interface RankingListProps {
@@ -12,6 +12,8 @@ interface RankingListProps {
   initialPublished: boolean;
   initialDisplayMode: RankingDisplayMode;
   distributeAmount: number;
+  /** 画面右上に結果待機と同じ LIVE ピルを固定表示する。モーダル内では親画面が持つため出さない。 */
+  showLiveStatus?: boolean;
 }
 
 export function RankingList({
@@ -20,6 +22,7 @@ export function RankingList({
   initialPublished,
   initialDisplayMode,
   distributeAmount,
+  showLiveStatus = false,
 }: RankingListProps) {
   const ranking = initialRanking;
   const published = initialPublished;
@@ -45,12 +48,14 @@ export function RankingList({
 
   return (
     <div className="w-full space-y-4">
-      <div className="rounded-control flex items-center justify-between bg-gray-50 p-4">
-        <div className="flex items-center gap-2">
-          <Badge variant="status" label={getStatusLabel()} className={getStatusColor()} />
-          <span className="text-sm text-gray-500">{published ? '現在の順位' : '結果発表までお待ちください'}</span>
+      {showLiveStatus && (
+        <div className="fixed top-4 right-4 z-50">
+          <LiveStatusPill status={connectionStatus} />
         </div>
-        <LiveConnectionStatus status={connectionStatus} showText={false} />
+      )}
+      <div className="rounded-control flex items-center gap-2 bg-gray-50 p-4">
+        <Badge variant="status" label={getStatusLabel()} className={getStatusColor()} />
+        <span className="text-sm text-gray-500">{published ? '現在の順位' : '結果発表までお待ちください'}</span>
       </div>
 
       <div className="rounded-surface overflow-hidden border border-gray-200 bg-white">

@@ -16,10 +16,10 @@ export default async function InterceptedRankingPage({ params }: InterceptedRank
     return null;
   }
 
-  const { ranking, published, displayMode, distributeAmount } = data;
+  const { eventName, ranking, published, displayMode, distributeAmount } = data;
 
   return (
-    <RankingModal>
+    <RankingModal eventName={eventName}>
       <RankingList
         eventId={eventId}
         initialRanking={ranking}

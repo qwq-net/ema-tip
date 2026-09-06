@@ -8,7 +8,7 @@ import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
 import type { RaceStatus } from '@/shared/constants/status';
 import type { ConnectionStatus } from '@/shared/hooks/use-sse';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
-import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
+import { Badge, Button, LiveStatusPill } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -128,9 +128,7 @@ function LiveStatusBar({ isAudioEnabled, onToggleAudio, connectionStatus }: Live
       >
         {isAudioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
       </button>
-      <div className="flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
-        <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
-      </div>
+      <LiveStatusPill status={connectionStatus} />
     </div>
   );
 }

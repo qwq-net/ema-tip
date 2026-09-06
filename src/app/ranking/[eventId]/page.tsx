@@ -23,12 +23,19 @@ export default async function RankingPage({ params }: RankingPageProps) {
     notFound();
   }
 
-  const { ranking, published } = rankingData;
+  const { eventName, ranking, published } = rankingData;
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
-        <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: 'イベントランキング' }]} />
+        <Breadcrumbs
+          items={[
+            { label: 'マイページ', href: '/mypage' },
+            { label: '即BET', href: '/mypage/sokubet' },
+            { label: eventName },
+            { label: 'イベントランキング' },
+          ]}
+        />
 
         <div className="flex items-center gap-3">
           <div className="bg-turf-100 text-turf-800 rounded-surface flex h-12 w-12 items-center justify-center">
@@ -36,7 +43,7 @@ export default async function RankingPage({ params }: RankingPageProps) {
           </div>
           <div>
             <h1 className="text-3xl font-semibold text-gray-900">イベントランキング</h1>
-            <p className="text-gray-500">参加ユーザーの現在の順位を確認できます。</p>
+            <p className="text-gray-500">{eventName}</p>
           </div>
         </div>
 
@@ -47,6 +54,7 @@ export default async function RankingPage({ params }: RankingPageProps) {
             initialPublished={published}
             initialDisplayMode={rankingData.displayMode}
             distributeAmount={rankingData.distributeAmount}
+            showLiveStatus
           />
         </div>
       </div>
