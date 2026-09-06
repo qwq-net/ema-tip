@@ -18,7 +18,6 @@ const PUBLIC_ALLOWLIST = new Map<string, string>([
     'features/auth/actions/auth-actions.ts:validateGuestRegistration',
     '登録前検証。失敗をIPレート制限へ記録して総当たりを防ぐ',
   ],
-  ['entities/user/actions.ts:logout', 'サインアウト導線'],
 ]);
 
 const GUARD_PATTERN = /requireAdmin\(|requireUser\(|requireLoginPage\(|await auth\(/;

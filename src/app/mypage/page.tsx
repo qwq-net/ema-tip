@@ -28,7 +28,7 @@ export default async function MyPage() {
       color: 'bg-turf-100 text-turf-800',
     },
     {
-      href: '/stats',
+      href: '/mypage/stats',
       title: '過去の戦績確認',
       description: 'これまでの的中実績や回収率',
       icon: <History size={32} />,
