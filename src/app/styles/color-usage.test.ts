@@ -69,6 +69,7 @@ const SANCTIONED = new Set([
   'src/shared/constants/rank-medal.ts',
   'src/entities/user/constants.ts',
   'src/entities/horse/ui/horse-type-badge.tsx',
+  'src/entities/bet/ui/bet-type-badge.tsx',
   'src/features/betting/ui/payout-result-modal.tsx',
   'src/features/forecasts/components/ForecastDisplay.tsx',
   'src/shared/ui/live-connection-status.tsx',

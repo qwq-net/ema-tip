@@ -1,4 +1,5 @@
 import { BET_TYPE_LABELS, BET_TYPE_ORDER, type BetType, isOrderSensitive } from '@/entities/bet';
+import { BetTypeBadge } from '@/entities/bet/ui/bet-type-badge';
 import { type BetGroupRow, getRaceBetGroupPage, getRaceBetOverview } from '@/features/admin/manage-bets/actions/read';
 import {
   BET_GROUP_PAGE_SIZE,
@@ -201,7 +202,7 @@ function BetGroupTableRow({ row }: { row: BetGroupRow }) {
       </Td>
       <Td className="font-medium text-gray-900">{row.userName || 'Unknown'}</Td>
       <Td>
-        <Badge variant="status" label={BET_TYPE_LABELS[row.type]} />
+        <BetTypeBadge type={row.type} />
       </Td>
       <Td className="whitespace-normal">
         <div className="font-semibold text-gray-900 tabular-nums">{formatPositions(row.type, row.positions)}</div>

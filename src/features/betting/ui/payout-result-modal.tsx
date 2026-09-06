@@ -2,6 +2,7 @@
 
 import type { BetType } from '@/entities/bet';
 import { BET_TYPES } from '@/entities/bet';
+import { BET_TYPE_COLORS } from '@/entities/bet/ui/bet-type-badge';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui';
 import { X } from 'lucide-react';
 
@@ -22,17 +23,6 @@ interface PayoutResultModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const TYPE_COLORS = {
-  [BET_TYPES.WIN]: 'bg-blue-800 text-white',
-  [BET_TYPES.PLACE]: 'bg-red-600 text-white',
-  [BET_TYPES.BRACKET_QUINELLA]: 'bg-green-700 text-white',
-  [BET_TYPES.QUINELLA]: 'bg-purple-800 text-white',
-  [BET_TYPES.WIDE]: 'bg-cyan-600 text-white',
-  [BET_TYPES.EXACTA]: 'bg-yellow-500 text-black',
-  [BET_TYPES.TRIO]: 'bg-blue-600 text-white',
-  [BET_TYPES.TRIFECTA]: 'bg-amber-700 text-white',
-} satisfies Record<BetType, string>;
 
 const TYPE_LABELS = {
   [BET_TYPES.WIN]: '単 勝',
@@ -108,7 +98,7 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows = 1, fu
     <div className={`flex min-h-12 bg-black text-white ${fullWidth ? 'w-full' : ''}`}>
       {}
       <div
-        className={`flex w-24 shrink-0 items-center justify-center text-lg font-semibold tracking-widest ${TYPE_COLORS[type]} border-r border-gray-700`}
+        className={`flex w-24 shrink-0 items-center justify-center text-lg font-semibold tracking-widest ${BET_TYPE_COLORS[type]} border-r border-gray-700`}
       >
         <span className="text-center leading-tight whitespace-pre-line">{TYPE_LABELS[type]}</span>
       </div>
