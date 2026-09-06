@@ -57,6 +57,7 @@ export default async function RaceDetailLayout({
         items={[
           { href: base, label: '確定・設定' },
           { href: `${base}/entries`, label: '出走馬' },
+          { href: `${base}/bets`, label: '馬券' },
           { href: `${base}/edit`, label: '編集' },
         ]}
       />

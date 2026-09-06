@@ -12,14 +12,21 @@ export interface RaceListTableRace {
   venue?: { name?: string; shortName?: string } | null;
 }
 
+interface TailColumn<T> {
+  header: string;
+  cell: (race: T) => ReactNode;
+  /** 見出しとセルの両方に付ける。数値列の右寄せ等に使う。 */
+  className?: string;
+}
+
 interface RaceListTableProps<T extends RaceListTableRace> {
   races: T[];
   /** レース名リンクの遷移先。 */
   hrefFor: (race: T) => string;
   /** レース名の右に添える要素。外部リンク等。 */
   nameExtra?: (race: T) => ReactNode;
-  /** 末尾列。ページ目的に応じて状態バッジや頭数を渡す。省略時は列ごと描画しない。 */
-  tail?: { header: string; cell: (race: T) => ReactNode };
+  /** 末尾列。ページ目的に応じて状態バッジや集計を渡す。1 列でも配列でもよく、省略時は列ごと描画しない。 */
+  tail?: TailColumn<T> | TailColumn<T>[];
   /** races が空のときにテーブルの代わりに表示する文言。 */
   emptyMessage: string;
 }
@@ -39,6 +46,7 @@ export function RaceListTable<T extends RaceListTableRace>({
   if (races.length === 0) {
     return <div className="py-8 text-center text-gray-500">{emptyMessage}</div>;
   }
+  const tails = tail === undefined ? [] : [tail].flat();
 
   return (
     <table className="w-full min-w-[800px] border-collapse">
@@ -48,7 +56,11 @@ export function RaceListTable<T extends RaceListTableRace>({
         <Th>場所</Th>
         <Th>距離</Th>
         <Th>馬場</Th>
-        {tail && <Th>{tail.header}</Th>}
+        {tails.map((column) => (
+          <Th key={column.header} className={column.className}>
+            {column.header}
+          </Th>
+        ))}
       </TableHead>
       <TableBody>
         {races.map((race) => (
@@ -70,7 +82,11 @@ export function RaceListTable<T extends RaceListTableRace>({
             <Td className="text-gray-500">
               {race.surface} {race.condition || ''}
             </Td>
-            {tail && <Td>{tail.cell(race)}</Td>}
+            {tails.map((column) => (
+              <Td key={column.header} className={column.className}>
+                {column.cell(race)}
+              </Td>
+            ))}
           </TableRow>
         ))}
       </TableBody>

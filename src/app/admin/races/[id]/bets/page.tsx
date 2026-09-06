@@ -1,14 +1,12 @@
 import { BET_TYPE_LABELS } from '@/entities/bet';
-import { getBetsByRace, getRaceWithBets } from '@/features/admin/manage-bets/actions/read';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { getBetsByRace } from '@/features/admin/manage-bets/actions/read';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { lookup } from '@/shared/utils/lookup';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: '馬券詳細',
+  title: 'レースの馬券',
 };
 
 // 馬券状態の日本語ラベル。REFUNDED はラベルを持たず、状態名をそのまま表示する
@@ -25,40 +23,32 @@ const BET_STATUS_CLASSES = {
   PENDING: 'bg-gray-100 text-gray-600',
 } satisfies Record<string, string>;
 
-interface BetDetailPageProps {
-  params: Promise<{ raceId: string }>;
+/** 集計 1 項目。ラベルと値を縦に並べる。 */
+function SummaryTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-sm text-gray-500">{label}</div>
+      <div className="mt-1 text-2xl font-semibold text-gray-900">{value}</div>
+    </div>
+  );
 }
 
-export default async function BetDetailPage({ params }: BetDetailPageProps) {
-  const { raceId } = await params;
-  const race = await getRaceWithBets(raceId);
+/** レースに購入された馬券の一覧。レース自体の存在確認と見出しは親レイアウトが担う。 */
+export default async function RaceBetsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const bets = await getBetsByRace(id);
 
-  if (!race) {
-    notFound();
-  }
-
-  const bets = await getBetsByRace(raceId);
+  const totalAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
+  const totalPayout = bets.reduce((sum, bet) => sum + (bet.payout ?? 0), 0);
+  const hitCount = bets.filter((bet) => bet.status === 'HIT').length;
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="mb-4">
-          <AdminBackLink href="/admin/bets">馬券管理に戻る</AdminBackLink>
-        </div>
-        <AdminPageHeader
-          title={race.name}
-          description={
-            <div className="flex items-center gap-4">
-              <span>{race.event.name}</span>
-              <span>•</span>
-              <span>{race.venue.shortName}</span>
-              <span>•</span>
-              <span>
-                {race.surface} {race.distance}m
-              </span>
-            </div>
-          }
-        />
+      <div className="rounded-control grid grid-cols-2 gap-4 bg-gray-50 p-4 text-center sm:grid-cols-4">
+        <SummaryTile label="馬券数" value={`${bets.length}枚`} />
+        <SummaryTile label="投票額" value={`${totalAmount.toLocaleString('ja-JP')}円`} />
+        <SummaryTile label="払戻額" value={`${totalPayout.toLocaleString('ja-JP')}円`} />
+        <SummaryTile label="的中" value={`${hitCount}枚`} />
       </div>
 
       <TableShell>
@@ -94,27 +84,6 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
           ))}
         </TableBody>
       </TableShell>
-
-      <div className="rounded-control bg-gray-50 p-4">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-sm text-gray-500">総馬券数</div>
-            <div className="mt-1 text-2xl font-semibold text-gray-900">{bets.length}枚</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-500">総投票額</div>
-            <div className="mt-1 text-2xl font-semibold text-gray-900">
-              {bets.reduce((sum, bet) => sum + bet.amount, 0).toLocaleString('ja-JP')}円
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-500">的中馬券数</div>
-            <div className="mt-1 text-2xl font-semibold text-gray-900">
-              {bets.filter((bet) => bet.status === 'HIT').length}枚
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

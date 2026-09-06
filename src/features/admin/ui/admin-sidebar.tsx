@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   MapPin,
   Menu,
-  Ticket,
   Users,
   X,
 } from 'lucide-react';
@@ -42,7 +41,6 @@ const NAV_GROUPS = [
     role: ['ADMIN'],
     items: [
       { label: 'イベント管理', href: '/admin/events', icon: Calendar },
-      { label: '馬券管理', href: '/admin/bets', icon: Ticket },
       { label: '出馬表インポート', href: '/admin/import-race', icon: Download },
     ],
   },

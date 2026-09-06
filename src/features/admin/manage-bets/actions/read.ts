@@ -1,35 +1,41 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { bets, raceEntries } from '@/shared/db/schema';
+import { bets, raceInstances } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
-import { count, eq } from 'drizzle-orm';
+import { count, eq, sql, sum } from 'drizzle-orm';
 
-export async function getEventsWithRaces() {
+export interface RaceBetSummary {
+  betCount: number;
+  totalAmount: number;
+  totalPayout: number;
+}
+
+/**
+ * イベント配下のレースごとに馬券の件数・投票額・払戻額を集計して raceId をキーに返す。
+ * 馬券のないレースはキーを持たないため、呼び手はゼロ埋めして扱う。
+ */
+export async function getRaceBetSummaries(eventId: string): Promise<Map<string, RaceBetSummary>> {
   await requireAdmin();
 
-  // UIは頭数しか使わないため、全entriesを載せず件数だけ返す
-  const [eventsWithRaces, entryCounts] = await Promise.all([
-    db.query.events.findMany({
-      orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
-      with: {
-        races: {
-          orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
-          with: {
-            venue: true,
-          },
-        },
-      },
-    }),
-    db.select({ raceId: raceEntries.raceId, entryCount: count() }).from(raceEntries).groupBy(raceEntries.raceId),
-  ]);
+  const rows = await db
+    .select({
+      raceId: bets.raceId,
+      betCount: count(),
+      totalAmount: sum(bets.amount),
+      totalPayout: sql<string>`coalesce(sum(${bets.payout}), 0)`,
+    })
+    .from(bets)
+    .innerJoin(raceInstances, eq(bets.raceId, raceInstances.id))
+    .where(eq(raceInstances.eventId, eventId))
+    .groupBy(bets.raceId);
 
-  const countByRace = new Map(entryCounts.map((c) => [c.raceId, c.entryCount]));
-
-  return eventsWithRaces.map((event) => ({
-    ...event,
-    races: event.races.map((race) => ({ ...race, entryCount: countByRace.get(race.id) ?? 0 })),
-  }));
+  return new Map(
+    rows.map((row) => [
+      row.raceId,
+      { betCount: row.betCount, totalAmount: Number(row.totalAmount ?? 0), totalPayout: Number(row.totalPayout) },
+    ])
+  );
 }
 
 export async function getBetsByRace(raceId: string) {
@@ -43,18 +49,6 @@ export async function getBetsByRace(raceId: string) {
       user: {
         columns: { id: true, name: true },
       },
-    },
-  });
-}
-
-export async function getRaceWithBets(raceId: string) {
-  await requireAdmin();
-
-  return db.query.raceInstances.findFirst({
-    where: (raceInstances, { eq }) => eq(raceInstances.id, raceId),
-    with: {
-      event: true,
-      venue: true,
     },
   });
 }

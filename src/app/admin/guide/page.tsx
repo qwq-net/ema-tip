@@ -49,7 +49,11 @@ const FLOW_STEPS: Step[] = [
 ];
 
 const OTHER_ITEMS: Step[] = [
-  { title: '馬券管理', description: '全ユーザーの購入と的中状況を確認します。', href: '/admin/bets' },
+  {
+    title: '馬券の確認',
+    description: 'イベントのレース一覧で売上と払戻を、レース詳細の馬券タブで購入ごとの的中状況を確認します。',
+    href: '/admin/events',
+  },
   {
     title: '保証オッズ設定',
     description: '最低保証倍率の既定値を設定します。レース個別でも調整できます。',
