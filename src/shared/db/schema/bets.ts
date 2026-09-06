@@ -38,7 +38,8 @@ export const betGroups = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    // 照会は常に userId と raceId の組。raceId 単独で引く経路はないため複合1本に集約する
+    // 利用者の照会は常に userId と raceId の組なので複合 1 本に集約する。
+    // 管理画面の馬券タブは raceId 単独で引くが、最大 30 人の運用では表が小さく索引を足していない
     index('bet_group_user_race_idx').on(table.userId, table.raceId),
     // ユーザー削除時のカスケードが betGroups を walletId で辿るため残す
     index('bet_group_wallet_idx').on(table.walletId),

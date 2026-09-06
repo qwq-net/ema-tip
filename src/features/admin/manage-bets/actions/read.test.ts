@@ -1,7 +1,8 @@
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getBetsByRace, getRaceBetSummaries } from './read';
+import { parseBetGroupListParams } from '../lib/list-params';
+import { getRaceBetGroupPage, getRaceBetOverview, getRaceBetSummaries } from './read';
 
 vi.mock('@/shared/utils/admin', async () => {
   const actual = await vi.importActual('@/shared/utils/admin');
@@ -11,24 +12,23 @@ vi.mock('@/shared/utils/admin', async () => {
   };
 });
 
-// select().from().innerJoin().where().groupBy() の連鎖を 1 つのオブジェクトで受け、末端だけ差し替える
-const { mockGroupBy, selectChain } = vi.hoisted(() => {
-  const mockGroupBy = vi.fn();
-  const selectChain = {
-    from: () => selectChain,
-    innerJoin: () => selectChain,
-    where: () => selectChain,
-    groupBy: mockGroupBy,
+// select() から続く連鎖をどの順で呼んでも同じオブジェクトを返し、await した時点で用意した行を返す
+const { chain, setRows } = vi.hoisted(() => {
+  let rows: unknown[] = [];
+  const chain: Record<string, unknown> = {};
+  for (const method of ['from', 'innerJoin', 'where', 'groupBy', 'orderBy', 'limit', 'offset', 'as']) {
+    chain[method] = () => chain;
+  }
+  chain.then = (resolve: (value: unknown[]) => void) => resolve(rows);
+  return {
+    chain,
+    setRows: (next: unknown[]) => {
+      rows = next;
+    },
   };
-  return { mockGroupBy, selectChain };
 });
 vi.mock('@/shared/db', () => ({
-  db: {
-    select: () => selectChain,
-    query: {
-      bets: { findMany: vi.fn().mockResolvedValue([]) },
-    },
-  },
+  db: { select: () => chain },
 }));
 
 describe('manage-bets read actions の認可', () => {
@@ -42,8 +42,12 @@ describe('manage-bets read actions の認可', () => {
     await expect(getRaceBetSummaries('event-1')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 
-  it('getBetsByRace は管理者以外を拒否すること', async () => {
-    await expect(getBetsByRace('race-1')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+  it('getRaceBetOverview は管理者以外を拒否すること', async () => {
+    await expect(getRaceBetOverview('race-1')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+  });
+
+  it('getRaceBetGroupPage は管理者以外を拒否すること', async () => {
+    await expect(getRaceBetGroupPage('race-1', parseBetGroupListParams({}))).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 });
 
@@ -55,7 +59,7 @@ describe('getRaceBetSummaries', () => {
   });
 
   it('集計行を raceId キーの Map にし、DB が文字列で返す合計を数値へ直すこと', async () => {
-    mockGroupBy.mockResolvedValue([
+    setRows([
       { raceId: 'race-1', betCount: 3, totalAmount: '1500', totalPayout: '2400' },
       { raceId: 'race-2', betCount: 1, totalAmount: '100', totalPayout: '0' },
     ]);
