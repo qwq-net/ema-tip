@@ -1,6 +1,6 @@
 // 順位1〜3の金銀銅トーン。ランキングの順位バッジと出馬表の人気チップで共通に使う。
 // 文字色の金銀は白地で読めないため、淡い地色に濃い文字を載せるペアで定義する
-export const MEDAL_RANK_CLASSES = {
+const MEDAL_RANK_CLASSES = {
   1: 'bg-amber-100 text-amber-700',
   2: 'bg-gray-200 text-gray-700',
   3: 'bg-orange-100 text-orange-800',

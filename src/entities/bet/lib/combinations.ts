@@ -29,7 +29,7 @@ export function generateCombinations(selections: number[][]): number[][] {
 }
 
 /** 生成済みの組から、券種として成立しないものと重複を除く */
-export function filterValidCombinations(
+function filterValidCombinations(
   combinations: number[][],
   betType: BetType,
   bracketHorseCount?: Map<number, number>

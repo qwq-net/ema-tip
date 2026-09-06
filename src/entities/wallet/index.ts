@@ -1,4 +1,4 @@
-export const DEFAULT_LOAN_THRESHOLD_PERCENT = 30;
+const DEFAULT_LOAN_THRESHOLD_PERCENT = 30;
 
 /**
  * 融資対象の判定。残高が配布額の thresholdPercent 割合以下で、まだ借入していないときだけ true。

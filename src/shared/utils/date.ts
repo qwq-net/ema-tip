@@ -1,4 +1,4 @@
-export const JST_TIMEZONE = 'Asia/Tokyo';
+const JST_TIMEZONE = 'Asia/Tokyo';
 
 export function parseJSTToUTC(jstString: string | null | undefined): Date | null {
   if (!jstString?.includes('T')) return null;

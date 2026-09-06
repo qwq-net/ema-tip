@@ -40,7 +40,7 @@ export async function getRaceBetSummaries(eventId: string): Promise<Map<string, 
   );
 }
 
-export interface RaceBetOverview {
+interface RaceBetOverview {
   buyerCount: number;
   purchaseCount: number;
   betCount: number;
@@ -100,7 +100,7 @@ export interface BetGroupRow {
   hits: { selections: number[]; payout: number }[];
 }
 
-export interface BetGroupPage {
+interface BetGroupPage {
   rows: BetGroupRow[];
   total: number;
 }

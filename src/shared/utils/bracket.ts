@@ -1,7 +1,7 @@
 /** 1レースに登録できる出走馬の上限。JRA のフルゲートに合わせる。超えると枠番を正しく割り当てられない */
 export const MAX_HORSES_PER_RACE = 18;
 
-export const BRACKET_COLORS = [
+const BRACKET_COLORS = [
   'bg-white border-2 border-gray-300 text-black',
   'bg-black text-white',
   'bg-red-600 text-white',

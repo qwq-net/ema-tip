@@ -7,7 +7,7 @@ export const BET_GROUP_PAGE_SIZE = 50;
 export const BET_GROUP_STATUSES = ['PENDING', 'HIT', 'LOST', 'REFUNDED'] as const;
 export type BetGroupStatus = (typeof BET_GROUP_STATUSES)[number];
 
-export const BET_GROUP_SORT_KEYS = ['createdAt', 'amount', 'payout'] as const;
+const BET_GROUP_SORT_KEYS = ['createdAt', 'amount', 'payout'] as const;
 export type BetGroupSortKey = (typeof BET_GROUP_SORT_KEYS)[number];
 
 // 不正値は例外にせず既定へ倒す。URL を手で書き換えても一覧が壊れないようにする

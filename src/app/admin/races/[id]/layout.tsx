@@ -6,6 +6,7 @@ import { AdminTabs } from '@/features/admin/ui/admin-tabs';
 import { db } from '@/shared/db';
 import { raceEntries } from '@/shared/db/schema';
 import { and, count, eq } from 'drizzle-orm';
+import { ClipboardList, Flag, Pencil, Ticket } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
@@ -55,10 +56,10 @@ export default async function RaceDetailLayout({
       />
       <AdminTabs
         items={[
-          { href: base, label: '確定・設定' },
-          { href: `${base}/entries`, label: '出走馬' },
-          { href: `${base}/bets`, label: '馬券' },
-          { href: `${base}/edit`, label: '編集' },
+          { href: base, label: '確定・設定', icon: <Flag className="h-4 w-4" /> },
+          { href: `${base}/entries`, label: '出走馬', icon: <ClipboardList className="h-4 w-4" /> },
+          { href: `${base}/bets`, label: '馬券', icon: <Ticket className="h-4 w-4" /> },
+          { href: `${base}/edit`, label: '編集', icon: <Pencil className="h-4 w-4" /> },
         ]}
       />
       {children}

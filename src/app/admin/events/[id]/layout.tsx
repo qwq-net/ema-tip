@@ -2,6 +2,7 @@ import { getEvent } from '@/features/admin/manage-events/actions';
 import { EventStatusPanel } from '@/features/admin/manage-events/ui/event-status-control';
 import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
+import { Crown, Medal, Settings2, Trophy } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
@@ -30,10 +31,10 @@ export default async function EventDetailLayout({
       </div>
       <AdminTabs
         items={[
-          { href: base, label: 'レース' },
-          { href: `${base}/settings`, label: 'イベント設定' },
-          { href: `${base}/bet5`, label: 'BET5' },
-          { href: `${base}/ranking`, label: 'ランキング' },
+          { href: base, label: 'レース', icon: <Trophy className="h-4 w-4" /> },
+          { href: `${base}/settings`, label: 'イベント設定', icon: <Settings2 className="h-4 w-4" /> },
+          { href: `${base}/bet5`, label: 'BET5', icon: <Crown className="h-4 w-4" /> },
+          { href: `${base}/ranking`, label: 'ランキング', icon: <Medal className="h-4 w-4" /> },
         ]}
       />
       {children}

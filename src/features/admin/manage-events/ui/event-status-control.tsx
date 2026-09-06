@@ -98,9 +98,6 @@ export function EventStatusPanel({
       className={cn('rounded-control flex flex-col gap-3 border p-4', style.className, className)}
     >
       <div className="flex flex-wrap items-center gap-2">
-        {status === 'ACTIVE' && (
-          <span aria-hidden="true" className="bg-cat-blue-text h-2 w-2 rounded-full motion-safe:animate-pulse" />
-        )}
         <Badge variant="status" label={status} />
         <span className="text-sm text-gray-600">{style.description}</span>
       </div>

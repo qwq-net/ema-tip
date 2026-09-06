@@ -114,7 +114,6 @@ const GRANDFATHERED = new Set([
   'src/features/user/ui/editable-user-profile.tsx',
   'src/features/user/ui/name-change-form.tsx',
   'src/shared/ui/button.tsx',
-  'src/shared/ui/dropdown-menu.tsx',
 ]);
 
 // 任意値 hex を認めるファイル。Discord のブランド色のみ

@@ -9,15 +9,11 @@ import { eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { cache } from 'react';
 
-export async function getHorsesForSelect() {
-  await requireAdmin();
-
-  return db.select({ id: horses.id, name: horses.name }).from(horses).orderBy(horses.name);
-}
-
-// 未ログインには null を返す。throw すると generateMetadata 経由の呼び出しが
-// ログインページへの redirect より先に 500 になるため、レース不在と同じ扱いに落とす
-/** レース 1 件をイベント・会場つきで返す。レイアウトと配下ページが同一リクエスト内で二重取得するため cache で束ねる。 */
+/**
+ * レース 1 件をイベント・会場つきで返す。レイアウトと配下ページが同一リクエスト内で二重取得するため cache で束ねる。
+ * 未ログインには null を返す。throw すると generateMetadata 経由の呼び出しがログインページへの redirect より先に
+ * 500 になるため、レース不在と同じ扱いに落とす。
+ */
 export const getRaceById = cache(async (raceId: string) => {
   const session = await auth();
   if (!session?.user?.id) return null;
