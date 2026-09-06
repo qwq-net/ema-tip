@@ -41,7 +41,11 @@ const FLOW_STEPS: Step[] = [
     description: 'イベントのレース一覧から出走馬タブを開き、ドラッグで枠順を確定すると馬券が購入可能になります。',
     href: '/admin/events',
   },
-  { title: 'BET5設定', description: '5重勝の対象レースを指定します。', href: '/admin/bet5' },
+  {
+    title: 'BET5設定',
+    description: 'イベント詳細の BET5 タブで 5 重勝の対象レースを指定します。',
+    href: '/admin/events',
+  },
 ];
 
 const OTHER_ITEMS: Step[] = [

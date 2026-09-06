@@ -782,7 +782,7 @@ export function RaceResultForm({
               出走前にBET5を締め切ってください。
             </div>
             <Link
-              href={`/admin/bet5/${race.eventId}`}
+              href={`/admin/events/${race.eventId}/bet5`}
               className="inline-flex shrink-0 items-center font-semibold text-amber-900 hover:underline"
             >
               BET5管理へ

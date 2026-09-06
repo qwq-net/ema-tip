@@ -3,7 +3,6 @@ import { getBet5AdminData } from '@/features/admin/bet5/queries';
 import { Bet5ConfigForm } from '@/features/admin/bet5/ui/bet5-config-form';
 import { Bet5ManageCard } from '@/features/admin/bet5/ui/bet5-manage-card';
 import { Bet5TicketList } from '@/features/admin/bet5/ui/bet5-ticket-list';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { getBet5TicketsAction } from '@/features/betting/actions/bet5';
 import { db } from '@/shared/db';
 import { raceEntries } from '@/shared/db/schema';
@@ -15,8 +14,8 @@ export const metadata: Metadata = {
   title: 'BET5 管理',
 };
 
-export default async function Bet5AdminPage({ params }: { params: Promise<{ eventId: string }> }) {
-  const { eventId: id } = await params;
+export default async function Bet5AdminPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const adminData = await getBet5AdminData(id);
 
@@ -145,8 +144,6 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ even
 
   return (
     <div className="max-w-4xl space-y-6">
-      <AdminBackLink href="/admin/bet5" />
-      <AdminPageHeader title="BET5 管理" description={`${event.name} のBET5設定と購入状況`} />
       {!bet5Event &&
         (selectableRaces.length >= 5 ? (
           <Bet5ConfigForm

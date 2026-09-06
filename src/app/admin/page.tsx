@@ -1,19 +1,7 @@
 import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
-import {
-  ArrowRight,
-  BookOpen,
-  Calendar,
-  Carrot,
-  ClipboardList,
-  Coins,
-  Crown,
-  Key,
-  MapPin,
-  Ticket,
-  Users,
-} from 'lucide-react';
+import { ArrowRight, BookOpen, Calendar, Carrot, ClipboardList, Coins, Key, MapPin, Ticket, Users } from 'lucide-react';
 import Link from 'next/link';
 
 import type { Metadata } from 'next';
@@ -45,12 +33,6 @@ const OPERATION_ACTIONS = [
     icon: Calendar,
     label: 'イベント管理',
     description: 'イベントとレース・出走馬の登録、確定処理',
-  },
-  {
-    href: '/admin/bet5',
-    icon: Crown,
-    label: 'BET5管理',
-    description: 'BET5イベントの作成・結果確定',
   },
   {
     href: '/admin/bets',
