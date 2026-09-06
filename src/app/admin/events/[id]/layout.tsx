@@ -1,7 +1,8 @@
 import { getEvent } from '@/features/admin/manage-events/actions';
 import { EventStatusPanel } from '@/features/admin/manage-events/ui/event-status-control';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { Crown, Medal, Settings2, Trophy } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -24,7 +25,7 @@ export default async function EventDetailLayout({
 
   return (
     <div className="space-y-6">
-      <AdminBackLink href="/admin/events" />
+      <Breadcrumbs items={[{ label: 'イベント管理', href: '/admin/events' }, { label: event.name }]} />
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <AdminPageHeader title={event.name} description={event.date} />
         <EventStatusPanel eventId={id} status={event.status} className="md:min-w-96" />

@@ -8,13 +8,15 @@ import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { Button } from '@/shared/ui';
 import { requireLoginPage } from '@/shared/utils/admin';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
 import { ForecastSection } from './_components/forecast-section';
 
+import { formatRaceLabel } from '@/entities/race/lib/label';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import type { Metadata } from 'next';
 
 // generateMetadata と page 本体で同じレースを引くため、リクエスト内で重複クエリを排除する
@@ -89,13 +91,19 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
-        <Link
-          href="/mypage/sokubet"
-          className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-        >
-          <ChevronLeft size={16} />
-          即BETトップへ戻る
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: 'マイページ', href: '/mypage' },
+            { label: '即BET', href: '/mypage/sokubet' },
+            {
+              label: formatRaceLabel({
+                venueShortName: race.venue.shortName,
+                raceNumber: race.raceNumber,
+                name: race.name,
+              }),
+            },
+          ]}
+        />
 
         <div className="mb-8 space-y-4">
           <RacePageHeader

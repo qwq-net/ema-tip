@@ -7,8 +7,6 @@ import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dial
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { requireLoginPage } from '@/shared/utils/admin';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StandbyClient } from './standby-client';
 
@@ -34,6 +32,8 @@ interface ClientPayoutResult {
   }[];
 }
 
+import { formatRaceLabel } from '@/entities/race/lib/label';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -147,14 +147,22 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
-        <div className="flex items-center justify-between">
-          <Link
-            href={`/races/${id}`}
-            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-          >
-            <ChevronLeft size={16} />
-            レース画面へ戻る
-          </Link>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Breadcrumbs
+            items={[
+              { label: 'マイページ', href: '/mypage' },
+              { label: '即BET', href: '/mypage/sokubet' },
+              {
+                label: formatRaceLabel({
+                  venueShortName: race.venue.shortName,
+                  raceNumber: race.raceNumber,
+                  name: race.name,
+                }),
+                href: `/races/${id}`,
+              },
+              { label: '結果待機' },
+            ]}
+          />
           <div className="flex items-center gap-2">
             {hasGuaranteedOdds && <GuaranteedOddsDialog guaranteedOdds={guaranteedOdds} />}
             <RankingButton eventId={race.eventId} />

@@ -1,5 +1,5 @@
 import { updateSystemDefaultOdds } from '@/features/admin/manage-settings/actions';
-import { AdminBackLink, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { formString } from '@/shared/utils/form';
@@ -33,10 +33,6 @@ export default async function DefaultOddsSettingsPage() {
 
   return (
     <div className="mx-auto max-w-4xl py-8">
-      <div className="mb-6">
-        <AdminBackLink href="/admin">ダッシュボードへ戻る</AdminBackLink>
-      </div>
-
       <div className="mb-8">
         <AdminPageHeader
           title="デフォルト保証オッズ設定"

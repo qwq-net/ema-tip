@@ -2,9 +2,10 @@ import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/
 import { getMyForecast } from '@/features/forecasts/actions';
 import { ForecastInputForm } from '@/features/forecasts/components/ForecastInputForm';
 import { Badge } from '@/shared/ui/badge';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { Button } from '@/shared/ui/button';
 import { FormattedDate } from '@/shared/ui/formatted-date';
-import { ChevronLeft, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -23,13 +24,9 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <Breadcrumbs items={[{ label: '予想入力', href: '/admin/forecasts' }, { label: race.name }]} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button asChild variant="outline" size="icon" aria-label="予想管理へ戻る">
-            <Link href={`/admin/forecasts`}>
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
-          </Button>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{race.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">

@@ -1,8 +1,9 @@
 import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
 import { getHorse } from '@/features/admin/manage-horses/actions';
 import { HorseForm } from '@/features/admin/manage-horses/ui/horse-form';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 
 // DB は英語 enum、フォームは日本語表記のため編集初期値をここで変換する
 const GENDER_TO_FORM = {
@@ -20,7 +21,7 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <AdminBackLink href="/admin/horses" />
+        <Breadcrumbs items={[{ label: '馬マスタ管理', href: '/admin/horses' }, { label: horse.name }]} />
       </div>
 
       <div className="mb-8">

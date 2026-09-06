@@ -1,7 +1,8 @@
 import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
 import { HorseForm } from '@/features/admin/manage-horses/ui/horse-form';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 
 export default async function CreateHorsePage() {
   const tagOptions = await getHorseTags();
@@ -9,7 +10,7 @@ export default async function CreateHorsePage() {
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <AdminBackLink href="/admin/horses" />
+        <Breadcrumbs items={[{ label: '馬マスタ管理', href: '/admin/horses' }, { label: '新規馬登録' }]} />
       </div>
 
       <div className="mb-8">

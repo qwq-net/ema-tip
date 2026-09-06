@@ -6,9 +6,8 @@ import {
   KarmaDisplay,
   NetWorthDisplay,
 } from '@/features/stats';
-import { Button } from '@/shared/ui/button';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import Link from 'next/link';
 
 export default async function StatsPage() {
   const stats = await getGlobalStats();
@@ -16,12 +15,8 @@ export default async function StatsPage() {
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-semibold text-gray-900">戦績ダッシュボード</h1>
-          <Button variant="outline" asChild>
-            <Link href="/mypage">マイページへ戻る</Link>
-          </Button>
-        </div>
+        <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: '戦績ダッシュボード' }]} />
+        <h1 className="text-3xl font-semibold text-gray-900">戦績ダッシュボード</h1>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <CurrentBalanceDisplay amount={stats.totalBalance} />

@@ -7,10 +7,20 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, raceInstances } from '@/shared/db/schema';
 import { Alert, Card } from '@/shared/ui';
+import { type BreadcrumbItem, Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { and, desc, eq, inArray } from 'drizzle-orm';
-import { AlertCircle, ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
+
+// 表側にイベントのページはないため、イベント名はリンクを持たない階層として置く
+function bet5Breadcrumbs(eventName: string): BreadcrumbItem[] {
+  return [
+    { label: 'マイページ', href: '/mypage' },
+    { label: '即BET', href: '/mypage/sokubet' },
+    { label: eventName },
+    { label: 'BET5' },
+  ];
+}
 
 export default async function Bet5Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,15 +45,9 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
     return (
       <div className="flex flex-col items-center p-4 lg:p-8">
         <div className="w-full max-w-4xl space-y-4">
+          <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
           <h1 className="text-2xl font-semibold text-gray-900">BET5</h1>
           <p className="text-gray-500">このイベントではBET5は開催されていません。</p>
-          <Link
-            href="/mypage/sokubet"
-            className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            即BETトップへ戻る
-          </Link>
         </div>
       </div>
     );
@@ -99,16 +103,8 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-4xl space-y-6">
-        <div className="flex items-center gap-2">
-          <Link
-            href="/mypage/sokubet"
-            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            即BETへ戻る
-          </Link>
-          <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
-        </div>
+        <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
+        <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
 
         <Card className="bg-turf-950 border-0 p-6 text-white">
           <div className="flex flex-wrap items-center justify-between gap-2">

@@ -1,7 +1,6 @@
 import { Card } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
-import { ChevronLeft, type LucideIcon } from 'lucide-react';
-import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 /** 管理画面ページ最上部の見出しブロック。description には文字列のほか補足要素も渡せる。 */
@@ -41,16 +40,6 @@ export function AdminSectionTitle({
       {Icon && <Icon className="text-text-sub h-5 w-5 shrink-0" />}
       {children}
     </Tag>
-  );
-}
-
-/** 一覧ページ等へ戻るリンク。children 省略時は「一覧へ戻る」を表示する。 */
-export function AdminBackLink({ href, children = '一覧へ戻る' }: { href: string; children?: ReactNode }) {
-  return (
-    <Link href={href} className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900">
-      <ChevronLeft size={16} />
-      {children}
-    </Link>
   );
 }
 

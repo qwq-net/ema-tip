@@ -2,8 +2,9 @@ import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/act
 import { getEvents } from '@/features/admin/manage-races/actions';
 import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 
 export default async function CreateRacePage({ searchParams }: { searchParams: Promise<{ eventId?: string }> }) {
   const [{ eventId }, events, raceDefinitions, venues] = await Promise.all([
@@ -13,14 +14,19 @@ export default async function CreateRacePage({ searchParams }: { searchParams: P
     getVenues(),
   ]);
   // イベント詳細から来た場合はそのイベントを初期選択し、保存後もそのイベントへ戻す
-  const eventHref = eventId && events.some((e) => e.id === eventId) ? `/admin/events/${eventId}` : '/admin/events';
+  const selectedEvent = events.find((e) => e.id === eventId);
+  const eventHref = selectedEvent ? `/admin/events/${selectedEvent.id}` : '/admin/events';
 
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <AdminBackLink href={eventHref}>
-          {eventHref === '/admin/events' ? 'イベント一覧へ戻る' : 'イベントへ戻る'}
-        </AdminBackLink>
+        <Breadcrumbs
+          items={[
+            { label: 'イベント管理', href: '/admin/events' },
+            ...(selectedEvent ? [{ label: selectedEvent.name, href: eventHref }] : []),
+            { label: '新規レース登録' },
+          ]}
+        />
       </div>
 
       <div className="mb-8">

@@ -1,5 +1,6 @@
 export { Alert } from './alert';
 export * from './badge';
+export { Breadcrumbs, type BreadcrumbItem } from './breadcrumbs';
 export * from './button';
 export * from './card';
 export * from './checkbox';

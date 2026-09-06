@@ -1,8 +1,9 @@
 import { getRaceDefinition } from '@/features/admin/manage-race-definitions/actions';
 import { RaceDefinitionForm } from '@/features/admin/manage-race-definitions/ui/race-definition-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 
 export default async function EditRaceDefinitionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -11,7 +12,9 @@ export default async function EditRaceDefinitionPage({ params }: { params: Promi
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <AdminBackLink href="/admin/race-definitions" />
+        <Breadcrumbs
+          items={[{ label: 'レースマスタ管理', href: '/admin/race-definitions' }, { label: raceDefinition.name }]}
+        />
       </div>
 
       <div className="mb-8">

@@ -1,10 +1,11 @@
+import { formatRaceLabel } from '@/entities/race/lib/label';
 import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
-import { AdminBackLink } from '@/features/admin/ui/admin-page-header';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
 import { db } from '@/shared/db';
 import { raceEntries } from '@/shared/db/schema';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { and, count, eq } from 'drizzle-orm';
 import { ClipboardList, Flag, Pencil, Ticket } from 'lucide-react';
 import { notFound } from 'next/navigation';
@@ -34,12 +35,22 @@ export default async function RaceDetailLayout({
 
   return (
     <div className="space-y-6">
-      <AdminBackLink href={`/admin/events/${race.eventId}`}>イベントへ戻る</AdminBackLink>
+      <Breadcrumbs
+        items={[
+          { label: 'イベント管理', href: '/admin/events' },
+          { label: race.event.name, href: `/admin/events/${race.eventId}` },
+          {
+            label: formatRaceLabel({
+              venueShortName: race.venue.shortName,
+              raceNumber: race.raceNumber,
+              name: race.name,
+            }),
+          },
+        ]}
+      />
       <RacePageHeader
         venueShortName={race.venue.shortName}
         raceNumber={race.raceNumber}
-        eventName={race.event.name}
-        eventHref={`/admin/events/${race.eventId}`}
         name={race.name}
         netkeibaUrl={race.netkeibaUrl}
         surface={race.surface}

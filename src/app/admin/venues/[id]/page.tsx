@@ -1,7 +1,8 @@
 import { getVenue } from '@/features/admin/manage-venues/actions';
 import { VenueForm } from '@/features/admin/manage-venues/ui/venue-form';
-import { AdminBackLink, AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
+import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { notFound } from 'next/navigation';
 
 export default async function EditVenuePage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,7 +13,7 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
-        <AdminBackLink href="/admin/venues" />
+        <Breadcrumbs items={[{ label: '競馬場管理', href: '/admin/venues' }, { label: venue.name }]} />
       </div>
 
       <div className="mb-8">
