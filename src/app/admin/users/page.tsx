@@ -16,7 +16,7 @@ export default async function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <AdminPageHeader title="ユーザー管理" />
-        <div className="text-sm text-gray-500">総ユーザー数: {allUsers.length}</div>
+        <div className="text-text-sub text-sm">総ユーザー数: {allUsers.length}</div>
       </div>
 
       <UserList users={allUsers} currentUserId={session.user.id} />

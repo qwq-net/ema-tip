@@ -34,16 +34,16 @@ export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; cla
               )}
               {isParent && <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0 text-gray-400 sm:hidden" />}
               {isCurrent && (
-                <span aria-current="page" className="truncate font-medium text-gray-900">
+                <span aria-current="page" className="text-text-main truncate font-semibold">
                   {item.label}
                 </span>
               )}
               {!isCurrent && item.href && (
-                <Link href={item.href} className="whitespace-nowrap text-gray-500 hover:text-gray-900 hover:underline">
+                <Link href={item.href} className="text-text-sub hover:text-text-main whitespace-nowrap hover:underline">
                   {item.label}
                 </Link>
               )}
-              {!isCurrent && !item.href && <span className="whitespace-nowrap text-gray-500">{item.label}</span>}
+              {!isCurrent && !item.href && <span className="text-text-sub whitespace-nowrap">{item.label}</span>}
             </li>
           );
         })}

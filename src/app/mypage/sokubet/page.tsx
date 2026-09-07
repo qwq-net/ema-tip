@@ -3,7 +3,8 @@ import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
 import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
-import { Badge, Button, Card } from '@/shared/ui';
+import { Badge, Button, Card, EmptyState } from '@/shared/ui';
+import { PageContainer } from '@/shared/ui/layout/page-container';
 import { requireLoginPage } from '@/shared/utils/admin';
 import { ChevronLeft, Crown, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -26,157 +27,163 @@ export default async function SokubetPage() {
   const sortedEventGroups = await getSokubetDashboardData(session.user.id);
 
   return (
-    <div className="flex flex-col items-center p-4 lg:p-8">
-      <div className="w-full max-w-5xl space-y-8">
-        <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: '即BET' }]} />
+    <PageContainer>
+      <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: '即BET' }]} />
 
-        <div className="flex items-center gap-3">
-          <div className="bg-turf-100 text-turf-800 rounded-surface flex h-12 w-12 items-center justify-center">
-            <Zap size={28} />
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-900">即BET</h1>
-            <p className="text-gray-500">開催中のレースを選択して、馬券を購入しましょう。</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="bg-turf-100 text-turf-800 rounded-surface flex h-12 w-12 items-center justify-center">
+          <Zap size={28} />
         </div>
-
-        {sortedEventGroups.length === 0 ? (
-          <Card className="p-12 text-center text-gray-500">現在、開催中のイベントはありません。</Card>
-        ) : (
-          <div className="space-y-8">
-            {sortedEventGroups.map(
-              ({
-                event,
-                races,
-                balance,
-                totalLoaned,
-                bet5Id,
-                bet5Status,
-                bet5TargetRaceNumbers,
-                bet5HasClosedRace,
-                hasWallet,
-                hasPurchasedBet5,
-              }) => {
-                // BET5イベントが受付中でも、対象レースが締め切られていたら購入不可として扱う
-                const bet5Open = bet5Status === 'SCHEDULED' && !bet5HasClosedRace;
-                return (
-                  <section key={event.id}>
-                    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                      <div>
-                        <div className="flex items-center gap-4">
-                          <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">{event.name}</h2>
-                          <RankingButton eventId={event.id} />
-                          {(bet5Id || hasPurchasedBet5) && (
-                            <div className="flex items-center gap-2">
-                              {bet5Id && (
-                                <Button variant="outline" size="sm" asChild>
-                                  <Link href={`/events/${event.id}/bet5`}>
-                                    <Crown className="mr-2 h-4 w-4" />
-                                    BET5
-                                  </Link>
-                                </Button>
-                              )}
-                              {hasPurchasedBet5 && (
-                                <Badge label="BET5 購入済み" className="bg-turf-600 border-0 text-white" />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-text-sub mt-1 text-sm">{event.date}</p>
-                      </div>
-                      <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
-                        <Wallet size={16} className="text-text-sub" />
-                        <span className="text-sm text-nowrap text-gray-500">購入可能残高</span>
-                        <span className="flex-1 text-right text-lg font-semibold text-gray-900 sm:flex-none">
-                          {Math.floor(balance).toLocaleString('ja-JP')}
-                          <span className="text-text-sub ml-0.5 text-sm">円</span>
-                        </span>
-                      </div>
-                    </div>
-                    {bet5Id && bet5Open && (
-                      <div className="mb-4">
-                        <Link href={`/events/${event.id}/bet5`}>
-                          <Card className="bg-turf-950 cursor-pointer border-0 p-4 text-white transition-opacity hover:opacity-90">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                  <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">
-                                    BET5
-                                  </span>
-                                  5レース的中・一攫千金チャンス！
-                                </h3>
-                                <p className="text-turf-100 mt-1 text-sm">対象の5レース全ての1着を予想しよう</p>
-                                {bet5TargetRaceNumbers.length > 0 && (
-                                  <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-white">
-                                    対象レース:
-                                    <Bet5RaceSequence raceNumbers={bet5TargetRaceNumbers} />
-                                  </p>
-                                )}
-                              </div>
-                              <ChevronLeft className="rotate-180" />
-                            </div>
-                          </Card>
-                        </Link>
-                      </div>
-                    )}
-                    {hasWallet && (
-                      <div className="mb-4">
-                        <LoanBanner
-                          eventId={event.id}
-                          balance={balance}
-                          distributeAmount={event.distributeAmount}
-                          loanAmount={event.loanAmount ?? event.distributeAmount}
-                          hasLoaned={totalLoaned > 0}
-                          loanEnabled={event.loanEnabled}
-                          loanThresholdPercent={event.loanThresholdPercent}
-                        />
-                      </div>
-                    )}
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {races.map((race) => (
-                        <Link key={race.id} href={`/races/${race.id}`}>
-                          <Card className="hover:border-primary p-6 transition">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="mb-1 flex items-center gap-2">
-                                  <span className="text-sm text-gray-500">{race.venue.shortName}</span>
-                                  {race.raceNumber && (
-                                    <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
-                                      {race.raceNumber}R
-                                    </span>
-                                  )}
-                                  <Badge
-                                    variant="status"
-                                    label={getDisplayStatus(
-                                      race.status,
-                                      race.entries.some((e) => e.finishPosition !== null)
-                                    )}
-                                  />
-                                </div>
-                                <h3 className="text-xl font-semibold text-gray-900">{race.name}</h3>
-                                <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
-                                  <span>{race.surface}</span>
-                                  <span className="h-1 w-1 rounded-full bg-gray-300" />
-                                  <span>{race.distance}m</span>
-                                  <span className="h-1 w-1 rounded-full bg-gray-300" />
-                                  <span>{race.entries.filter((e) => e.status === 'ENTRANT').length}頭</span>
-                                </div>
-                              </div>
-                              <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">
-                                <ChevronLeft size={20} className="rotate-180" />
-                              </div>
-                            </div>
-                          </Card>
-                        </Link>
-                      ))}
-                    </div>
-                  </section>
-                );
-              }
-            )}
-          </div>
-        )}
+        <div>
+          <h1 className="text-text-main text-3xl font-semibold">即BET</h1>
+          <p className="text-text-sub">開催中のレースを選択して、馬券を購入しましょう。</p>
+        </div>
       </div>
-    </div>
+
+      {sortedEventGroups.length === 0 ? (
+        <EmptyState
+          title="開催中のイベントはありません"
+          description="開催が始まると、ここから投票できます。"
+          action={
+            <Button asChild variant="outline">
+              <Link href="/mypage/claim">参加できるイベントを見る</Link>
+            </Button>
+          }
+        />
+      ) : (
+        <div className="space-y-8">
+          {sortedEventGroups.map(
+            ({
+              event,
+              races,
+              balance,
+              totalLoaned,
+              bet5Id,
+              bet5Status,
+              bet5TargetRaceNumbers,
+              bet5HasClosedRace,
+              hasWallet,
+              hasPurchasedBet5,
+            }) => {
+              // BET5イベントが受付中でも、対象レースが締め切られていたら購入不可として扱う
+              const bet5Open = bet5Status === 'SCHEDULED' && !bet5HasClosedRace;
+              return (
+                <section key={event.id}>
+                  <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-4">
+                        <h2 className="text-text-main text-xl font-semibold sm:text-2xl">{event.name}</h2>
+                        <RankingButton eventId={event.id} />
+                        {(bet5Id || hasPurchasedBet5) && (
+                          <div className="flex items-center gap-2">
+                            {bet5Id && (
+                              <Button variant="outline" size="sm" asChild>
+                                <Link href={`/events/${event.id}/bet5`}>
+                                  <Crown className="mr-2 h-4 w-4" />
+                                  BET5
+                                </Link>
+                              </Button>
+                            )}
+                            {hasPurchasedBet5 && (
+                              <Badge label="BET5 購入済み" className="bg-turf-600 border-0 text-white" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-text-sub mt-1 text-sm">{event.date}</p>
+                    </div>
+                    <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
+                      <Wallet size={16} className="text-text-sub" />
+                      <span className="text-text-sub text-sm text-nowrap">購入可能残高</span>
+                      <span className="text-text-main flex-1 text-right text-lg font-semibold sm:flex-none">
+                        {Math.floor(balance).toLocaleString('ja-JP')}
+                        <span className="text-text-sub ml-0.5 text-sm">円</span>
+                      </span>
+                    </div>
+                  </div>
+                  {bet5Id && bet5Open && (
+                    <div className="mb-4">
+                      <Link href={`/events/${event.id}/bet5`}>
+                        <Card className="bg-turf-950 cursor-pointer border-0 p-4 text-white transition-opacity hover:opacity-90">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="flex items-center gap-2 text-lg font-semibold">
+                                <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">
+                                  BET5
+                                </span>
+                                5レース的中・一攫千金チャンス！
+                              </h3>
+                              <p className="text-turf-100 mt-1 text-sm">対象の5レース全ての1着を予想しよう</p>
+                              {bet5TargetRaceNumbers.length > 0 && (
+                                <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-white">
+                                  対象レース:
+                                  <Bet5RaceSequence raceNumbers={bet5TargetRaceNumbers} />
+                                </p>
+                              )}
+                            </div>
+                            <ChevronLeft className="rotate-180" />
+                          </div>
+                        </Card>
+                      </Link>
+                    </div>
+                  )}
+                  {hasWallet && (
+                    <div className="mb-4">
+                      <LoanBanner
+                        eventId={event.id}
+                        balance={balance}
+                        distributeAmount={event.distributeAmount}
+                        loanAmount={event.loanAmount ?? event.distributeAmount}
+                        hasLoaned={totalLoaned > 0}
+                        loanEnabled={event.loanEnabled}
+                        loanThresholdPercent={event.loanThresholdPercent}
+                      />
+                    </div>
+                  )}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {races.map((race) => (
+                      <Link key={race.id} href={`/races/${race.id}`}>
+                        <Card className="hover:border-primary p-6 transition">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="text-text-sub text-sm">{race.venue.shortName}</span>
+                                {race.raceNumber && (
+                                  <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
+                                    {race.raceNumber}R
+                                  </span>
+                                )}
+                                <Badge
+                                  variant="status"
+                                  label={getDisplayStatus(
+                                    race.status,
+                                    race.entries.some((e) => e.finishPosition !== null)
+                                  )}
+                                />
+                              </div>
+                              <h3 className="text-text-main text-xl font-semibold">{race.name}</h3>
+                              <div className="text-text-sub mt-2 flex items-center gap-3 text-sm">
+                                <span>{race.surface}</span>
+                                <span className="h-1 w-1 rounded-full bg-gray-300" />
+                                <span>{race.distance}m</span>
+                                <span className="h-1 w-1 rounded-full bg-gray-300" />
+                                <span>{race.entries.filter((e) => e.status === 'ENTRANT').length}頭</span>
+                              </div>
+                            </div>
+                            <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">
+                              <ChevronLeft size={20} className="rotate-180" />
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+          )}
+        </div>
+      )}
+    </PageContainer>
   );
 }

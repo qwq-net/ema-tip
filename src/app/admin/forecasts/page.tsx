@@ -37,14 +37,12 @@ export default async function ForecastsPage() {
       <AdminPageHeader title="予想管理" description="レースを選択して予想を入力してください" />
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-4">
-            <AdminSectionTitle>開催一覧</AdminSectionTitle>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
-              <CircleHelp className="h-4 w-4 text-gray-500" />
-              <span>レース名をクリックすると予想入力画面へ移動します。</span>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <AdminSectionTitle>開催一覧</AdminSectionTitle>
+          <p className="text-text-sub flex items-center gap-1.5 text-sm">
+            <CircleHelp className="h-4 w-4" />
+            レース名をクリックすると予想入力画面へ移動します。
+          </p>
         </div>
 
         <Suspense fallback={<AdminLoadingCard />}>

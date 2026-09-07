@@ -44,8 +44,8 @@ export function UserList({ users, currentUserId }: UserListProps) {
           <button
             onClick={() => setActiveTab('ALL_USERS')}
             className={clsx(
-              'rounded-control px-3 py-1.5 text-sm font-medium transition',
-              activeTab === 'ALL_USERS' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'
+              'rounded-control px-3 py-1.5 text-sm font-semibold transition',
+              activeTab === 'ALL_USERS' ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'
             )}
           >
             ユーザー
@@ -53,8 +53,8 @@ export function UserList({ users, currentUserId }: UserListProps) {
           <button
             onClick={() => setActiveTab('GUEST')}
             className={clsx(
-              'rounded-control px-3 py-1.5 text-sm font-medium transition',
-              activeTab === 'GUEST' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'
+              'rounded-control px-3 py-1.5 text-sm font-semibold transition',
+              activeTab === 'GUEST' ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'
             )}
           >
             ゲスト
@@ -62,8 +62,8 @@ export function UserList({ users, currentUserId }: UserListProps) {
           <button
             onClick={() => setActiveTab('AI')}
             className={clsx(
-              'rounded-control px-3 py-1.5 text-sm font-medium transition',
-              activeTab === 'AI' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'
+              'rounded-control px-3 py-1.5 text-sm font-semibold transition',
+              activeTab === 'AI' ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'
             )}
           >
             AI
@@ -72,7 +72,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
 
         <Link
           href="/admin/users/guests"
-          className="rounded-control inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset hover:bg-gray-50"
+          className="rounded-control text-text-main inline-flex items-center bg-white px-3 py-2 text-sm font-semibold ring-1 ring-gray-300 ring-inset hover:bg-gray-50"
         >
           ゲストコード管理
         </Link>
@@ -93,7 +93,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
             filteredUsers.map((user) => (
               <TableRow
                 key={user.id}
-                className={clsx(user.disabledAt && 'bg-red-50 text-gray-500 hover:bg-red-100/50')}
+                className={clsx(user.disabledAt && 'text-text-sub bg-red-50 hover:bg-red-100/50')}
               >
                 <Td>
                   <div className="flex items-center gap-3">
@@ -111,14 +111,14 @@ export function UserList({ users, currentUserId }: UserListProps) {
                       </div>
                     )}
                     <div>
-                      <div className="font-medium text-gray-900">{user.name || '名前なし'}</div>
+                      <div className="text-text-main font-semibold">{user.name || '名前なし'}</div>
                       <div className="text-text-sub text-sm">{user.accounts[0]?.provider || 'credential'}</div>
                     </div>
                   </div>
                 </Td>
                 <Td>
                   <div className="flex items-center gap-2">
-                    <code className="rounded-chip bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-500">
+                    <code className="rounded-chip text-text-sub bg-gray-100 px-1.5 py-0.5 font-mono text-sm">
                       {user.id.substring(0, 8)}...
                     </code>
                     {user.id === currentUserId && <Badge variant="role" label="You" />}

@@ -164,7 +164,7 @@ export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefi
             </option>
           ))}
         </Select>
-        <p className="mt-1 text-sm text-gray-500">選択した会場の方向が自動選択されます</p>
+        <p className="text-text-sub mt-1 text-sm">選択した会場の方向が自動選択されます</p>
       </div>
 
       <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>

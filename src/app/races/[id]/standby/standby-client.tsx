@@ -47,7 +47,7 @@ function RankingCard({ ranking, isFinalized }: RankingCardProps) {
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
             R
           </span>
-          <h3 className="text-sm font-semibold text-gray-900">{isFinalized ? '確定着順' : '着順速報'}</h3>
+          <h3 className="text-text-main text-sm font-semibold">{isFinalized ? '確定着順' : '着順速報'}</h3>
         </div>
       </div>
       <div className="divide-y divide-gray-100">
@@ -68,7 +68,7 @@ function RankingCard({ ranking, isFinalized }: RankingCardProps) {
               >
                 {result.horseNumber}
               </div>
-              <span className="font-medium text-gray-900">{result.horseName}</span>
+              <span className="text-text-main font-semibold">{result.horseName}</span>
             </div>
           </div>
         ))}
@@ -96,7 +96,7 @@ function WaitingNotice({ isClosed }: { isClosed: boolean }) {
         </div>
       </div>
       <div className="p-6">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">
+        <h2 className="text-text-main mb-2 text-lg font-semibold">
           {isClosed ? 'レースは締め切られました' : 'レースの確定を待っています'}
         </h2>
         <p className="text-sm leading-relaxed text-gray-600">
@@ -227,7 +227,7 @@ export function StandbyClient({
           <div className="flex items-center gap-3">
             <Badge variant="status" label={displayStatus} />
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">{race.location}</span>
+              <span className="text-text-sub text-sm">{race.location}</span>
               {race.raceNumber && (
                 <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
                   {race.raceNumber}R
@@ -236,8 +236,8 @@ export function StandbyClient({
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
-            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
+            <h1 className="text-text-main text-3xl font-semibold">{race.name}</h1>
+            <div className="text-text-sub mt-2 flex items-center gap-3 text-sm">
               <span>{race.surface}</span>
               <span className="h-1 w-1 rounded-full bg-gray-300" />
               <span>{race.distance}m</span>
@@ -261,13 +261,13 @@ export function StandbyClient({
       {initialIsFinalized && !hasTickets && (
         <div className="rounded-surface mb-8 overflow-hidden border border-gray-100 bg-white">
           <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
-            <div className="flex items-center gap-2 text-gray-500">
+            <div className="text-text-sub flex items-center gap-2">
               <Badge variant="status" label="情報" className="bg-gray-100 text-gray-600" />
               <span className="text-sm font-semibold">結果発表済み</span>
             </div>
           </div>
           <div className="p-6">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">このレースの結果が発表されました</h2>
+            <h2 className="text-text-main mb-2 text-lg font-semibold">このレースの結果が発表されました</h2>
             <p className="text-sm leading-relaxed text-gray-600">
               購入した馬券はありませんが、下のボタンから払戻結果などの詳細情報を確認いただけます。
             </p>

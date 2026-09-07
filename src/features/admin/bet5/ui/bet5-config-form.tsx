@@ -88,7 +88,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
         <div className="space-y-6">
           <div className="space-y-2">
             <Label>対象レース選択</Label>
-            <p className="text-sm text-gray-500">
+            <p className="text-text-sub text-sm">
               5レースを選択してください。選択したレースはレース番号順に第1〜5戦へ割り当てられます。
             </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,7 +105,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                     onClick={() => handleRaceSelection(race.id)}
                   >
                     <span className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{formatRaceLabel(race)}</span>
+                      <span className="text-sm font-semibold">{formatRaceLabel(race)}</span>
                       {legNumber > 0 && (
                         <Badge label={`第${legNumber}戦`} className="bg-turf-600 border-0 text-white" />
                       )}
@@ -114,9 +114,9 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                 );
               })}
             </div>
-            <p className="text-sm text-gray-500">選択済み: {selectedRaces.length} / 5</p>
+            <p className="text-text-sub text-sm">選択済み: {selectedRaces.length} / 5</p>
             {selectedInRaceOrder.length > 0 && (
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm text-gray-700">
                 {selectedInRaceOrder.map((race, index) => `第${index + 1}戦 ${formatRaceLabel(race)}`).join(' → ')}
               </p>
             )}
@@ -125,7 +125,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
           <div className="space-y-2">
             <Label htmlFor="initialPot">初期プール</Label>
             <NumericInput id="initialPot" value={initialPot} onChange={setInitialPot} min={0} />
-            <p className="text-sm text-gray-500">
+            <p className="text-text-sub text-sm">
               売上によるプール金額とは別に、今回特別に設定するボーナス金額です。初期値はイベントの配布金額の10倍です。
             </p>
           </div>

@@ -73,7 +73,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
       )}
       <div className="flex flex-col">
         <span
-          className={`rounded-chip mb-0.5 w-fit border px-1.5 py-0.5 text-sm font-medium ${lookup(RoleColor, user.role) ?? ''}`}
+          className={`rounded-chip mb-0.5 w-fit border px-1.5 py-0.5 text-sm font-semibold ${lookup(RoleColor, user.role) ?? ''}`}
         >
           {lookup(RoleLabel, user.role) ?? user.role}
         </span>
@@ -108,14 +108,16 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
           </div>
         ) : (
           <div className="group flex items-center gap-2">
-            <span className="text-lg leading-tight font-semibold text-gray-900">{user.name || '名称未設定'}</span>
-            <button
+            <span className="text-text-main text-lg leading-tight font-semibold">{user.name || '名称未設定'}</span>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setIsEditing(true)}
-              className="text-text-sub transition-colors hover:text-gray-600"
+              className="text-text-sub hover:text-text-main"
               aria-label="名前を変更"
             >
               <Pencil className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         )}
       </div>

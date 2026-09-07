@@ -88,8 +88,8 @@ export function AdminRankingManager({
         <AdminSectionTitle className="mb-4">公開設定</AdminSectionTitle>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-gray-500">
-              現在の設定: <span className="font-medium text-gray-900">{MODE_LABELS[optimisticMode]}</span>
+            <p className="text-text-sub text-sm">
+              現在の設定: <span className="text-text-main font-semibold">{MODE_LABELS[optimisticMode]}</span>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -98,7 +98,7 @@ export function AdminRankingManager({
               variant={optimisticMode === 'HIDDEN' ? 'secondary' : 'outline'}
               disabled={isPending}
               onClick={() => handleModeChange('HIDDEN')}
-              className={optimisticMode === 'HIDDEN' ? 'bg-gray-200 text-gray-900' : ''}
+              className={optimisticMode === 'HIDDEN' ? 'text-text-main bg-gray-200' : ''}
             >
               <EyeOff className="mr-2 h-4 w-4" />
               非公開
@@ -149,17 +149,17 @@ export function AdminRankingManager({
                   aria-pressed={view === candidate}
                   onClick={() => setViewOverride({ mode: optimisticMode, view: candidate })}
                   className={cn(
-                    'rounded-control px-3 py-1 font-medium transition-colors',
+                    'rounded-control px-3 py-1 font-semibold transition-colors',
                     view === candidate
-                      ? 'bg-white text-gray-900 ring-1 ring-gray-200'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'text-text-main bg-white ring-1 ring-gray-200'
+                      : 'text-text-sub hover:text-text-main'
                   )}
                 >
                   {VIEW_LABELS[candidate]}
                 </button>
               ))}
             </div>
-            <span className="text-gray-500">公開設定に合わせて自動で切り替わります</span>
+            <span className="text-text-sub">公開設定に合わせて自動で切り替わります</span>
           </div>
         </div>
 
@@ -181,23 +181,23 @@ export function AdminRankingManager({
                     <Td>
                       <div
                         className={`flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold ${
-                          medalRankClass(user.rank) ?? 'bg-gray-100 text-gray-500'
+                          medalRankClass(user.rank) ?? 'text-text-sub bg-gray-100'
                         }`}
                       >
                         {user.rank}
                       </div>
                     </Td>
-                    <Td className="font-medium text-gray-900">{user.name}</Td>
-                    <Td className="text-right font-medium text-gray-900 tabular-nums">
+                    <Td className="text-text-main font-semibold">{user.name}</Td>
+                    <Td className="text-text-main text-right font-semibold tabular-nums">
                       {balanceOf(user).toLocaleString('ja-JP')} 円
                     </Td>
                     <Td className="text-right tabular-nums">
-                      <span className={cn('font-medium', resultDiffClass(diff))}>{formatSignedYen(diff)}</span>
+                      <span className={cn('font-semibold', resultDiffClass(diff))}>{formatSignedYen(diff)}</span>
                     </Td>
                     {includeLoan && (
                       <Td className="text-right">
                         {user.totalLoaned && user.totalLoaned > 0 ? (
-                          <span className="font-medium text-red-500 tabular-nums">
+                          <span className="font-semibold text-red-500 tabular-nums">
                             -{user.totalLoaned.toLocaleString('ja-JP')}円
                           </span>
                         ) : (

@@ -11,7 +11,7 @@ const preventFocusSteal = (e: React.MouseEvent) => e.preventDefault();
 
 export function NumericKeypad({ onDigit, onBackspace, onClear, onClose }: NumericKeypadProps) {
   return (
-    <div className="animate-in fade-in zoom-in rounded-surface w-72 overflow-hidden border border-gray-200 bg-white shadow-xl duration-200">
+    <div className="rounded-surface w-72 overflow-hidden border border-gray-200 bg-white shadow-xl">
       <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-4 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
           <Calculator className="text-primary h-4 w-4" />
@@ -33,7 +33,7 @@ export function NumericKeypad({ onDigit, onBackspace, onClear, onClose }: Numeri
             key={n}
             onClick={() => onDigit(n)}
             onMouseDown={preventFocusSteal}
-            className="rounded-surface flex h-12 items-center justify-center border border-gray-200 bg-gray-50 text-xl font-semibold text-gray-900 transition hover:bg-gray-100 active:scale-[.96]"
+            className="rounded-surface text-text-main flex h-12 items-center justify-center border border-gray-200 bg-gray-50 text-xl font-semibold transition hover:bg-gray-100 active:scale-[.96]"
           >
             {n}
           </button>
@@ -48,7 +48,7 @@ export function NumericKeypad({ onDigit, onBackspace, onClear, onClose }: Numeri
         <button
           onClick={() => onDigit(0)}
           onMouseDown={preventFocusSteal}
-          className="rounded-surface flex h-12 items-center justify-center border border-gray-200 bg-gray-50 text-xl font-semibold text-gray-900 transition hover:bg-gray-100 active:scale-[.96]"
+          className="rounded-surface text-text-main flex h-12 items-center justify-center border border-gray-200 bg-gray-50 text-xl font-semibold transition hover:bg-gray-100 active:scale-[.96]"
         >
           0
         </button>

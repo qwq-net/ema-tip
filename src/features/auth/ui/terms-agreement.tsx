@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export function TermsAgreement({ className }: { className?: string }) {
   return (
-    <p className={`text-center text-sm text-gray-500 ${className ?? ''}`}>
+    <p className={`text-text-sub text-center text-sm ${className ?? ''}`}>
       <Link href="/terms" className="text-primary hover:underline">
         利用規約
       </Link>

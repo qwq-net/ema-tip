@@ -117,7 +117,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
             ].map((t) => (
               <label
                 key={t.value}
-                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-medium transition ${
+                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-semibold transition ${
                   type === t.value
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -146,7 +146,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
             {['牡', '牝', 'セン'].map((g) => (
               <label
                 key={g}
-                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-medium transition ${
+                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-semibold transition ${
                   gender === g
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -195,7 +195,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
 
             return (
               <div key={cat} className="space-y-2">
-                <div className="text-sm text-gray-500">{HORSE_TAG_CATEGORIES[cat]}</div>
+                <div className="text-text-sub text-sm">{HORSE_TAG_CATEGORIES[cat]}</div>
                 <div className="flex flex-wrap gap-2">
                   {masterTags.map((masterTag) => {
                     const isActive = tags.some((t) => t.type === masterTag.type && t.content === masterTag.content);
@@ -205,7 +205,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
                         type="button"
                         onClick={() => toggleTag(masterTag)}
                         className={cn(
-                          'rounded-control border px-2.5 py-1 text-sm font-medium transition select-none',
+                          'rounded-control border px-2.5 py-1 text-sm font-semibold transition select-none',
                           isActive
                             ? 'border-primary bg-primary text-white'
                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
@@ -223,14 +223,14 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
 
         {tags.length > 0 && (
           <div className="mt-4">
-            <div className="mb-2 text-sm text-gray-500">選択中のタグ</div>
+            <div className="text-text-sub mb-2 text-sm">選択中のタグ</div>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm ring-1 ring-gray-200"
                 >
-                  <span className="mr-1 text-sm text-gray-500">{HORSE_TAG_CATEGORIES[tag.type]}:</span>
+                  <span className="text-text-sub mr-1 text-sm">{HORSE_TAG_CATEGORIES[tag.type]}:</span>
                   <span className="text-gray-700">{tag.content}</span>
                   <button
                     type="button"

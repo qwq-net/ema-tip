@@ -36,7 +36,7 @@ export function RacePageHeader({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        {venueShortName && <span className="text-sm text-gray-500">{venueShortName}</span>}
+        {venueShortName && <span className="text-text-sub text-sm">{venueShortName}</span>}
         {raceNumber && (
           <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
             {raceNumber}R
@@ -46,24 +46,24 @@ export function RacePageHeader({
           <>
             <span className="text-gray-300">/</span>
             {eventHref ? (
-              <Link href={eventHref} className="truncate text-sm text-gray-500 hover:text-gray-900 hover:underline">
+              <Link href={eventHref} className="text-text-sub hover:text-text-main truncate text-sm hover:underline">
                 {eventName}
               </Link>
             ) : (
-              <span className="truncate text-sm text-gray-500">{eventName}</span>
+              <span className="text-text-sub truncate text-sm">{eventName}</span>
             )}
           </>
         )}
       </div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-3xl font-semibold text-gray-900">{name}</h1>
+          <h1 className="text-text-main text-3xl font-semibold">{name}</h1>
           {netkeibaUrl && (
             <a
               href={netkeibaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-control inline-flex items-center gap-1 bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
+              className="rounded-control inline-flex items-center gap-1 bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
             >
               <ExternalLink className="h-3 w-3" />
               Netkeiba
@@ -72,7 +72,7 @@ export function RacePageHeader({
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
-      <div className="flex items-center gap-3 text-sm text-gray-500">
+      <div className="text-text-sub flex items-center gap-3 text-sm">
         <span>{surface}</span>
         <span className="h-1 w-1 rounded-full bg-gray-300" />
         <span>{distance}m</span>

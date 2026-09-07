@@ -4,10 +4,10 @@ import type { BetType } from '@/entities/bet';
 import { BET_TYPE_LABELS } from '@/entities/bet';
 import type { CompressedRow } from '@/features/betting/lib/compress-selections';
 import { compressBetSelections } from '@/features/betting/lib/compress-selections';
-import { Badge } from '@/shared/ui';
+import { Badge, EmptyState } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
-import { ChevronDown, ChevronUp, Play } from 'lucide-react';
+import { ChevronDown, ChevronUp, Play, Ticket } from 'lucide-react';
 import { useState } from 'react';
 
 interface BetTicket {
@@ -43,14 +43,7 @@ interface PurchasedTicketListProps {
 
 export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: PurchasedTicketListProps) {
   if (ticketGroups.length === 0) {
-    return (
-      <div className="rounded-surface border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-          <span className="text-xl">🎫</span>
-        </div>
-        <p className="text-text-sub text-sm">購入した馬券はありません</p>
-      </div>
-    );
+    return <EmptyState icon={Ticket} title="このレースで購入した馬券はありません" />;
   }
 
   const totalAmount = ticketGroups.reduce((sum, group) => sum + group.totalAmount, 0);
@@ -63,12 +56,12 @@ export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: Pur
     <div className="space-y-4">
       <div className="rounded-surface flex items-center justify-between border border-gray-100 bg-white p-4">
         <div>
-          <div className="mb-1 text-sm text-gray-500">購入合計</div>
-          <div className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</div>
+          <div className="text-text-sub mb-1 text-sm">購入合計</div>
+          <div className="text-text-main text-xl font-semibold">{totalAmount.toLocaleString('ja-JP')}円</div>
         </div>
         {totalPayout > 0 && (
           <div className="text-right">
-            <div className="mb-1 text-sm text-gray-500">払戻合計</div>
+            <div className="text-text-sub mb-1 text-sm">払戻合計</div>
             <div className="text-xl font-semibold text-red-600">{totalPayout.toLocaleString('ja-JP')}円</div>
           </div>
         )}
@@ -110,7 +103,7 @@ function GroupPayoutSummary({
   if (groupPayout > 0) {
     if (isAllRefunded) {
       return (
-        <span className="block text-sm text-gray-500 tabular-nums">返還 {groupPayout.toLocaleString('ja-JP')}円</span>
+        <span className="text-text-sub block text-sm tabular-nums">返還 {groupPayout.toLocaleString('ja-JP')}円</span>
       );
     }
     return (
@@ -127,7 +120,7 @@ function GroupPayoutSummary({
   if (!hasProvisional) return null;
 
   return (
-    <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-medium text-amber-600">
+    <span className="mt-0.5 flex items-center justify-end gap-1.5 text-sm font-semibold text-amber-600">
       {hasGuaranteedProvisional && (
         <span className="bg-turf-100 text-turf-800 rounded-chip px-1.5 py-0.5 text-sm font-semibold">保証</span>
       )}
@@ -164,7 +157,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
     if (isHit) return <Badge variant="status" label="的中" className="bg-red-100 text-red-800" />;
     if (isAllRefunded) return <Badge variant="status" label="返還" className="bg-blue-50 text-blue-700" />;
     if (isSettledWithoutHit && !isPending)
-      return <Badge variant="status" label="不的中" className="bg-gray-100 text-gray-500" />;
+      return <Badge variant="status" label="不的中" className="text-text-sub bg-gray-100" />;
     return null;
   };
 
@@ -221,13 +214,13 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
         <span className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white ring-1 ring-gray-200">
             {isOpen ? (
-              <ChevronUp size={20} className="text-gray-500" />
+              <ChevronUp size={20} className="text-text-sub" />
             ) : (
-              <ChevronDown size={20} className="text-gray-500" />
+              <ChevronDown size={20} className="text-text-sub" />
             )}
           </span>
           <span className="flex items-center gap-2">
-            <span className="font-semibold text-gray-900">{BET_TYPE_LABELS[group.type]}</span>
+            <span className="text-text-main font-semibold">{BET_TYPE_LABELS[group.type]}</span>
             {getGroupStatusBadge()}
             {hasGuaranteedHit && (
               <Badge variant="status" label="保証オッズ適用" className="bg-turf-100 text-turf-800" />
@@ -235,7 +228,7 @@ function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsM
           </span>
         </span>
         <span className="text-right">
-          <span className="block text-sm font-semibold text-gray-900 tabular-nums">
+          <span className="text-text-main block text-sm font-semibold tabular-nums">
             {unitAmount.toLocaleString('ja-JP')}円 × {betCount}点 = {group.totalAmount.toLocaleString('ja-JP')}円
           </span>
           <GroupPayoutSummary
@@ -302,7 +295,7 @@ function CompressedRowItem({ row, horseToBracket }: { row: CompressedRow; horseT
 
       <div className="sticky right-0 ml-auto flex shrink-0 flex-col items-end gap-1 pl-4">
         {row.hasHit && <Badge variant="status" label="的中" className="bg-red-100 text-red-800" />}
-        <span className="text-text-sub text-sm font-medium whitespace-nowrap">{row.betCount}点</span>
+        <span className="text-text-sub text-sm whitespace-nowrap">{row.betCount}点</span>
       </div>
     </div>
   );

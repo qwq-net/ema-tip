@@ -90,7 +90,7 @@ export function GuestSignupClient() {
         <div>
           <Link
             href="/login"
-            className="flex w-fit items-center text-sm text-gray-500 transition-colors hover:text-gray-900 hover:underline"
+            className="text-text-sub hover:text-text-main flex w-fit items-center text-sm transition-colors hover:underline"
           >
             <span>←</span>
             <span className="ml-1">通常ログインに戻る</span>
@@ -101,13 +101,13 @@ export function GuestSignupClient() {
           <GuestAuthTabs activeTab="signup" />
 
           <div className="text-center">
-            <h2 className="text-primary text-xl font-semibold tracking-tight">招待コード新規登録</h2>
-            <p className="mt-2 text-sm text-gray-500">招待コードと絵文字パスワードを入力</p>
+            <h1 className="text-primary text-xl font-semibold tracking-tight">招待コード新規登録</h1>
+            <p className="text-text-sub mt-2 text-sm">招待コードと絵文字パスワードを入力</p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="code" className="block text-sm text-gray-700">
                 招待コード
               </label>
               <div className="mt-1">
@@ -126,9 +126,9 @@ export function GuestSignupClient() {
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="block text-sm text-gray-700">
                 ユーザー名
-                <span className="ml-2 text-sm font-normal text-gray-500">（英数字、ひらがな、カタカナ、漢字）</span>
+                <span className="text-text-sub ml-2 text-sm font-normal">（英数字、ひらがな、カタカナ、漢字）</span>
               </label>
               <div className="mt-1">
                 <Input
@@ -146,12 +146,12 @@ export function GuestSignupClient() {
             </div>
 
             <div>
-              <p className="mb-2 block text-sm font-medium text-gray-700">
+              <p className="mb-2 block text-sm text-gray-700">
                 絵文字パスワード
-                <span className="ml-2 text-sm font-normal text-gray-500">（3〜6文字）</span>
+                <span className="text-text-sub ml-2 text-sm font-normal">（3〜6文字）</span>
               </p>
 
-              <Input
+              <input
                 type="password"
                 name="password"
                 autoComplete="new-password"
@@ -160,7 +160,6 @@ export function GuestSignupClient() {
                 className="sr-only"
                 tabIndex={-1}
                 aria-hidden="true"
-                ignorePasswordManager={false}
               />
 
               <div className="rounded-control mb-4 flex min-h-[50px] items-center justify-center border border-gray-200 bg-gray-100 p-3 text-center text-xl tracking-widest">
@@ -172,7 +171,7 @@ export function GuestSignupClient() {
 
             {error && (
               <Alert variant="error" className="flex-col items-start gap-1 p-4">
-                <h3 className="font-semibold">登録エラー</h3>
+                <p className="font-semibold">登録エラー</p>
                 <p className="font-normal">{error}</p>
               </Alert>
             )}

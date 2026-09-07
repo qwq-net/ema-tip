@@ -34,7 +34,7 @@ export default async function RaceEntriesPage({ params }: { params: Promise<{ id
   // saveEntries が拒否する状態では編集 UI を出さず、理由だけを示す
   const lockedReason = await resolveLockedReason(race.status, id);
   if (lockedReason) {
-    return <Card className="p-6 text-sm text-gray-500">{lockedReason}</Card>;
+    return <Card className="text-text-sub p-6 text-sm">{lockedReason}</Card>;
   }
 
   const [availableHorses, existingEntries] = await Promise.all([getAvailableHorses(id), getEntriesForRace(id)]);

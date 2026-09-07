@@ -65,7 +65,7 @@ export function HorseList({ horses }: { horses: Horse[] }) {
           )}
           {filteredHorses.map((horse) => (
             <TableRow key={horse.id}>
-              <Td className="font-semibold text-gray-900">
+              <Td className="text-text-main font-semibold">
                 <Link
                   href={`/admin/horses/${horse.id}`}
                   className="text-primary hover:text-primary/80 transition-colors hover:underline"
@@ -96,7 +96,7 @@ export function HorseList({ horses }: { horses: Horse[] }) {
               <Td>
                 <Badge label={getGenderAge(horse.gender, horse.age)} variant="gender" />
               </Td>
-              <Td className="max-w-[200px] truncate font-medium text-gray-500" title={horse.notes || ''}>
+              <Td className="text-text-sub max-w-[200px] truncate" title={horse.notes || ''}>
                 {horse.notes || '-'}
               </Td>
               <Td className="text-right">

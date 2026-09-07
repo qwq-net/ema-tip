@@ -44,7 +44,7 @@ export function RaceListTable<T extends RaceListTableRace>({
   emptyMessage,
 }: RaceListTableProps<T>) {
   if (races.length === 0) {
-    return <div className="py-8 text-center text-gray-500">{emptyMessage}</div>;
+    return <div className="text-text-sub py-8 text-center">{emptyMessage}</div>;
   }
   const tails = tail === undefined ? [] : [tail].flat();
 
@@ -65,7 +65,7 @@ export function RaceListTable<T extends RaceListTableRace>({
       <TableBody>
         {races.map((race) => (
           <TableRow key={race.id}>
-            <Td className="font-medium text-gray-900">{race.raceNumber ? `${race.raceNumber}R` : '-'}</Td>
+            <Td className="text-text-main font-semibold">{race.raceNumber ? `${race.raceNumber}R` : '-'}</Td>
             <Td>
               <div className="flex items-center gap-2">
                 <Link
@@ -77,9 +77,9 @@ export function RaceListTable<T extends RaceListTableRace>({
                 {nameExtra?.(race)}
               </div>
             </Td>
-            <Td className="text-gray-500">{race.venue?.name ?? race.venue?.shortName ?? '-'}</Td>
-            <Td className="text-gray-500">{race.distance}m</Td>
-            <Td className="text-gray-500">
+            <Td className="text-text-sub">{race.venue?.name ?? race.venue?.shortName ?? '-'}</Td>
+            <Td className="text-text-sub">{race.distance}m</Td>
+            <Td className="text-text-sub">
               {race.surface} {race.condition || ''}
             </Td>
             {tails.map((column) => (

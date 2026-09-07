@@ -62,7 +62,7 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
       </div>
 
       <div className="space-y-4">
-        <label className="flex items-center gap-2 text-sm text-gray-900">
+        <label className="text-text-main flex items-center gap-2 text-sm">
           <Checkbox checked={isCustom} onCheckedChange={(checked) => setIsCustom(checked)} disabled={isPending} />
           このレースで個別に指定する
         </label>
@@ -72,7 +72,7 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
             {BET_TYPE_ORDER.map((type) => (
               <label
                 key={type}
-                className="rounded-control flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
+                className="rounded-control text-text-main flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-sm"
               >
                 <Checkbox checked={selected.has(type)} onCheckedChange={() => toggleType(type)} disabled={isPending} />
                 {BET_TYPE_LABELS[type]}
@@ -80,7 +80,7 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">
+          <p className="text-text-sub text-sm">
             イベントの設定に従います。現在のイベント設定: <span className="font-semibold">{eventDefaultLabel}</span>
           </p>
         )}

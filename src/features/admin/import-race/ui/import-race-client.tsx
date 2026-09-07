@@ -132,7 +132,7 @@ export function ImportRaceClient({ events, venues }: Props) {
   return (
     <div className="space-y-6">
       <Card className="space-y-4 p-6">
-        <h2 className="text-lg font-semibold text-gray-900">Step 1 — Netkeiba URL を入力</h2>
+        <h2 className="text-text-main text-lg font-semibold">Step 1 — Netkeiba URL を入力</h2>
         <div className="flex gap-2">
           <Input
             value={url}
@@ -153,7 +153,7 @@ export function ImportRaceClient({ events, venues }: Props) {
       {preview && (
         <>
           <Card className="space-y-4 p-6">
-            <h2 className="text-lg font-semibold text-gray-900">Step 2 — レース情報確認・編集</h2>
+            <h2 className="text-text-main text-lg font-semibold">Step 2 — レース情報確認・編集</h2>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -211,17 +211,17 @@ export function ImportRaceClient({ events, venues }: Props) {
 
             <div className="flex items-center gap-2">
               <Checkbox id="fixedOddsMode" checked={fixedOddsMode} onCheckedChange={setFixedOddsMode} />
-              <label htmlFor="fixedOddsMode" className="cursor-pointer text-sm font-medium text-gray-700">
+              <label htmlFor="fixedOddsMode" className="cursor-pointer text-sm text-gray-700">
                 固定オッズモードで登録（Netkeibaオッズで払戻）
               </label>
             </div>
           </Card>
 
           <Card className="space-y-4 p-6">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-text-main text-lg font-semibold">
               出走馬一覧（{preview.horses.filter((h) => !h.scratched).length}頭）
               {preview.horses.some((h) => h.scratched) && (
-                <span className="ml-2 text-sm font-medium text-red-500">
+                <span className="ml-2 text-sm font-semibold text-red-500">
                   取消・除外 {preview.horses.filter((h) => h.scratched).length}頭
                 </span>
               )}
@@ -243,7 +243,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                     <TableRow key={h.name} className={h.scratched ? 'text-text-sub bg-red-50/50 line-through' : ''}>
                       <Td>{h.bracketNumber ?? '-'}</Td>
                       <Td>{h.horseNumber}</Td>
-                      <Td className="font-medium">{h.name}</Td>
+                      <Td className="font-semibold">{h.name}</Td>
                       <Td>
                         {lookup(GENDER_LABELS, h.gender) ?? h.gender}
                         {h.age}

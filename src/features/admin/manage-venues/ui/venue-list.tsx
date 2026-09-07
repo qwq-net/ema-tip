@@ -39,7 +39,7 @@ export async function VenueList() {
         {venues.length === 0 && <TableEmptyRow colSpan={6}>登録されている会場はありません</TableEmptyRow>}
         {venues.map((venue) => (
           <TableRow key={venue.id}>
-            <Td className="font-semibold text-gray-900">
+            <Td className="text-text-main font-semibold">
               <Link
                 href={`/admin/venues/${venue.id}`}
                 className="text-primary hover:text-primary/80 transition-colors hover:underline"
@@ -47,7 +47,7 @@ export async function VenueList() {
                 {venue.name}
               </Link>
             </Td>
-            <Td className="font-mono text-gray-500">{venue.code || '-'}</Td>
+            <Td className="text-text-sub font-mono">{venue.code || '-'}</Td>
             <Td>{venue.shortName}</Td>
             <Td>
               <Badge

@@ -23,7 +23,7 @@ export default async function LoginPage() {
           <div className="mb-8">
             <LogoMark size={56} className="mx-auto mb-3" />
             <h1 className="text-primary text-2xl font-semibold tracking-tight">えまちっぷ</h1>
-            <p className={`text-center text-sm text-gray-500`}>オンライン馬券投票ごっこシステム</p>
+            <p className={`text-text-sub text-center text-sm`}>オンライン馬券投票ごっこシステム</p>
           </div>
           <LoginButton />
         </div>
@@ -36,7 +36,7 @@ export default async function LoginPage() {
           <div className="flex flex-col gap-2">
             <div className="text-primary flex items-center gap-2">
               <CircleHelp className="h-4 w-4" />
-              <h3 className="text-sm font-semibold">Discord ログインで使用する権限について</h3>
+              <h2 className="text-sm font-semibold">Discord ログインで使用する権限について</h2>
             </div>
             <div className="text-sm text-gray-600">
               <p>
@@ -46,7 +46,7 @@ export default async function LoginPage() {
           </div>
         </div>
         <div className="mt-6 text-center">
-          <a href="/login/guest" className="text-primary hover:text-primary/80 text-sm font-medium hover:underline">
+          <a href="/login/guest" className="text-primary hover:text-primary/80 text-sm hover:underline">
             ゲストログインページへ
           </a>
         </div>

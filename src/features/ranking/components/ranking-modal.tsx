@@ -21,7 +21,7 @@ export function RankingModal({ eventName, children }: { eventName: string; child
       <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-gray-100 px-6 pt-6 pr-12 pb-4">
           <DialogTitle>イベントランキング</DialogTitle>
-          <p className="text-sm text-gray-500">{eventName}</p>
+          <p className="text-text-sub text-sm">{eventName}</p>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-4 pb-6">{children}</div>
       </DialogContent>

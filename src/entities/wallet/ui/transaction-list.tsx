@@ -48,7 +48,7 @@ export function TransactionList({ transactions, truncated = false }: Transaction
                 {isExpense ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
               </div>
               <div>
-                <div className="font-semibold text-gray-900">
+                <div className="text-text-main font-semibold">
                   {tx.description || lookup(TRANSACTION_TYPE_LABELS, tx.type) || tx.type}
                 </div>
                 <div className="text-text-sub text-sm">

@@ -13,8 +13,8 @@ export default function NotFound() {
           <p className="text-6xl font-semibold tracking-tight text-gray-300" aria-hidden="true">
             404
           </p>
-          <h1 className="text-2xl font-semibold text-gray-900">ページが見つかりません</h1>
-          <p className="text-sm text-gray-500">お探しのページは存在しないか、移動した可能性があります。</p>
+          <h1 className="text-text-main text-2xl font-semibold">ページが見つかりません</h1>
+          <p className="text-text-sub text-sm">お探しのページは存在しないか、移動した可能性があります。</p>
         </div>
         <Button asChild variant="primary">
           <Link href="/mypage">マイページに戻る</Link>

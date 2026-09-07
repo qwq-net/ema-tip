@@ -95,21 +95,21 @@ function Bet5ActionRow({ status, isPending, canCalculatePayout, onClose, onCalcu
       )}
 
       {status === 'CLOSED' && !canCalculatePayout && (
-        <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
+        <div className="text-text-sub ml-2 flex items-center text-sm">
           <Info className="mr-1 h-4 w-4" />
           全対象レースが「着順確定」または「払戻確定」になると実行できます。
         </div>
       )}
 
       {status === 'SCHEDULED' && (
-        <div className="ml-2 flex items-center text-sm font-medium text-gray-500">
+        <div className="text-text-sub ml-2 flex items-center text-sm">
           <Info className="mr-1 h-4 w-4" />
           払戻は締切後に実行できます。
         </div>
       )}
 
       {status === 'FINALIZED' && (
-        <div className="flex items-center font-medium text-green-600">
+        <div className="flex items-center font-semibold text-green-600">
           <Calculator className="mr-2 h-4 w-4" />
           集計・払戻完了済み
         </div>
@@ -187,18 +187,18 @@ export function Bet5ManageCard({
         <div className="rounded-control bg-gray-50 p-4">
           <div className="mb-4 grid gap-4 sm:grid-cols-3">
             <div>
-              <p className="font-medium text-gray-900">ステータス</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-text-main font-semibold">ステータス</p>
+              <p className="text-text-sub text-sm">
                 {lookup(BET5_STATUS_LABELS, bet5Event.status) || bet5Event.status}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-900">初期プール</p>
-              <p className="text-sm text-gray-500">{bet5Event.initialPot.toLocaleString('ja-JP')}円</p>
+              <p className="text-text-main font-semibold">初期プール</p>
+              <p className="text-text-sub text-sm">{bet5Event.initialPot.toLocaleString('ja-JP')}円</p>
             </div>
             <div>
-              <p className="font-medium text-gray-900">イベント初期支給額</p>
-              <p className="text-sm text-gray-500">{distributeAmount.toLocaleString('ja-JP')}円</p>
+              <p className="text-text-main font-semibold">イベント初期支給額</p>
+              <p className="text-text-sub text-sm">{distributeAmount.toLocaleString('ja-JP')}円</p>
             </div>
           </div>
 
@@ -222,12 +222,12 @@ export function Bet5ManageCard({
                 プールを更新
               </Button>
             </div>
-            {!canEditPot && <p className="text-sm text-gray-500">払戻完了後はプールを変更できません。</p>}
+            {!canEditPot && <p className="text-text-sub text-sm">払戻完了後はプールを変更できません。</p>}
           </div>
         </div>
 
         <div className="rounded-control border border-gray-100 bg-white p-4">
-          <p className="mb-2 font-medium text-gray-900">設定済み対象レース</p>
+          <p className="text-text-main mb-2 font-semibold">設定済み対象レース</p>
           <ul className="space-y-1.5 text-sm text-gray-700">
             {targetRaces.map((race) => {
               const stat = raceLiveStatByRaceId.get(race.id);
@@ -270,7 +270,7 @@ export function Bet5ManageCard({
           onCalculate={handleCalculate}
         />
         {isPending && (
-          <div className="flex items-center text-sm text-gray-500">
+          <div className="text-text-sub flex items-center text-sm">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             処理中...
           </div>

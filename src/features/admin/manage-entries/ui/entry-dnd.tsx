@@ -107,10 +107,10 @@ function SortableEntry({
       <span className="text-primary bg-primary/10 rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold">
         {horseNumber}
       </span>
-      <span className="flex-1 font-medium text-gray-900">{horse.name}</span>
+      <span className="text-text-main flex-1 font-semibold">{horse.name}</span>
       <HorseSourceBadge source={horse.source} />
       <HorseTypeBadge type={horse.type} />
-      <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
+      <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
       </span>
       <button
@@ -146,10 +146,10 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       onClick={onClick}
       className="rounded-control flex w-full cursor-grab items-center gap-3 border border-gray-200 bg-white p-3 text-left transition hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
-      <span className="flex-1 text-sm font-medium text-gray-900">{horse.name}</span>
+      <span className="text-text-main flex-1 text-sm font-semibold">{horse.name}</span>
       <HorseSourceBadge source={horse.source} />
       <HorseTypeBadge type={horse.type} />
-      <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
+      <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${getGenderBadgeClass(horse.gender)}`}>
         {getGenderAge(horse.gender, horse.age)}
       </span>
     </button>
@@ -306,7 +306,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
             </div>
             <div ref={setAvailableRef} id="available-list" className="flex-1 space-y-2 overflow-y-auto p-4">
               {visibleHorses.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">
+                <div className="text-text-sub py-8 text-center text-sm">
                   {available.length === 0 ? 'すべての馬が出走登録済みです' : '該当する馬がいません'}
                 </div>
               ) : (
@@ -345,7 +345,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
             className="rounded-control h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto border border-gray-300 bg-white p-4"
           >
             {entries.length === 0 ? (
-              <div className="py-8 text-center text-sm text-gray-500">左から馬をドラッグまたはクリックして追加</div>
+              <div className="text-text-sub py-8 text-center text-sm">左から馬をドラッグまたはクリックして追加</div>
             ) : (
               <SortableContext items={entries.map((h) => h.id)} strategy={verticalListSortingStrategy}>
                 {entries.map((horse, index) => (
@@ -366,10 +366,12 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       <DragOverlay>
         {activeHorse && (
           <div className="rounded-control flex items-center gap-3 border border-gray-300 bg-white p-3 shadow-lg">
-            <span className="font-medium text-gray-900">{activeHorse.name}</span>
+            <span className="text-text-main font-semibold">{activeHorse.name}</span>
             <HorseSourceBadge source={activeHorse.source} />
             <HorseTypeBadge type={activeHorse.type} />
-            <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(activeHorse.gender)}`}>
+            <span
+              className={`rounded-full px-2 py-0.5 text-sm font-semibold ${getGenderBadgeClass(activeHorse.gender)}`}
+            >
               {getGenderAge(activeHorse.gender, activeHorse.age)}
             </span>
           </div>

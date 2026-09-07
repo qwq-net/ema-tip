@@ -33,7 +33,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
       <div className="space-y-2">
         <label
           htmlFor="name"
-          className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="text-sm leading-none font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           ユーザー名
         </label>

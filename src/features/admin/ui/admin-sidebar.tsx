@@ -100,15 +100,15 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
   return (
     <>
-      <div className="fixed top-0 right-0 left-0 z-40 border-b border-gray-200 bg-white p-4 md:hidden">
-        <div className="flex items-center justify-between">
+      <div className="fixed top-0 right-0 left-0 z-40 flex h-16 items-center border-b border-gray-200 bg-white px-4 md:hidden">
+        <div className="flex w-full items-center justify-between">
           <div className="text-secondary flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
             <span className="text-lg font-semibold">えまちっぷ Admin</span>
           </div>
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-control p-2 text-gray-500 transition-colors hover:bg-gray-100"
+            className="rounded-control text-text-sub p-2 transition-colors hover:bg-gray-100"
             aria-label="メニューを開閉"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -134,9 +134,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <div className="border-b border-gray-800 p-6">
           <div className="text-turf-400 flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
-            <h1 className="text-xl font-semibold tracking-tight text-white">えまちっぷ Admin</h1>
+            <span className="text-xl font-semibold tracking-tight text-white">えまちっぷ Admin</span>
           </div>
-          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">ema-tip admin</p>
+          <p className="mt-2 text-sm tracking-wider text-gray-400 uppercase">ema-tip admin</p>
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto p-4 py-6">
@@ -157,7 +157,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      'rounded-control flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors',
+                      'rounded-control flex items-center gap-3 px-4 py-2 text-sm font-semibold transition-colors',
                       isActive ? 'bg-white/15 text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white'
                     )}
                   >
@@ -193,7 +193,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           <Link
             href="/mypage"
             onClick={() => setIsOpen(false)}
-            className="rounded-control mb-2 flex w-full items-center justify-center gap-2 border border-gray-600 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+            className="rounded-control mb-2 flex w-full items-center justify-center gap-2 border border-gray-600 bg-transparent px-4 py-2 text-sm font-semibold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
           >
             <ExternalLink className="h-4 w-4" />
             マイページ

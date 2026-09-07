@@ -95,7 +95,7 @@ function StepList({ steps, tone, ordered = false }: { steps: Step[]; tone: keyof
                 </span>
               )}
               <span className="min-w-0 flex-1">
-                <span className="font-semibold text-gray-900">{step.title}</span>
+                <span className="text-text-main font-semibold">{step.title}</span>
                 <span className="text-text-sub ml-3 text-sm max-sm:ml-0 max-sm:block">{step.description}</span>
               </span>
               <ChevronRight className="text-text-sub h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
@@ -111,7 +111,7 @@ export default function AdminGuidePage() {
   return (
     <div className="max-w-3xl space-y-10 pb-12">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">クイックガイド</h1>
+        <h1 className="text-text-main text-2xl font-semibold">クイックガイド</h1>
         <p className="text-text-sub mt-1">マスタの準備からイベント開催までの流れです。</p>
       </div>
 

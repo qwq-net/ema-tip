@@ -54,7 +54,7 @@ export function GuaranteedOddsForm({
       </div>
 
       <div className="space-y-4">
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="text-text-sub text-sm">{description}</p>
         <GuaranteedOddsInputs value={odds} onChange={setOdds} placeholders={placeholders} />
         <Button type="submit" disabled={isPending} className="w-full font-semibold">
           {isPending ? '更新中...' : '設定を保存'}

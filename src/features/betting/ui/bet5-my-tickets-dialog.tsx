@@ -81,7 +81,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
 
             return (
               <div key={ticket.id} className="rounded-surface space-y-3 border border-gray-200 p-4">
-                <p className="text-sm text-gray-500">チケット {ticketIndex + 1}</p>
+                <p className="text-text-sub text-sm">チケット {ticketIndex + 1}</p>
                 {races.map((race, raceIndex) => {
                   const horseIds = selectionsByRace[raceIndex] ?? [];
                   const selectedHorses = race.entries
@@ -104,7 +104,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                             >
                               {entry.bracketNumber ?? '-'}
                             </span>
-                            <span className="font-mono font-semibold text-gray-900">{entry.horseNumber}</span>
+                            <span className="text-text-main font-mono font-semibold">{entry.horseNumber}</span>
                             <span className="text-sm text-gray-600">{entry.horse.name}</span>
                           </div>
                         ))}
@@ -113,7 +113,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
                   );
                 })}
                 <div className="rounded-control flex justify-between bg-gray-50 px-3 py-2 text-sm">
-                  <span className="text-gray-500">{points}点</span>
+                  <span className="text-text-sub">{points}点</span>
                   <span className="text-turf-700 font-semibold">{ticket.amount.toLocaleString('ja-JP')}円</span>
                 </div>
               </div>

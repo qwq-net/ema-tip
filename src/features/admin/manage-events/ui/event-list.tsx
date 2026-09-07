@@ -32,7 +32,7 @@ export function EventList({ events }: { events: Event[] }) {
                 {event.name}
               </Link>
             </Td>
-            <Td className="text-gray-500">{event.date}</Td>
+            <Td className="text-text-sub">{event.date}</Td>
             <Td>
               <Badge label={event.status} variant="status" />
             </Td>

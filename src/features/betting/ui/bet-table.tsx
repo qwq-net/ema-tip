@@ -13,7 +13,7 @@ import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Alert, Badge, Checkbox, ConfirmDialog, LiveConnectionStatus } from '@/shared/ui';
+import { Alert, Badge, Checkbox, ConfirmDialog, EmptyState, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
@@ -51,7 +51,7 @@ function OddsValue({ value, delta, version }: { value: string; delta?: 'up' | 'd
 // オッズ列と人気列の両ブランチで同一実装を共有し、渡し漏れの分岐差を作らない
 function PopularityCell({ rank, isScratched }: { rank?: number | undefined; isScratched: boolean }) {
   return (
-    <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
+    <td className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap tabular-nums">
       {(isScratched || rank === undefined) && '-'}
       {!isScratched &&
         rank !== undefined &&
@@ -80,7 +80,7 @@ function PlaceOddsCell({
     return range.min === range.max ? range.min.toFixed(1) : `${range.min.toFixed(1)}-${range.max.toFixed(1)}`;
   };
   return (
-    <td className="px-2 py-2 text-center text-sm font-medium whitespace-nowrap tabular-nums">
+    <td className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap tabular-nums">
       {isScratched ? '-' : format()}
     </td>
   );
@@ -155,7 +155,7 @@ function PopularityHelp() {
         onFocus={open}
         onBlur={close}
         onKeyDown={(e) => e.key === 'Escape' && close()}
-        className="text-text-sub -my-1 inline-flex items-center justify-center p-1 hover:text-gray-900"
+        className="text-text-sub hover:text-text-main -my-1 inline-flex items-center justify-center p-1"
       >
         <CircleHelp className="h-5 w-5" />
       </button>
@@ -199,7 +199,7 @@ function OddsHeaderInfo({ fixedOddsMode, updatedAt, oddsVersion, guaranteedOdds 
         // key と点灯クラスで SSE 更新のたびにブランド緑からグレーへ減衰再生する。初期表示では点灯しない
         <span
           key={oddsVersion}
-          className={cn('text-right text-sm text-gray-500', oddsVersion > 0 && 'animate-stamp-flash')}
+          className={cn('text-text-sub text-right text-sm', oddsVersion > 0 && 'animate-stamp-flash')}
         >
           オッズ最終更新:{' '}
           <FormattedDate date={updatedAt} options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }} />
@@ -363,19 +363,11 @@ export function BetTable({
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
           <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
         </div>
-        <div className="rounded-surface flex flex-col items-center justify-center gap-4 border border-gray-200 bg-gray-50 py-16 text-center">
-          <div className="rounded-full bg-gray-100 p-3">
-            <AlertCircle className="text-text-sub h-8 w-8" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
-            <p className="text-sm text-gray-500">
-              このレースの出走馬データはまだ登録されていません。
-              <br />
-              データが登録されるまでお待ちください。
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="出走馬が登録されていません"
+          description="出走馬のデータが登録されるまでお待ちください。"
+        />
       </div>
     );
   }
@@ -391,7 +383,7 @@ export function BetTable({
         </Alert>
       )}
       {!isClosed && remainingMs !== null && (
-        <Alert variant="warning" icon={Clock} className="tabular-nums">
+        <Alert variant="warning" icon={Clock} role="timer" className="tabular-nums">
           締切まで残り {formatRemainingTime(remainingMs)}
         </Alert>
       )}
@@ -429,7 +421,7 @@ export function BetTable({
               onClick={() => handleBoxModeChange(value)}
               className={cn(
                 'rounded-full px-3 py-1 text-sm font-semibold transition-colors disabled:opacity-50',
-                isBoxView === value ? 'bg-primary text-white' : 'text-text-sub enabled:hover:text-gray-900'
+                isBoxView === value ? 'bg-primary text-white' : 'text-text-sub enabled:hover:text-text-main'
               )}
             >
               {label}
@@ -492,7 +484,7 @@ export function BetTable({
                         <td className="px-2 py-2 text-center">
                           <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                         </td>
-                        <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
+                        <td className="px-2 py-2 text-center text-sm font-semibold tabular-nums">
                           {isScratched ? (
                             '-'
                           ) : (
@@ -550,7 +542,7 @@ export function BetTable({
                       <td className="px-2 py-2 text-center">
                         <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                       </td>
-                      <td className="px-2 py-2 text-center text-sm font-medium tabular-nums">
+                      <td className="px-2 py-2 text-center text-sm font-semibold tabular-nums">
                         {isScratched ? (
                           '-'
                         ) : (
@@ -602,7 +594,7 @@ export function BetTable({
         description={
           <>
             {betCount}点・合計{' '}
-            <span className="font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</span> を購入します。
+            <span className="text-text-main font-semibold">{totalAmount.toLocaleString('ja-JP')}円</span> を購入します。
           </>
         }
         confirmLabel="購入する"

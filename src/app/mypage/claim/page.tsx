@@ -1,5 +1,6 @@
 import { EventClaimList } from '@/features/economy/claim';
 import { getEventsWithJoinStatus } from '@/features/economy/claim/queries';
+import { PageContainer } from '@/shared/ui/layout/page-container';
 import { requireLoginPage } from '@/shared/utils/admin';
 
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
@@ -15,19 +16,17 @@ export default async function ClaimPage() {
   const eventsWithJoinStatus = await getEventsWithJoinStatus(session.user.id);
 
   return (
-    <div className="flex flex-col items-center p-4 lg:p-8">
-      <div className="w-full max-w-5xl space-y-8">
-        <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: 'お小遣いを貰う' }]} />
+    <PageContainer>
+      <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: 'お小遣いを貰う' }]} />
 
-        <div>
-          <h1 className="text-3xl font-semibold text-gray-900">お小遣いを貰う</h1>
-          <p className="text-sm text-gray-500">開催中のイベントに参加して、軍資金を受け取りましょう。</p>
-        </div>
-
-        <section>
-          <EventClaimList events={eventsWithJoinStatus} />
-        </section>
+      <div>
+        <h1 className="text-text-main text-3xl font-semibold">お小遣いを貰う</h1>
+        <p className="text-text-sub text-sm">開催中のイベントに参加して、軍資金を受け取りましょう。</p>
       </div>
-    </div>
+
+      <section>
+        <EventClaimList events={eventsWithJoinStatus} />
+      </section>
+    </PageContainer>
   );
 }

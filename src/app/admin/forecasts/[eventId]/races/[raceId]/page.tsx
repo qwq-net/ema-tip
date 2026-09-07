@@ -28,8 +28,8 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{race.name}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+            <h1 className="text-text-main text-2xl font-semibold tracking-tight">{race.name}</h1>
+            <div className="text-text-sub mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FormattedDate date={race.date} options={{ month: 'long', day: 'numeric', weekday: 'short' }} />
                 <span>{race.venue.name}</span>
@@ -37,7 +37,7 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="surface" label={race.surface} />
-                <span className="font-medium">{race.distance}m</span>
+                <span className="font-semibold">{race.distance}m</span>
               </div>
               <div className="flex items-center gap-2">
                 <span>馬場:</span>

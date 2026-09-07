@@ -63,9 +63,9 @@ function formatPositions(type: BetType, positions: number[][]): string {
 function SummaryTile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div>
-      <div className="text-sm text-gray-500">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{value}</div>
-      {note && <div className="mt-0.5 text-sm text-gray-500">{note}</div>}
+      <div className="text-text-sub text-sm">{label}</div>
+      <div className="text-text-main mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+      {note && <div className="text-text-sub mt-0.5 text-sm">{note}</div>}
     </div>
   );
 }
@@ -93,7 +93,7 @@ function SortHeader({
     <Th className={className} aria-sort={ariaSort}>
       <Link
         href={`${basePath}${buildBetGroupListQuery(params, { sort: sortKey, dir: nextDir })}`}
-        className={cn('inline-flex items-center gap-1 hover:text-gray-900', isCurrent && 'text-gray-900')}
+        className={cn('hover:text-text-main inline-flex items-center gap-1', isCurrent && 'text-text-main')}
       >
         {label}
         {isCurrent && <Arrow className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -139,10 +139,7 @@ function FilterForm({ params, basePath }: { params: BetGroupListParams; basePath
         絞り込む
       </Button>
       {hasFilter && (
-        <Link
-          href={basePath}
-          className="text-sm font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900"
-        >
+        <Link href={basePath} className="text-text-sub hover:text-text-main text-sm underline underline-offset-2">
           条件をクリア
         </Link>
       )}
@@ -156,10 +153,10 @@ function Pagination({ params, total, basePath }: { params: BetGroupListParams; t
   const end = Math.min(params.page * BET_GROUP_PAGE_SIZE, total);
   const hasPrev = params.page > 1;
   const hasNext = end < total;
-  const linkClass = 'rounded-control px-3 py-1.5 text-sm font-medium ring-1 ring-gray-200 hover:bg-gray-50';
-  const disabledClass = 'rounded-control px-3 py-1.5 text-sm font-medium text-gray-300 ring-1 ring-gray-100';
+  const linkClass = 'rounded-control px-3 py-1.5 text-sm font-semibold ring-1 ring-gray-200 hover:bg-gray-50';
+  const disabledClass = 'rounded-control px-3 py-1.5 text-sm font-semibold text-gray-300 ring-1 ring-gray-100';
   return (
-    <nav aria-label="ページ送り" className="flex items-center justify-between text-sm text-gray-500">
+    <nav aria-label="ページ送り" className="text-text-sub flex items-center justify-between text-sm">
       <span className="tabular-nums">
         {start}〜{end} / {total} 件
       </span>
@@ -191,18 +188,18 @@ function Pagination({ params, total, basePath }: { params: BetGroupListParams; t
 function BetGroupTableRow({ row }: { row: BetGroupRow }) {
   return (
     <TableRow>
-      <Td className="text-gray-500">
+      <Td className="text-text-sub">
         <FormattedDate
           date={row.createdAt}
           options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
         />
       </Td>
-      <Td className="font-medium text-gray-900">{row.userName || 'Unknown'}</Td>
+      <Td className="text-text-main font-semibold">{row.userName || 'Unknown'}</Td>
       <Td>
         <BetTypeBadge type={row.type} />
       </Td>
       <Td className="whitespace-normal">
-        <div className="font-semibold text-gray-900 tabular-nums">{formatPositions(row.type, row.positions)}</div>
+        <div className="text-text-main font-semibold tabular-nums">{formatPositions(row.type, row.positions)}</div>
         {row.hits.length > 0 && (
           <ul className="mt-1 space-y-0.5 text-sm text-green-800 tabular-nums">
             {row.hits.map((hit) => (
@@ -214,8 +211,8 @@ function BetGroupTableRow({ row }: { row: BetGroupRow }) {
         )}
       </Td>
       <Td className="text-right text-gray-600 tabular-nums">{row.betCount}点</Td>
-      <Td className="text-right font-semibold text-gray-900 tabular-nums">{formatYen(row.totalAmount)}</Td>
-      <Td className={cn('text-right tabular-nums', row.payout > 0 ? 'font-semibold text-gray-900' : 'text-gray-500')}>
+      <Td className="text-text-main text-right font-semibold tabular-nums">{formatYen(row.totalAmount)}</Td>
+      <Td className={cn('text-right tabular-nums', row.payout > 0 ? 'text-text-main font-semibold' : 'text-text-sub')}>
         {formatYen(row.payout)}
       </Td>
       <Td>

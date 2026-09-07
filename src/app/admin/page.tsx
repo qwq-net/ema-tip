@@ -150,7 +150,7 @@ function CurrentEventCard({ event }: { event: CurrentEvent }) {
           </Link>
           <Badge variant="status" label={event.status} />
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-text-sub text-sm">
           {event.date}
           <span className="mx-2 text-gray-300">/</span>
           {describeRaceProgress(event.races.map((r) => r.status))}
@@ -204,7 +204,7 @@ export default async function AdminPage() {
       <Card>
         <CardHeader className="flex flex-row items-baseline justify-between">
           <h2 className="text-secondary text-xl font-semibold">運用管理</h2>
-          <span className="text-sm text-gray-500">
+          <span className="text-text-sub text-sm">
             {currentEvents[0]?.status === 'ACTIVE' ? '開催中のイベント' : '次のイベント'}
           </span>
         </CardHeader>
@@ -217,7 +217,7 @@ export default async function AdminPage() {
             </div>
           ) : (
             <div className="rounded-control flex flex-col items-center gap-3 border border-dashed border-gray-200 p-6 text-center">
-              <p className="text-sm text-gray-500">開催中や準備中のイベントはありません</p>
+              <p className="text-text-sub text-sm">開催中や準備中のイベントはありません</p>
               <Button asChild className="font-semibold">
                 <Link href="/admin/events/new">
                   <Plus className="mr-2 h-4 w-4" />
@@ -289,7 +289,7 @@ function ActionLink({
         </div>
         <div>
           <h4 className="text-secondary font-semibold">{action.label}</h4>
-          <p className="text-sm text-gray-500">{action.description}</p>
+          <p className="text-text-sub text-sm">{action.description}</p>
         </div>
       </div>
       <ArrowRight className={cn('h-5 w-5 shrink-0 text-gray-300 transition-colors', colors.qaHoverText)} />

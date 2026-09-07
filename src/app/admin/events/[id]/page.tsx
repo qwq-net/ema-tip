@@ -107,7 +107,7 @@ export default async function EventRacesPage({ params }: { params: Promise<{ id:
       <div className="flex items-center justify-between px-2">
         <div className="flex items-baseline gap-4">
           <AdminSectionTitle>レース一覧</AdminSectionTitle>
-          <span className="text-sm text-gray-500">
+          <span className="text-text-sub text-sm">
             馬券 {total.betCount}枚 / 投票 {formatYen(total.totalAmount)} / 払戻 {formatYen(total.totalPayout)}
           </span>
         </div>
@@ -143,7 +143,7 @@ export default async function EventRacesPage({ params }: { params: Promise<{ id:
                   />
                   <Link
                     href={`/admin/races/${race.id}/entries`}
-                    className="text-sm font-medium text-gray-600 underline underline-offset-2 hover:text-gray-900"
+                    className="hover:text-text-main text-sm text-gray-600 underline underline-offset-2"
                   >
                     出走馬 {entrantCountOf(race)}頭
                   </Link>

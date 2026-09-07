@@ -16,13 +16,13 @@ export function Button({ className, variant = 'primary', size = 'md', asChild = 
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed',
     secondary:
-      'bg-white text-black border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed',
+      'bg-white text-text-main border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed',
     outline:
-      'bg-transparent border border-gray-200 text-black hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed',
-    ghost: 'bg-transparent text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed',
-    destructive: 'bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed',
+      'bg-transparent border border-gray-200 text-text-main hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed',
+    ghost: 'bg-transparent text-text-main hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed',
+    destructive: 'bg-error text-white hover:bg-error/90 disabled:opacity-50 disabled:cursor-not-allowed',
     'destructive-outline':
-      'bg-transparent border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed',
+      'bg-transparent border border-error-ring text-error hover:bg-error-soft disabled:opacity-50 disabled:cursor-not-allowed',
   };
 
   const sizes = {

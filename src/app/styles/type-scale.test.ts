@@ -8,6 +8,8 @@ import { describe, expect, it } from 'vitest';
  * - 任意値のフォントサイズ text-[Npx] 等は禁止。サイズはスケールから選ぶ
  * - text-xs は 12px の小型チップ限定で、同じ className に font-semibold か font-bold が必須
  * - 400 未満のウェイトは日本語システム書体で潰れるため全面禁止
+ * - font-medium も禁止。Windows のシステム書体は 400 と 700 しか持たず 500 は 400 で描かれるため、
+ *   強調は font-semibold、補助は無指定の 2 段に揃える
  */
 
 const SRC_ROOT = join(import.meta.dirname, '../..');
@@ -19,13 +21,13 @@ function listTsxFiles(): string[] {
 }
 
 const ARBITRARY_FONT_SIZE = /\btext-\[[\d.]+(?:px|rem|em)\]/g;
-const LIGHT_WEIGHT = /\bfont-(?:thin|extralight|light)\b/g;
+const LIGHT_WEIGHT = /\bfont-(?:thin|extralight|light|medium)\b/g;
 
 describe('文字スケールの統一', () => {
   const files = listTsxFiles();
 
   it.each(files.map((f) => [f.replace(SRC_ROOT, 'src'), f]))(
-    '%s はスケール外サイズ・軽量ウェイト・太さ指定なしの text-xs を含まない',
+    '%s はスケール外サイズ・規定外ウェイト・太さ指定なしの text-xs を含まない',
     (_label, file) => {
       const content = readFileSync(file, 'utf8');
       const violations: string[] = [

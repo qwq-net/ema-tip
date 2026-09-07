@@ -46,8 +46,8 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
       <div className="flex flex-col items-center p-4 lg:p-8">
         <div className="w-full max-w-4xl space-y-4">
           <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-          <h1 className="text-2xl font-semibold text-gray-900">BET5</h1>
-          <p className="text-gray-500">このイベントではBET5は開催されていません。</p>
+          <h1 className="text-text-main text-2xl font-semibold">BET5</h1>
+          <p className="text-text-sub">このイベントではBET5は開催されていません。</p>
         </div>
       </div>
     );
@@ -104,7 +104,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-4xl space-y-6">
         <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-        <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
+        <h1 className="text-text-main text-xl font-semibold">BET5 投票</h1>
 
         <Card className="bg-turf-950 border-0 p-6 text-white">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -130,7 +130,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
             <p className="text-turf-100 text-sm">BET5プール金額</p>
             <p className="text-gold text-3xl font-semibold tabular-nums">
               {(bet5Event.initialPot + carryoverAmount).toLocaleString('ja-JP')}円
-              <span className="text-turf-100 ml-1.5 text-base font-medium">+ プレイヤーの購入金額</span>
+              <span className="text-turf-100 ml-1.5 text-base font-semibold">+ プレイヤーの購入金額</span>
             </p>
             {carryoverAmount > 0 && (
               <p className="text-gold mt-1 text-sm font-semibold tabular-nums">
@@ -166,7 +166,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
               </Alert>
             )}
             <div className="rounded-control bg-gray-50 p-8 text-center">
-              <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
+              <p className="text-text-sub text-lg font-semibold">投票受付は終了しました</p>
               <p className="text-text-sub mt-2 flex flex-wrap items-center justify-center gap-1.5 text-sm">
                 対象レース:
                 <Bet5RaceSequence raceNumbers={orderedRaces.map((race) => race.raceNumber)} />

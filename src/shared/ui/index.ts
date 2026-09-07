@@ -6,6 +6,7 @@ export * from './card';
 export * from './checkbox';
 export { ConfirmDialog } from './confirm-dialog';
 export * from './dialog';
+export { EmptyState } from './empty-state';
 export * from './forms';
 export { LiveConnectionStatus, LiveStatusPill } from './live-connection-status';
 export { LogoMark } from './logo';

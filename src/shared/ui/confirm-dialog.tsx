@@ -57,12 +57,12 @@ export function ConfirmDialog({
     <AlertDialog.Root open={isOpen} onOpenChange={setOpen}>
       {trigger && <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>}
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm duration-200" />
-        <AlertDialog.Content className="animate-in zoom-in-95 rounded-surface fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-white p-6 shadow-2xl duration-200">
+        <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
+        <AlertDialog.Content className="rounded-surface fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-white p-6 shadow-2xl">
           <div className="flex flex-col items-center text-center">
             {icon}
-            <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">{title}</AlertDialog.Title>
-            <AlertDialog.Description asChild className="w-full text-sm text-gray-500">
+            <AlertDialog.Title className="text-text-main mb-2 text-xl font-semibold">{title}</AlertDialog.Title>
+            <AlertDialog.Description asChild className="text-text-sub w-full text-sm">
               <div>{description}</div>
             </AlertDialog.Description>
           </div>

@@ -15,8 +15,8 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
         className={cn(
           'rounded-control flex items-center justify-center px-4 py-2.5 text-sm font-semibold transition',
           activeTab === 'signup'
-            ? 'bg-white text-gray-900'
-            : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
+            ? 'text-text-main bg-white'
+            : 'text-text-sub bg-transparent hover:bg-gray-200/50 hover:text-gray-700'
         )}
       >
         招待コード登録
@@ -26,8 +26,8 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
         className={cn(
           'rounded-control flex items-center justify-center px-4 py-2.5 text-sm font-semibold transition',
           activeTab === 'login'
-            ? 'bg-white text-gray-900'
-            : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
+            ? 'text-text-main bg-white'
+            : 'text-text-sub bg-transparent hover:bg-gray-200/50 hover:text-gray-700'
         )}
       >
         招待コードログイン

@@ -45,10 +45,10 @@ function MyStanding({ me, distributeAmount }: { me: RankingData | undefined; dis
   const diff = resultDiff(me.balance, distributeAmount, me.totalLoaned);
   return (
     <span className="text-sm text-gray-700 tabular-nums">
-      あなたの順位 <span className="font-semibold text-gray-900">{me.rank}位</span>
+      あなたの順位 <span className="text-text-main font-semibold">{me.rank}位</span>
       <span className="mx-1.5 text-gray-300">/</span>
       {me.balance.toLocaleString('ja-JP')}円
-      <span className={cn('ml-1 font-medium', resultDiffClass(diff))}>({formatSignedYen(diff)})</span>
+      <span className={cn('ml-1 font-semibold', resultDiffClass(diff))}>({formatSignedYen(diff)})</span>
     </span>
   );
 }
@@ -84,7 +84,7 @@ export function RankingList({
         {published ? (
           <MyStanding me={me} distributeAmount={distributeAmount} />
         ) : (
-          <span className="text-sm text-gray-500">結果発表までお待ちください</span>
+          <span className="text-text-sub text-sm">結果発表までお待ちください</span>
         )}
       </div>
 
@@ -92,13 +92,13 @@ export function RankingList({
         <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
           <div className="flex items-center gap-2">
             <Trophy className={`h-5 w-5 ${published ? 'text-amber-500' : 'text-text-sub'}`} />
-            <h2 className="font-semibold text-gray-900">ランキング</h2>
+            <h2 className="text-text-main font-semibold">ランキング</h2>
           </div>
         </div>
 
         <div className="divide-y divide-gray-100">
           {ranking.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <div className="text-text-sub flex flex-col items-center justify-center py-12">
               <Users className="mb-2 h-8 w-8 opacity-20" />
               <p>参加者がいません</p>
             </div>
@@ -115,12 +115,12 @@ export function RankingList({
                   <div className="flex items-center gap-4">
                     <div
                       className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold ${
-                        medalRankClass(user.rank) ?? 'bg-white text-gray-500'
+                        medalRankClass(user.rank) ?? 'text-text-sub bg-white'
                       }`}
                     >
                       {user.rank}
                     </div>
-                    <div className={`font-medium ${user.isCurrentUser ? 'text-turf-800' : 'text-gray-900'}`}>
+                    <div className={`font-semibold ${user.isCurrentUser ? 'text-turf-800' : 'text-text-main'}`}>
                       {user.name}
                       {user.isCurrentUser && <span className="text-turf-600 ml-2 text-sm font-normal">あなた</span>}
                     </div>
@@ -130,11 +130,11 @@ export function RankingList({
                       <Badge label="借入あり" className="mr-1 bg-orange-100 text-orange-700" />
                     )}
                     <div className="text-right tabular-nums">
-                      <div className="font-semibold text-gray-900">
+                      <div className="text-text-main font-semibold">
                         {user.balance === '???' ? '???' : `${user.balance.toLocaleString('ja-JP')}円`}
                       </div>
                       {diff !== null && (
-                        <div className={cn('text-sm font-medium', resultDiffClass(diff))}>
+                        <div className={cn('text-sm font-semibold', resultDiffClass(diff))}>
                           ({formatSignedYen(diff)})
                         </div>
                       )}

@@ -28,7 +28,7 @@ export function BetTypeSelector({ betType, onBetTypeChange, allowedBetTypes }: B
             aria-pressed={betType === type}
             disabled={!isAllowed}
             variant={betType === type ? 'primary' : 'ghost'}
-            className={`rounded-control px-4 py-2 text-sm font-medium transition ${betTypeButtonClass(betType === type, isAllowed)}`}
+            className={`rounded-control px-4 py-2 text-sm font-semibold transition ${betTypeButtonClass(betType === type, isAllowed)}`}
           >
             {BET_TYPE_LABELS[type]}
           </Button>

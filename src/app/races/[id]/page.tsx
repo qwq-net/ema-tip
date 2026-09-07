@@ -8,6 +8,7 @@ import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { Button } from '@/shared/ui';
+import { PageContainer } from '@/shared/ui/layout/page-container';
 import { requireLoginPage } from '@/shared/utils/admin';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -91,78 +92,76 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
   const loanValues = toLoanBannerValues(race.event);
 
   return (
-    <div className="flex flex-col items-center p-4 lg:p-8">
-      <div className="w-full max-w-5xl space-y-8">
-        <Breadcrumbs
-          items={[
-            { label: 'マイページ', href: '/mypage' },
-            { label: '即BET', href: '/mypage/sokubet' },
-            {
-              label: formatRaceLabel({
-                venueShortName: race.venue.shortName,
-                raceNumber: race.raceNumber,
-                name: race.name,
-              }),
-            },
-          ]}
-        />
+    <PageContainer>
+      <Breadcrumbs
+        items={[
+          { label: 'マイページ', href: '/mypage' },
+          { label: '即BET', href: '/mypage/sokubet' },
+          {
+            label: formatRaceLabel({
+              venueShortName: race.venue.shortName,
+              raceNumber: race.raceNumber,
+              name: race.name,
+            }),
+          },
+        ]}
+      />
 
-        <div className="mb-8 space-y-4">
-          <RacePageHeader
-            venueShortName={race.venue.shortName}
-            raceNumber={race.raceNumber}
-            eventName={race.event.name}
-            name={race.name}
-            netkeibaUrl={race.netkeibaUrl}
-            surface={race.surface}
-            distance={race.distance}
-            entrantCount={entries.filter((e) => e.status === 'ENTRANT').length}
-            actions={
-              <>
-                <RankingButton eventId={race.eventId} size="md" />
-                <Button variant="outline" asChild>
-                  <Link href={`/races/${id}/standby`}>購入馬券確認・結果待機</Link>
-                </Button>
-              </>
-            }
-          />
-        </div>
-
-        <LoanBanner
-          eventId={race.eventId}
-          balance={wallet.balance}
-          distributeAmount={loanValues.distributeAmount}
-          loanAmount={loanValues.loanAmount}
-          hasLoaned={wallet.totalLoaned > 0}
-          loanEnabled={loanValues.loanEnabled}
-          loanThresholdPercent={loanValues.loanThresholdPercent}
-        />
-
-        <BetTable
-          raceId={race.id}
-          eventId={race.eventId}
-          walletId={wallet.id}
-          balance={wallet.balance}
-          entries={entries}
-          initialStatus={race.status}
-          closingAt={race.closingAt ? race.closingAt.toISOString() : null}
-          initialOdds={initialOdds}
-          fixedOddsMode={race.fixedOddsMode}
-          guaranteedOdds={resolveGuaranteedOdds(defaultGuaranteedOdds, race.guaranteedOdds)}
-          allowedBetTypes={allowedBetTypes}
-        />
-
-        <Suspense
-          fallback={
-            <div className="rounded-control flex items-center justify-center border border-gray-200 bg-white p-8">
-              <Loader2 className="text-text-sub h-6 w-6 animate-spin" />
-              <span className="ml-2 text-sm text-gray-500">予想・見解を読み込み中...</span>
-            </div>
+      <div className="mb-8 space-y-4">
+        <RacePageHeader
+          venueShortName={race.venue.shortName}
+          raceNumber={race.raceNumber}
+          eventName={race.event.name}
+          name={race.name}
+          netkeibaUrl={race.netkeibaUrl}
+          surface={race.surface}
+          distance={race.distance}
+          entrantCount={entries.filter((e) => e.status === 'ENTRANT').length}
+          actions={
+            <>
+              <RankingButton eventId={race.eventId} size="md" />
+              <Button variant="outline" asChild>
+                <Link href={`/races/${id}/standby`}>購入馬券確認・結果待機</Link>
+              </Button>
+            </>
           }
-        >
-          <ForecastSection raceId={id} />
-        </Suspense>
+        />
       </div>
-    </div>
+
+      <LoanBanner
+        eventId={race.eventId}
+        balance={wallet.balance}
+        distributeAmount={loanValues.distributeAmount}
+        loanAmount={loanValues.loanAmount}
+        hasLoaned={wallet.totalLoaned > 0}
+        loanEnabled={loanValues.loanEnabled}
+        loanThresholdPercent={loanValues.loanThresholdPercent}
+      />
+
+      <BetTable
+        raceId={race.id}
+        eventId={race.eventId}
+        walletId={wallet.id}
+        balance={wallet.balance}
+        entries={entries}
+        initialStatus={race.status}
+        closingAt={race.closingAt ? race.closingAt.toISOString() : null}
+        initialOdds={initialOdds}
+        fixedOddsMode={race.fixedOddsMode}
+        guaranteedOdds={resolveGuaranteedOdds(defaultGuaranteedOdds, race.guaranteedOdds)}
+        allowedBetTypes={allowedBetTypes}
+      />
+
+      <Suspense
+        fallback={
+          <div className="rounded-control flex items-center justify-center border border-gray-200 bg-white p-8">
+            <Loader2 className="text-text-sub h-6 w-6 animate-spin" />
+            <span className="text-text-sub ml-2 text-sm">予想・見解を読み込み中...</span>
+          </div>
+        }
+      >
+        <ForecastSection raceId={id} />
+      </Suspense>
+    </PageContainer>
   );
 }

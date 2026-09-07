@@ -15,8 +15,8 @@ export function GuaranteedOddsList({ guaranteedOdds }: GuaranteedOddsListProps) 
     <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {items.map(({ type, rate }) => (
         <div key={type} className="rounded-control bg-gray-50 px-3 py-2 ring-1 ring-gray-100 ring-inset">
-          <dt className="text-sm text-gray-500">{BET_TYPE_LABELS[type]}</dt>
-          <dd className="text-base font-semibold text-gray-900">{rate.toFixed(1)}倍</dd>
+          <dt className="text-text-sub text-sm">{BET_TYPE_LABELS[type]}</dt>
+          <dd className="text-text-main text-base font-semibold">{rate.toFixed(1)}倍</dd>
         </div>
       ))}
     </dl>

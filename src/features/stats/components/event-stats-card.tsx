@@ -27,11 +27,11 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
               </div>
               <div className="flex gap-4 text-sm">
                 <div>
-                  所持金: <span className="font-medium">¥{event.balance.toLocaleString('ja-JP')}</span>
+                  所持金: <span className="font-semibold">¥{event.balance.toLocaleString('ja-JP')}</span>
                 </div>
                 <div className={cn(event.net >= 0 ? 'text-blue-600' : 'text-red-600')}>
                   収支:{' '}
-                  <span className="font-medium">
+                  <span className="font-semibold">
                     {event.net > 0 && '+'}
                     {event.net.toLocaleString('ja-JP')}
                   </span>
@@ -57,12 +57,12 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
             )}
 
             <div className="space-y-2">
-              <h4 className="text-text-sub text-sm font-medium">資産推移</h4>
+              <h4 className="text-text-sub text-sm">資産推移</h4>
               <AssetChart data={event.history} title="" />
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-text-sub text-sm font-medium">取引履歴</h4>
+              <h4 className="text-text-sub text-sm">取引履歴</h4>
               <div className="max-h-[320px] overflow-y-auto">
                 <TransactionList transactions={event.logs} />
               </div>

@@ -84,11 +84,11 @@ function HorseInfo({
 }) {
   return (
     <>
-      <span className="truncate text-sm font-semibold text-gray-900">{horseName}</span>
+      <span className="text-text-main truncate text-sm font-semibold">{horseName}</span>
       {jockey && (
         <>
           <span className="text-text-sub shrink-0 text-sm">/</span>
-          <span className="shrink-0 text-sm text-gray-500">{jockey}</span>
+          <span className="text-text-sub shrink-0 text-sm">{jockey}</span>
         </>
       )}
       {odds !== null && odds !== undefined && (
@@ -168,7 +168,7 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
         {position}
       </div>
 
-      <div className="p-1 text-gray-300 transition-colors group-hover:text-gray-500">
+      <div className="group-hover:text-text-sub p-1 text-gray-300 transition-colors">
         <GripVertical className="h-5 w-5" />
       </div>
 
@@ -360,7 +360,7 @@ function NetkeibaFinalizeActions({
   return (
     <>
       {!canFinalizePayout && (
-        <div className="bg-turf-50 text-turf-800 ring-turf-100 rounded-control flex items-start gap-1.5 px-3 py-2 text-sm font-medium ring-1">
+        <div className="bg-turf-50 text-turf-800 ring-turf-100 rounded-control flex items-start gap-1.5 px-3 py-2 text-sm font-semibold ring-1">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Netkeiba上で結果が確定するまで確定はできません
         </div>
@@ -392,7 +392,7 @@ function NetkeibaFinalizeActions({
         description={
           <>
             Netkeibaの実際の払戻オッズで計算されます。
-            <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+            <div className="rounded-surface text-text-main mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold">
               {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
                 const labels = ['1着', '2着', '3着'];
                 const entry = entries.find((e) => e.horseNumber === horseNumber);
@@ -459,7 +459,7 @@ function ManualFinalizeActions({
       description={
         <>
           この操作を行うと、購入された馬券の払戻計算が実行されます。
-          <div className="rounded-surface mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+          <div className="rounded-surface text-text-main mt-4 divide-y divide-gray-100 border border-gray-100 bg-gray-50/50 p-4 font-semibold">
             {[1, 2, 3].map((position) => (
               <div key={position} className="flex justify-between py-1">
                 <span className={cn('rounded-chip px-1.5 py-0.5 text-xs font-semibold', medalRankClass(position))}>
@@ -773,7 +773,7 @@ export function RaceResultForm({
       <div className="space-y-6">
         {showBet5CloseReminder && (
           <div className="rounded-surface flex items-center justify-between gap-2 border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
-            <div className="flex items-center font-medium text-amber-800">
+            <div className="flex items-center font-semibold text-amber-800">
               <Info className="mr-1.5 h-4 w-4 shrink-0" />
               出走前にBET5を締め切ってください。
             </div>
@@ -794,26 +794,26 @@ export function RaceResultForm({
 
           <div className="divide-y divide-gray-50 text-sm">
             <div className="flex items-center justify-between py-2">
-              <span className="font-medium text-gray-500">レース作成方法</span>
-              <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
+              <span className="text-text-sub">レース作成方法</span>
+              <span className="text-text-main font-semibold">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
             </div>
             {race.fixedOddsMode && (
               <div className="flex items-center justify-between py-2">
-                <span className="font-medium text-gray-500">オッズ設定</span>
+                <span className="text-text-sub">オッズ設定</span>
                 <span className="text-turf-700 font-semibold">固定オッズ</span>
               </div>
             )}
             <div className="flex items-center justify-between py-2">
-              <span className="font-medium text-gray-500">ステータス</span>
+              <span className="text-text-sub">ステータス</span>
               <Badge variant="status" label={race.status} />
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="font-medium text-gray-500">出走馬数</span>
-              <span className="font-semibold text-gray-900">{entryCount}頭</span>
+              <span className="text-text-sub">出走馬数</span>
+              <span className="text-text-main font-semibold">{entryCount}頭</span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="font-medium text-gray-500">受付終了予定</span>
-              <span className="font-semibold text-gray-900">
+              <span className="text-text-sub">受付終了予定</span>
+              <span className="text-text-main font-semibold">
                 {race.closingAt ? (
                   <FormattedDate
                     date={race.closingAt}
@@ -825,14 +825,14 @@ export function RaceResultForm({
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="font-medium text-gray-500">コース</span>
+              <span className="text-text-sub">コース</span>
               <div className="flex items-center gap-1.5">
                 <Badge variant="surface" label={race.surface} />
                 <span className="font-semibold text-gray-700">{race.distance}m</span>
               </div>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="font-medium text-gray-500">馬場状態</span>
+              <span className="text-text-sub">馬場状態</span>
               <Badge variant="condition" label={race.condition} />
             </div>
           </div>

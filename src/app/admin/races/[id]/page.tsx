@@ -96,23 +96,23 @@ function FinalizedRaceInfoCard({ race, oddsUpdatedAt }: FinalizedRaceInfoCardPro
       </CardHeader>
       <CardContent className="space-y-4 pt-6 text-sm">
         <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-          <span className="font-medium text-gray-500">ステータス</span>
+          <span className="text-text-sub">ステータス</span>
           <Badge variant="status" label={race.status} />
         </div>
         <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-          <span className="font-medium text-gray-500">コース</span>
+          <span className="text-text-sub">コース</span>
           <div className="flex items-center gap-2">
             <Badge variant="surface" label={race.surface} />
-            <span className="font-semibold text-gray-900">{race.distance}m</span>
+            <span className="text-text-main font-semibold">{race.distance}m</span>
           </div>
         </div>
         <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-          <span className="font-medium text-gray-500">馬場状態</span>
+          <span className="text-text-sub">馬場状態</span>
           <Badge variant="condition" label={race.condition} />
         </div>
         <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-          <span className="font-medium text-gray-500">確定日時</span>
-          <span className="font-semibold text-gray-900">
+          <span className="text-text-sub">確定日時</span>
+          <span className="text-text-main font-semibold">
             {race.finalizedAt ? (
               <FormattedDate
                 date={race.finalizedAt}
@@ -124,18 +124,18 @@ function FinalizedRaceInfoCard({ race, oddsUpdatedAt }: FinalizedRaceInfoCardPro
           </span>
         </div>
         <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-          <span className="font-medium text-gray-500">レース作成方法</span>
-          <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
+          <span className="text-text-sub">レース作成方法</span>
+          <span className="text-text-main font-semibold">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
         </div>
         {race.fixedOddsMode && (
           <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-            <span className="font-medium text-gray-500">オッズ設定</span>
+            <span className="text-text-sub">オッズ設定</span>
             <span className="font-semibold text-blue-600">固定オッズ</span>
           </div>
         )}
         {oddsUpdatedAt && (
           <div className="flex items-center justify-between pb-2">
-            <span className="font-medium text-gray-500">オッズ更新</span>
+            <span className="text-text-sub">オッズ更新</span>
             <span className="text-text-sub text-sm">
               <FormattedDate
                 date={oddsUpdatedAt}
@@ -218,7 +218,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
           <CardHeader className="border-b border-gray-50 pb-4">
             <AdminSectionTitle icon={Coins}>保証オッズ設定</AdminSectionTitle>
           </CardHeader>
-          <CardContent className="pt-6 text-sm text-gray-500">着順確定済みのため変更できません</CardContent>
+          <CardContent className="text-text-sub pt-6 text-sm">着順確定済みのため変更できません</CardContent>
         </Card>
       ) : (
         <GuaranteedOddsForm
@@ -287,11 +287,11 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                         </div>
 
                         <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                          <span className="truncate text-base font-semibold text-gray-900">{entry.horseName}</span>
+                          <span className="text-text-main truncate text-base font-semibold">{entry.horseName}</span>
                           {entry.jockey && (
                             <>
                               <span className="text-text-sub shrink-0 text-sm">/</span>
-                              <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
+                              <span className="text-text-sub shrink-0 text-sm">{entry.jockey}</span>
                             </>
                           )}
                           {winOdds !== undefined && (
@@ -336,8 +336,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                         <Info className="h-8 w-8" />
                       </div>
                     </div>
-                    <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-text-main mb-2 text-lg font-semibold">出走馬が登録されていません</h3>
+                    <p className="text-text-sub text-sm">
                       レース結果を確定するには、まず出走馬を登録する必要があります。
                     </p>
                     <Button asChild variant="outline" className="mt-6 font-semibold">

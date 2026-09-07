@@ -5,6 +5,7 @@ import * as Accordion from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from './button';
+import { EmptyState } from './empty-state';
 
 import type { ReactNode } from 'react';
 
@@ -13,8 +14,8 @@ interface PersistedAccordionProps {
   storageKey: string;
   /** 全アイテムの value 一覧。初期表示と「全て開く」の対象になる。 */
   allIds: string[];
-  /** allIds が空のときに枠付きカード内へ描画する内容。メッセージ文字列だけで良い。 */
-  emptyState: ReactNode;
+  /** allIds が空のときに表示する見出し文。 */
+  emptyState: string;
   /** Accordion.Item 群。value は allIds の要素と対応させること。 */
   children: ReactNode;
 }
@@ -58,11 +59,7 @@ export function PersistedAccordion({ storageKey, allIds, emptyState, children }:
   }
 
   if (allIds.length === 0) {
-    return (
-      <div className="rounded-surface border border-gray-100 bg-white py-12 text-center text-gray-500">
-        {emptyState}
-      </div>
-    );
+    return <EmptyState title={emptyState} />;
   }
 
   return (
@@ -109,9 +106,9 @@ export function PersistedAccordionHeader({ name, date, badge, countLabel, childr
   return (
     <div className="flex items-center gap-4">
       <span>{name}</span>
-      {date && <span className="text-sm font-normal text-gray-500">{date}</span>}
+      {date && <span className="text-text-sub text-sm font-normal">{date}</span>}
       {badge}
-      {countLabel && <span className="text-sm font-normal text-gray-500">{countLabel}</span>}
+      {countLabel && <span className="text-text-sub text-sm font-normal">{countLabel}</span>}
       {children}
     </div>
   );
@@ -138,7 +135,7 @@ export function PersistedAccordionItem({ value, header, children }: PersistedAcc
           <ChevronDown className="text-text-sub h-5 w-5 shrink-0 transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
         </Accordion.Trigger>
       </Accordion.Header>
-      <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
+      <Accordion.Content className="overflow-hidden">
         <div className="border-t border-gray-100">{children}</div>
       </Accordion.Content>
     </Accordion.Item>

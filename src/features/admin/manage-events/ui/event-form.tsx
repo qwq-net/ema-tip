@@ -148,7 +148,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             <NumericInput value={distributeAmount} onChange={setDistributeAmount} min={0} className="pr-8" />
             <span className="text-text-sub absolute top-2 right-3 text-sm">円</span>
           </div>
-          <p className="mt-1 text-sm text-gray-500">初期資金として配布されます</p>
+          <p className="text-text-sub mt-1 text-sm">初期資金として配布されます</p>
         </div>
 
         <div>
@@ -163,7 +163,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             />
             <span className="text-text-sub absolute top-2 right-3 text-sm">円</span>
           </div>
-          <p className="mt-1 text-sm text-gray-500">空欄の場合は配布金額と同額</p>
+          <p className="text-text-sub mt-1 text-sm">空欄の場合は配布金額と同額</p>
         </div>
 
         <div>
@@ -175,7 +175,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             <Checkbox id="loanEnabled" checked={loanEnabled} onCheckedChange={setLoanEnabled} />
             借入機能を有効にする
           </label>
-          <p className="mt-1 text-sm text-gray-500">無効にすると融資の案内が一切出ません</p>
+          <p className="text-text-sub mt-1 text-sm">無効にすると融資の案内が一切出ません</p>
         </div>
 
         <div>
@@ -192,15 +192,15 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             />
             <span className="text-text-sub absolute top-2 right-3 text-sm">%</span>
           </div>
-          <p className="mt-1 text-sm text-gray-500">残高が配布金額のこの割合以下になると案内します</p>
+          <p className="text-text-sub mt-1 text-sm">残高が配布金額のこの割合以下になると案内します</p>
         </div>
 
         <div>
           <Label>開催日</Label>
           <div className="relative">
-            <div className="focus-within:ring-primary/20 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
+            <div className="focus-within:ring-primary/40 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
               <Calendar className="text-text-sub h-4 w-4" />
-              <span className="text-gray-900">{date.replace(/-/g, '/')}</span>
+              <span className="text-text-main">{date.replace(/-/g, '/')}</span>
             </div>
 
             <input
@@ -226,7 +226,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             <Checkbox id="restrictBetTypes" checked={restrictBetTypes} onCheckedChange={setRestrictBetTypes} />
             馬券種別を制限する
           </label>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-text-sub mt-1 text-sm">
             このイベントの全レースに適用されるデフォルトです。レース側の個別設定が優先されます
           </p>
         </div>
@@ -236,7 +236,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             {BET_TYPE_ORDER.map((type) => (
               <label
                 key={type}
-                className="rounded-control flex items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+                className="rounded-control text-text-main flex items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm"
               >
                 <Checkbox checked={allowedBetTypes.has(type)} onCheckedChange={() => toggleBetType(type)} />
                 {BET_TYPE_LABELS[type]}

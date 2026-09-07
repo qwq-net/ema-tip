@@ -1,7 +1,8 @@
 'use client';
 
-import { Card } from '@/shared/ui';
+import { Button, Card, EmptyState } from '@/shared/ui';
 import { History, Wallet } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { TransactionHistoryDialog } from './transaction-history-dialog';
 
@@ -23,7 +24,18 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
   const [selectedWallet, setSelectedWallet] = useState<{ id: string; name: string } | null>(null);
 
   if (wallets.length === 0) {
-    return <Card className="p-8 text-center text-gray-500">参加中のイベントやウォレットが見つかりませんでした。</Card>;
+    return (
+      <EmptyState
+        icon={Wallet}
+        title="参加中のイベントがありません"
+        description="イベントに参加すると軍資金が配られ、ここに残高が表示されます。"
+        action={
+          <Button asChild variant="outline">
+            <Link href="/mypage/claim">イベントに参加する</Link>
+          </Button>
+        }
+      />
+    );
   }
 
   return (
@@ -39,12 +51,12 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
             </div>
 
             <div className="space-y-1">
-              <h3 className="line-clamp-1 font-semibold text-gray-900" title={wallet.event.name}>
+              <h3 className="text-text-main line-clamp-1 font-semibold" title={wallet.event.name}>
                 {wallet.event.name}
               </h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-secondary text-2xl font-semibold">{wallet.balance.toLocaleString('ja-JP')}</span>
-                <span className="text-sm text-gray-500">円</span>
+                <span className="text-text-sub text-sm">円</span>
               </div>
             </div>
 

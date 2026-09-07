@@ -87,17 +87,17 @@ export function BetSummaryFooter({
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4 lg:flex lg:items-center lg:gap-8 lg:border-none lg:pb-0">
           <div className="flex flex-col gap-1 lg:items-start">
-            <span className="text-sm text-gray-500">購入点数</span>
+            <span className="text-text-sub text-sm">購入点数</span>
             <span className="text-primary text-xl font-semibold tabular-nums">{betCount}点</span>
           </div>
           <div className="flex flex-col gap-1 lg:items-start">
-            <span className="text-sm text-gray-500">合計金額</span>
-            <span className="text-xl font-semibold text-gray-900 tabular-nums">
+            <span className="text-text-sub text-sm">合計金額</span>
+            <span className="text-text-main text-xl font-semibold tabular-nums">
               {totalAmount.toLocaleString('ja-JP')}円
             </span>
           </div>
           <div className="col-span-2 flex flex-col gap-2 lg:col-auto lg:flex-row lg:items-center lg:gap-3">
-            <label htmlFor="bet-unit-amount" className="text-sm text-gray-500">
+            <label htmlFor="bet-unit-amount" className="text-text-sub text-sm">
               1点あたり
             </label>
             <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function BetSummaryFooter({
                   disabled={isClosed || isPending}
                   variant="outline"
                   size="icon"
-                  className="hover:text-primary h-10 w-10 text-gray-500"
+                  className="hover:text-primary text-text-sub h-10 w-10"
                   title="キーパッドで入力"
                 >
                   <Calculator className="h-5 w-5" />

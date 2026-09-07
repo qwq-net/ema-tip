@@ -46,8 +46,8 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
             <Info className="h-8 w-8" />
           </div>
         </div>
-        <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
-        <p className="text-sm text-gray-500">予想を入力するには、まず出走馬の登録が必要です。</p>
+        <h3 className="text-text-main mb-2 text-lg font-semibold">出走馬が登録されていません</h3>
+        <p className="text-text-sub text-sm">予想を入力するには、まず出走馬の登録が必要です。</p>
       </div>
     );
   }
@@ -77,7 +77,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
   return (
     <div className="rounded-surface space-y-6 border border-gray-100 bg-white p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">予想入力</h2>
+        <h2 className="text-text-main text-lg font-semibold">予想入力</h2>
         <Button onClick={handleSubmit} disabled={isPending}>
           {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           保存する
@@ -99,8 +99,8 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
                 <Td>
                   <BracketBadge bracketNumber={entry.bracketNumber} />
                 </Td>
-                <Td className="text-gray-900">{entry.horseNumber}</Td>
-                <Td className="font-medium text-gray-900">{entry.horseName}</Td>
+                <Td className="text-text-main">{entry.horseNumber}</Td>
+                <Td className="text-text-main font-semibold">{entry.horseName}</Td>
                 <Td>
                   <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                 </Td>
@@ -129,7 +129,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="comment" className="block text-sm text-gray-700">
           短評・コメント
         </label>
         <Textarea

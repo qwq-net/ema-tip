@@ -154,8 +154,8 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
           />
         ) : (
           <div className="rounded-control bg-gray-50 p-8 text-center">
-            <p className="text-lg font-semibold text-gray-500">BET5を設定できません</p>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-text-sub text-lg font-semibold">BET5を設定できません</p>
+            <p className="text-text-sub mt-2 text-sm">
               BET5の設定には締め切られていないレースが5件以上必要です。現在は {selectableRaces.length} 件です。
             </p>
           </div>

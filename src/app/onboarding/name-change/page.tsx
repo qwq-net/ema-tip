@@ -20,7 +20,7 @@ export default async function OnboardingNameChangePage() {
       <div className="rounded-surface w-full max-w-md space-y-8 border border-gray-200 bg-white p-8">
         <div className="text-center">
           <h1 className="text-primary text-2xl font-semibold tracking-tight">えまちっぷへようこそ</h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="text-text-sub mt-2 text-sm">
             はじめに、ユーザー名を設定してください。
             <br />
             この名前は後から変更可能です。

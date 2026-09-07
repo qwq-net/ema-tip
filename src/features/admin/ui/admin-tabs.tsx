@@ -31,10 +31,10 @@ export function AdminTabs({ items }: { items: AdminTabItem[] }) {
                 href={item.href}
                 aria-current={isCurrent ? 'page' : undefined}
                 className={cn(
-                  'inline-flex h-11 items-center gap-1.5 border-b-2 px-1 text-sm font-medium transition-colors',
+                  'inline-flex h-11 items-center gap-1.5 border-b-2 px-1 text-sm font-semibold transition-colors',
                   isCurrent
-                    ? 'border-primary text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900'
+                    ? 'border-primary text-text-main'
+                    : 'text-text-sub hover:text-text-main border-transparent hover:border-gray-300'
                 )}
               >
                 {item.icon}

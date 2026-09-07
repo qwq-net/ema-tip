@@ -2,7 +2,7 @@
 
 import { type EventStatus } from '@/shared/constants/status';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader, EmptyState } from '@/shared/ui';
 import { useTransition } from 'react';
 import { claimEvent } from '../actions';
 
@@ -48,7 +48,10 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
 
   if (events.length === 0) {
     return (
-      <div className="rounded-chip bg-gray-50 p-4 text-center text-gray-500">現在参加可能なイベントはありません。</div>
+      <EmptyState
+        title="参加できるイベントはありません"
+        description="新しいイベントが公開されると、ここに表示されます。"
+      />
     );
   }
 
@@ -70,7 +73,7 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
               <p className="mt-1 text-sm text-gray-600">開催日: {event.date}</p>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col">
-              <p className="mb-4 line-clamp-2 flex-1 text-sm text-gray-500">
+              <p className="text-text-sub mb-4 line-clamp-2 flex-1 text-sm">
                 {event.description || '説明はありません'}
               </p>
               <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-4">

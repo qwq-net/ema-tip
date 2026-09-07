@@ -70,8 +70,8 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
         <TableBody>
           {tickets.map((ticket) => (
             <TableRow key={ticket.id}>
-              <Td className="text-gray-500">{formatDate(ticket.createdAt)}</Td>
-              <Td className="font-medium whitespace-normal text-gray-900">{ticket.user.name || '不明'}</Td>
+              <Td className="text-text-sub">{formatDate(ticket.createdAt)}</Td>
+              <Td className="text-text-main font-semibold whitespace-normal">{ticket.user.name || '不明'}</Td>
               <Td className="leading-relaxed whitespace-normal text-gray-600">
                 <div className="flex flex-col gap-1">
                   <div className="flex gap-1">
@@ -103,7 +103,7 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
                 )}
                 {!ticket.isWin &&
                   (isFinalized ? (
-                    <Badge label="不的中" className="bg-gray-100 text-gray-500 ring-gray-200" />
+                    <Badge label="不的中" className="text-text-sub bg-gray-100 ring-gray-200" />
                   ) : (
                     <Badge label="未確定" className="bg-blue-100 text-blue-600 ring-blue-200" />
                   ))}

@@ -92,22 +92,22 @@ export function LoanBanner({
         <>
           直線一気の追い込みは、いつも後方から生まれます。いま最下位でも、ゴール板の前で笑うのはあなたかもしれません。馬たちはまだ、走り終えていません。
           <span className="rounded-control mt-4 block border border-gray-200 bg-gray-50 px-4 py-3 text-left">
-            <span className="block text-center text-sm font-semibold tracking-[0.35em] text-gray-900">借用証</span>
+            <span className="text-text-main block text-center text-sm font-semibold tracking-[0.35em]">借用証</span>
             <span className="mt-2 flex justify-between border-b border-dashed border-gray-200 pb-1.5 text-sm">
-              <span className="text-gray-500">軍資金</span>
-              <span className="font-semibold text-gray-900 tabular-nums">{loanAmount.toLocaleString('ja-JP')}円</span>
+              <span className="text-text-sub">軍資金</span>
+              <span className="text-text-main font-semibold tabular-nums">{loanAmount.toLocaleString('ja-JP')}円</span>
             </span>
             <span className="flex justify-between border-b border-dashed border-gray-200 py-1.5 text-sm">
-              <span className="text-gray-500">利息</span>
-              <span className="font-semibold text-gray-900">なし</span>
+              <span className="text-text-sub">利息</span>
+              <span className="text-text-main font-semibold">なし</span>
             </span>
             <span className="flex justify-between border-b border-dashed border-gray-200 py-1.5 text-sm">
-              <span className="text-gray-500">借入回数</span>
-              <span className="font-semibold text-gray-900">イベントにつき1回まで</span>
+              <span className="text-text-sub">借入回数</span>
+              <span className="text-text-main font-semibold">イベントにつき1回まで</span>
             </span>
             <span className="flex justify-between pt-1.5 text-sm">
-              <span className="text-gray-500">備考</span>
-              <span className="font-semibold text-gray-900">次の的中で全部返る計算です</span>
+              <span className="text-text-sub">備考</span>
+              <span className="text-text-main font-semibold">次の的中で全部返る計算です</span>
             </span>
           </span>
         </>

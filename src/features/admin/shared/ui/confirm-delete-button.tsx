@@ -22,7 +22,7 @@ export function ConfirmDeleteButton({ title, itemName, onDelete }: ConfirmDelete
   return (
     <ConfirmDialog
       trigger={
-        <Button variant="ghost" size="icon" className="text-text-sub hover:text-red-600" title="削除">
+        <Button variant="ghost" size="icon" className="text-text-sub hover:text-error" title="削除">
           <Trash2 size={18} />
         </Button>
       }

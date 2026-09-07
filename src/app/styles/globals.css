@@ -67,8 +67,10 @@
   --color-primary-hover: var(--color-turf-800);
   --color-secondary: var(--color-gray-900);
 
-  /* 文字色ロール */
-  --color-text-main: var(--color-gray-800);
+  /* 文字色ロール。text-main は見出しと主要な文字、text-sub は説明と補助。
+     本文の地の色は body が gray-800 を直接指し、見出しより一段淡くして階層を作る。
+     コンポーネントは gray-900 と gray-500 を直書きせず、この 2 つを参照する */
+  --color-text-main: var(--color-gray-900);
   --color-text-sub: var(--color-gray-500); /* 白地 4.78:1・gray-50 上 4.59:1 */
 
   /* 地色 */
@@ -155,7 +157,7 @@
 
 :root {
   --background: var(--color-background);
-  --foreground: var(--color-text-main);
+  --foreground: var(--color-gray-800);
 }
 
 body {

@@ -19,7 +19,7 @@ export function WalletMissingCard({
         <CardContent className="pt-6 text-center">
           <Info className="text-turf-600 mx-auto mb-4 h-12 w-12" />
           <h2 className="mb-2 text-xl font-semibold">ウォレットが見つかりません</h2>
-          <p className="text-gray-500">{description}</p>
+          <p className="text-text-sub">{description}</p>
           <div className="mt-6 flex flex-col gap-3">
             <Button asChild className="w-full">
               <Link href="/mypage/claim">お小遣いを貰いに行く</Link>

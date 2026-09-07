@@ -194,9 +194,9 @@ export function RaceForm({
         <div>
           <Label>開催日</Label>
           <div className="relative">
-            <div className="focus-within:ring-primary/20 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
+            <div className="focus-within:ring-primary/40 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
               <Calendar className="text-text-sub h-4 w-4" />
-              <span className="text-gray-900">{date.replace(/-/g, '/')}</span>
+              <span className="text-text-main">{date.replace(/-/g, '/')}</span>
             </div>
             <input
               name="date"
@@ -250,7 +250,7 @@ export function RaceForm({
               </option>
             ))}
           </Select>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-text-sub mt-1 text-sm">
             {venueId
               ? `会場のデフォルト: ${
                   lookup(DIRECTION_LABELS, venues.find((v) => v.id === venueId)?.defaultDirection ?? '') ?? '-'
@@ -281,7 +281,7 @@ export function RaceForm({
           defaultValue={initialData?.raceNumber ?? ''}
           placeholder="自動採番"
         />
-        <p className="mt-1 text-sm text-gray-500">未入力の場合は自動で採番されます</p>
+        <p className="text-text-sub mt-1 text-sm">未入力の場合は自動で採番されます</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -304,7 +304,7 @@ export function RaceForm({
             {['芝', 'ダート'].map((s) => (
               <label
                 key={s}
-                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-4 py-2 text-sm font-medium transition ${
+                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-4 py-2 text-sm font-semibold transition ${
                   surface === s
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -332,7 +332,7 @@ export function RaceForm({
           {['良', '稍重', '重', '不良'].map((c) => (
             <label
               key={c}
-              className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-3 py-2 text-sm font-medium transition ${
+              className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-3 py-2 text-sm font-semibold transition ${
                 condition === c
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'

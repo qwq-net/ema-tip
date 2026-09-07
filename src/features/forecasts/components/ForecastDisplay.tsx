@@ -49,15 +49,15 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
 
   return (
     <div className="rounded-control mt-8 space-y-4 border border-gray-200 bg-white p-6">
-      <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">予想・見解</h3>
+      <h3 className="text-text-main border-b border-gray-200 pb-2 text-lg font-semibold">予想・見解</h3>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="w-12 px-3 py-2 text-center text-sm font-medium text-gray-500">枠</th>
-              <th className="w-12 px-3 py-2 text-center text-sm font-medium text-gray-500">番</th>
-              <th className="min-w-[150px] px-3 py-2 text-left text-sm font-medium text-gray-500">馬名</th>
+              <th className="text-text-sub w-12 px-3 py-2 text-center text-sm">枠</th>
+              <th className="text-text-sub w-12 px-3 py-2 text-center text-sm">番</th>
+              <th className="text-text-sub min-w-[150px] px-3 py-2 text-left text-sm">馬名</th>
               {forecasts.map((forecast) => (
                 <th key={forecast.id} className="min-w-[80px] px-3 py-2 text-center">
                   <div className="flex flex-col items-center gap-1">
@@ -78,16 +78,16 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
           <tbody className="divide-y divide-gray-200">
             {entries.map((entry) => (
               <tr key={entry.horseId}>
-                <td className="px-3 py-2 text-center text-sm text-gray-500">
+                <td className="text-text-sub px-3 py-2 text-center text-sm">
                   <BracketBadge bracketNumber={entry.bracketNumber} />
                 </td>
-                <td className="px-3 py-2 text-center text-sm font-semibold text-gray-900">{entry.horseNumber}</td>
-                <td className="px-3 py-2 text-sm font-medium text-gray-900">{entry.horseName}</td>
+                <td className="text-text-main px-3 py-2 text-center text-sm font-semibold">{entry.horseNumber}</td>
+                <td className="text-text-main px-3 py-2 text-sm font-semibold">{entry.horseName}</td>
                 {forecasts.map((forecast) => {
                   const selections = forecast.selections;
                   const symbol = selections[entry.horseId];
                   return (
-                    <td key={forecast.id} className="px-3 py-2 text-center text-base font-semibold text-gray-900">
+                    <td key={forecast.id} className="text-text-main px-3 py-2 text-center text-base font-semibold">
                       <span
                         className={cn(
                           symbol === '◎' && 'text-red-600',
@@ -119,7 +119,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
                     className="h-6 w-6"
                     iconClassName="h-3 w-3"
                   />
-                  <span className="text-sm font-semibold text-gray-900">{forecast.user.name}</span>
+                  <span className="text-text-main text-sm font-semibold">{forecast.user.name}</span>
                 </div>
                 <p className="text-sm whitespace-pre-wrap text-gray-700">{forecast.comment}</p>
               </div>

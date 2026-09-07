@@ -64,7 +64,7 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
   return (
     <div className="space-y-6">
       <div className="rounded-control border border-gray-200 bg-white p-6">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">新規ゲストコード発行</h3>
+        <h3 className="text-text-main mb-4 text-lg font-semibold">新規ゲストコード発行</h3>
         <div className="flex gap-4">
           <Input
             type="text"
@@ -91,18 +91,18 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
         <TableBody>
           {codes.map((code) => (
             <TableRow key={code.code}>
-              <Td className="font-mono font-semibold text-gray-900">{code.code}</Td>
-              <Td className="max-w-[200px] truncate text-gray-900" title={code.title}>
+              <Td className="text-text-main font-mono font-semibold">{code.code}</Td>
+              <Td className="text-text-main max-w-[200px] truncate" title={code.title}>
                 {code.title}
               </Td>
-              <Td className="text-gray-500">{code.creator?.name || '不明'}</Td>
-              <Td className="text-gray-500">
+              <Td className="text-text-sub">{code.creator?.name || '不明'}</Td>
+              <Td className="text-text-sub">
                 <FormattedDate date={code.createdAt} />
               </Td>
               <Td>
                 {code.disabledAt ? <Badge variant="status" label="無効" /> : <Badge variant="status" label="有効" />}
               </Td>
-              <Td className="text-right font-medium">
+              <Td className="text-right font-semibold">
                 <div className="flex justify-end space-x-2">
                   <ConfirmDialog
                     trigger={

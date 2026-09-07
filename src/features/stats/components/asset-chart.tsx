@@ -101,13 +101,13 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                     return (
                       <div className="rounded-control border border-gray-200 bg-white p-3 text-sm shadow-md">
                         <div className="text-text-sub text-sm">{data.date}</div>
-                        <div className="mb-1 font-semibold text-gray-900">{data.label || '不明な操作'}</div>
+                        <div className="text-text-main mb-1 font-semibold">{data.label || '不明な操作'}</div>
                         <div className="flex flex-col gap-0.5 tabular-nums">
                           <div className={`text-lg font-semibold ${amountColorClass(data.amount)}`}>
                             {data.amount > 0 ? '+' : ''}
                             {data.amount.toLocaleString('ja-JP')}円
                           </div>
-                          <div className="text-sm text-gray-500">残高: {data.balance.toLocaleString('ja-JP')}円</div>
+                          <div className="text-text-sub text-sm">残高: {data.balance.toLocaleString('ja-JP')}円</div>
                         </div>
                       </div>
                     );

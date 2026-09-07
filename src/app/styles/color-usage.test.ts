@@ -98,7 +98,6 @@ const GRANDFATHERED = new Set([
   'src/features/admin/manage-races/ui/race-result-form.tsx',
   'src/features/admin/manage-users/ui/user-list.tsx',
   'src/features/admin/manage-venues/ui/venue-list.tsx',
-  'src/features/admin/shared/ui/confirm-delete-button.tsx',
   'src/features/auth/ui/emoji-keypad.tsx',
   'src/features/betting/ui/bet-table.tsx',
   'src/features/betting/ui/bet5-voting-form.tsx',
@@ -113,7 +112,6 @@ const GRANDFATHERED = new Set([
   'src/features/stats/components/net-worth-display.tsx',
   'src/features/user/ui/editable-user-profile.tsx',
   'src/features/user/ui/name-change-form.tsx',
-  'src/shared/ui/button.tsx',
 ]);
 
 // 任意値 hex を認めるファイル。Discord のブランド色のみ

@@ -11,7 +11,7 @@ export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
 
 export function CardTitle({ className, children, ...props }: ComponentProps<'h3'>) {
   return (
-    <h3 className={cn('text-lg font-semibold text-gray-900', className)} {...props}>
+    <h3 className={cn('text-text-main text-lg font-semibold', className)} {...props}>
       {children}
     </h3>
   );
@@ -22,5 +22,5 @@ export function CardContent({ className, ...props }: ComponentProps<'div'>) {
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<'p'>) {
-  return <p className={cn('text-sm text-gray-500', className)} {...props} />;
+  return <p className={cn('text-text-sub text-sm', className)} {...props} />;
 }
