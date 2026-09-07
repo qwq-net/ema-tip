@@ -1,18 +1,20 @@
 'use server';
 
 import { isEligibleForLoan } from '@/entities/wallet';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, transactions, wallets } from '@/shared/db/schema';
+import { ActionError, requireUser, runAction } from '@/shared/utils/admin';
 import { and, eq, sql } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 
+// 特別融資を借り入れる。本番では throw のメッセージがマスクされるため、
+// 対象外・借入済みなどの想定内エラーは throw せず { success: false, error } で返す。
+// 画面の鮮度は呼び手の router.refresh に任せ、revalidatePath は呼ばない
 export async function borrowLoan(eventId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
+  return runAction(() => borrowLoanInner(eventId));
+}
 
+async function borrowLoanInner(eventId: string) {
+  const session = await requireUser();
   const userId = session.user.id;
 
   const event = await db.query.events.findFirst({
@@ -20,15 +22,15 @@ export async function borrowLoan(eventId: string) {
   });
 
   if (!event) {
-    throw new Error('イベントが見つかりません');
+    throw new ActionError('イベントが見つかりません');
   }
 
   if (event.status !== 'ACTIVE') {
-    throw new Error('このイベントは現在開催中ではありません');
+    throw new ActionError('このイベントは現在開催中ではありません');
   }
 
   if (!event.loanEnabled) {
-    throw new Error('このイベントでは借入機能が無効です');
+    throw new ActionError('このイベントでは借入機能が無効です');
   }
 
   const wallet = await db.query.wallets.findFirst({
@@ -36,14 +38,14 @@ export async function borrowLoan(eventId: string) {
   });
 
   if (!wallet) {
-    throw new Error('ウォレットが見つかりません');
+    throw new ActionError('ウォレットが見つかりません');
   }
 
   if (!isEligibleForLoan(wallet.balance, event.distributeAmount, wallet.totalLoaned > 0, event.loanThresholdPercent)) {
     if (wallet.totalLoaned > 0) {
-      throw new Error('既に借り入れ済みです');
+      throw new ActionError('既に借り入れ済みです');
     }
-    throw new Error('現在の残高では借り入れできません');
+    throw new ActionError('現在の残高では借り入れできません');
   }
 
   await db.transaction(async (tx) => {
@@ -55,11 +57,11 @@ export async function borrowLoan(eventId: string) {
     });
 
     if (lockedEvent?.status !== 'ACTIVE') {
-      throw new Error('このイベントは現在開催中ではありません');
+      throw new ActionError('このイベントは現在開催中ではありません');
     }
 
     if (!lockedEvent.loanEnabled) {
-      throw new Error('このイベントでは借入機能が無効です');
+      throw new ActionError('このイベントでは借入機能が無効です');
     }
 
     const loanAmount = lockedEvent.loanAmount ?? lockedEvent.distributeAmount;
@@ -69,7 +71,7 @@ export async function borrowLoan(eventId: string) {
     });
 
     if (!lockedWallet) {
-      throw new Error('ウォレットが見つかりません');
+      throw new ActionError('ウォレットが見つかりません');
     }
 
     if (
@@ -81,9 +83,9 @@ export async function borrowLoan(eventId: string) {
       )
     ) {
       if (lockedWallet.totalLoaned > 0) {
-        throw new Error('既に借り入れ済みです');
+        throw new ActionError('既に借り入れ済みです');
       }
-      throw new Error('現在の残高では借り入れできません');
+      throw new ActionError('現在の残高では借り入れできません');
     }
 
     await tx
@@ -101,8 +103,4 @@ export async function borrowLoan(eventId: string) {
       referenceId: lockedEvent.id,
     });
   });
-
-  revalidatePath('/mypage');
-  revalidatePath('/mypage/sokubet');
-  revalidatePath(`/races`);
 }

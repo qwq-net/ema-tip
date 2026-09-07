@@ -1,11 +1,11 @@
 'use client';
 
 import type { EventStatus } from '@/shared/constants/status';
+import { toast } from '@/shared/lib/toast';
 import { Badge, Button, ConfirmDialog } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { Pause, Play, RefreshCw, Square } from 'lucide-react';
 import { useTransition } from 'react';
-import { toast } from 'sonner';
 import { updateEventStatus } from '../actions';
 
 // サーバーコンポーネントからも指定できるよう、アイコンは関数ではなくキーで受ける

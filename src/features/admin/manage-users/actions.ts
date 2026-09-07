@@ -26,44 +26,50 @@ export async function updateUserRole(userId: string, newRole: Role) {
   });
 }
 
+// ユーザーの有効と無効を反転する。操作者自身とユーザー不在は拒否し、{ success: false, error } で返す
 export async function toggleUserStatus(userId: string) {
-  const session = await requireAdmin();
-  const adminUserId = session.user.id;
-  if (!adminUserId) {
-    throw new Error('認証されていません');
-  }
+  return runAction(async () => {
+    const session = await requireAdmin();
+    const adminUserId = session.user.id;
+    if (!adminUserId) {
+      throw new ActionError('認証されていません');
+    }
 
-  if (userId === adminUserId) {
-    throw new Error('自身のアカウントは無効化できません');
-  }
+    if (userId === adminUserId) {
+      throw new ActionError('自身のアカウントは無効化できません');
+    }
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) {
+      throw new ActionError('ユーザーが見つかりません');
+    }
+
+    const newDisabledAt = user.disabledAt ? null : new Date();
+
+    await db.update(users).set({ disabledAt: newDisabledAt }).where(eq(users.id, userId));
+
+    revalidatePath('/admin/users');
   });
-
-  if (!user) {
-    throw new Error('ユーザーが見つかりません');
-  }
-
-  const newDisabledAt = user.disabledAt ? null : new Date();
-
-  await db.update(users).set({ disabledAt: newDisabledAt }).where(eq(users.id, userId));
-
-  revalidatePath('/admin/users');
 }
 
+// ユーザーを削除する。操作者自身の削除は拒否し、{ success: false, error } で返す
 export async function deleteUser(userId: string) {
-  const session = await requireAdmin();
-  const adminUserId = session.user.id;
-  if (!adminUserId) {
-    throw new Error('認証されていません');
-  }
+  return runAction(async () => {
+    const session = await requireAdmin();
+    const adminUserId = session.user.id;
+    if (!adminUserId) {
+      throw new ActionError('認証されていません');
+    }
 
-  if (userId === adminUserId) {
-    throw new Error('自身のアカウントは削除できません');
-  }
+    if (userId === adminUserId) {
+      throw new ActionError('自身のアカウントは削除できません');
+    }
 
-  await db.delete(users).where(eq(users.id, userId));
+    await db.delete(users).where(eq(users.id, userId));
 
-  revalidatePath('/admin/users');
+    revalidatePath('/admin/users');
+  });
 }

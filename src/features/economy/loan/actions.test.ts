@@ -14,6 +14,7 @@ vi.mock('@/shared/db', () => ({
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
+import { revalidatePath } from 'next/cache';
 
 describe('borrowLoan', () => {
   const userId = 'user-123';
@@ -71,28 +72,31 @@ describe('borrowLoan', () => {
     );
   });
 
-  it('未認証ユーザーはエラーをスローする', async () => {
+  it('未認証ユーザーはエラーを返す', async () => {
     (auth as unknown as Mock).mockResolvedValue(null);
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('Unauthorized');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: '認証されていません' });
   });
 
-  it('イベントが存在しない場合はエラーをスローする', async () => {
+  it('イベントが存在しない場合はエラーを返す', async () => {
     (db.query.events.findFirst as unknown as Mock).mockResolvedValue(null);
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('イベントが見つかりません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: 'イベントが見つかりません' });
   });
 
-  it('イベントがACTIVE以外の場合はエラーをスローする', async () => {
+  it('イベントがACTIVE以外の場合はエラーを返す', async () => {
     (db.query.events.findFirst as unknown as Mock).mockResolvedValue({ ...mockEvent, status: 'FINISHED' });
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('このイベントは現在開催中ではありません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({
+      success: false,
+      error: 'このイベントは現在開催中ではありません',
+    });
   });
 
-  it('ウォレットが存在しない場合はエラーをスローする', async () => {
+  it('ウォレットが存在しない場合はエラーを返す', async () => {
     (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue(null);
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('ウォレットが見つかりません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: 'ウォレットが見つかりません' });
   });
 
   it('残高が閾値以上の場合は借入できない', async () => {
@@ -101,7 +105,7 @@ describe('borrowLoan', () => {
       balance: 7000,
     });
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('現在の残高では借り入れできません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: '現在の残高では借り入れできません' });
   });
 
   it('既に借入済みの場合は二重借入できない', async () => {
@@ -110,7 +114,7 @@ describe('borrowLoan', () => {
       totalLoaned: 5000,
     });
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('既に借り入れ済みです');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: '既に借り入れ済みです' });
   });
 
   it('トランザクション内でadvisory lockを取得する', async () => {
@@ -143,16 +147,19 @@ describe('borrowLoan', () => {
     expect(callOrder[2]).toBe('readWallet');
   });
 
-  it('競合シナリオでロック後にイベントが非ACTIVEになっていた場合はエラーをスローする', async () => {
+  it('競合シナリオでロック後にイベントが非ACTIVEになっていた場合はエラーを返す', async () => {
     mockTx.query.events.findFirst.mockResolvedValue({ ...mockEvent, status: 'FINISHED' });
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('このイベントは現在開催中ではありません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({
+      success: false,
+      error: 'このイベントは現在開催中ではありません',
+    });
   });
 
-  it('競合シナリオでロック後にウォレットがnullの場合はエラーをスローする', async () => {
+  it('競合シナリオでロック後にウォレットがnullの場合はエラーを返す', async () => {
     mockTx.query.wallets.findFirst.mockResolvedValue(null);
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('ウォレットが見つかりません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: 'ウォレットが見つかりません' });
   });
 
   it('競合シナリオでロック後に残高が増えて閾値以上になった場合は借入できない', async () => {
@@ -161,7 +168,7 @@ describe('borrowLoan', () => {
       balance: 7000,
     });
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('現在の残高では借り入れできません');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: '現在の残高では借り入れできません' });
   });
 
   it('競合シナリオでロック後に既に借入済みになっていた場合は二重借入を防止する', async () => {
@@ -170,7 +177,13 @@ describe('borrowLoan', () => {
       totalLoaned: 5000,
     });
 
-    await expect(borrowLoan(eventId)).rejects.toThrow('既に借り入れ済みです');
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: false, error: '既に借り入れ済みです' });
+  });
+
+  it('借入成功時は success: true を返し、鮮度は呼び手の router.refresh に任せて revalidatePath を呼ばない', async () => {
+    await expect(borrowLoan(eventId)).resolves.toEqual({ success: true, data: undefined });
+
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it('借入成功時にウォレット残高とtotalLoanedが加算される', async () => {

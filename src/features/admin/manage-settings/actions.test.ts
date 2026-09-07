@@ -1,4 +1,5 @@
 import { db } from '@/shared/db';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { updateSystemDefaultOdds } from './actions';
@@ -7,9 +8,13 @@ vi.mock('@/shared/utils/admin', async () => {
   const actual = await vi.importActual('@/shared/utils/admin');
   return {
     ...actual,
-    requireAdmin: vi.fn().mockResolvedValue({ user: { role: 'ADMIN' } }),
+    requireAdmin: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } }),
   };
 });
+
+vi.mock('@/shared/utils/admin-audit', () => ({
+  logAdminAction: vi.fn(),
+}));
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
@@ -72,5 +77,19 @@ describe('updateSystemDefaultOdds', () => {
       ])
     );
     expect(mockValues.mock.calls[0]![0]).toHaveLength(8);
+  });
+
+  it('保存に成功すると監査ログを 1 件記録し、検証で弾いたときは記録しない', async () => {
+    await updateSystemDefaultOdds({ ...allTypes, place: 1.0 });
+    expect(logAdminAction).not.toHaveBeenCalled();
+
+    await updateSystemDefaultOdds(allTypes);
+
+    expect(logAdminAction).toHaveBeenCalledTimes(1);
+    expect(logAdminAction).toHaveBeenCalledWith(
+      db,
+      { id: 'admin-1', role: 'ADMIN' },
+      { action: 'settings.update_default_guaranteed_odds', targetId: 'system', detail: allTypes }
+    );
   });
 });

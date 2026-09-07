@@ -58,9 +58,12 @@ export function useBetSelections({ entries, allowedBetTypes }: UseBetSelectionsP
   const betCount = calculateBetCount(selectionsArray, betType, bracketHorseCount);
   const totalAmount = betCount * amount;
 
+  // 券種を切り替えたら選択とボックスモードを初期化する。ボックスを残すと単勝や複勝を経由して
+  // 2列以上の券種へ戻ったとき、操作していないのに突然ボックスへ切り替わる
   const handleBetTypeChange = (newType: BetType) => {
     setBetType(newType);
     setSelections([new Set(), new Set(), new Set()]);
+    setBoxMode(false);
   };
 
   // ボックスモード ON かつ複数列の券種では、どの列を操作しても全列を同時に切り替える。

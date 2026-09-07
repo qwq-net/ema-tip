@@ -101,7 +101,11 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         formData.set('loanAmount', loanAmount.toString());
       }
       if (initialData) {
-        await updateEvent(initialData.id, formData);
+        const result = await updateEvent(initialData.id, formData);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('イベント情報を更新しました');
       } else {
         await createEvent(formData);

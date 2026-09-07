@@ -59,12 +59,12 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
   }, [isOpen]);
 
   const handleAutoClose = useCallback(async () => {
-    try {
-      await closeRace(raceId);
-      toast.success('タイマーによりレースを締め切りました');
-    } catch (error) {
-      console.error('Failed to auto-close race', error);
+    const result = await closeRace(raceId);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    toast.success('タイマーによりレースを締め切りました');
   }, [raceId]);
 
   useEffect(() => {
@@ -94,16 +94,14 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
   }, [closingAt, status, handleAutoClose]);
 
   const handleSetTimer = async (minutes: number) => {
-    try {
-      const result = await setClosingTime(raceId, minutes);
-      if (result.success) {
-        setClosingAt(new Date(result.closingAt));
-        toast.success(`${minutes}分後の締切を設定しました`);
-        setIsOpen(false);
-      }
-    } catch {
-      toast.error('タイマーの設定に失敗しました');
+    const result = await setClosingTime(raceId, minutes);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    setClosingAt(new Date(result.data.closingAt));
+    toast.success(`${minutes}分後の締切を設定しました`);
+    setIsOpen(false);
   };
 
   const formatTime = (ms: number) => {

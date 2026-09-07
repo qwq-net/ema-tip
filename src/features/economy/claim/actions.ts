@@ -1,18 +1,20 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, transactions, wallets } from '@/shared/db/schema';
+import { ActionError, requireUser, runAction } from '@/shared/utils/admin';
 import { firstRow } from '@/shared/utils/first-row';
 import { and, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
+// イベントに参加してウォレットを作り、配布金を積む。本番では throw のメッセージがマスクされるため、
+// 開催外・二重参加などの想定内エラーは throw せず { success: false, error } で返す
 export async function claimEvent(eventId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
+  return runAction(() => claimEventInner(eventId));
+}
 
+async function claimEventInner(eventId: string) {
+  const session = await requireUser();
   const userId = session.user.id;
 
   const event = await db.query.events.findFirst({
@@ -20,11 +22,11 @@ export async function claimEvent(eventId: string) {
   });
 
   if (!event) {
-    throw new Error('Event not found');
+    throw new ActionError('イベントが見つかりません');
   }
 
   if (event.status !== 'ACTIVE') {
-    throw new Error('このイベントは現在開催中ではありません');
+    throw new ActionError('このイベントは現在開催中ではありません');
   }
 
   await db.transaction(async (tx) => {
@@ -36,7 +38,7 @@ export async function claimEvent(eventId: string) {
     });
 
     if (existingWallet) {
-      throw new Error('Already joined this event');
+      throw new ActionError('このイベントには既に参加しています');
     }
 
     const insertedWallets = await tx

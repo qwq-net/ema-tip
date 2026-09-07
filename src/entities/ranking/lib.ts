@@ -30,3 +30,8 @@ export function formatSignedYen(value: number): string {
   if (value < 0) sign = '-';
   return `${sign}${Math.abs(value).toLocaleString('ja-JP')}円`;
 }
+
+/** 収支の文字色。プラスと 0 は情報色の青、マイナスはエラー色の赤のトークンを返す。 */
+export function resultDiffClass(diff: number): string {
+  return diff >= 0 ? 'text-info' : 'text-error';
+}

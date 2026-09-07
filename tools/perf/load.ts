@@ -526,8 +526,8 @@ async function scenarioSse(fx: Fixture, ids: ActionIds) {
 // リダイレクトは実際の閲覧と同じく追従し、最終応答までを1回の所要時間とする
 async function scenarioPages(fx: Fixture) {
   const cookie = await login(fx.users[0].name);
-  // / はログイン済みなら /mypage へリダイレクトするだけなので対象にせず、購入履歴の一覧を測る
-  const paths = ['/mypage/results', `/races/${fx.raceId}`, `/ranking/${fx.eventId}`, '/stats', '/mypage'];
+  // / はログイン済みなら /mypage へリダイレクトするだけなので対象にせず、即BET と戦績を測る
+  const paths = ['/mypage/sokubet', `/races/${fx.raceId}`, `/ranking/${fx.eventId}`, '/mypage/stats', '/mypage'];
 
   for (const path of paths) {
     await fetch(`${BASE}${path}`, { headers: { Cookie: cookie, ...PROTO_HEADER } }).then((r) => r.text());

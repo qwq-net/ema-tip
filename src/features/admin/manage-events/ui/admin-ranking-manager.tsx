@@ -6,6 +6,7 @@ import {
   type RankingData,
   type RankingDisplayMode,
   resultDiff,
+  resultDiffClass,
 } from '@/entities/ranking';
 import { updateRankingDisplayMode } from '@/entities/ranking/actions';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
@@ -16,14 +17,17 @@ import { cn } from '@/shared/utils/cn';
 import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
 import { useOptimistic, useState, useTransition } from 'react';
 
+// 順位はサーバーで付けず、見方に応じてこの部品が付ける
+type UnrankedRankingData = Omit<RankingData, 'rank'>;
+
 interface AdminRankingManagerProps {
   eventId: string;
-  initialRanking: RankingData[];
+  initialRanking: UnrankedRankingData[];
   initialDisplayMode: RankingDisplayMode;
   distributeAmount: number;
 }
 
-// 管理者ビューの見方。通常は所持金、借入有りは借入を差し引いた純資産で順位と収支を出す
+// 管理者ビューの見方。通常は所持金、借入ありは借入を差し引いた純資産で順位と収支を出す
 const ADMIN_VIEWS = ['normal', 'loan'] as const;
 type AdminView = (typeof ADMIN_VIEWS)[number];
 
@@ -36,13 +40,13 @@ const MODE_LABELS = {
   FULL_WITH_LOAN: '借金込み公開',
 } satisfies Record<RankingDisplayMode, string>;
 
-/** 公開設定に対応する見方。借金込み公開なら借入有り、それ以外は通常。 */
+/** 公開設定に対応する見方。借金込み公開なら借入あり、それ以外は通常。 */
 function viewFor(mode: RankingDisplayMode): AdminView {
   return mode === 'FULL_WITH_LOAN' ? 'loan' : 'normal';
 }
 
 /** 管理者向けの所持金は伏せられないため数値として扱う。 */
-function balanceOf(user: RankingData): number {
+function balanceOf(user: UnrankedRankingData): number {
   return user.balance === '???' ? 0 : user.balance;
 }
 
@@ -64,13 +68,12 @@ export function AdminRankingManager({
   const handleModeChange = (mode: RankingDisplayMode) => {
     startTransition(async () => {
       setOptimisticMode(mode);
-      try {
-        await updateRankingDisplayMode(eventId, mode);
-        toast.success('ランキング公開設定を更新しました');
-      } catch (error) {
-        console.error(error);
-        toast.error('設定の更新に失敗しました');
+      const result = await updateRankingDisplayMode(eventId, mode);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success('ランキング公開設定を更新しました');
     });
   };
 
@@ -189,9 +192,7 @@ export function AdminRankingManager({
                       {balanceOf(user).toLocaleString('ja-JP')} 円
                     </Td>
                     <Td className="text-right tabular-nums">
-                      <span className={cn('font-medium', diff >= 0 ? 'text-green-600' : 'text-red-500')}>
-                        {formatSignedYen(diff)}
-                      </span>
+                      <span className={cn('font-medium', resultDiffClass(diff))}>{formatSignedYen(diff)}</span>
                     </Td>
                     {includeLoan && (
                       <Td className="text-right">

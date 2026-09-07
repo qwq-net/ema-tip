@@ -1,6 +1,12 @@
 'use client';
 
-import { formatSignedYen, type RankingData, type RankingDisplayMode, resultDiff } from '@/entities/ranking';
+import {
+  formatSignedYen,
+  type RankingData,
+  type RankingDisplayMode,
+  resultDiff,
+  resultDiffClass,
+} from '@/entities/ranking';
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { Badge, LiveStatusPill } from '@/shared/ui';
@@ -33,11 +39,6 @@ function StatusBadges({ published, displayMode }: { published: boolean; displayM
   );
 }
 
-/** 収支の色。プラスは青、マイナスは赤。 */
-function diffClass(diff: number): string {
-  return diff >= 0 ? 'text-blue-600' : 'text-red-600';
-}
-
 /** 自分の順位・所持金・収支の 1 行。参加していないか金額が伏せられていれば出さない。 */
 function MyStanding({ me, distributeAmount }: { me: RankingData | undefined; distributeAmount: number }) {
   if (!me || me.balance === '???') return null;
@@ -47,7 +48,7 @@ function MyStanding({ me, distributeAmount }: { me: RankingData | undefined; dis
       あなたの順位 <span className="font-semibold text-gray-900">{me.rank}位</span>
       <span className="mx-1.5 text-gray-300">/</span>
       {me.balance.toLocaleString('ja-JP')}円
-      <span className={cn('ml-1 font-medium', diffClass(diff))}>({formatSignedYen(diff)})</span>
+      <span className={cn('ml-1 font-medium', resultDiffClass(diff))}>({formatSignedYen(diff)})</span>
     </span>
   );
 }
@@ -126,14 +127,16 @@ export function RankingList({
                   </div>
                   <div className="flex items-center gap-2">
                     {user.totalLoaned !== undefined && user.totalLoaned > 0 && (
-                      <Badge label="借入有り" className="mr-1 bg-orange-100 text-orange-700" />
+                      <Badge label="借入あり" className="mr-1 bg-orange-100 text-orange-700" />
                     )}
                     <div className="text-right tabular-nums">
                       <div className="font-semibold text-gray-900">
                         {user.balance === '???' ? '???' : `${user.balance.toLocaleString('ja-JP')}円`}
                       </div>
                       {diff !== null && (
-                        <div className={cn('text-sm font-medium', diffClass(diff))}>({formatSignedYen(diff)})</div>
+                        <div className={cn('text-sm font-medium', resultDiffClass(diff))}>
+                          ({formatSignedYen(diff)})
+                        </div>
                       )}
                     </div>
                   </div>

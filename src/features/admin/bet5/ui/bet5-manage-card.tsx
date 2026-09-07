@@ -141,44 +141,35 @@ export function Bet5ManageCard({
     }
 
     startTransition(async () => {
-      try {
-        await updateBet5InitialPotAction(bet5Event.id, eventId, initialPot);
-        toast.success('プール金額を更新しました');
-        router.refresh();
-      } catch (error) {
-        toast.error('プール金額の更新に失敗しました');
-        console.error(error);
+      const result = await updateBet5InitialPotAction(bet5Event.id, eventId, initialPot);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success('プール金額を更新しました');
+      router.refresh();
     });
   };
 
   const handleClose = async () => {
-    try {
-      await closeBet5EventAction(bet5Event.id, eventId);
-      toast.success('締め切りました');
-      router.refresh();
-    } catch (error) {
-      toast.error('締め切りに失敗しました');
-      console.error(error);
+    const result = await closeBet5EventAction(bet5Event.id, eventId);
+    if (!result.success) {
+      toast.error(result.error);
       // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
-      throw error;
+      throw new Error(result.error);
     }
+    toast.success('締め切りました');
+    router.refresh();
   };
 
   const handleCalculate = async () => {
-    try {
-      const result = await calculateBet5PayoutAction(bet5Event.id, eventId);
-      if (result.success) {
-        toast.success(`集計完了: 的中${result.winCount}件, 100円あたり配当${result.dividend}円`);
-      } else {
-        toast.error(`失敗: ${result.message}`);
-      }
-      router.refresh();
-    } catch (error) {
-      toast.error('計算処理に失敗しました');
-      console.error(error);
-      throw error;
+    const result = await calculateBet5PayoutAction(bet5Event.id, eventId);
+    if (!result.success) {
+      toast.error(result.error);
+      throw new Error(result.error);
     }
+    toast.success(`集計完了: 的中${result.data.winCount}件, 100円あたり配当${result.data.dividend}円`);
+    router.refresh();
   };
 
   return (

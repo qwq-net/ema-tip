@@ -43,7 +43,11 @@ export function LoanBanner({
 
   const handleBorrow = async () => {
     try {
-      await borrowLoan(eventId);
+      const result = await borrowLoan(eventId);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
     } catch (error) {
       toast.error('融資の処理に失敗しました');
       throw error;

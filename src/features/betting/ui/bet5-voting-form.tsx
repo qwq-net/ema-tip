@@ -90,6 +90,12 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
       toast.error('選択が無効です');
       return;
     }
+
+    // サーバー側の Bet5UnitAmountSchema と同じ条件。満たさない金額は確認へ進めず、その場で理由を出す
+    if (!Number.isInteger(amount) || amount < 100 || amount % 100 !== 0) {
+      toast.error('投票金額は100円以上、100円単位で入力してください');
+      return;
+    }
     setShowConfirm(true);
   };
 
@@ -148,7 +154,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                   <span className="block truncate font-medium text-gray-900">{race.name}</span>
                   <span className="text-text-sub block text-sm">
                     {race.surface}
-                    {race.distance}m・{race.entries.length}頭
+                    {race.distance}m・{race.entries.filter((entry) => entry.status === 'ENTRANT').length}頭
                   </span>
                 </span>
                 <span

@@ -1,5 +1,6 @@
 'use server';
 
+import { resultDiff } from '@/entities/ranking';
 import { db } from '@/shared/db';
 import { transactions, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
@@ -122,7 +123,8 @@ export async function getGlobalStats() {
       name: wallet.event.name,
       balance: wallet.balance,
       loan: wallet.totalLoaned,
-      net: wallet.balance - wallet.totalLoaned,
+      // ランキングの収支と同じ定義。配布金額に対する増減で、借入があればその返済分も差し引く
+      net: resultDiff(wallet.balance, wallet.event.distributeAmount, wallet.totalLoaned),
       history: [],
       logs: [],
     });

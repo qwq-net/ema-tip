@@ -3,8 +3,8 @@ import { z } from 'zod';
 
 const TTL_SECONDS = 24 * 60 * 60;
 
+// ロック状態の記録。失敗回数は別キーのカウンタで数え、ここには持たない
 const loginAttemptRecordSchema = z.object({
-  attempts: z.number(),
   blockLevel: z.number(),
   lockedUntil: z.number().nullable(),
   lastAttemptAt: z.number(),
@@ -16,10 +16,14 @@ function keyFor(ip: string): string {
   return `ratelimit:ip:${ip}`;
 }
 
+function attemptsKeyFor(ip: string): string {
+  return `${keyFor(ip)}:attempts`;
+}
+
 /**
- * IP のログイン失敗記録を返す。未記録なら null。
+ * IP のロック記録を返す。未記録なら null。
  * 壊れた値を残すと該当 IP のログインが TTL まで失敗し続けるため、
- * 記録として読めない値は削除して null を返す。未記録と同じ扱いになり、失敗回数は 1 から数え直す。
+ * 記録として読めない値は削除して null を返す。未記録と同じ扱いになる。
  */
 export async function getLoginAttemptRecord(ip: string): Promise<LoginAttemptRecord | null> {
   const data = await redis.get(keyFor(ip));
@@ -52,10 +56,12 @@ function lockThreshold(isStrict: boolean, blockLevel: number): number {
 }
 
 /**
- * ログイン失敗を 1 回分記録し、しきい値を超えたら段階的ロックを掛ける。
+ * ログイン失敗を 1 回分記録し、しきい値に達したら段階的ロックを掛ける。
+ * 回数は Redis の INCR で原子的に数える。読んで足して書く方式だと bcrypt 照合の間に
+ * 並列で届いた失敗が同じ古い値を読み、何件届いても 1 件分しか進まなかった。
  * isStrict はゲストコード誤りなど総当たりを疑うべき失敗に使い、
- * 少ない試行回数で長いロックを適用する。ロック確定時は attempts を 0 に戻し
- * blockLevel を上げるため、ロック明け後の再失敗はより早く再ロックされる。
+ * 少ない試行回数で長いロックを適用する。ロック確定時は回数キーを消し blockLevel を上げるため、
+ * ロック明け後の再失敗はより早く再ロックされる。
  * 使われ方: ログイン・ゲスト登録の検証で失敗が確定した直後に呼ぶ前提。
  */
 export async function recordLoginFailure(
@@ -63,36 +69,30 @@ export async function recordLoginFailure(
   record: LoginAttemptRecord | null,
   isStrict = false
 ): Promise<void> {
-  const currentAttempts = (record?.attempts ?? 0) + 1;
   const currentBlockLevel = record?.blockLevel ?? 0;
 
-  let lockedUntil: number | null = null;
-  let newBlockLevel = currentBlockLevel;
-  let newAttempts = currentAttempts;
-
-  const threshold = lockThreshold(isStrict, currentBlockLevel);
-
-  if (currentAttempts >= threshold) {
-    // ロック時間は段階ごとに伸ばし、最後の段階に達したらそこで頭打ちにする
-    const durations: readonly [number, ...number[]] = isStrict ? [60, 24 * 60] : [10, 60, 24 * 60];
-    const [shortest] = durations;
-    const durationMinutes = durations[Math.min(currentBlockLevel, durations.length - 1)] ?? shortest;
-
-    lockedUntil = Date.now() + durationMinutes * 60 * 1000;
-    newBlockLevel = currentBlockLevel + 1;
-    newAttempts = 0;
+  const currentAttempts = await redis.incr(attemptsKeyFor(ip));
+  if (currentAttempts === 1) {
+    await redis.expire(attemptsKeyFor(ip), TTL_SECONDS);
   }
 
+  if (currentAttempts < lockThreshold(isStrict, currentBlockLevel)) return;
+
+  // ロック時間は段階ごとに伸ばし、最後の段階に達したらそこで頭打ちにする
+  const durations: readonly [number, ...number[]] = isStrict ? [60, 24 * 60] : [10, 60, 24 * 60];
+  const [shortest] = durations;
+  const durationMinutes = durations[Math.min(currentBlockLevel, durations.length - 1)] ?? shortest;
+
   const newState: LoginAttemptRecord = {
-    attempts: newAttempts,
-    blockLevel: newBlockLevel,
-    lockedUntil,
+    blockLevel: currentBlockLevel + 1,
+    lockedUntil: Date.now() + durationMinutes * 60 * 1000,
     lastAttemptAt: Date.now(),
   };
 
   await redis.set(keyFor(ip), JSON.stringify(newState), 'EX', TTL_SECONDS);
+  await redis.del(attemptsKeyFor(ip));
 }
 
 export async function clearLoginFailures(ip: string): Promise<void> {
-  await redis.del(keyFor(ip));
+  await redis.del(keyFor(ip), attemptsKeyFor(ip));
 }

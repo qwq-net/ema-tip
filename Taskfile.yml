@@ -121,6 +121,11 @@ tasks:
     cmds:
       - docker compose exec -T db psql -U postgres -d webapp -c "SELECT created_at, actor_name, action, target_id, detail FROM admin_action_log ORDER BY created_at DESC LIMIT 50;"
 
+  db:clear-copied-guaranteed-odds:
+    desc: 旧モデルがレース作成時に複写した保証オッズを外します。未確定でマスタと同値の行だけが対象で、以後はマスタを参照します。2026-09-07 のモデル変更後に環境ごとに一度実行します
+    cmds:
+      - docker compose exec -T db psql -U postgres -d webapp -c "UPDATE race_instance SET guaranteed_odds = NULL WHERE status <> 'FINALIZED' AND guaranteed_odds = (SELECT jsonb_object_agg(key, odds) FROM guaranteed_odds_master);"
+
   # ── パフォーマンス計測 ─────────────────────────────────────────
   # pg_stat_statements は public に置くと drizzle-kit push が拡張のビューを消そうとして
   # 失敗するため、専用スキーマ extensions に隔離する。public に入っている既存環境からは移動する

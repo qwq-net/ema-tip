@@ -8,6 +8,7 @@ import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
 import { Badge, Button, Card } from '@/shared/ui';
+import { formatYen } from '@/shared/utils/format-yen';
 import { asc, eq } from 'drizzle-orm';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -25,11 +26,6 @@ const NEXT_STEP_MESSAGES = {
   start: 'レースと出走馬の準備が整いました。開始すると参加者が参加登録と馬券購入をできるようになります。',
   finish: 'すべてのレースの払戻が確定しました。ランキングを確認してイベントを終了してください。',
 } satisfies Record<EventNextStep, string>;
-
-/** 金額を円表記にする。 */
-function yen(value: number): string {
-  return `${value.toLocaleString('ja-JP')}円`;
-}
 
 /**
  * イベント配下のレース一覧。レースごとの馬券の件数・投票額・払戻額を列に持ち、上部に合計を出すことで
@@ -112,7 +108,7 @@ export default async function EventRacesPage({ params }: { params: Promise<{ id:
         <div className="flex items-baseline gap-4">
           <AdminSectionTitle>レース一覧</AdminSectionTitle>
           <span className="text-sm text-gray-500">
-            馬券 {total.betCount}枚 / 投票 {yen(total.totalAmount)} / 払戻 {yen(total.totalPayout)}
+            馬券 {total.betCount}枚 / 投票 {formatYen(total.totalAmount)} / 払戻 {formatYen(total.totalPayout)}
           </span>
         </div>
         <Button asChild className="flex items-center gap-2 font-semibold transition active:scale-[.96]">
@@ -131,9 +127,9 @@ export default async function EventRacesPage({ params }: { params: Promise<{ id:
             {
               header: '馬券 / 投票額',
               className: 'text-right',
-              cell: (race) => `${summaryOf(race.id).betCount}枚 / ${yen(summaryOf(race.id).totalAmount)}`,
+              cell: (race) => `${summaryOf(race.id).betCount}枚 / ${formatYen(summaryOf(race.id).totalAmount)}`,
             },
-            { header: '払戻額', className: 'text-right', cell: (race) => yen(summaryOf(race.id).totalPayout) },
+            { header: '払戻額', className: 'text-right', cell: (race) => formatYen(summaryOf(race.id).totalPayout) },
             {
               header: '状態',
               cell: (race) => (

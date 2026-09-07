@@ -2,8 +2,9 @@
 
 import { BET_TYPE_ORDER, toAllowedBetTypes } from '@/entities/bet';
 import { db } from '@/shared/db';
-import { eventDefaultAllowedBetTypes, events } from '@/shared/db/schema';
+import { eventDefaultAllowedBetTypes, events, wallets } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
+import { ActionError, runAction } from '@/shared/utils/action-result';
 import { requireAdmin } from '@/shared/utils/admin';
 import { firstRow } from '@/shared/utils/first-row';
 import { formString } from '@/shared/utils/form';
@@ -91,61 +92,75 @@ export async function createEvent(formData: FormData) {
 }
 
 export async function updateEvent(id: string, formData: FormData) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  const parse = eventSchema.safeParse({
-    name: formData.get('name'),
-    description: formString(formData, 'description') || undefined,
-    distributeAmount: formData.get('distributeAmount'),
-    loanAmount: formData.get('loanAmount') || undefined,
-    loanEnabled: formData.get('loanEnabled'),
-    loanThresholdPercent: formData.get('loanThresholdPercent'),
-    date: formData.get('date'),
-    allowedBetTypes: formData.get('allowedBetTypes'),
-  });
+    const parse = eventSchema.safeParse({
+      name: formData.get('name'),
+      description: formString(formData, 'description') || undefined,
+      distributeAmount: formData.get('distributeAmount'),
+      loanAmount: formData.get('loanAmount') || undefined,
+      loanEnabled: formData.get('loanEnabled'),
+      loanThresholdPercent: formData.get('loanThresholdPercent'),
+      date: formData.get('date'),
+      allowedBetTypes: formData.get('allowedBetTypes'),
+    });
 
-  if (!parse.success) {
-    throw new Error(`無効な入力です: ${JSON.stringify(parse.error.flatten())}`);
-  }
-
-  // 保存のたびに全レースページへ通知が飛ぶのを避けるため、種別が実際に変わったときだけ emit する
-  const before = await db
-    .select({ betType: eventDefaultAllowedBetTypes.betType })
-    .from(eventDefaultAllowedBetTypes)
-    .where(eq(eventDefaultAllowedBetTypes.eventId, id));
-
-  await db.transaction(async (tx) => {
-    await tx
-      .update(events)
-      .set({
-        name: parse.data.name,
-        description: parse.data.description ?? null,
-        distributeAmount: parse.data.distributeAmount,
-        loanAmount: parse.data.loanAmount ?? null,
-        loanEnabled: parse.data.loanEnabled,
-        loanThresholdPercent: parse.data.loanThresholdPercent,
-        date: parse.data.date,
-      })
-      .where(eq(events.id, id));
-
-    await tx.delete(eventDefaultAllowedBetTypes).where(eq(eventDefaultAllowedBetTypes.eventId, id));
-    if (parse.data.allowedBetTypes) {
-      await tx
-        .insert(eventDefaultAllowedBetTypes)
-        .values(parse.data.allowedBetTypes.map((betType) => ({ eventId: id, betType })));
+    if (!parse.success) {
+      throw new Error(`無効な入力です: ${JSON.stringify(parse.error.flatten())}`);
     }
+
+    // ウォレットは参加時点の配布金額で作られる。参加者がいる状態で変えると収支の基準が全員分ずれるため、変更は参加者が出る前だけ受け付ける
+    const current = await db.query.events.findFirst({ where: eq(events.id, id), columns: { distributeAmount: true } });
+    if (!current) {
+      throw new ActionError('イベントが見つかりません');
+    }
+    if (current.distributeAmount !== parse.data.distributeAmount) {
+      const participant = await db.query.wallets.findFirst({ where: eq(wallets.eventId, id), columns: { id: true } });
+      if (participant) {
+        throw new ActionError('参加者がいるため配布金額は変更できません');
+      }
+    }
+
+    // 保存のたびに全レースページへ通知が飛ぶのを避けるため、種別が実際に変わったときだけ emit する
+    const before = await db
+      .select({ betType: eventDefaultAllowedBetTypes.betType })
+      .from(eventDefaultAllowedBetTypes)
+      .where(eq(eventDefaultAllowedBetTypes.eventId, id));
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(events)
+        .set({
+          name: parse.data.name,
+          description: parse.data.description ?? null,
+          distributeAmount: parse.data.distributeAmount,
+          loanAmount: parse.data.loanAmount ?? null,
+          loanEnabled: parse.data.loanEnabled,
+          loanThresholdPercent: parse.data.loanThresholdPercent,
+          date: parse.data.date,
+        })
+        .where(eq(events.id, id));
+
+      await tx.delete(eventDefaultAllowedBetTypes).where(eq(eventDefaultAllowedBetTypes.eventId, id));
+      if (parse.data.allowedBetTypes) {
+        await tx
+          .insert(eventDefaultAllowedBetTypes)
+          .values(parse.data.allowedBetTypes.map((betType) => ({ eventId: id, betType })));
+      }
+    });
+
+    const beforeSet = new Set(before.map((r) => r.betType));
+    const afterList = parse.data.allowedBetTypes ?? [];
+    const isChanged = beforeSet.size !== afterList.length || afterList.some((t) => !beforeSet.has(t));
+    if (isChanged) {
+      raceEventEmitter.emit(RACE_EVENTS.BET_RESTRICTION_UPDATED, { eventId: id, timestamp: Date.now() });
+    }
+
+    // 一覧に加えて、管理者が開いている詳細ページも再検証しないと保存が画面へ反映されない
+    revalidatePath('/admin/events');
+    revalidatePath(`/admin/events/${id}`);
   });
-
-  const beforeSet = new Set(before.map((r) => r.betType));
-  const afterList = parse.data.allowedBetTypes ?? [];
-  const isChanged = beforeSet.size !== afterList.length || afterList.some((t) => !beforeSet.has(t));
-  if (isChanged) {
-    raceEventEmitter.emit(RACE_EVENTS.BET_RESTRICTION_UPDATED, { eventId: id, timestamp: Date.now() });
-  }
-
-  // 一覧に加えて、管理者が開いている詳細ページも再検証しないと保存が画面へ反映されない
-  revalidatePath('/admin/events');
-  revalidatePath(`/admin/events/${id}`);
 }
 
 export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED') {

@@ -17,26 +17,23 @@ export function UserActionsMenu({ userId, isDisabled, isCurrentUser }: UserActio
 
   const handleToggleStatus = () => {
     startTransition(async () => {
-      try {
-        await toggleUserStatus(userId);
-        toast.success(isDisabled ? 'ユーザーを有効化しました' : 'ユーザーを無効化しました');
-      } catch (error) {
-        toast.error('ステータスの変更に失敗しました');
-        console.error(error);
+      const result = await toggleUserStatus(userId);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success(isDisabled ? 'ユーザーを有効化しました' : 'ユーザーを無効化しました');
     });
   };
 
   const handleDelete = async () => {
-    try {
-      await deleteUser(userId);
-      toast.success('ユーザーを削除しました');
-    } catch (error) {
-      toast.error('ユーザーの削除に失敗しました');
-      console.error(error);
+    const result = await deleteUser(userId);
+    if (!result.success) {
+      toast.error(result.error);
       // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
-      throw error;
+      throw new Error(result.error);
     }
+    toast.success('ユーザーを削除しました');
   };
 
   if (isCurrentUser) return null;

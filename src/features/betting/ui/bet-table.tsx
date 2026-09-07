@@ -165,7 +165,7 @@ function PopularityHelp() {
           style={{ top: position.top, left: position.left }}
           className="rounded-control fixed z-50 w-56 -translate-x-1/2 -translate-y-full bg-gray-900 px-3 py-2 text-left text-sm font-normal whitespace-normal text-white shadow-lg"
         >
-          人気は単勝の賭け金額が多い順です。同額のときは購入件数が多い馬が上位になります。
+          人気は単勝の賭け金額が多い順です。同額のときは購入件数が多い馬が上位になります。それも同じなら馬番が小さい馬が上位です。
         </span>
       )}
     </span>

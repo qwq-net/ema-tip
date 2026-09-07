@@ -1,5 +1,6 @@
 'use client';
 
+import { formatRaceLabel } from '@/entities/race/lib/label';
 import { toast } from '@/shared/lib/toast';
 import {
   Badge,
@@ -43,10 +44,6 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
 
   const sortedRaces = [...races].sort((a, b) => (a.raceNumber ?? 0) - (b.raceNumber ?? 0));
   const selectedInRaceOrder = sortedRaces.filter((race) => selectedRaces.includes(race.id));
-  const raceLabel = (race: Race) => {
-    const numberLabel = race.raceNumber ? `${race.raceNumber}R` : 'Ex';
-    return `${numberLabel} ${race.name}`;
-  };
 
   const handleRaceSelection = (raceId: string) => {
     if (selectedRaces.includes(raceId)) {
@@ -67,20 +64,18 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
       return;
     }
 
-    try {
-      await createBet5EventAction({
-        eventId,
-        raceIds,
-        initialPot,
-      });
-      toast.success('BET5を作成しました');
-      router.refresh();
-    } catch (error) {
-      toast.error('作成に失敗しました');
-      console.error(error);
+    const result = await createBet5EventAction({
+      eventId,
+      raceIds,
+      initialPot,
+    });
+    if (!result.success) {
+      toast.error(result.error);
       // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
-      throw error;
+      throw new Error(result.error);
     }
+    toast.success('BET5を作成しました');
+    router.refresh();
   };
 
   return (
@@ -110,7 +105,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                     onClick={() => handleRaceSelection(race.id)}
                   >
                     <span className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{raceLabel(race)}</span>
+                      <span className="text-sm font-medium">{formatRaceLabel(race)}</span>
                       {legNumber > 0 && (
                         <Badge label={`第${legNumber}戦`} className="bg-turf-600 border-0 text-white" />
                       )}
@@ -122,7 +117,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
             <p className="text-sm text-gray-500">選択済み: {selectedRaces.length} / 5</p>
             {selectedInRaceOrder.length > 0 && (
               <p className="text-sm font-medium text-gray-700">
-                {selectedInRaceOrder.map((race, index) => `第${index + 1}戦 ${raceLabel(race)}`).join(' → ')}
+                {selectedInRaceOrder.map((race, index) => `第${index + 1}戦 ${formatRaceLabel(race)}`).join(' → ')}
               </p>
             )}
           </div>
@@ -148,7 +143,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                 <span className="mt-3 block space-y-1">
                   {selectedInRaceOrder.map((race, index) => (
                     <span key={race.id} className="block">
-                      第{index + 1}戦 {raceLabel(race)}
+                      第{index + 1}戦 {formatRaceLabel(race)}
                     </span>
                   ))}
                 </span>

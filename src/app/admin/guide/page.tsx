@@ -79,7 +79,7 @@ function StepList({ steps, tone, ordered = false }: { steps: Step[]; tone: keyof
     <Card className="overflow-hidden">
       <ListTag className="divide-y divide-gray-100">
         {steps.map((step, index) => (
-          <li key={step.href}>
+          <li key={step.title}>
             <Link
               href={step.href}
               className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-gray-50"

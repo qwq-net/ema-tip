@@ -159,7 +159,7 @@ export default async function SokubetPage() {
                                   <span className="h-1 w-1 rounded-full bg-gray-300" />
                                   <span>{race.distance}m</span>
                                   <span className="h-1 w-1 rounded-full bg-gray-300" />
-                                  <span>{race.entries.length}頭</span>
+                                  <span>{race.entries.filter((e) => e.status === 'ENTRANT').length}頭</span>
                                 </div>
                               </div>
                               <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">

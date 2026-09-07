@@ -94,7 +94,7 @@ export async function getEventRanking(eventId: string): Promise<{
 
 // 管理者向けのランキングを返す。イベントが無ければ null を返し、呼び手のページが notFound へ倒す
 export async function getAdminEventRanking(eventId: string): Promise<{
-  ranking: RankingData[];
+  ranking: Omit<RankingData, 'rank'>[];
   displayMode: RankingDisplayMode;
   distributeAmount: number;
 } | null> {
@@ -113,10 +113,10 @@ export async function getAdminEventRanking(eventId: string): Promise<{
 
   const distributeAmount = event.distributeAmount;
 
-  // 管理者ビューは通常と借入有りを切り替えて見るため、所持金と借入をそのまま返し順位は表示側で付け直す
+  // 管理者ビューは通常と借入ありを切り替えて見るため、所持金と借入を作成順のまま返し順位は表示側で付ける。
+  // ここで並べ替えると同額の並びが公開側と食い違う
   const eventWallets = await fetchEventWallets(eventId);
-  const ranking: RankingData[] = rankByBasis(eventWallets, rankBasisFor(false)).map((wallet) => ({
-    rank: wallet.rank,
+  const ranking = eventWallets.map((wallet) => ({
     userId: wallet.userId,
     name: wallet.user.name || 'Unknown',
     balance: wallet.balance,

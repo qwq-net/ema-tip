@@ -124,4 +124,25 @@ describe('getAdminEventRanking', () => {
 
     await expect(getAdminEventRanking('missing')).resolves.toBeNull();
   });
+
+  it('順位を付けず作成順のまま返し、表示側の rankByBasis に順位付けを委ねる', async () => {
+    const { auth } = await import('@/shared/config/auth');
+    (auth as unknown as Mock).mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    (db.query.events.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'event-1',
+      distributeAmount: 10000,
+      rankingDisplayMode: 'FULL',
+    });
+    (db.query.wallets.findMany as unknown as Mock).mockResolvedValue([
+      makeWallet('user-c', 1000, new Date('2026-01-01')),
+      makeWallet('user-a', 2000, new Date('2026-01-02'), 1500),
+      makeWallet('user-b', 3000, new Date('2026-01-03')),
+    ]);
+
+    const result = await getAdminEventRanking('event-1');
+
+    expect(result?.ranking.map((r) => r.userId)).toEqual(['user-c', 'user-a', 'user-b']);
+    expect(result?.ranking.some((r) => 'rank' in r)).toBe(false);
+    expect(result?.ranking[1]?.totalLoaned).toBe(1500);
+  });
 });

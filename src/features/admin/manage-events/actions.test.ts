@@ -12,6 +12,10 @@ vi.mock('@/shared/db', () => ({
     update: vi.fn(),
     select: vi.fn(),
     transaction: vi.fn(),
+    query: {
+      events: { findFirst: vi.fn() },
+      wallets: { findFirst: vi.fn() },
+    },
   },
 }));
 
@@ -42,6 +46,9 @@ function makeFormData(allowedBetTypes: string[] | null = null) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // 既定は makeFormData と同じ配布金額で参加者なし。変更検知のテストだけが上書きする
+  vi.mocked(db.query.events.findFirst).mockResolvedValue({ distributeAmount: 100000 } as never);
+  vi.mocked(db.query.wallets.findFirst).mockResolvedValue(undefined);
   (db.update as ReturnType<typeof vi.fn>).mockReturnValue({
     set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
   });
@@ -111,7 +118,33 @@ describe('updateEvent の馬券種別デフォルト', () => {
     expect(raceEventEmitter.emit).not.toHaveBeenCalled();
   });
 
-  it('不正な種別を含む JSON は拒否する', async () => {
-    await expect(updateEvent(eventId, makeFormData(['single']))).rejects.toThrow('無効な入力です');
+  it('不正な種別を含む JSON は拒否し、更新を実行しない', async () => {
+    const result = await updateEvent(eventId, makeFormData(['single']));
+
+    expect(result.success).toBe(false);
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+});
+
+// ウォレットは参加時点の配布金額で作られるため、参加者がいる状態で配布金額を変えると
+// 全員の収支がずれる。変更は参加者が出る前だけ受け付ける
+describe('updateEvent の配布金額ガード', () => {
+  it('参加者がいるイベントの配布金額の変更を拒否し、更新を実行しない', async () => {
+    vi.mocked(db.query.events.findFirst).mockResolvedValue({ distributeAmount: 50000 } as never);
+    vi.mocked(db.query.wallets.findFirst).mockResolvedValue({ id: 'wallet-1' } as never);
+
+    const result = await updateEvent(eventId, makeFormData());
+
+    expect(result).toEqual({ success: false, error: expect.stringContaining('配布金額') });
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('参加者がいても配布金額が同じなら更新できる', async () => {
+    vi.mocked(db.query.wallets.findFirst).mockResolvedValue({ id: 'wallet-1' } as never);
+
+    const result = await updateEvent(eventId, makeFormData());
+
+    expect(result).toEqual({ success: true, data: undefined });
+    expect(db.transaction).toHaveBeenCalledTimes(1);
   });
 });

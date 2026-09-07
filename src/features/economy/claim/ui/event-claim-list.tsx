@@ -34,7 +34,11 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
   const handleClaim = (eventId: string) => {
     startTransition(async () => {
       try {
-        await claimEvent(eventId);
+        const result = await claimEvent(eventId);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
         toast.success('イベントに参加しました');
       } catch {
         toast.error('参加処理に失敗しました');

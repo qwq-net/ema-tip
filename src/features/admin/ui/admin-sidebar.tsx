@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Key,
   LayoutDashboard,
+  type LucideIcon,
   MapPin,
   Menu,
   Users,
@@ -31,7 +32,15 @@ interface AdminSidebarProps {
   };
 }
 
-const NAV_GROUPS = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  // href 配下でなくてもこの項目を選択状態にするパス。レース詳細はイベント配下の作業なのでイベント管理を光らせる
+  alsoActiveUnder?: string[];
+}
+
+const NAV_GROUPS: { label?: string; role: string[]; items: NavItem[] }[] = [
   {
     role: [ROLES.ADMIN],
     items: [{ label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard }],
@@ -40,7 +49,7 @@ const NAV_GROUPS = [
     label: '運用管理',
     role: ['ADMIN'],
     items: [
-      { label: 'イベント管理', href: '/admin/events', icon: Calendar },
+      { label: 'イベント管理', href: '/admin/events', icon: Calendar, alsoActiveUnder: ['/admin/races'] },
       { label: '出馬表インポート', href: '/admin/import-race', icon: Download },
     ],
   },
@@ -69,6 +78,11 @@ const NAV_GROUPS = [
     ],
   },
 ];
+
+/** パスが root そのものか、その配下かを返す。 */
+function isUnder(pathname: string, root: string): boolean {
+  return pathname === root || pathname.startsWith(`${root}/`);
+}
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -136,7 +150,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 const isActive =
                   item.href === '/admin'
                     ? pathname === '/admin'
-                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                    : [item.href, ...(item.alsoActiveUnder ?? [])].some((root) => isUnder(pathname, root));
                 return (
                   <Link
                     key={item.href}

@@ -34,7 +34,8 @@ export const users = pgTable(
     image: text('image'),
     role: roleEnum('role').default('USER').notNull(),
     // guestCodes は createdBy で users を参照するため相互参照になる。型の循環を断つ AnyPgColumn 注釈が必須
-    guestCodeId: text('guest_code_id').references((): AnyPgColumn => guestCodes.code),
+    // 発行者の削除は guestCodes へ連鎖するため、参照を残すとその削除が外部キー違反で止まる。コードが消えたら参照だけ外す
+    guestCodeId: text('guest_code_id').references((): AnyPgColumn => guestCodes.code, { onDelete: 'set null' }),
     password: text('password'),
     isOnboardingCompleted: boolean('is_onboarding_completed').default(false).notNull(),
     disabledAt: timestamp('disabled_at', { withTimezone: true }),

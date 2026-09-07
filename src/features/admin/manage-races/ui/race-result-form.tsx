@@ -639,25 +639,25 @@ export function RaceResultForm({
 
   const handleManualClose = () => {
     startTransition(async () => {
-      try {
-        await closeRace(raceId);
-        toast.success('受付を終了しました');
-        router.refresh();
-      } catch {
-        toast.error('エラーが発生しました');
+      const result = await closeRace(raceId);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success('受付を終了しました');
+      router.refresh();
     });
   };
 
   const handleReopen = () => {
     startTransition(async () => {
-      try {
-        await reopenRace(raceId);
-        toast.success('受付を再開しました');
-        router.refresh();
-      } catch {
-        toast.error('エラーが発生しました');
+      const result = await reopenRace(raceId);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success('受付を再開しました');
+      router.refresh();
     });
   };
 

@@ -68,7 +68,7 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
               <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
             </div>
           ) : (
-            <TransactionList transactions={transactions} />
+            <TransactionList transactions={transactions} truncated={transactions.length >= 200} />
           )}
         </div>
       </DialogContent>

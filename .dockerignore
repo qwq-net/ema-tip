@@ -14,3 +14,11 @@ docker-compose.override.yml
 docker-compose.prod.yml
 README.md
 docs
+# ビルドコンテキストに不要な生成物とローカルデータ。.pnpm-store は dev のバインドマウントが作る
+.pnpm-store
+backups
+test-results
+playwright-report
+tmp
+e2e
+*.tsbuildinfo

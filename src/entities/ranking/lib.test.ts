@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatSignedYen, rankByBasis, resultDiff } from './lib';
+import { formatSignedYen, rankByBasis, resultDiff, resultDiffClass } from './lib';
 
 describe('rankByBasis', () => {
   it('基準値の降順に並べ、同値は同順位で次の順位を人数分飛ばすこと', () => {
@@ -42,5 +42,13 @@ describe('formatSignedYen', () => {
     expect(formatSignedYen(9400)).toBe('+9,400円');
     expect(formatSignedYen(-990000)).toBe('-990,000円');
     expect(formatSignedYen(0)).toBe('±0円');
+  });
+});
+
+describe('resultDiffClass', () => {
+  it('プラスと 0 は情報色、マイナスはエラー色のトークンを返すこと', () => {
+    expect(resultDiffClass(9400)).toBe('text-info');
+    expect(resultDiffClass(0)).toBe('text-info');
+    expect(resultDiffClass(-1)).toBe('text-error');
   });
 });

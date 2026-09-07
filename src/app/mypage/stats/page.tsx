@@ -8,8 +8,10 @@ import {
 } from '@/features/stats';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { requireLoginPage } from '@/shared/utils/admin';
 
 export default async function StatsPage() {
+  await requireLoginPage();
   const stats = await getGlobalStats();
 
   return (

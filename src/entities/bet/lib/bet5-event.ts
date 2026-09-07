@@ -152,6 +152,37 @@ export async function updateBet5InitialPot(bet5EventId: string, initialPot: numb
   return updated;
 }
 
+/**
+ * 選択された馬 ID が全て対象レースの出走中の馬かを確かめる。
+ * 取消馬や別レースの馬 ID が混ざった選択は絶対に的中しないため、ActionError で購入を止める。
+ */
+async function assertSelectionsAreEntrants(
+  tx: Pick<typeof db, 'query'>,
+  selectionsByRace: [string, string[]][],
+  targetRaceIds: string[]
+) {
+  const allEntries = await tx.query.raceEntries.findMany({
+    where: (raceEntries, { and, inArray, eq }) =>
+      and(inArray(raceEntries.raceId, targetRaceIds), eq(raceEntries.status, 'ENTRANT')),
+    columns: { raceId: true, horseId: true },
+  });
+  const entrantsByRace = new Map<string, Set<string>>();
+  for (const entry of allEntries) {
+    let raceEntrants = entrantsByRace.get(entry.raceId);
+    if (!raceEntrants) {
+      raceEntrants = new Set<string>();
+      entrantsByRace.set(entry.raceId, raceEntrants);
+    }
+    raceEntrants.add(entry.horseId);
+  }
+  for (const [raceId, horseIds] of selectionsByRace) {
+    const entrants = entrantsByRace.get(raceId);
+    if (!entrants || !horseIds.every((horseId) => entrants.has(horseId))) {
+      throw new ActionError('出走取消となった馬が含まれています。選択し直してください');
+    }
+  }
+}
+
 export async function placeBet5Bet({
   userId,
   bet5EventId,
@@ -174,6 +205,15 @@ export async function placeBet5Bet({
       throw new ActionError('BET5の投票受付は終了しています');
     }
 
+    // イベント終了後に bet5Event が SCHEDULED のまま残っていても、順位確定後に残高が動かないよう通常馬券と同じ条件で止める
+    const parentEvent = await tx.query.events.findFirst({
+      where: eq(events.id, event.eventId),
+      columns: { status: true },
+    });
+    if (parentEvent?.status !== 'ACTIVE') {
+      throw new ActionError('イベントが開催中ではないため購入できません');
+    }
+
     // 後出し購入防止: 対象レースのいずれかが締切・確定済みなら、BET5イベントの締切忘れがあっても購入不可
     const selectionsByRace: [string, string[]][] = [
       [event.race1Id, selections.race1],
@@ -192,27 +232,7 @@ export async function placeBet5Bet({
       throw new ActionError('対象レースが既に締め切られているため購入できません');
     }
 
-    // 取消馬・別レースの馬IDが混ざった選択は絶対に的中しないため、出走中の馬に限定する
-    const allEntries = await tx.query.raceEntries.findMany({
-      where: (raceEntries, { and, inArray, eq }) =>
-        and(inArray(raceEntries.raceId, targetRaceIds), eq(raceEntries.status, 'ENTRANT')),
-      columns: { raceId: true, horseId: true },
-    });
-    const entrantsByRace = new Map<string, Set<string>>();
-    for (const entry of allEntries) {
-      let raceEntrants = entrantsByRace.get(entry.raceId);
-      if (!raceEntrants) {
-        raceEntrants = new Set<string>();
-        entrantsByRace.set(entry.raceId, raceEntrants);
-      }
-      raceEntrants.add(entry.horseId);
-    }
-    for (const [raceId, horseIds] of selectionsByRace) {
-      const entrants = entrantsByRace.get(raceId);
-      if (!entrants || !horseIds.every((horseId) => entrants.has(horseId))) {
-        throw new ActionError('出走取消となった馬が含まれています。選択し直してください');
-      }
-    }
+    await assertSelectionsAreEntrants(tx, selectionsByRace, targetRaceIds);
 
     const count = calculateBet5Count(selections);
 
@@ -291,7 +311,7 @@ export async function calculateBet5Payout(bet5EventId: string) {
     });
 
     if (!bet5Event) throw new Error('Event not found');
-    if (bet5Event.status === 'FINALIZED') return { success: false, message: 'Already finalized' };
+    if (bet5Event.status === 'FINALIZED') return { success: false, message: '既に払戻確定済みです' };
     // 精算中の購入混入を防ぐため、締切済みのイベントのみ精算できる
     if (bet5Event.status !== 'CLOSED') {
       return { success: false, message: 'BET5イベントが締切状態ではありません' };

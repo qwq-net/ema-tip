@@ -14,6 +14,8 @@ const buildSecurityHeaders = (isDev: boolean) => {
     isDev ? "connect-src 'self' ws:" : "connect-src 'self'",
     "font-src 'self'",
     "frame-ancestors 'none'",
+    // form-action は Discord OAuth のリダイレクトを壊すため入れない
+    "base-uri 'self'",
   ].join('; ');
 
   const headers = [

@@ -92,15 +92,16 @@ export async function calculateOdds(raceId: string) {
   // app が複数プロセスで同時に購入を受けた時に両方が通知して重複する
   const acquired = await redis.set(lastNotificationKey, 'true', 'EX', THROTTLE_SECONDS, 'NX');
 
-  if (acquired === 'OK') {
+  // NX に負けた直後にキーが失効すると ttl は -2 になる。負の EX で set が失敗して配信ごと落ちるので、
+  // 失効済みは即時通知の権利が空いたものとみなし、取れた場合と同じく即時に通知する
+  const ttl = acquired === 'OK' ? THROTTLE_SECONDS : await redis.ttl(lastNotificationKey);
+
+  if (acquired === 'OK' || ttl <= 0) {
     raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
       raceId,
       data: { winOdds, winPopularity, placeOdds, updatedAt: new Date() },
     });
   } else {
-    const ttl = await redis.ttl(lastNotificationKey);
-    const delay = ttl > 0 ? ttl * 1000 : 0;
-
     const result = await redis.set(updateScheduledKey, 'true', 'EX', ttl + 1, 'NX');
 
     if (result === 'OK') {
@@ -132,7 +133,7 @@ export async function calculateOdds(raceId: string) {
         runTrailingUpdate().catch((cause: unknown) => {
           console.error('[Odds] Trailing edge update rejected:', cause);
         });
-      }, delay);
+      }, ttl * 1000);
     }
   }
 }

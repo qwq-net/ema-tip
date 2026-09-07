@@ -163,11 +163,11 @@ describe('closeRace', () => {
     (db.update as unknown as Mock).mockImplementation(mockUpdate);
   });
 
-  it('ユーザーが管理者でない場合、Unauthorizedエラーをスローすること', async () => {
+  it('ユーザーが管理者でない場合、Unauthorized をエラーとして返すこと', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    (requireAdmin as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
 
-    await expect(closeRace('123')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+    await expect(closeRace('123')).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
   });
 
   it('SCHEDULEDのレースを終了しイベントを発行すること', async () => {
@@ -192,7 +192,7 @@ describe('closeRace', () => {
     mockReturning.mockResolvedValue([]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: '123', status: 'FINALIZED' });
 
-    await expect(closeRace('123')).rejects.toThrow();
+    await expect(closeRace('123')).resolves.toEqual({ success: false, error: '受付中のレースのみ締め切れます' });
 
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
     expect(raceEventEmitter.emit).not.toHaveBeenCalled();
@@ -206,7 +206,7 @@ describe('closeRace', () => {
 
     const result = await closeRace('123');
 
-    expect(result).toEqual({ success: true });
+    expect(result.success).toBe(true);
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
     expect(raceEventEmitter.emit).not.toHaveBeenCalled();
   });
@@ -232,17 +232,17 @@ describe('reopenRace', () => {
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     mockReturning.mockResolvedValue([]);
 
-    await expect(reopenRace('123')).rejects.toThrow();
+    await expect(reopenRace('123')).resolves.toEqual({ success: false, error: '締切済みのレースのみ再開できます' });
 
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
     expect(raceEventEmitter.emit).not.toHaveBeenCalled();
   });
 
-  it('管理者でない場合はエラーをスローする', async () => {
+  it('管理者でない場合は Unauthorized をエラーとして返す', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    (requireAdmin as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
 
-    await expect(reopenRace('123')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+    await expect(reopenRace('123')).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
   });
 
   it('レースをSCHEDULED状態に戻し、closingAtをnullにリセットする', async () => {
@@ -253,7 +253,7 @@ describe('reopenRace', () => {
 
     expect(mockUpdate).toHaveBeenCalled();
     expect(mockSet).toHaveBeenCalledWith({ status: 'SCHEDULED', closingAt: null });
-    expect(result).toEqual({ success: true });
+    expect(result.success).toBe(true);
   });
 
   it('SSEイベント RACE_REOPENED が発火される', async () => {
@@ -282,7 +282,10 @@ describe('reopenRace', () => {
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     (db.query.payoutResults.findFirst as unknown as Mock).mockResolvedValueOnce({ id: 'payout-1' });
 
-    await expect(reopenRace('123')).rejects.toThrow('着順確定済みのレースは再開できません');
+    await expect(reopenRace('123')).resolves.toEqual({
+      success: false,
+      error: expect.stringContaining('着順確定済みのレースは再開できません'),
+    });
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 });
@@ -307,17 +310,20 @@ describe('setClosingTime', () => {
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     mockReturning.mockResolvedValue([]);
 
-    await expect(setClosingTime('123', 30)).rejects.toThrow();
+    await expect(setClosingTime('123', 30)).resolves.toEqual({
+      success: false,
+      error: '払戻確定済みのレースには締切時刻を設定できません',
+    });
 
     const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
     expect(raceEventEmitter.emit).not.toHaveBeenCalled();
   });
 
-  it('管理者でない場合はエラーをスローする', async () => {
+  it('管理者でない場合は Unauthorized をエラーとして返す', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    (requireAdmin as unknown as Mock).mockRejectedValue(new ActionError(ADMIN_ERRORS.UNAUTHORIZED));
 
-    await expect(setClosingTime('123', 30)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+    await expect(setClosingTime('123', 30)).resolves.toEqual({ success: false, error: ADMIN_ERRORS.UNAUTHORIZED });
   });
 
   it('指定分数後の締切時刻を設定してSCHEDULED状態にする', async () => {
@@ -336,7 +342,7 @@ describe('setClosingTime', () => {
     expect(closingAt.getTime()).toBeGreaterThanOrEqual(expectedMin);
     expect(closingAt.getTime()).toBeLessThanOrEqual(expectedMax);
     expect(result.success).toBe(true);
-    expect(result.closingAt).toBeDefined();
+    if (result.success) expect(result.data.closingAt).toEqual(closingAt);
   });
 
   it('受付中のレースへのタイマー設定では RACE_TIMER_SET が closingAt 付きで発火される', async () => {
@@ -372,7 +378,10 @@ describe('setClosingTime', () => {
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: '123', status: 'CLOSED' });
     (db.query.payoutResults.findFirst as unknown as Mock).mockResolvedValueOnce({ id: 'payout-1' });
 
-    await expect(setClosingTime('123', 10)).rejects.toThrow('着順確定済みのレースは再開できません');
+    await expect(setClosingTime('123', 10)).resolves.toEqual({
+      success: false,
+      error: expect.stringContaining('着順確定済みのレースは再開できません'),
+    });
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 });

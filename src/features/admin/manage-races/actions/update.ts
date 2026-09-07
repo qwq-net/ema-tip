@@ -10,7 +10,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { raceSchema } from '../model/validation';
 
 /**
- * 払戻表が残っているレースなら throw して受付再開を止める。
+ * 払戻表が残っているレースなら ActionError を投げて受付再開を止める。
  * 着順確定後に購入を受け付けると、古いプールで計算した払戻表のまま精算されるため。
  * 再開したいときは先に着順リセットで払戻表を消す運用を前提とする。
  */
@@ -20,7 +20,7 @@ async function assertReopenable(raceId: string): Promise<void> {
     columns: { id: true },
   });
   if (existing) {
-    throw new Error('着順確定済みのレースは再開できません。先に着順をリセットしてください');
+    throw new ActionError('着順確定済みのレースは再開できません。先に着順をリセットしてください');
   }
 }
 
@@ -100,77 +100,84 @@ async function updateRaceInner(id: string, formData: FormData) {
   revalidateRacePaths(id);
 }
 
+// レースの受付を締め切る。受付中でなければ throw せず { success: false, error } で返す
 export async function closeRace(raceId: string) {
-  const session = await requireAdmin();
+  return runAction(async () => {
+    const session = await requireAdmin();
 
-  const updated = await db
-    .update(raceInstances)
-    .set({ status: 'CLOSED' })
-    .where(and(eq(raceInstances.id, raceId), eq(raceInstances.status, 'SCHEDULED')))
-    .returning({ id: raceInstances.id });
+    const updated = await db
+      .update(raceInstances)
+      .set({ status: 'CLOSED' })
+      .where(and(eq(raceInstances.id, raceId), eq(raceInstances.status, 'SCHEDULED')))
+      .returning({ id: raceInstances.id });
 
-  if (updated.length === 0) {
-    const race = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
-    // タイマー自動締切と手動締切が競合しうるため、既にCLOSEDなら冪等に成功扱いとする
-    if (race?.status === 'CLOSED') return { success: true };
-    throw new Error('受付中のレースのみ締め切れます');
-  }
+    if (updated.length === 0) {
+      const race = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
+      // タイマー自動締切と手動締切が競合しうるため、既にCLOSEDなら冪等に成功扱いとする
+      if (race?.status === 'CLOSED') return;
+      throw new ActionError('受付中のレースのみ締め切れます');
+    }
 
-  await logAdminAction(db, session.user, { action: 'race.close', targetId: raceId });
-  raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
+    await logAdminAction(db, session.user, { action: 'race.close', targetId: raceId });
+    raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
 
-  revalidateRacePaths(raceId);
-  return { success: true };
-}
-
-export async function reopenRace(raceId: string) {
-  const session = await requireAdmin();
-  await assertReopenable(raceId);
-
-  const updated = await db
-    .update(raceInstances)
-    .set({ status: 'SCHEDULED', closingAt: null })
-    .where(and(eq(raceInstances.id, raceId), eq(raceInstances.status, 'CLOSED')))
-    .returning({ id: raceInstances.id });
-
-  if (updated.length === 0) {
-    throw new Error('締切済みのレースのみ再開できます');
-  }
-
-  await logAdminAction(db, session.user, { action: 'race.reopen', targetId: raceId });
-  raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, closingAt: null, timestamp: Date.now() });
-
-  revalidateRacePaths(raceId);
-  return { success: true };
-}
-
-export async function setClosingTime(raceId: string, minutes: number) {
-  const session = await requireAdmin();
-
-  const closingAt = new Date(Date.now() + minutes * 60 * 1000);
-
-  // 締切済みからの再開とタイマー設定のみで通知を分けるため、遷移前のステータスを読む。
-  // 更新との間に他の管理操作が挟まっても通知種別がずれるだけで、状態は下の条件付き更新が守る
-  const race = await db.query.raceInstances.findFirst({
-    where: eq(raceInstances.id, raceId),
+    revalidateRacePaths(raceId);
   });
-  if (race?.status === 'CLOSED') await assertReopenable(raceId);
+}
 
-  const updated = await db
-    .update(raceInstances)
-    .set({ closingAt, status: 'SCHEDULED' })
-    .where(and(eq(raceInstances.id, raceId), inArray(raceInstances.status, ['SCHEDULED', 'CLOSED'])))
-    .returning({ id: raceInstances.id });
+// 締め切ったレースの受付を再開する。締切済み以外と払戻表が残るレースは { success: false, error } で返す
+export async function reopenRace(raceId: string) {
+  return runAction(async () => {
+    const session = await requireAdmin();
+    await assertReopenable(raceId);
 
-  if (updated.length === 0) {
-    throw new Error('払戻確定済みのレースには締切時刻を設定できません');
-  }
+    const updated = await db
+      .update(raceInstances)
+      .set({ status: 'SCHEDULED', closingAt: null })
+      .where(and(eq(raceInstances.id, raceId), eq(raceInstances.status, 'CLOSED')))
+      .returning({ id: raceInstances.id });
 
-  await logAdminAction(db, session.user, { action: 'race.set_closing_time', targetId: raceId, detail: { minutes } });
-  const eventType = race?.status === 'CLOSED' ? RACE_EVENTS.RACE_REOPENED : RACE_EVENTS.RACE_TIMER_SET;
-  raceEventEmitter.emit(eventType, { raceId, closingAt: closingAt.toISOString(), timestamp: Date.now() });
+    if (updated.length === 0) {
+      throw new ActionError('締切済みのレースのみ再開できます');
+    }
 
-  revalidateRacePaths(raceId);
+    await logAdminAction(db, session.user, { action: 'race.reopen', targetId: raceId });
+    raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, closingAt: null, timestamp: Date.now() });
 
-  return { success: true, closingAt };
+    revalidateRacePaths(raceId);
+  });
+}
+
+// 指定分後の締切時刻を設定して受付中にする。払戻確定済みと払戻表が残るレースは { success: false, error } で返す
+export async function setClosingTime(raceId: string, minutes: number) {
+  return runAction(async () => {
+    const session = await requireAdmin();
+
+    const closingAt = new Date(Date.now() + minutes * 60 * 1000);
+
+    // 締切済みからの再開とタイマー設定のみで通知を分けるため、遷移前のステータスを読む。
+    // 更新との間に他の管理操作が挟まっても通知種別がずれるだけで、状態は下の条件付き更新が守る
+    const race = await db.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+    });
+    if (race?.status === 'CLOSED') await assertReopenable(raceId);
+
+    const updated = await db
+      .update(raceInstances)
+      .set({ closingAt, status: 'SCHEDULED' })
+      .where(and(eq(raceInstances.id, raceId), inArray(raceInstances.status, ['SCHEDULED', 'CLOSED'])))
+      .returning({ id: raceInstances.id });
+
+    if (updated.length === 0) {
+      throw new ActionError('払戻確定済みのレースには締切時刻を設定できません');
+    }
+
+    await logAdminAction(db, session.user, { action: 'race.set_closing_time', targetId: raceId, detail: { minutes } });
+    const eventType = race?.status === 'CLOSED' ? RACE_EVENTS.RACE_REOPENED : RACE_EVENTS.RACE_TIMER_SET;
+    raceEventEmitter.emit(eventType, { raceId, closingAt: closingAt.toISOString(), timestamp: Date.now() });
+
+    revalidateRacePaths(raceId);
+
+    return { closingAt };
+  });
 }

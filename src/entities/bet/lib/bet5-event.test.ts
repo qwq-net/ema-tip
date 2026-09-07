@@ -156,7 +156,7 @@ describe('calculateBet5Payout', () => {
 
     const result = await calculateBet5Payout(bet5EventId);
 
-    expect(result).toEqual({ success: false, message: 'Already finalized' });
+    expect(result).toEqual({ success: false, message: '既に払戻確定済みです' });
     expect(mockTx.update).not.toHaveBeenCalled();
     expect(mockTx.insert).not.toHaveBeenCalled();
   });
@@ -263,6 +263,48 @@ describe('calculateBet5Payout', () => {
 });
 
 describe('placeBet5Bet', () => {
+  it('親イベントが開催中でなければ購入を拒否する', async () => {
+    const { placeBet5Bet } = await import('./bet5-event');
+    const insertMock = vi.fn();
+    const mockTx = {
+      execute: vi.fn().mockResolvedValue(undefined),
+      query: {
+        bet5Events: {
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'bet5-1',
+            status: 'SCHEDULED',
+            eventId: 'event-1',
+            race1Id: 'r1',
+            race2Id: 'r2',
+            race3Id: 'r3',
+            race4Id: 'r4',
+            race5Id: 'r5',
+          }),
+        },
+        events: { findFirst: vi.fn().mockResolvedValue({ status: 'COMPLETED' }) },
+        raceInstances: { findMany: vi.fn().mockResolvedValue([]) },
+        raceEntries: { findMany: vi.fn().mockResolvedValue([]) },
+        wallets: { findFirst: vi.fn() },
+      },
+      insert: insertMock,
+      update: vi.fn(),
+    };
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
+      cb(mockTx)
+    );
+
+    await expect(
+      placeBet5Bet({
+        userId: 'user-1',
+        bet5EventId: 'bet5-1',
+        unitAmount: 100,
+        selections: { race1: ['h1'], race2: ['h2'], race3: ['h3'], race4: ['h4'], race5: ['h5'] },
+      })
+    ).rejects.toThrow('開催中');
+
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
   it('対象レースにSCHEDULED以外が含まれる場合は購入を拒否する', async () => {
     const { placeBet5Bet } = await import('./bet5-event');
     const insertMock = vi.fn();
@@ -281,6 +323,7 @@ describe('placeBet5Bet', () => {
             race5Id: 'r5',
           }),
         },
+        events: { findFirst: vi.fn().mockResolvedValue({ status: 'ACTIVE' }) },
         raceInstances: {
           findMany: vi.fn().mockResolvedValue([{ id: 'r1', status: 'FINALIZED' }]),
         },

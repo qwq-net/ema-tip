@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// 1接続あたり7リスナーを登録するため、既定の上限10では数接続で警告が出る
+// 1 接続あたり RACE_EVENTS の種類数だけリスナーを登録するため、既定の上限 10 では数接続で警告が出る
 raceEventEmitter.setMaxListeners(0);
 
 export async function GET(req: NextRequest) {

@@ -26,10 +26,12 @@ import {
 } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
+import { formatYen } from '@/shared/utils/format-yen';
 import { lookup } from '@/shared/utils/lookup';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'レースの馬券',
@@ -46,11 +48,6 @@ const STATUS_LABELS = {
 const STATUS_CLASSES = {
   HIT: 'bg-green-100 text-green-800',
 } satisfies Partial<Record<BetGroupStatus, string>>;
-
-/** 金額を円表記にする。 */
-function yen(value: number): string {
-  return `${value.toLocaleString('ja-JP')}円`;
-}
 
 /** 組み合わせを「1→3→5」または「1-3」の形にする。着順が意味を持つ券種だけ矢印でつなぐ。 */
 function formatSelections(type: BetType, selections: number[]): string {
@@ -210,16 +207,16 @@ function BetGroupTableRow({ row }: { row: BetGroupRow }) {
           <ul className="mt-1 space-y-0.5 text-sm text-green-800 tabular-nums">
             {row.hits.map((hit) => (
               <li key={hit.selections.join('-')}>
-                的中 {formatSelections(row.type, hit.selections)} {yen(hit.payout)}
+                的中 {formatSelections(row.type, hit.selections)} {formatYen(hit.payout)}
               </li>
             ))}
           </ul>
         )}
       </Td>
       <Td className="text-right text-gray-600 tabular-nums">{row.betCount}点</Td>
-      <Td className="text-right font-semibold text-gray-900 tabular-nums">{yen(row.totalAmount)}</Td>
+      <Td className="text-right font-semibold text-gray-900 tabular-nums">{formatYen(row.totalAmount)}</Td>
       <Td className={cn('text-right tabular-nums', row.payout > 0 ? 'font-semibold text-gray-900' : 'text-gray-500')}>
-        {yen(row.payout)}
+        {formatYen(row.payout)}
       </Td>
       <Td>
         <Badge variant="status" label={STATUS_LABELS[row.status]} className={lookup(STATUS_CLASSES, row.status)} />
@@ -245,14 +242,19 @@ export default async function RaceBetsPage({
 
   const [overview, page] = await Promise.all([getRaceBetOverview(id), getRaceBetGroupPage(id, listParams)]);
   const hasFilter = listParams.q !== undefined || listParams.type !== undefined || listParams.status !== undefined;
+  // URL の page が末尾ページを超えていたら末尾ページへ送り直す。表示だけ丸めると表が空のまま件数範囲が末尾の値になる
+  const lastPage = Math.max(1, Math.ceil(page.total / BET_GROUP_PAGE_SIZE));
+  if (listParams.page > lastPage) {
+    redirect(`${basePath}${buildBetGroupListQuery(listParams, { page: lastPage })}`);
+  }
 
   return (
     <div className="space-y-6">
       <div className="rounded-control grid grid-cols-2 gap-4 bg-gray-50 p-4 text-center sm:grid-cols-4">
         <SummaryTile label="購入者" value={`${overview.buyerCount}人`} />
         <SummaryTile label="購入" value={`${overview.purchaseCount}回`} note={`${overview.betCount}点`} />
-        <SummaryTile label="投票額" value={yen(overview.totalAmount)} />
-        <SummaryTile label="払戻額" value={yen(overview.totalPayout)} note={`的中 ${overview.hitCount}点`} />
+        <SummaryTile label="投票額" value={formatYen(overview.totalAmount)} />
+        <SummaryTile label="払戻額" value={formatYen(overview.totalPayout)} note={`的中 ${overview.hitCount}点`} />
       </div>
 
       <FilterForm params={listParams} basePath={basePath} />

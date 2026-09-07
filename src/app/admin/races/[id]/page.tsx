@@ -21,7 +21,7 @@ import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { eq } from 'drizzle-orm';
-import { Info, Settings2, Trophy } from 'lucide-react';
+import { Coins, Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -208,18 +208,29 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
   const hasFinishPositions = entriesWithResult.some((e) => e.finishPosition !== null);
   const canFinalizePayout = canFinalizePayoutFor(payoutResults.length, race.status, hasFinishPositions);
+  // 払戻表ができた後に保証オッズを変えると、計算済みの払戻と食い違うため編集を閉じる
+  const isGuaranteedOddsLocked = race.status === 'FINALIZED' || payoutResults.length > 0;
 
   const settingCards = (
     <>
-      <GuaranteedOddsForm
-        key={JSON.stringify(race.guaranteedOdds)}
-        title="保証オッズ設定"
-        description="このレースだけ変える券種を入力します。空欄の券種はデフォルト設定の値を使い、その値を薄く表示しています。"
-        initialOdds={race.guaranteedOdds ?? {}}
-        placeholders={defaultGuaranteedOdds}
-        action={updateGuaranteedOdds.bind(null, race.id)}
-        successMessage="保証オッズを更新しました"
-      />
+      {isGuaranteedOddsLocked ? (
+        <Card className="border-none">
+          <CardHeader className="border-b border-gray-50 pb-4">
+            <AdminSectionTitle icon={Coins}>保証オッズ設定</AdminSectionTitle>
+          </CardHeader>
+          <CardContent className="pt-6 text-sm text-gray-500">着順確定済みのため変更できません</CardContent>
+        </Card>
+      ) : (
+        <GuaranteedOddsForm
+          key={JSON.stringify(race.guaranteedOdds)}
+          title="保証オッズ設定"
+          description="このレースだけ変える券種を 1.1 倍以上で入力します。空欄の券種はデフォルト設定の値を使い、その値を薄く表示しています。"
+          initialOdds={race.guaranteedOdds ?? {}}
+          placeholders={defaultGuaranteedOdds}
+          action={updateGuaranteedOdds.bind(null, race.id)}
+          successMessage="保証オッズを更新しました"
+        />
+      )}
       <RaceBetTypesForm
         key={JSON.stringify(raceAllowed)}
         raceId={race.id}

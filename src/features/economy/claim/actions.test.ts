@@ -13,6 +13,7 @@ vi.mock('@/shared/db', () => ({
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
+import { revalidatePath } from 'next/cache';
 
 describe('claimEvent', () => {
   const userId = 'user-123';
@@ -64,22 +65,25 @@ describe('claimEvent', () => {
     );
   });
 
-  it('未認証ユーザーはエラーをスローする', async () => {
+  it('未認証ユーザーはエラーを返す', async () => {
     (auth as unknown as Mock).mockResolvedValue(null);
 
-    await expect(claimEvent(eventId)).rejects.toThrow('Unauthorized');
+    await expect(claimEvent(eventId)).resolves.toEqual({ success: false, error: '認証されていません' });
   });
 
-  it('イベントが存在しない場合はエラーをスローする', async () => {
+  it('イベントが存在しない場合はエラーを返す', async () => {
     (db.query.events.findFirst as unknown as Mock).mockResolvedValue(null);
 
-    await expect(claimEvent(eventId)).rejects.toThrow('Event not found');
+    await expect(claimEvent(eventId)).resolves.toEqual({ success: false, error: 'イベントが見つかりません' });
   });
 
-  it('イベントがACTIVE以外の場合はエラーをスローする', async () => {
+  it('イベントがACTIVE以外の場合はエラーを返す', async () => {
     (db.query.events.findFirst as unknown as Mock).mockResolvedValue({ ...mockEvent, status: 'FINISHED' });
 
-    await expect(claimEvent(eventId)).rejects.toThrow('このイベントは現在開催中ではありません');
+    await expect(claimEvent(eventId)).resolves.toEqual({
+      success: false,
+      error: 'このイベントは現在開催中ではありません',
+    });
   });
 
   it('トランザクション内でadvisory lockを取得する', async () => {
@@ -101,7 +105,13 @@ describe('claimEvent', () => {
   it('既にウォレットが存在する場合は二重参加を防止する', async () => {
     mockTx.query.wallets.findFirst.mockResolvedValue({ id: 'existing-wallet' });
 
-    await expect(claimEvent(eventId)).rejects.toThrow('Already joined this event');
+    await expect(claimEvent(eventId)).resolves.toEqual({ success: false, error: 'このイベントには既に参加しています' });
+  });
+
+  it('参加成功時は success: true を返し、マイページを revalidate する', async () => {
+    await expect(claimEvent(eventId)).resolves.toEqual({ success: true, data: undefined });
+
+    expect(revalidatePath).toHaveBeenCalledWith('/mypage');
   });
 
   it('参加成功時にウォレットがdistributeAmount分の残高で作成される', async () => {

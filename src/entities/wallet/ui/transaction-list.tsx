@@ -14,6 +14,9 @@ export interface Transaction {
 
 interface TransactionListProps {
   transactions: Transaction[];
+  // 取得件数に上限があり、それより古い取引が省かれている可能性があるとき true。末尾に注記を出す。
+  // 全件を渡す戦績ページは渡さない。件数だけで判定すると全件表示でも注記が出てしまう
+  truncated?: boolean;
 }
 
 // 取引種別の表示名の単一管理点。キーは transactionTypeEnum の値に一致させること。
@@ -26,7 +29,7 @@ export const TRANSACTION_TYPE_LABELS = {
   LOAN: '借入金',
 } satisfies Record<string, string>;
 
-export function TransactionList({ transactions }: TransactionListProps) {
+export function TransactionList({ transactions, truncated = false }: TransactionListProps) {
   if (transactions.length === 0) {
     return <div className="text-text-sub py-8 text-center">取引履歴はありません。</div>;
   }
@@ -69,9 +72,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
           </div>
         );
       })}
-      {transactions.length >= 200 && (
-        <div className="text-text-sub py-2 text-center text-sm">直近200件のみ表示しています</div>
-      )}
+      {truncated && <div className="text-text-sub py-2 text-center text-sm">直近200件のみ表示しています</div>}
     </div>
   );
 }

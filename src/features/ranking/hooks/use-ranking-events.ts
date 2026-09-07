@@ -17,13 +17,17 @@ export function useRankingEvents({ eventId }: UseRankingEventsProps) {
         if (mode === 'HIDDEN') {
           toast.info('ランキングが非公開になりました');
         } else if (mode === 'ANONYMOUS') {
-          toast.info('ランキングが更新されました（匿名公開）');
+          toast.info('ランキングが匿名で公開されました');
         } else if (mode === 'FULL_WITH_LOAN') {
-          toast.success('ランキングが公開されました（借金込み）');
+          toast.success('ランキングが借金込みで公開されました');
         } else {
           toast.success('ランキングが公開されました！');
         }
 
+        router.refresh();
+      }
+      // 払戻確定で所持金が動く。開催中に 1 回きりの状態変化なのでトーストは出さず値だけ更新する
+      if (data.type === 'RACE_BROADCAST') {
         router.refresh();
       }
     },

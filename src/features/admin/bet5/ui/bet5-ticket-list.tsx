@@ -2,6 +2,7 @@
 
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
+import { formatYen } from '@/shared/utils/format-yen';
 
 interface Bet5Ticket {
   id: string;
@@ -55,8 +56,6 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
     }).format(new Date(date));
   };
 
-  const formatYen = (value: number) => new Intl.NumberFormat('ja-JP').format(value);
-
   return (
     <div className="space-y-4">
       <AdminSectionTitle>購入されたBET5一覧 ({tickets.length}件)</AdminSectionTitle>
@@ -92,13 +91,13 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
                   </div>
                 </div>
               </Td>
-              <Td className="font-semibold text-gray-700">{formatYen(ticket.amount)}円</Td>
+              <Td className="font-semibold text-gray-700">{formatYen(ticket.amount)}</Td>
               <Td>
                 {ticket.isWin && (
                   <div className="flex flex-col items-start gap-1">
                     <Badge label="的中" className="bg-red-100 text-red-700 ring-red-200" />
                     {ticket.payout && (
-                      <span className="text-sm font-semibold text-red-600">{formatYen(ticket.payout)}円</span>
+                      <span className="text-sm font-semibold text-red-600">{formatYen(ticket.payout)}</span>
                     )}
                   </div>
                 )}

@@ -236,21 +236,15 @@ describe('calculateOdds', () => {
       consoleSpy.mockRestore();
     });
 
-    it('TTLが0以下の場合はdelay=0でsetTimeoutが発火される', async () => {
+    it('SET NX に負けた直後にスロットルキーが失効して ttl が -2 のときは trailing-edge を組まず即時に発火する', async () => {
       (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
       (redis.set as unknown as Mock).mockResolvedValueOnce(null);
-      (redis.ttl as unknown as Mock).mockResolvedValue(-1);
-      (redis.set as unknown as Mock).mockResolvedValue('OK');
-      (db.query.raceOdds.findFirst as unknown as Mock).mockResolvedValue({
-        winOdds: { '3': 5.0 },
-        placeOdds: {},
-        updatedAt: new Date(),
-      });
+      (redis.ttl as unknown as Mock).mockResolvedValue(-2);
 
       await calculateOdds(raceId);
-      await vi.advanceTimersByTimeAsync(0);
 
-      expect(raceEventEmitter.emit).toHaveBeenCalled();
+      expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_ODDS_UPDATED', expect.objectContaining({ raceId }));
+      expect(redis.set).toHaveBeenCalledTimes(1);
     });
   });
 });
