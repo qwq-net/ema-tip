@@ -2,12 +2,12 @@ import { getDisplayStatus } from '@/entities/race/lib/status';
 import { RaceMetaRow } from '@/entities/race/ui/race-meta-row';
 import { RaceNumberChip } from '@/entities/race/ui/race-number-chip';
 import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
-import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { Badge, Button, Card, EmptyState } from '@/shared/ui';
 import { PageContainer } from '@/shared/ui/layout/page-container';
 import { requireLoginPage } from '@/shared/utils/admin';
+import { formatYen } from '@/shared/utils/format-yen';
 import { ChevronLeft, Crown, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -62,7 +62,7 @@ export default async function SokubetPage() {
               totalLoaned,
               bet5Id,
               bet5Status,
-              bet5TargetRaceNumbers,
+              bet5Pot,
               bet5HasClosedRace,
               hasWallet,
               hasPurchasedBet5,
@@ -110,24 +110,18 @@ export default async function SokubetPage() {
                   {bet5Id && bet5Open && (
                     <div className="mb-4">
                       <Link href={`/events/${event.id}/bet5`}>
-                        <Card className="bg-turf-950 cursor-pointer border-0 p-4 text-white transition-opacity hover:opacity-90">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">
-                                  BET5
-                                </span>
-                                5レース的中・一攫千金チャンス！
-                              </h3>
-                              <p className="text-turf-100 mt-1 text-sm">対象の5レース全ての1着を予想しよう</p>
-                              {bet5TargetRaceNumbers.length > 0 && (
-                                <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-white">
-                                  対象レース:
-                                  <Bet5RaceSequence raceNumbers={bet5TargetRaceNumbers} />
-                                </p>
-                              )}
+                        <Card className="bg-turf-950 border-0 p-4 text-white transition-opacity hover:opacity-90">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex flex-wrap items-center gap-3">
+                              <span className="text-turf-100 text-sm">BET5 配当プール</span>
+                              <span className="text-gold text-2xl font-semibold tabular-nums">
+                                {formatYen(bet5Pot)}
+                              </span>
                             </div>
-                            <ChevronLeft className="rotate-180" />
+                            <div className="flex shrink-0 items-center gap-3">
+                              <Badge variant="status" label="受付中" />
+                              <ChevronLeft className="rotate-180" />
+                            </div>
                           </div>
                         </Card>
                       </Link>

@@ -76,7 +76,6 @@ const SANCTIONED = new Set([
 
 // 意味色の手組みが残る既存ファイル。新規追加は禁止で、直書きを解消したらここから削除する
 const GRANDFATHERED = new Set([
-  'src/app/(app)/events/[id]/bet5/page.tsx',
   'src/app/admin/races/[id]/bets/page.tsx',
   'src/app/admin/races/[id]/layout.tsx',
   'src/app/admin/races/[id]/page.tsx',

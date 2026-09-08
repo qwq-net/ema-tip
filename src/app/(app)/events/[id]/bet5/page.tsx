@@ -1,15 +1,17 @@
 import { Bet5MyTicketsDialog } from '@/features/betting/ui/bet5-my-tickets-dialog';
-import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
+import { Bet5RaceList } from '@/features/betting/ui/bet5-race-list';
 import { Bet5VotingForm } from '@/features/betting/ui/bet5-voting-form';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, raceInstances } from '@/shared/db/schema';
-import { Alert, Card } from '@/shared/ui';
+import { Alert, Badge, Card } from '@/shared/ui';
 import { type BreadcrumbItem, Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { PageContainer } from '@/shared/ui/layout/page-container';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { firstRow } from '@/shared/utils/first-row';
+import { formatYen } from '@/shared/utils/format-yen';
+import { and, desc, eq, inArray, sum } from 'drizzle-orm';
 import { AlertCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 
@@ -66,7 +68,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
 
   const targetRaceIds = [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id];
 
-  const [races, myTickets] = await Promise.all([
+  const [races, myTickets, salesRows] = await Promise.all([
     db.query.raceInstances.findMany({
       where: inArray(raceInstances.id, targetRaceIds),
       with: {
@@ -82,6 +84,10 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
       where: and(eq(bet5Tickets.bet5EventId, bet5Event.id), eq(bet5Tickets.userId, session.user.id)),
       orderBy: [desc(bet5Tickets.createdAt)],
     }),
+    db
+      .select({ total: sum(bet5Tickets.amount) })
+      .from(bet5Tickets)
+      .where(eq(bet5Tickets.bet5EventId, bet5Event.id)),
   ]);
 
   // 表示順・選択スロット・的中判定はすべて bet5Event の race1..race5 の定義順で揃える。
@@ -98,51 +104,25 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
 
   // 払戻完了後はキャリーオーバーが精算で消費・繰越済みのため、初期プールだけを出す
   const carryoverAmount = bet5Event.status === 'FINALIZED' ? 0 : event.carryoverAmount;
+  // 表示する配当プールは払戻計算の calculateBet5Payout と同じ式で揃える
+  const totalSales = Number(firstRow(salesRows, 'BET5の売上').total ?? 0);
+  const pot = bet5Event.initialPot + totalSales + carryoverAmount;
 
   return (
     <PageContainer>
       <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-      <h1 className="text-text-main text-3xl font-semibold">BET5 投票</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-text-main text-3xl font-semibold">BET5 投票</h1>
+          <Badge variant="status" label={isOpen ? '受付中' : '受付終了'} />
+        </div>
+        <Bet5MyTicketsDialog tickets={myTickets} races={orderedRaces} />
+      </div>
 
-      <Card className="bg-turf-950 border-0 p-6 text-white">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">BET5</span>
-            <h2 className="text-lg font-semibold">5レース的中・一攫千金チャンス！</h2>
-          </div>
-          {isOpen ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
-              </span>
-              受付中
-            </span>
-          ) : (
-            <span className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white/80">
-              受付終了
-            </span>
-          )}
-        </div>
-        <div className="mt-4">
-          <p className="text-turf-100 text-sm">BET5プール金額</p>
-          <p className="text-gold text-3xl font-semibold tabular-nums">
-            {(bet5Event.initialPot + carryoverAmount).toLocaleString('ja-JP')}円
-            <span className="text-turf-100 ml-1.5 text-base font-semibold">+ プレイヤーの購入金額</span>
-          </p>
-          {carryoverAmount > 0 && (
-            <p className="text-gold mt-1 text-sm font-semibold tabular-nums">
-              うちキャリーオーバー {carryoverAmount.toLocaleString('ja-JP')}円
-            </p>
-          )}
-        </div>
-        <p className="text-turf-100 mt-3 text-sm">
-          5つのレース全ての1着馬を予想してください。1口100円から投票できます。
-          的中者がいなかった馬券の売上は、キャリーオーバーとしてこのプールへ加算されます。
-        </p>
+      <Card className="bg-turf-950 border-0 p-5 text-white">
+        <p className="text-turf-100 text-sm">配当プール</p>
+        <p className="text-gold text-4xl font-semibold tabular-nums">{formatYen(pot)}</p>
       </Card>
-
-      <Bet5MyTicketsDialog tickets={myTickets} races={orderedRaces} />
 
       <LoanBanner
         eventId={id}
@@ -163,13 +143,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
               対象レースが既に締め切られているため、BET5の投票受付は終了しました。
             </Alert>
           )}
-          <div className="rounded-control bg-gray-50 p-8 text-center">
-            <p className="text-text-sub text-lg font-semibold">投票受付は終了しました</p>
-            <p className="text-text-sub mt-2 flex flex-wrap items-center justify-center gap-1.5 text-sm">
-              対象レース:
-              <Bet5RaceSequence raceNumbers={orderedRaces.map((race) => race.raceNumber)} />
-            </p>
-          </div>
+          <Bet5RaceList races={orderedRaces} readOnly />
         </div>
       )}
     </PageContainer>

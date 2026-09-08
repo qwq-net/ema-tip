@@ -1,10 +1,10 @@
 'use client';
 
 import { BetSummaryFooter, placeBet5BetAction } from '@/features/betting';
+import { Bet5RaceList } from '@/features/betting/ui/bet5-race-list';
 import { toast } from '@/shared/lib/toast';
 import { Checkbox, ConfirmDialog } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
-import { cn } from '@/shared/utils/cn';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 
@@ -155,41 +155,12 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   return (
     <>
       <div className="space-y-6" style={{ paddingBottom: footerHeight + 24 }}>
-        <div className="rounded-surface divide-y divide-gray-100 overflow-hidden border border-gray-200 bg-white">
-          {races.map((race, index) => {
-            const selectionCount = selections[race.id]?.length ?? 0;
-            return (
-              <button
-                key={race.id}
-                type="button"
-                onClick={() => setActiveTab(index)}
-                aria-pressed={index === activeTab}
-                className={cn(
-                  'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50',
-                  index === activeTab && 'bg-turf-50/70'
-                )}
-              >
-                <span className="text-text-sub shrink-0 text-sm">第{index + 1}戦</span>
-                <span className="shrink-0 font-semibold text-gray-700">{race.raceNumber}R</span>
-                <span className="min-w-0 flex-1">
-                  <span className="text-text-main block truncate font-semibold">{race.name}</span>
-                  <span className="text-text-sub block text-sm">
-                    {race.surface}
-                    {race.distance}m・{race.entries.filter((entry) => entry.status === 'ENTRANT').length}頭
-                  </span>
-                </span>
-                <span
-                  className={cn(
-                    'ml-auto shrink-0 text-sm font-semibold',
-                    selectionCount > 0 ? 'text-turf-700' : 'text-text-sub'
-                  )}
-                >
-                  {selectionCount > 0 ? `${selectionCount}頭選択` : '未選択'}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <Bet5RaceList
+          races={races}
+          activeIndex={activeTab}
+          selectionCounts={races.map((race) => selections[race.id]?.length ?? 0)}
+          onSelect={setActiveTab}
+        />
 
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">

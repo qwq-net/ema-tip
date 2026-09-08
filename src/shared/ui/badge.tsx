@@ -45,6 +45,7 @@ const STATUS_STYLES = {
   払戻確定: 'bg-cat-indigo-bg text-cat-indigo-text',
   COMPLETED: 'bg-gray-100 text-gray-800',
   終了: 'bg-gray-100 text-gray-800',
+  受付終了: 'bg-gray-100 text-gray-800',
   Disabled: 'bg-cat-red-bg text-cat-red-text',
   無効: 'bg-cat-red-bg text-cat-red-text',
 } satisfies Record<string, string>;

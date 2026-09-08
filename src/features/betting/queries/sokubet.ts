@@ -1,6 +1,6 @@
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, raceInstances, wallets } from '@/shared/db/schema';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, sum } from 'drizzle-orm';
 
 export async function getSokubetDashboardData(userId: string) {
   const [activeEvents, userWallets] = await Promise.all([
@@ -18,7 +18,7 @@ export async function getSokubetDashboardData(userId: string) {
   }
 
   const activeEventIds = activeEvents.map((event) => event.id);
-  const [activeRaces, bet5EventsList] = await Promise.all([
+  const [activeRaces, bet5EventsList, bet5SalesRows] = await Promise.all([
     db.query.raceInstances.findMany({
       where: inArray(raceInstances.eventId, activeEventIds),
       orderBy: [desc(raceInstances.date)],
@@ -35,6 +35,7 @@ export async function getSokubetDashboardData(userId: string) {
         id: true,
         eventId: true,
         status: true,
+        initialPot: true,
         race1Id: true,
         race2Id: true,
         race3Id: true,
@@ -42,6 +43,13 @@ export async function getSokubetDashboardData(userId: string) {
         race5Id: true,
       },
     }),
+    // 配当プールの表示に使う BET5 の売上。bet5Events を跨いで一度に集計する
+    db
+      .select({ bet5EventId: bet5Tickets.bet5EventId, total: sum(bet5Tickets.amount) })
+      .from(bet5Tickets)
+      .innerJoin(bet5Events, eq(bet5Tickets.bet5EventId, bet5Events.id))
+      .where(inArray(bet5Events.eventId, activeEventIds))
+      .groupBy(bet5Tickets.bet5EventId),
   ]);
 
   const activeBet5EventIds = bet5EventsList.map((event) => event.id);
@@ -58,6 +66,7 @@ export async function getSokubetDashboardData(userId: string) {
   const walletByEventId = new Map(userWallets.map((wallet) => [wallet.eventId, wallet]));
   const bet5ByEventId = new Map(bet5EventsList.map((bet5Event) => [bet5Event.eventId, bet5Event]));
   const eventIdByBet5EventId = new Map(bet5EventsList.map((bet5Event) => [bet5Event.id, bet5Event.eventId]));
+  const bet5SalesByBet5EventId = new Map(bet5SalesRows.map((row) => [row.bet5EventId, Number(row.total ?? 0)]));
   const bet5TicketCountByEventId = new Map<string, number>();
 
   userBet5Tickets.forEach((ticket) => {
@@ -116,10 +125,15 @@ export async function getSokubetDashboardData(userId: string) {
             .filter((race): race is NonNullable<typeof race> => race !== undefined)
         : [];
 
+      // 配当プールは払戻計算の calculateBet5Payout と同じ式。初期プールと売上とキャリーオーバーの合計
+      const bet5Pot = bet5
+        ? bet5.initialPot + (bet5SalesByBet5EventId.get(bet5.id) ?? 0) + group.event.carryoverAmount
+        : 0;
+
       return {
         ...group,
         races: [...group.races].sort((a, b) => (a.raceNumber ?? 999) - (b.raceNumber ?? 999)),
-        bet5TargetRaceNumbers: bet5TargetRaces.map((race) => race.raceNumber),
+        bet5Pot,
         bet5HasClosedRace: bet5TargetRaces.some((race) => race.status !== 'SCHEDULED'),
       };
     });
