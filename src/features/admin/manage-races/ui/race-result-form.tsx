@@ -5,7 +5,7 @@ import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/type
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, ConfirmDialog } from '@/shared/ui';
+import { Badge, Button, Card, ConfirmDialog } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
@@ -229,8 +229,8 @@ function ResultOrderingPanel({
   const activePosition = activeEntry ? sortedEntries.findIndex((e) => e.id === activeEntry.id) + 1 : 0;
 
   return (
-    <div className="rounded-surface border border-gray-100 bg-white p-6 lg:col-span-2">
-      <div className="mb-4 border-b border-gray-50 pb-4">
+    <Card className="p-6 lg:col-span-2">
+      <div className="mb-4">
         <div className="flex items-center justify-between gap-2">
           <AdminSectionTitle icon={ListOrdered}>着順設定</AdminSectionTitle>
           {!race.fixedOddsMode && isChanged && (
@@ -323,7 +323,7 @@ function ResultOrderingPanel({
           <ReadOnlyEntryList entries={entries} />
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -573,13 +573,18 @@ function FinalizeActionGroup({
 
       {canFinalizePayout && (
         <div className="space-y-3">
-          <Button
-            className="relative w-full border-2 border-amber-500 bg-white py-6 text-lg font-semibold text-amber-600 hover:bg-amber-50"
-            onClick={onPayoutFinalize}
-            disabled={isPayoutMoving || isPending}
-          >
-            {isPayoutMoving ? '払戻処理中...' : '払戻を確定する'}
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button className="relative w-full py-6 text-lg font-semibold" disabled={isPayoutMoving || isPending}>
+                {isPayoutMoving ? '払戻処理中...' : '払戻を確定する'}
+              </Button>
+            }
+            title="払戻を確定しますか？"
+            description="的中を集計し、各ユーザーへ払い戻します。この操作は取り消せません。"
+            confirmLabel="払戻を確定する"
+            confirmVariant="primary"
+            onConfirm={onPayoutFinalize}
+          />
           <ConfirmDialog
             trigger={
               <Button
@@ -667,7 +672,8 @@ export function RaceResultForm({
     setIsPayoutMoving(false);
     if (!result.success) {
       toast.error(result.error);
-      return;
+      // throw でダイアログを開いたままにし、再実行の判断を管理者に委ねる
+      throw new Error(result.error);
     }
     toast.success('払戻確定通知を送信しました', {
       icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
@@ -787,12 +793,12 @@ export function RaceResultForm({
           </div>
         )}
 
-        <div className="rounded-surface border border-gray-100 bg-white p-6">
-          <div className="mb-2 border-b border-gray-50 pb-4">
+        <Card className="p-6">
+          <div className="mb-4">
             <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
           </div>
 
-          <div className="divide-y divide-gray-50 text-sm">
+          <div className="divide-y divide-gray-100 text-sm">
             <div className="flex items-center justify-between py-2">
               <span className="text-text-sub">レース作成方法</span>
               <span className="text-text-main font-semibold">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
@@ -856,7 +862,7 @@ export function RaceResultForm({
             onPayoutFinalize={handlePayoutFinalize}
             onServerReset={handleServerReset}
           />
-        </div>
+        </Card>
         {sideChildren}
       </div>
     </div>

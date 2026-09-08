@@ -135,6 +135,7 @@ export function ImportRaceClient({ events, venues }: Props) {
         <h2 className="text-text-main text-lg font-semibold">Step 1 — Netkeiba URL を入力</h2>
         <div className="flex gap-2">
           <Input
+            aria-label="Netkeiba の出馬表 URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://race.netkeiba.com/race/shutuba.html?race_id=... (地方: nar.netkeiba.com)"
@@ -227,7 +228,7 @@ export function ImportRaceClient({ events, venues }: Props) {
               )}
             </h2>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] border-collapse">
+              <table className="w-full min-w-max border-collapse">
                 <TableHead>
                   <Th>枠</Th>
                   <Th>馬番</Th>

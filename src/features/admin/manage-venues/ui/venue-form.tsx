@@ -29,11 +29,11 @@ export function VenueForm({ initialData, redirectTo }: VenueFormProps) {
     try {
       if (initialData) {
         await updateVenue(initialData.id, formData);
-        toast.success('会場情報を更新しました');
+        toast.success('競馬場情報を更新しました');
       } else {
         await createVenue(formData);
         formRef.current?.reset();
-        toast.success('会場を登録しました');
+        toast.success('競馬場を登録しました');
       }
       router.push(redirectTo);
     } catch (error) {
@@ -44,19 +44,19 @@ export function VenueForm({ initialData, redirectTo }: VenueFormProps) {
 
   return (
     <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
-      <div>
-        <Label>会場名 (例: 東京競馬場)</Label>
+      <Label>
+        競馬場名
         <Input name="name" type="text" required defaultValue={initialData?.name} placeholder="例: 東京競馬場" />
-      </div>
+      </Label>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>コード (例: 05)</Label>
-          <Input name="code" type="text" maxLength={2} defaultValue={initialData?.code || ''} placeholder="05" />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label>
+          コード
+          <Input name="code" type="text" maxLength={2} defaultValue={initialData?.code || ''} placeholder="例: 05" />
+        </Label>
 
-        <div>
-          <Label>略称 (例: 東京)</Label>
+        <Label>
+          略称
           <Input
             name="shortName"
             type="text"
@@ -65,10 +65,10 @@ export function VenueForm({ initialData, redirectTo }: VenueFormProps) {
             defaultValue={initialData?.shortName}
             placeholder="例: 東京"
           />
-        </div>
+        </Label>
 
-        <div>
-          <Label>回り</Label>
+        <Label>
+          回り
           <Select name="direction" required defaultValue={initialData?.direction || 'RIGHT'}>
             {VENUE_DIRECTIONS.map((dir) => (
               <option key={dir} value={dir}>
@@ -76,16 +76,16 @@ export function VenueForm({ initialData, redirectTo }: VenueFormProps) {
               </option>
             ))}
           </Select>
-        </div>
+        </Label>
 
-        <div>
-          <Label>地域</Label>
+        <Label>
+          地域
           <Select name="area" required defaultValue={initialData?.area || 'EAST_JAPAN'}>
             <option value="EAST_JAPAN">東日本</option>
             <option value="WEST_JAPAN">西日本</option>
             <option value="OVERSEAS">海外</option>
           </Select>
-        </div>
+        </Label>
       </div>
 
       <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>

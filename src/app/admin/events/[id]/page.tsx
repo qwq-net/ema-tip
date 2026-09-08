@@ -104,19 +104,22 @@ export default async function EventRacesPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-baseline gap-4">
-          <AdminSectionTitle>レース一覧</AdminSectionTitle>
-          <span className="text-text-sub text-sm">
-            馬券 {total.betCount}枚 / 投票 {formatYen(total.totalAmount)} / 払戻 {formatYen(total.totalPayout)}
-          </span>
-        </div>
-        <Button asChild className="flex items-center gap-2 font-semibold transition active:scale-[.96]">
-          <Link href={`/admin/races/new?eventId=${id}`}>
-            <Plus className="h-4 w-4" />
-            レースを追加
-          </Link>
-        </Button>
+      <div className="space-y-1">
+        <AdminSectionTitle
+          actions={
+            <Button asChild className="gap-2">
+              <Link href={`/admin/races/new?eventId=${id}`}>
+                <Plus className="h-4 w-4" />
+                レースを追加
+              </Link>
+            </Button>
+          }
+        >
+          レース一覧
+        </AdminSectionTitle>
+        <p className="text-text-sub text-sm">
+          馬券 {total.betCount}枚 / 投票 {formatYen(total.totalAmount)} / 払戻 {formatYen(total.totalPayout)}
+        </p>
       </div>
 
       <Card className="overflow-x-auto">

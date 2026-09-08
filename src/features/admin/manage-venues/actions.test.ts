@@ -33,16 +33,16 @@ describe('deleteVenue', () => {
     (db.query.raceDefinitions.findFirst as unknown as Mock).mockResolvedValue(undefined);
   });
 
-  it('レースで使用中の会場は削除せず、理由をエラーとして返す', async () => {
+  it('レースで使用中の競馬場は削除せず、理由をエラーとして返す', async () => {
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: 'race-1' });
 
     const result = await deleteVenue('venue-1');
 
-    expect(result).toEqual({ success: false, error: 'レースまたはレース定義で使用中の会場は削除できません' });
+    expect(result).toEqual({ success: false, error: 'レースまたはレース定義で使用中の競馬場は削除できません' });
     expect(db.delete).not.toHaveBeenCalled();
   });
 
-  it('レース定義の既定会場になっている会場も削除しない', async () => {
+  it('レース定義の既定競馬場になっている競馬場も削除しない', async () => {
     (db.query.raceDefinitions.findFirst as unknown as Mock).mockResolvedValue({ id: 'def-1' });
 
     const result = await deleteVenue('venue-1');
@@ -51,7 +51,7 @@ describe('deleteVenue', () => {
     expect(db.delete).not.toHaveBeenCalled();
   });
 
-  it('どこからも参照されていない会場は削除して成功を返す', async () => {
+  it('どこからも参照されていない競馬場は削除して成功を返す', async () => {
     const result = await deleteVenue('venue-1');
 
     expect(result.success).toBe(true);

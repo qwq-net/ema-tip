@@ -11,7 +11,7 @@ export default function CreateVenuePage() {
       </div>
 
       <div className="mb-8">
-        <AdminPageHeader title="新規会場登録" description="新しい開催会場を登録します。" />
+        <AdminPageHeader title="新規競馬場登録" description="新しい競馬場を登録します。" />
       </div>
 
       <Card className="p-6">

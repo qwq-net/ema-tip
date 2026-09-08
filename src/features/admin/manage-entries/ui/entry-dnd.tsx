@@ -75,7 +75,7 @@ function SortableEntry({
   totalHorses: number;
   onRemove: (id: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: horse.id,
   });
 
@@ -92,13 +92,18 @@ function SortableEntry({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`rounded-control flex cursor-grab items-center gap-2 border border-gray-200 bg-white p-3 active:cursor-grabbing ${isDragging ? 'ring-primary/50 z-10 ring-2' : ''}`}
+      className={`rounded-control flex items-center gap-2 border border-gray-200 bg-white p-3 ${isDragging ? 'ring-primary/50 z-10 ring-2' : ''}`}
     >
-      <div className="text-text-sub">
+      <button
+        type="button"
+        ref={setActivatorNodeRef}
+        {...attributes}
+        {...listeners}
+        aria-label={`${horse.name} を並べ替える`}
+        className="text-text-sub rounded-control inline-flex h-10 w-10 shrink-0 cursor-grab items-center justify-center hover:bg-gray-100 active:cursor-grabbing"
+      >
         <GripVertical className="h-4 w-4" />
-      </div>
+      </button>
       <span
         className={`rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(bracketNumber)}`}
       >
@@ -107,7 +112,7 @@ function SortableEntry({
       <span className="text-primary bg-primary/10 rounded-chip flex h-6 w-6 items-center justify-center text-sm font-semibold">
         {horseNumber}
       </span>
-      <span className="text-text-main flex-1 font-semibold">{horse.name}</span>
+      <span className="text-text-main min-w-0 flex-1 truncate font-semibold">{horse.name}</span>
       <HorseSourceBadge source={horse.source} />
       <HorseTypeBadge type={horse.type} />
       <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${getGenderBadgeClass(horse.gender)}`}>
@@ -146,7 +151,7 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       onClick={onClick}
       className="rounded-control flex w-full cursor-grab items-center gap-3 border border-gray-200 bg-white p-3 text-left transition hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
-      <span className="text-text-main flex-1 text-sm font-semibold">{horse.name}</span>
+      <span className="text-text-main min-w-0 flex-1 truncate text-sm font-semibold">{horse.name}</span>
       <HorseSourceBadge source={horse.source} />
       <HorseTypeBadge type={horse.type} />
       <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${getGenderBadgeClass(horse.gender)}`}>
@@ -288,7 +293,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       onDragEnd={handleDragEnd}
     >
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col">
           <div className="mb-3 flex min-h-8 items-center">
             <AdminSectionTitle>登録馬一覧</AdminSectionTitle>
           </div>
@@ -301,7 +306,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
                 value={searchWord}
                 onChange={(e) => setSearchWord(e.target.value)}
                 placeholder="馬名で検索"
-                className="min-w-40 flex-1"
+                className="basis-full sm:flex-1 sm:basis-auto"
               />
             </div>
             <div ref={setAvailableRef} id="available-list" className="flex-1 space-y-2 overflow-y-auto p-4">
@@ -323,7 +328,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           </div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col">
           <div className="mb-3 flex min-h-8 items-center justify-between">
             <AdminSectionTitle>出走馬一覧 ({entries.length}頭)</AdminSectionTitle>
             {entries.length > 0 && (

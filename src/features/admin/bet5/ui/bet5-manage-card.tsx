@@ -175,7 +175,7 @@ export function Bet5ManageCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>BET5管理</CardTitle>
+        <CardTitle as="h2">BET5管理</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {bet5Event.status === 'SCHEDULED' && (

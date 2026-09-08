@@ -63,8 +63,8 @@ export function ForecastRaceAccordion({ events }: ForecastRaceAccordionProps) {
                 href={`/races/${race.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-text-sub hover:text-gray-600"
-                title="投票ページを開く"
+                aria-label={`${race.name} の投票ページを開く`}
+                className="text-text-sub hover:text-text-main rounded-control inline-flex h-10 w-10 items-center justify-center hover:bg-gray-100"
               >
                 <ExternalLink className="h-4 w-4" />
               </Link>

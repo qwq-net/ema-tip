@@ -5,7 +5,7 @@ import { upsertForecast } from '@/features/forecasts/actions';
 import { FORECAST_SYMBOLS } from '@/features/forecasts/constants';
 import type { ForecastSelection } from '@/features/forecasts/types';
 import { toast } from '@/shared/lib/toast';
-import { Button, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
+import { Button, EmptyState, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
 import { Badge } from '@/shared/ui/badge';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
@@ -13,17 +13,19 @@ import { getGenderAge } from '@/shared/utils/gender';
 import { Info, Loader2, Save } from 'lucide-react';
 import { useState, useTransition } from 'react';
 
+interface ForecastEntry {
+  id: string;
+  horseId: string;
+  horseNumber: number | null;
+  horseName: string;
+  horseGender: string;
+  horseAge: number;
+  bracketNumber: number | null;
+}
+
 interface ForecastInputFormProps {
   raceId: string;
-  entries: {
-    id: string;
-    horseId: string;
-    horseNumber: number | null;
-    horseName: string;
-    horseGender: string;
-    horseAge: number;
-    bracketNumber: number | null;
-  }[];
+  entries: ForecastEntry[];
   initialForecast?:
     | {
         selections: ForecastSelection;
@@ -33,6 +35,42 @@ interface ForecastInputFormProps {
     | undefined;
 }
 
+/**
+ * 1 頭分の印ボタンの並び。狭い幅のリストと表の両方から同じ並びを呼ぶ。
+ * 選択中の印をもう一度押すと解除されるため、押下は onSelect 側で判定する。
+ */
+function SymbolButtons({
+  entry,
+  selected,
+  onSelect,
+}: {
+  entry: ForecastEntry;
+  selected: string | undefined;
+  onSelect: (horseId: string, symbol: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {FORECAST_SYMBOLS.map((symbol) => (
+        <button
+          key={symbol}
+          type="button"
+          aria-pressed={selected === symbol}
+          aria-label={`${entry.horseName} に ${symbol}`}
+          onClick={() => onSelect(entry.horseId, symbol)}
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition-colors',
+            selected === symbol
+              ? 'border-primary bg-primary text-white'
+              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+          )}
+        >
+          {symbol}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function ForecastInputForm({ raceId, entries, initialForecast }: ForecastInputFormProps) {
   const [selections, setSelections] = useState<ForecastSelection>(initialForecast?.selections ?? {});
   const [comment, setComment] = useState(initialForecast?.comment || '');
@@ -40,15 +78,11 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-surface border border-gray-100 bg-white p-12 text-center">
-        <div className="mb-4 flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
-            <Info className="h-8 w-8" />
-          </div>
-        </div>
-        <h3 className="text-text-main mb-2 text-lg font-semibold">出走馬が登録されていません</h3>
-        <p className="text-text-sub text-sm">予想を入力するには、まず出走馬の登録が必要です。</p>
-      </div>
+      <EmptyState
+        icon={Info}
+        title="出走馬が登録されていません"
+        description="予想を入力するには、まず出走馬を登録してください。"
+      />
     );
   }
 
@@ -76,7 +110,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
 
   return (
     <div className="rounded-surface space-y-6 border border-gray-100 bg-white p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-text-main text-lg font-semibold">予想入力</h2>
         <Button onClick={handleSubmit} disabled={isPending}>
           {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
@@ -84,7 +118,22 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
         </Button>
       </div>
 
-      <div className="overflow-x-auto">
+      <ul className="divide-y divide-gray-100 sm:hidden">
+        {entries.map((entry) => (
+          <li key={entry.id} className="space-y-2 py-3">
+            <div className="flex items-center gap-2">
+              <BracketBadge bracketNumber={entry.bracketNumber} />
+              <span className="text-text-main font-semibold">
+                {entry.horseNumber} {entry.horseName}
+              </span>
+              <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
+            </div>
+            <SymbolButtons entry={entry} selected={selections[entry.horseId]} onSelect={handleSymbolSelect} />
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[600px] border-collapse">
           <TableHead>
             <Th>枠</Th>
@@ -105,22 +154,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
                   <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                 </Td>
                 <Td className="whitespace-normal">
-                  <div className="flex flex-wrap gap-2">
-                    {FORECAST_SYMBOLS.map((symbol) => (
-                      <button
-                        key={symbol}
-                        onClick={() => handleSymbolSelect(entry.horseId, symbol)}
-                        className={cn(
-                          'flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition-colors',
-                          selections[entry.horseId] === symbol
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                        )}
-                      >
-                        {symbol}
-                      </button>
-                    ))}
-                  </div>
+                  <SymbolButtons entry={entry} selected={selections[entry.horseId]} onSelect={handleSymbolSelect} />
                 </Td>
               </TableRow>
             ))}

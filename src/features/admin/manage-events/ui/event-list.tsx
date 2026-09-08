@@ -23,7 +23,7 @@ export function EventList({ events }: { events: Event[] }) {
       <TableBody>
         {events.map((event) => (
           <TableRow key={event.id}>
-            <Td title={event.name}>
+            <Td title={event.name} className="whitespace-normal">
               <Link
                 prefetch={false}
                 href={`/admin/events/${event.id}`}

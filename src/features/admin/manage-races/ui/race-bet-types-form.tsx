@@ -4,7 +4,7 @@ import type { BetType } from '@/entities/bet';
 import { BET_TYPE_LABELS, BET_TYPE_ORDER } from '@/entities/bet';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
-import { Button, Checkbox } from '@/shared/ui';
+import { Button, Card, Checkbox } from '@/shared/ui';
 import { Ticket } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { updateRaceAllowedBetTypes } from '../actions/update-bet-types';
@@ -56,8 +56,8 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
     : '制限なし';
 
   return (
-    <div className="rounded-surface border border-gray-100 bg-white p-6">
-      <div className="mb-4 border-b border-gray-50 pb-4">
+    <Card className="p-6">
+      <div className="mb-4">
         <AdminSectionTitle icon={Ticket}>購入可能な馬券種別</AdminSectionTitle>
       </div>
 
@@ -85,10 +85,10 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
           </p>
         )}
 
-        <Button onClick={handleSave} disabled={isPending} className="w-full font-semibold">
-          {isPending ? '更新中...' : '設定を保存'}
+        <Button onClick={handleSave} disabled={isPending} className="w-full">
+          {isPending ? '更新中...' : '保存する'}
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }

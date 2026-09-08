@@ -13,7 +13,7 @@ export function SegmentedControl<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div className="rounded-control flex space-x-1 bg-gray-100 p-1">
+    <div className="rounded-control flex flex-wrap gap-1 bg-gray-100 p-1">
       {options.map((option) => (
         <button
           key={option.value}

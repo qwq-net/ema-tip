@@ -3,7 +3,7 @@
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
-import { Button } from '@/shared/ui';
+import { Button, Card } from '@/shared/ui';
 import type { ActionResult } from '@/shared/utils/action-result';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Coins } from 'lucide-react';
@@ -44,22 +44,20 @@ export function GuaranteedOddsForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      onKeyDown={preventEnterSubmit}
-      className="rounded-surface border border-gray-100 bg-white p-6"
-    >
-      <div className="mb-4 border-b border-gray-50 pb-4">
-        <AdminSectionTitle icon={Coins}>{title}</AdminSectionTitle>
-      </div>
+    <Card className="p-6">
+      <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit}>
+        <div className="mb-4">
+          <AdminSectionTitle icon={Coins}>{title}</AdminSectionTitle>
+        </div>
 
-      <div className="space-y-4">
-        <p className="text-text-sub text-sm">{description}</p>
-        <GuaranteedOddsInputs value={odds} onChange={setOdds} placeholders={placeholders} />
-        <Button type="submit" disabled={isPending} className="w-full font-semibold">
-          {isPending ? '更新中...' : '設定を保存'}
-        </Button>
-      </div>
-    </form>
+        <div className="space-y-4">
+          <p className="text-text-sub text-sm">{description}</p>
+          <GuaranteedOddsInputs value={odds} onChange={setOdds} placeholders={placeholders} />
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? '更新中...' : '保存する'}
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }

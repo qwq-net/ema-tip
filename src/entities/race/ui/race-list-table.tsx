@@ -49,7 +49,7 @@ export function RaceListTable<T extends RaceListTableRace>({
   const tails = tail === undefined ? [] : [tail].flat();
 
   return (
-    <table className="w-full min-w-[800px] border-collapse">
+    <table className="w-full border-collapse">
       <TableHead>
         <Th>番号</Th>
         <Th>レース名</Th>

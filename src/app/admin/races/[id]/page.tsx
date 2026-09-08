@@ -17,7 +17,7 @@ import {
   raceEntries,
   raceOdds,
 } from '@/shared/db/schema';
-import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader, EmptyState } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
@@ -88,27 +88,27 @@ interface FinalizedRaceInfoCardProps {
 /** 払戻確定後のレース情報カード。オッズの更新時刻は記録がある場合だけ並べる。 */
 function FinalizedRaceInfoCard({ race, oddsUpdatedAt }: FinalizedRaceInfoCardProps) {
   return (
-    <Card className="border-none">
-      <CardHeader className="border-b border-gray-50 pb-4">
+    <Card>
+      <CardHeader>
         <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
       </CardHeader>
       <CardContent className="space-y-4 pt-6 text-sm">
-        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-text-sub">ステータス</span>
           <Badge variant="status" label={race.status} />
         </div>
-        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-text-sub">コース</span>
           <div className="flex items-center gap-2">
             <Badge variant="surface" label={race.surface} />
             <span className="text-text-main font-semibold">{race.distance}m</span>
           </div>
         </div>
-        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-text-sub">馬場状態</span>
           <Badge variant="condition" label={race.condition} />
         </div>
-        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-text-sub">確定日時</span>
           <span className="text-text-main font-semibold">
             {race.finalizedAt ? (
@@ -121,12 +121,12 @@ function FinalizedRaceInfoCard({ race, oddsUpdatedAt }: FinalizedRaceInfoCardPro
             )}
           </span>
         </div>
-        <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-text-sub">レース作成方法</span>
           <span className="text-text-main font-semibold">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
         </div>
         {race.fixedOddsMode && (
-          <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
             <span className="text-text-sub">オッズ設定</span>
             <span className="font-semibold text-blue-600">固定オッズ</span>
           </div>
@@ -212,8 +212,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   const settingCards = (
     <>
       {isGuaranteedOddsLocked ? (
-        <Card className="border-none">
-          <CardHeader className="border-b border-gray-50 pb-4">
+        <Card>
+          <CardHeader>
             <AdminSectionTitle icon={Coins}>保証オッズ設定</AdminSectionTitle>
           </CardHeader>
           <CardContent className="text-text-sub pt-6 text-sm">着順確定済みのため変更できません</CardContent>
@@ -243,8 +243,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
       <div className={race.status === 'FINALIZED' ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={race.status === 'FINALIZED' ? 'lg:col-span-2' : ''}>
           {race.status === 'FINALIZED' && (
-            <Card className="border-none">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-gray-50 pb-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="rounded-control flex h-8 w-8 items-center justify-center bg-amber-50 text-amber-500">
                     <Trophy className="h-4 w-4" />
@@ -327,22 +327,16 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
               />
             ) : (
               <div className="space-y-6">
-                <Card className="border-none">
-                  <CardContent className="py-16 text-center">
-                    <div className="mb-4 flex justify-center">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
-                        <Info className="h-8 w-8" />
-                      </div>
-                    </div>
-                    <h3 className="text-text-main mb-2 text-lg font-semibold">出走馬が登録されていません</h3>
-                    <p className="text-text-sub text-sm">
-                      レース結果を確定するには、まず出走馬を登録する必要があります。
-                    </p>
-                    <Button asChild variant="outline" className="mt-6 font-semibold">
+                <EmptyState
+                  icon={Info}
+                  title="出走馬が登録されていません"
+                  description="レース結果を確定するには、まず出走馬を登録してください。"
+                  action={
+                    <Button asChild variant="outline">
                       <Link href={`/admin/races/${race.id}/entries`}>出走馬を登録する</Link>
                     </Button>
-                  </CardContent>
-                </Card>
+                  }
+                />
                 <div className="grid gap-6 lg:grid-cols-3">
                   <div className="space-y-6 lg:col-start-3">{settingCards}</div>
                 </div>

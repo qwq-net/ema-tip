@@ -2,8 +2,12 @@ import { cn } from '@/shared/utils/cn';
 import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
 import React from 'react';
 
+/**
+ * 入力の名前とその入力を縦に並べる器。子に入力を置けば htmlFor なしで結び付く。
+ * htmlFor を渡して入力を外に置く使い方では間隔が付かないため、呼び手側で余白を作る。
+ */
 export const Label = ({ children, htmlFor, className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label htmlFor={htmlFor} className={cn('mb-1.5 block text-sm text-gray-700', className)} {...props}>
+  <label htmlFor={htmlFor} className={cn('flex flex-col gap-1.5 text-sm text-gray-700', className)} {...props}>
     {children}
   </label>
 );

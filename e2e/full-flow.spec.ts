@@ -108,7 +108,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
     await adminPage.goto(`/admin/races/${fx.raceId}`);
     await adminPage.getByRole('checkbox', { name: 'このレースで個別に指定する' }).check();
     await adminPage.getByRole('checkbox', { name: '3連単', exact: true }).uncheck();
-    await saveAndExpectToast(adminPage, '設定を保存', '購入可能な馬券種別を更新しました', betTypesCard);
+    await saveAndExpectToast(adminPage, '保存する', '購入可能な馬券種別を更新しました', betTypesCard);
 
     await userPage.goto(`/races/${fx.raceId}`);
     await expect(userPage.getByText('このレースで購入できるのは')).toBeVisible();
@@ -118,7 +118,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
 
   await test.step('個別指定を解除すると全種別が購入可能へ戻る', async () => {
     await adminPage.getByRole('checkbox', { name: 'このレースで個別に指定する' }).uncheck();
-    await saveAndExpectToast(adminPage, '設定を保存', '購入可能な馬券種別を更新しました', betTypesCard);
+    await saveAndExpectToast(adminPage, '保存する', '購入可能な馬券種別を更新しました', betTypesCard);
 
     await userPage.goto(`/races/${fx.raceId}`);
     await expect(userPage.getByText('このレースで購入できるのは')).toBeHidden();
@@ -133,7 +133,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
   await test.step('管理者が発生条件を100%へ変更すると案内が出る', async () => {
     await adminPage.goto(`/admin/events/${fx.eventId}/settings`);
     await adminPage.getByLabel('融資の発生条件').fill('100');
-    await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
+    await saveAndExpectToast(adminPage, '更新する', 'イベント情報を更新しました');
 
     await userPage.reload();
     await expect(userPage.getByText('資金が少し不足していませんか？')).toBeVisible();
@@ -141,7 +141,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
 
   await test.step('借入機能をOFFにすると案内が消える', async () => {
     await adminPage.getByLabel('借入機能を有効にする').uncheck();
-    await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
+    await saveAndExpectToast(adminPage, '更新する', 'イベント情報を更新しました');
 
     await userPage.reload();
     await expect(userPage.getByText('資金が少し不足していませんか？')).toBeHidden();
@@ -149,7 +149,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
 
   await test.step('ONへ戻すと借用証モーダルから借入できる', async () => {
     await adminPage.getByLabel('借入機能を有効にする').check();
-    await saveAndExpectToast(adminPage, 'イベント更新', 'イベント情報を更新しました');
+    await saveAndExpectToast(adminPage, '更新する', 'イベント情報を更新しました');
 
     await userPage.reload();
     await userPage.getByText('資金が少し不足していませんか？').click();
@@ -189,6 +189,8 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
     const payoutButton = adminPage.getByRole('button', { name: '払戻を確定する' });
     await expect(payoutButton).toBeEnabled({ timeout: 30_000 });
     await payoutButton.click();
+    // 払戻確定は確認ダイアログを経る。ダイアログ側の確定ボタンも同じ名前なので alertdialog の中から選ぶ
+    await adminPage.getByRole('alertdialog').getByRole('button', { name: '払戻を確定する' }).click();
     await expect(adminPage.getByText('払戻確定通知を送信しました')).toBeVisible({ timeout: 30_000 });
 
     // RACE_BROADCAST が両者に届き、router.refresh で購入馬券の判定が更新される

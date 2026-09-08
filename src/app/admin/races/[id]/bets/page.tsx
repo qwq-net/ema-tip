@@ -44,9 +44,9 @@ const STATUS_LABELS = {
   REFUNDED: '返還',
 } satisfies Record<BetGroupStatus, string>;
 
-// 的中だけを緑で強調し、他は Badge の既定色に任せる
+// 的中だけを勝負服と同じ赤で強調し、他は Badge の既定色に任せる
 const STATUS_CLASSES = {
-  HIT: 'bg-green-100 text-green-800',
+  HIT: 'bg-red-100 text-red-800',
 } satisfies Partial<Record<BetGroupStatus, string>>;
 
 /** 組み合わせを「1→3→5」または「1-3」の形にする。着順が意味を持つ券種だけ矢印でつなぐ。 */
@@ -107,11 +107,11 @@ function FilterForm({ params, basePath }: { params: BetGroupListParams; basePath
   const hasFilter = params.q !== undefined || params.type !== undefined || params.status !== undefined;
   return (
     <form method="get" className="flex flex-wrap items-end gap-3">
-      <div className="min-w-48">
+      <div className="min-w-48 space-y-1.5">
         <Label htmlFor="bet-q">ユーザー名</Label>
         <Input id="bet-q" name="q" defaultValue={params.q ?? ''} placeholder="部分一致で検索" maxLength={50} />
       </div>
-      <div className="min-w-36">
+      <div className="min-w-36 space-y-1.5">
         <Label htmlFor="bet-type">券種</Label>
         <Select id="bet-type" name="type" defaultValue={params.type ?? ''}>
           <option value="">すべて</option>
@@ -122,7 +122,7 @@ function FilterForm({ params, basePath }: { params: BetGroupListParams; basePath
           ))}
         </Select>
       </div>
-      <div className="min-w-36">
+      <div className="min-w-36 space-y-1.5">
         <Label htmlFor="bet-status">状態</Label>
         <Select id="bet-status" name="status" defaultValue={params.status ?? ''}>
           <option value="">すべて</option>
@@ -201,7 +201,7 @@ function BetGroupTableRow({ row }: { row: BetGroupRow }) {
       <Td className="whitespace-normal">
         <div className="text-text-main font-semibold tabular-nums">{formatPositions(row.type, row.positions)}</div>
         {row.hits.length > 0 && (
-          <ul className="mt-1 space-y-0.5 text-sm text-green-800 tabular-nums">
+          <ul className="mt-1 space-y-0.5 text-sm text-red-800 tabular-nums">
             {row.hits.map((hit) => (
               <li key={hit.selections.join('-')}>
                 的中 {formatSelections(row.type, hit.selections)} {formatYen(hit.payout)}

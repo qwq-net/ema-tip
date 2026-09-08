@@ -42,8 +42,8 @@ export function HorseTagForm({ initialData, onSuccess }: HorseTagFormProps) {
 
   return (
     <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>種別</Label>
+      <Label>
+        種別
         <Select
           name="type"
           value={type}
@@ -56,12 +56,12 @@ export function HorseTagForm({ initialData, onSuccess }: HorseTagFormProps) {
             </option>
           ))}
         </Select>
-      </div>
+      </Label>
 
-      <div className="space-y-2">
-        <Label>内容</Label>
+      <Label>
+        内容
         <Input name="content" defaultValue={initialData?.content} placeholder="例: 逃げ, G1, ~1200m" required />
-      </div>
+      </Label>
 
       <SubmitButton className="from-primary to-primary/80 w-full bg-linear-to-r">
         {initialData ? '更新する' : '登録する'}

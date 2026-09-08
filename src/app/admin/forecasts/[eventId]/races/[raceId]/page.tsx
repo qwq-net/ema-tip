@@ -25,7 +25,7 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <Breadcrumbs items={[{ label: '予想入力', href: '/admin/forecasts' }, { label: race.name }]} />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-text-main text-2xl font-semibold tracking-tight">{race.name}</h1>

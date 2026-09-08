@@ -179,8 +179,8 @@ export function RaceForm({
 
   return (
     <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
-      <div>
-        <Label>イベント</Label>
+      <Label>
+        イベント
         <Select name="eventId" required value={eventId} onChange={(e) => setEventId(e.target.value)}>
           {events.map((event) => (
             <option key={event.id} value={event.id}>
@@ -188,17 +188,20 @@ export function RaceForm({
             </option>
           ))}
         </Select>
-      </div>
+      </Label>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <Label>開催日</Label>
+          <Label htmlFor="race-date" className="mb-1.5">
+            開催日
+          </Label>
           <div className="relative">
             <div className="focus-within:ring-primary/40 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
               <Calendar className="text-text-sub h-4 w-4" />
               <span className="text-text-main">{date.replace(/-/g, '/')}</span>
             </div>
             <input
+              id="race-date"
               name="date"
               type="date"
               aria-label="開催日"
@@ -210,25 +213,25 @@ export function RaceForm({
           </div>
         </div>
 
-        <div>
-          <Label>レース定義 (マスタから選択)</Label>
+        <Label>
+          レース定義
           <Select name="raceDefinitionId" value={raceDefinitionId} onChange={handleDefinitionChange}>
-            <option value="">選択なし (手動入力)</option>
+            <option value="">選択なし</option>
             {raceDefinitions.map((def) => (
               <option key={def.id} value={def.id}>
-                {def.name} ({def.grade})
+                {def.name} - {def.grade}
               </option>
             ))}
           </Select>
-        </div>
+        </Label>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>開催会場</Label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label>
+          競馬場
           <Select name="venueId" required value={venueId} onChange={handleVenueChange}>
             <option value="" disabled>
-              会場を選択
+              競馬場を選択
             </option>
             {venues.map((venue) => (
               <option key={venue.id} value={venue.id}>
@@ -236,32 +239,34 @@ export function RaceForm({
               </option>
             ))}
           </Select>
-        </div>
+        </Label>
 
         <div>
-          <Label>方向</Label>
-          <Select name="direction" required value={direction} onChange={(e) => setDirection(e.target.value)}>
-            <option value="" disabled>
-              方向を選択
-            </option>
-            {VENUE_DIRECTIONS.map((dir) => (
-              <option key={dir} value={dir}>
-                {DIRECTION_LABELS[dir]}
+          <Label>
+            方向
+            <Select name="direction" required value={direction} onChange={(e) => setDirection(e.target.value)}>
+              <option value="" disabled>
+                方向を選択
               </option>
-            ))}
-          </Select>
+              {VENUE_DIRECTIONS.map((dir) => (
+                <option key={dir} value={dir}>
+                  {DIRECTION_LABELS[dir]}
+                </option>
+              ))}
+            </Select>
+          </Label>
           <p className="text-text-sub mt-1 text-sm">
             {venueId
-              ? `会場のデフォルト: ${
+              ? `競馬場のデフォルト: ${
                   lookup(DIRECTION_LABELS, venues.find((v) => v.id === venueId)?.defaultDirection ?? '') ?? '-'
                 }`
-              : '会場を選択してください'}
+              : '競馬場を選択してください'}
           </p>
         </div>
       </div>
 
-      <div>
-        <Label>レース名</Label>
+      <Label>
+        レース名
         <Input
           name="name"
           type="text"
@@ -270,41 +275,49 @@ export function RaceForm({
           onChange={(e) => setName(e.target.value)}
           placeholder="例: ジャパンカップ"
         />
-      </div>
+      </Label>
 
       <div>
-        <Label>レース番号（省略可）</Label>
-        <Input
-          name="raceNumber"
-          type="number"
-          min="1"
-          defaultValue={initialData?.raceNumber ?? ''}
-          placeholder="自動採番"
-        />
+        <Label>
+          <span>
+            レース番号 <span className="text-text-sub">任意</span>
+          </span>
+          <Input
+            name="raceNumber"
+            type="number"
+            min="1"
+            defaultValue={initialData?.raceNumber ?? ''}
+            placeholder="自動採番"
+          />
+        </Label>
         <p className="text-text-sub mt-1 text-sm">未入力の場合は自動で採番されます</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>距離 (m)</Label>
-          <Input
-            name="distance"
-            type="number"
-            min="100"
-            required
-            value={distance}
-            onChange={(e) => setDistance(Number(e.target.value))}
-            placeholder="2400"
-          />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label>
+          距離
+          <span className="relative block">
+            <Input
+              name="distance"
+              type="number"
+              min="100"
+              required
+              value={distance}
+              onChange={(e) => setDistance(Number(e.target.value))}
+              placeholder="2400"
+              className="pr-8"
+            />
+            <span className="text-text-sub absolute top-2 right-3 text-sm">m</span>
+          </span>
+        </Label>
 
-        <div>
-          <Label>コース</Label>
+        <fieldset className="space-y-1.5">
+          <legend className="text-sm text-gray-700">コース</legend>
           <div className="flex gap-2">
             {['芝', 'ダート'].map((s) => (
               <label
                 key={s}
-                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-4 py-2 text-sm font-semibold transition ${
+                className={`rounded-control has-focus-visible:ring-primary flex flex-1 cursor-pointer items-center justify-center border px-4 py-2 text-sm font-semibold transition has-focus-visible:ring-2 has-focus-visible:ring-offset-2 ${
                   surface === s
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -323,16 +336,16 @@ export function RaceForm({
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
       </div>
 
-      <div>
-        <Label>馬場状態</Label>
+      <fieldset className="space-y-1.5">
+        <legend className="text-sm text-gray-700">馬場状態</legend>
         <div className="flex gap-2">
           {['良', '稍重', '重', '不良'].map((c) => (
             <label
               key={c}
-              className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-3 py-2 text-sm font-semibold transition ${
+              className={`rounded-control has-focus-visible:ring-primary flex flex-1 cursor-pointer items-center justify-center border px-3 py-2 text-sm font-semibold transition has-focus-visible:ring-2 has-focus-visible:ring-offset-2 ${
                 condition === c
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -351,7 +364,7 @@ export function RaceForm({
             </label>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>

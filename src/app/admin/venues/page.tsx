@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function AdminVenuesPage() {
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="開催会場管理" description="開催会場の登録・管理を行います" />
+      <AdminPageHeader title="競馬場管理" description="競馬場の登録・管理を行います" />
 
       <div className="space-y-4">
         <AdminSectionTitle
@@ -26,7 +26,7 @@ export default function AdminVenuesPage() {
             </Button>
           }
         >
-          登録済みの会場
+          登録済みの競馬場
         </AdminSectionTitle>
 
         <Suspense fallback={<AdminLoadingCard />}>

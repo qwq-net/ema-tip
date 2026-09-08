@@ -81,13 +81,13 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
   return (
     <Card>
       <CardHeader>
-        <CardTitle>BET5設定</CardTitle>
+        <CardTitle as="h2">BET5設定</CardTitle>
         <CardDescription>対象イベント: {eventName}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label>対象レース選択</Label>
+          <fieldset className="space-y-2">
+            <legend className="text-sm text-gray-700">対象レース選択</legend>
             <p className="text-text-sub text-sm">
               5レースを選択してください。選択したレースはレース番号順に第1〜5戦へ割り当てられます。
             </p>
@@ -120,7 +120,7 @@ export function Bet5ConfigForm({ eventId, eventName, defaultInitialPot, races }:
                 {selectedInRaceOrder.map((race, index) => `第${index + 1}戦 ${formatRaceLabel(race)}`).join(' → ')}
               </p>
             )}
-          </div>
+          </fieldset>
 
           <div className="space-y-2">
             <Label htmlFor="initialPot">初期プール</Label>

@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 const venueSchema = z.object({
-  name: z.string().min(1, '会場名は必須です'),
+  name: z.string().min(1, '競馬場名は必須です'),
   shortName: z.string().min(1, '略称は必須です').max(3, '略称は3文字以内で入力してください'),
   code: z.string().optional(),
   direction: z.enum(VENUE_DIRECTIONS),
@@ -71,7 +71,7 @@ export async function updateVenue(id: string, formData: FormData) {
   revalidatePath('/admin/venues');
 }
 
-// 会場を削除する。レースかレース定義から参照されている会場は FK 違反になる前に止め、
+// 競馬場を削除する。レースかレース定義から参照されている競馬場は FK 違反になる前に止め、
 // { success: false, error } で返す
 export async function deleteVenue(id: string) {
   return runAction(async () => {
@@ -82,7 +82,7 @@ export async function deleteVenue(id: string) {
       db.query.raceDefinitions.findFirst({ where: eq(raceDefinitions.defaultVenueId, id), columns: { id: true } }),
     ]);
     if (race || definition) {
-      throw new ActionError('レースまたはレース定義で使用中の会場は削除できません');
+      throw new ActionError('レースまたはレース定義で使用中の競馬場は削除できません');
     }
 
     await db.delete(venues).where(eq(venues.id, id));

@@ -288,7 +288,7 @@ function ActionLink({
           <action.icon className="h-5 w-5" />
         </div>
         <div>
-          <h4 className="text-secondary font-semibold">{action.label}</h4>
+          <span className="text-secondary block font-semibold">{action.label}</span>
           <p className="text-text-sub text-sm">{action.description}</p>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="mb-8">
-        <AdminPageHeader title="会場情報の編集" description="会場情報を編集します。" />
+        <AdminPageHeader title="競馬場情報の編集" description="競馬場の情報を編集します。" />
       </div>
 
       <Card className="p-6">

@@ -28,7 +28,7 @@ export async function VenueList() {
   return (
     <TableShell className="min-w-[500px]">
       <TableHead>
-        <Th>会場名</Th>
+        <Th>競馬場名</Th>
         <Th>コード</Th>
         <Th>略称</Th>
         <Th>回り</Th>
@@ -36,7 +36,7 @@ export async function VenueList() {
         <Th className="w-32 text-right">操作</Th>
       </TableHead>
       <TableBody>
-        {venues.length === 0 && <TableEmptyRow colSpan={6}>登録されている会場はありません</TableEmptyRow>}
+        {venues.length === 0 && <TableEmptyRow colSpan={6}>登録されている競馬場はありません</TableEmptyRow>}
         {venues.map((venue) => (
           <TableRow key={venue.id}>
             <Td className="text-text-main font-semibold">
@@ -66,7 +66,7 @@ export async function VenueList() {
             <Td className="text-right">
               <div className="flex justify-end">
                 <ConfirmDeleteButton
-                  title="会場の削除"
+                  title="競馬場の削除"
                   itemName={venue.name}
                   onDelete={deleteVenue.bind(null, venue.id)}
                 />

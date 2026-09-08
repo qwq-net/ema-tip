@@ -103,13 +103,13 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
 
   return (
     <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>馬名</Label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label>
+          馬名
           <Input name="name" type="text" required defaultValue={values.name} placeholder="例: ディープインパクト" />
-        </div>
-        <div>
-          <Label>種別</Label>
+        </Label>
+        <fieldset className="space-y-1.5">
+          <legend className="text-sm text-gray-700">種別</legend>
           <div className="flex gap-2">
             {[
               { value: 'REAL', label: '実在' },
@@ -117,7 +117,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
             ].map((t) => (
               <label
                 key={t.value}
-                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-semibold transition ${
+                className={`rounded-control has-focus-visible:ring-primary flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-semibold transition has-focus-visible:ring-2 has-focus-visible:ring-offset-2 ${
                   type === t.value
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -136,17 +136,17 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>性別</Label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <fieldset className="space-y-1.5">
+          <legend className="text-sm text-gray-700">性別</legend>
           <div className="flex gap-2">
             {['牡', '牝', 'セン'].map((g) => (
               <label
                 key={g}
-                className={`rounded-control flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-semibold transition ${
+                className={`rounded-control has-focus-visible:ring-primary flex flex-1 cursor-pointer items-center justify-center border px-2 py-2 text-sm font-semibold transition has-focus-visible:ring-2 has-focus-visible:ring-offset-2 ${
                   gender === g
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -165,29 +165,29 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div>
-          <Label>
-            年齢 <span className="text-text-sub font-normal">(任意)</span>
-          </Label>
+        <Label>
+          <span>
+            年齢 <span className="text-text-sub">任意</span>
+          </span>
           <Input name="age" type="number" min="2" max="20" defaultValue={values.age ?? ''} placeholder="例: 4" />
-        </div>
+        </Label>
       </div>
 
-      <div>
-        <Label>産地</Label>
+      <Label>
+        産地
         <Select name="origin" required defaultValue={values.origin}>
           <option value="DOMESTIC">日本産</option>
           <option value="FOREIGN_BRED">外国産</option>
           <option value="FOREIGN_TRAINED">外来馬</option>
         </Select>
-      </div>
+      </Label>
 
-      <div>
-        <Label className="mb-2 block">
-          タグ <span className="text-text-sub font-normal">(任意)</span>
-        </Label>
+      <fieldset className="space-y-2">
+        <legend className="text-sm text-gray-700">
+          タグ <span className="text-text-sub">任意</span>
+        </legend>
         <div className="rounded-control space-y-4 border border-gray-200 bg-gray-50/50 p-4">
           {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((cat) => {
             const masterTags = categorizedMasterTags[cat];
@@ -250,12 +250,12 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
             </div>
           </div>
         )}
-      </div>
+      </fieldset>
 
-      <div>
-        <Label>
-          備考 <span className="text-text-sub font-normal">(任意)</span>
-        </Label>
+      <Label>
+        <span>
+          備考 <span className="text-text-sub">任意</span>
+        </span>
         <Textarea
           name="notes"
           rows={3}
@@ -263,7 +263,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
           placeholder="馬の特徴や評価など"
           className="resize-none"
         />
-      </div>
+      </Label>
 
       <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>

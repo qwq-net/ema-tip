@@ -12,7 +12,7 @@ import { updateRankingDisplayMode } from '@/entities/ranking/actions';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Button, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
+import { Button, Card, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
 import { useOptimistic, useState, useTransition } from 'react';
@@ -84,7 +84,7 @@ export function AdminRankingManager({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-surface border border-gray-100 bg-white p-6">
+      <Card className="p-6">
         <AdminSectionTitle className="mb-4">公開設定</AdminSectionTitle>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -135,9 +135,9 @@ export function AdminRankingManager({
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="rounded-surface overflow-hidden border border-gray-100 bg-white">
+      <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <AdminSectionTitle icon={Trophy}>ランキング一覧</AdminSectionTitle>
           <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -211,7 +211,7 @@ export function AdminRankingManager({
             </TableBody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
