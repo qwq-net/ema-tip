@@ -1,11 +1,12 @@
 'use client';
 
-import { resultDiffClass } from '@/entities/ranking';
+import { formatSignedYen, resultDiffClass } from '@/entities/ranking';
 import { TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { AssetChart } from '@/features/stats/components/asset-chart';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
+import { formatYen } from '@/shared/utils/format-yen';
 import { ChevronDown } from 'lucide-react';
 import type { EventStats } from '../utils';
 
@@ -27,14 +28,10 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
                 </span>
                 <span className="flex gap-4 text-sm">
                   <span>
-                    所持金: <span className="font-semibold">¥{event.balance.toLocaleString('ja-JP')}</span>
+                    所持金: <span className="font-semibold tabular-nums">{formatYen(event.balance)}</span>
                   </span>
                   <span className={resultDiffClass(event.net)}>
-                    収支:{' '}
-                    <span className="font-semibold">
-                      {event.net > 0 && '+'}
-                      {event.net.toLocaleString('ja-JP')}
-                    </span>
+                    収支: <span className="font-semibold tabular-nums">{formatSignedYen(event.net)}</span>
                   </span>
                 </span>
               </span>
@@ -50,9 +47,7 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
             {event.loan > 0 && (
               <div className="space-y-1">
                 <span className="text-text-sub text-sm">借入総額</span>
-                <div className="text-error text-lg font-semibold tabular-nums">
-                  ¥{event.loan.toLocaleString('ja-JP')}
-                </div>
+                <div className="text-error text-lg font-semibold tabular-nums">{formatYen(event.loan)}</div>
               </div>
             )}
 

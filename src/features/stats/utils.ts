@@ -23,27 +23,9 @@ export interface EventStats {
   logs: Transaction[];
 }
 
-export interface TransactionWithDetails {
-  type: string;
-  bet: {
-    race: {
-      name: string;
-    } | null;
-  } | null;
-}
-
 // 取引種別の表示名は TRANSACTION_TYPE_LABELS を単一管理点とし、未知の種別は生の値をそのまま返す
 export function getActionName(type: string): string {
   return lookup(TRANSACTION_TYPE_LABELS, type) ?? type;
-}
-
-export function getTransactionDescription(tx: TransactionWithDetails): string {
-  const raceName = tx.bet?.race?.name;
-
-  if (raceName && (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND')) {
-    return `${raceName} ${getActionName(tx.type)}`;
-  }
-  return getActionName(tx.type);
 }
 
 const JST_MONTH_DAY = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit' });

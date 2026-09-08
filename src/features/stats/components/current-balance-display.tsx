@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { cn } from '@/shared/utils/cn';
+import { formatYen } from '@/shared/utils/format-yen';
 import { Wallet } from 'lucide-react';
 
 interface CurrentBalanceDisplayProps {
@@ -17,7 +18,7 @@ export function CurrentBalanceDisplay({ amount }: CurrentBalanceDisplayProps) {
       </CardHeader>
       <CardContent>
         <div className={cn('text-2xl font-semibold', amount < 0 ? 'text-red-600' : 'text-turf-800')}>
-          ¥{amount.toLocaleString('ja-JP')}
+          {formatYen(amount)}
         </div>
         <p className="text-text-sub text-sm">全イベントの合計所持金</p>
       </CardContent>

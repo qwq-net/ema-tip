@@ -13,7 +13,7 @@ function DiscordMark({ className }: { className?: string }) {
 export function LoginButton() {
   return (
     <form action={discordSignIn}>
-      <Button type="submit" className="h-11 w-full gap-2 bg-[#5865F2] px-6 font-semibold text-white hover:bg-[#4752C4]">
+      <Button type="submit" className="h-11 w-full gap-2 bg-[#5865F2] px-6 text-white hover:bg-[#4752C4]">
         <DiscordMark className="h-5 w-5 shrink-0" />
         Discordでログイン
       </Button>

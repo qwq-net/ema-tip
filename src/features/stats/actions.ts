@@ -1,27 +1,24 @@
 'use server';
 
 import { resultDiff } from '@/entities/ranking';
+import { describeTransaction, type WalletTransaction } from '@/entities/wallet/describe-transaction';
 import { db } from '@/shared/db';
 import { transactions, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
 import { asc, desc, eq, inArray } from 'drizzle-orm';
-import { formatChartDate, getActionName, getTransactionDescription } from './utils';
+import { formatChartDate, getActionName } from './utils';
 
 import type { AssetHistoryPoint, EventStats } from './utils';
 
-interface StatTransaction {
+// 説明文づくりに必要な関連は WalletTransaction が定める。取引種別も同じ型から受け継ぎ、
+// describeTransaction が全種別を網羅できる状態を型で保つ
+interface StatTransaction extends WalletTransaction {
   id: string;
-  type: string;
   amount: number;
   createdAt: Date;
   wallet: {
     eventId: string;
   };
-  bet: {
-    race: {
-      name: string;
-    } | null;
-  } | null;
 }
 
 // 直前の履歴ポイントと type・eventId・label が一致する同種の取引かを判定する。
@@ -91,7 +88,7 @@ function appendEventHistory({
     createdAt: transaction.createdAt,
     type: transaction.type,
     amount: transaction.amount,
-    description: getTransactionDescription(transaction),
+    description: describeTransaction(transaction) ?? getActionName(transaction.type),
   });
 }
 
@@ -162,6 +159,37 @@ export async function getGlobalStats() {
           race: {
             columns: {
               name: true,
+            },
+            with: {
+              venue: {
+                columns: {
+                  shortName: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      event: {
+        columns: {
+          name: true,
+        },
+      },
+      bet5Ticket: {
+        columns: {
+          id: true,
+        },
+        with: {
+          bet5Event: {
+            columns: {
+              id: true,
+            },
+            with: {
+              event: {
+                columns: {
+                  name: true,
+                },
+              },
             },
           },
         },

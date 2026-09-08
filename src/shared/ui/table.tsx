@@ -29,7 +29,7 @@ export function TableHead({ className, children, ...props }: ComponentProps<'tr'
 export function Th({ className, ...props }: ComponentProps<'th'>) {
   return (
     <th
-      className={cn('text-text-sub px-6 py-4 text-left text-sm tracking-wider whitespace-nowrap uppercase', className)}
+      className={cn('text-text-sub px-4 py-4 text-left text-sm tracking-wider whitespace-nowrap uppercase', className)}
       {...props}
     />
   );
@@ -44,14 +44,14 @@ export function TableRow({ className, ...props }: ComponentProps<'tr'>) {
 }
 
 export function Td({ className, ...props }: ComponentProps<'td'>) {
-  return <td className={cn('px-6 py-4 text-sm whitespace-nowrap', className)} {...props} />;
+  return <td className={cn('px-4 py-4 text-sm whitespace-nowrap', className)} {...props} />;
 }
 
 /** 0 件時に TableBody 内へ置く行。colSpan には列数を渡す。 */
 export function TableEmptyRow({ colSpan, children }: { colSpan: number; children: ReactNode }) {
   return (
     <tr>
-      <td colSpan={colSpan} className="text-text-sub px-6 py-12 text-center text-sm">
+      <td colSpan={colSpan} className="text-text-sub px-4 py-12 text-center text-sm">
         {children}
       </td>
     </tr>

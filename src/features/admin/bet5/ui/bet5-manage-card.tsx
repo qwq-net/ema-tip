@@ -109,7 +109,7 @@ function Bet5ActionRow({ status, isPending, canCalculatePayout, onClose, onCalcu
       )}
 
       {status === 'FINALIZED' && (
-        <div className="flex items-center font-semibold text-green-600">
+        <div className="text-success flex items-center font-semibold">
           <Calculator className="mr-2 h-4 w-4" />
           集計・払戻完了済み
         </div>
@@ -239,7 +239,7 @@ export function Bet5ManageCard({
                   <span className="font-semibold">{race.raceNumber ? `${race.raceNumber}R` : '-'}</span>
                   <Link
                     href={`/admin/races/${race.id}`}
-                    className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-800 hover:underline"
+                    className="text-primary hover:text-primary/80 inline-flex items-center gap-1 hover:underline"
                   >
                     <span>{race.name}</span>
                     <ExternalLink className="h-3.5 w-3.5" />

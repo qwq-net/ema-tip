@@ -77,11 +77,11 @@ export interface SSERaceResultUpdatedMessage {
   timestamp: number;
 }
 
-// レース単位の変更は raceId のみ、イベントデフォルトの変更は eventId のみが入る
+// 購入可能な種別が変わったレースごとに 1 通届く。
+// イベントのデフォルトを変えた場合も、それが効くレースの分だけ配信される
 export interface SSEBetRestrictionUpdatedMessage {
   type: 'BET_RESTRICTION_UPDATED';
-  raceId?: string;
-  eventId?: string;
+  raceId: string;
 }
 
 export type RaceStatusSSEMessage =

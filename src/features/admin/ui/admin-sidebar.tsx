@@ -1,6 +1,7 @@
 'use client';
 
 import { LogoutButton, ROLES, ROLE_LABELS } from '@/entities/user';
+import { Button } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { lookup } from '@/shared/utils/lookup';
 import {
@@ -141,7 +142,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         id="admin-drawer"
         className={cn(
           'bg-secondary fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-800 text-white md:translate-x-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? 'translate-x-0' : '-translate-x-full max-md:invisible'
         )}
       >
         <div className="border-b border-gray-800 p-6">
@@ -203,14 +204,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               <span className="mt-1 text-sm text-gray-400">{lookup(ROLE_LABELS, user.role ?? '') ?? '管理者'}</span>
             </div>
           </div>
-          <Link
-            href="/mypage"
-            onClick={() => setIsOpen(false)}
-            className="rounded-control mb-2 flex w-full items-center justify-center gap-2 border border-gray-600 bg-transparent px-4 py-2 text-sm font-semibold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+          <Button
+            asChild
+            variant="outline"
+            className="mb-2 w-full border-gray-600 bg-transparent text-gray-300 hover:bg-white/10 hover:text-white"
           >
-            <ExternalLink className="h-4 w-4" />
-            マイページ
-          </Link>
+            <Link href="/mypage" onClick={() => setIsOpen(false)}>
+              <ExternalLink className="mr-2 h-4 w-4" />
+              マイページ
+            </Link>
+          </Button>
           <LogoutButton
             className="mb-4 w-full border-gray-600 bg-transparent text-gray-300 hover:bg-white/10 hover:text-white"
             variant="outline"

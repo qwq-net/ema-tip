@@ -366,7 +366,8 @@ function NetkeibaFinalizeActions({
         </div>
       )}
       <Button
-        className="relative w-full py-6 text-lg font-semibold active:scale-[0.98]"
+        size="lg"
+        className="w-full"
         onClick={onFetchResult}
         disabled={isPending || isPayoutMoving || canFinalizePayout}
       >
@@ -439,7 +440,8 @@ function ManualFinalizeActions({
       trigger={
         <Button
           variant={isChanged ? 'primary' : 'secondary'}
-          className="w-full py-6 text-lg font-semibold"
+          size="lg"
+          className="w-full"
           disabled={isPending || isPayoutMoving || canFinalizePayout}
         >
           {canFinalizePayout ? '着順確定済み' : '着順を確定する'}
@@ -519,12 +521,7 @@ function FinalizeActionGroup({
   return (
     <div className="mt-8 space-y-3">
       {race.status === 'SCHEDULED' && (
-        <Button
-          variant="outline"
-          className="w-full py-6 text-sm font-semibold"
-          onClick={onManualClose}
-          disabled={isPending}
-        >
+        <Button variant="outline" size="lg" className="w-full" onClick={onManualClose} disabled={isPending}>
           手動で受付を終了する
         </Button>
       )}
@@ -570,7 +567,7 @@ function FinalizeActionGroup({
         <div className="space-y-3">
           <ConfirmDialog
             trigger={
-              <Button className="relative w-full py-6 text-lg font-semibold" disabled={isPayoutMoving || isPending}>
+              <Button size="lg" className="w-full" disabled={isPayoutMoving || isPending}>
                 {isPayoutMoving ? '払戻処理中...' : '払戻を確定する'}
               </Button>
             }

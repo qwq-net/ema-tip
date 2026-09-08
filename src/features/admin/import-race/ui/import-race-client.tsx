@@ -2,6 +2,7 @@
 
 import { toast } from '@/shared/lib/toast';
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -152,7 +153,7 @@ export function ImportRaceClient({ events, venues }: Props) {
         <p id="import-url-help" className="text-text-sub text-sm">
           地方競馬は nar.netkeiba.com の出馬表 URL を貼り付けます。
         </p>
-        {fetchError && <p className="text-sm text-red-600">{fetchError}</p>}
+        {fetchError && <Alert variant="error">{fetchError}</Alert>}
       </Card>
 
       {preview && (
@@ -194,24 +195,14 @@ export function ImportRaceClient({ events, venues }: Props) {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
+            <div className="text-text-sub flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
               <span>{preview.raceInfo.raceNumber}R</span>
-              <span>•</span>
               <span>{preview.raceInfo.distance}m</span>
-              <span>•</span>
               <span>{preview.raceInfo.surface}</span>
               {preview.raceInfo.direction && (
-                <>
-                  <span>•</span>
-                  <span>{preview.raceInfo.direction === 'RIGHT' ? '右回り' : '左回り'}</span>
-                </>
+                <span>{preview.raceInfo.direction === 'RIGHT' ? '右回り' : '左回り'}</span>
               )}
-              {preview.raceInfo.condition && (
-                <>
-                  <span>•</span>
-                  <span>馬場: {preview.raceInfo.condition}</span>
-                </>
-              )}
+              {preview.raceInfo.condition && <span>馬場: {preview.raceInfo.condition}</span>}
             </div>
 
             <div className="flex items-center gap-2">
@@ -229,7 +220,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                 {preview.horses.filter((h) => !h.scratched).length}頭
               </span>
               {preview.horses.some((h) => h.scratched) && (
-                <span className="ml-2 text-sm font-semibold text-red-500">
+                <span className="text-error ml-2 text-sm font-semibold">
                   取消・除外 {preview.horses.filter((h) => h.scratched).length}頭
                 </span>
               )}
@@ -248,7 +239,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                 </TableHead>
                 <TableBody>
                   {preview.horses.map((h) => (
-                    <TableRow key={h.name} className={h.scratched ? 'text-text-sub bg-red-50/50 line-through' : ''}>
+                    <TableRow key={h.name} className={h.scratched ? 'text-text-sub bg-error-soft line-through' : ''}>
                       <Td>{h.bracketNumber ?? '-'}</Td>
                       <Td>{h.horseNumber}</Td>
                       <Td className="font-semibold">{h.name}</Td>
@@ -260,12 +251,12 @@ export function ImportRaceClient({ events, venues }: Props) {
                       <Td>{h.weight?.toFixed(1) ?? '-'}</Td>
                       <Td>{h.scratched ? '-' : (h.odds?.toFixed(1) ?? '-')}</Td>
                       <Td className="no-underline">
-                        {h.scratched && <Badge label="取消" className="bg-red-100 text-red-600" />}
+                        {h.scratched && <Badge label="取消" className="bg-error-soft text-error" />}
                         {!h.scratched &&
                           (h.existingHorseId ? (
-                            <Badge label="既存" className="bg-blue-100 text-blue-700" />
+                            <Badge label="既存" />
                           ) : (
-                            <Badge label="新規" className="bg-green-100 text-green-700" />
+                            <Badge label="新規" className="bg-info-soft text-info" />
                           ))}
                       </Td>
                     </TableRow>

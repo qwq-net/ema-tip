@@ -6,9 +6,12 @@ import { toast } from '@/shared/lib/toast';
 import { Button, Input } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Loader2 } from 'lucide-react';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 
 export function NameChangeForm({ initialName }: { initialName: string }) {
+  // React 19 は action の完了後にフォームを初期値へ戻すため、入力値を state で持つ。
+  // エラーで戻ってきたときも打った値が残る
+  const [name, setName] = useState(initialName);
   const [state, action, isPending] = useActionState(async (_: { error?: string } | null, formData: FormData) => {
     const result = await updateUserOnboarding(formData);
     if (result.error) {
@@ -21,6 +24,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
 
   const validateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    setName(value);
     if (value && !isValidUserName(value)) {
       e.target.setCustomValidity(`${MAX_NAME_LENGTH}文字以内の英数字、ひらがな、カタカナ、漢字のみ使用可能です。`);
     } else {
@@ -40,7 +44,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
         <Input
           id="name"
           name="name"
-          defaultValue={initialName}
+          value={name}
           onChange={validateInput}
           placeholder="ユーザー名を入力"
           required
@@ -55,7 +59,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         登録
       </Button>
-      {state?.error && <p className="text-sm text-red-500">{state.error}</p>}
+      {state?.error && <p className="text-error text-sm">{state.error}</p>}
     </form>
   );
 }

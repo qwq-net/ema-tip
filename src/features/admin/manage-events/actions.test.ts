@@ -25,6 +25,7 @@ import { raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 const eventId = 'event-123';
 
 const mockSelectWhere = vi.fn();
+const mockRaceSelectWhere = vi.fn();
 const mockInsertValues = vi.fn();
 const mockTx = {
   update: vi.fn(),
@@ -53,8 +54,13 @@ beforeEach(() => {
     set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
   });
   mockSelectWhere.mockResolvedValue([]);
+  // 既定券種の取得は from().where()、通知先レースの取得は from().leftJoin().where() を通る
+  mockRaceSelectWhere.mockResolvedValue([{ id: 'race-1' }]);
   (db.select as ReturnType<typeof vi.fn>).mockReturnValue({
-    from: vi.fn().mockReturnValue({ where: mockSelectWhere }),
+    from: vi.fn().mockReturnValue({
+      where: mockSelectWhere,
+      leftJoin: vi.fn().mockReturnValue({ where: mockRaceSelectWhere }),
+    }),
   });
   mockTx.update.mockReturnValue({
     set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
@@ -86,7 +92,9 @@ describe('manage-events actions の再検証パス', () => {
 });
 
 describe('updateEvent の馬券種別デフォルト', () => {
-  it('種別配列は全行削除後に insert し、変更ありとして SSE を emit する', async () => {
+  it('種別配列は全行削除後に insert し、デフォルトが効くレースごとに SSE を emit する', async () => {
+    mockRaceSelectWhere.mockResolvedValue([{ id: 'race-1' }, { id: 'race-2' }]);
+
     await updateEvent(eventId, makeFormData(['win', 'trifecta']));
 
     expect(mockTx.delete).toHaveBeenCalledTimes(1);
@@ -94,7 +102,24 @@ describe('updateEvent の馬券種別デフォルト', () => {
       { eventId, betType: 'win' },
       { eventId, betType: 'trifecta' },
     ]);
-    expect(raceEventEmitter.emit).toHaveBeenCalledWith('BET_RESTRICTION_UPDATED', expect.objectContaining({ eventId }));
+    expect(raceEventEmitter.emit).toHaveBeenCalledTimes(2);
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith(
+      'BET_RESTRICTION_UPDATED',
+      expect.objectContaining({ raceId: 'race-1' })
+    );
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith(
+      'BET_RESTRICTION_UPDATED',
+      expect.objectContaining({ raceId: 'race-2' })
+    );
+  });
+
+  // 個別指定のレースはイベントのデフォルトを読まないため、通知しても購入可能な種別は変わらない
+  it('デフォルトが効くレースがなければ SSE を emit しない', async () => {
+    mockRaceSelectWhere.mockResolvedValue([]);
+
+    await updateEvent(eventId, makeFormData(['win']));
+
+    expect(raceEventEmitter.emit).not.toHaveBeenCalled();
   });
 
   it('null は行を削除するだけで insert しない', async () => {

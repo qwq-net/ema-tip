@@ -1,3 +1,5 @@
+import { RaceMetaRow } from '@/entities/race/ui/race-meta-row';
+import { RaceNumberChip } from '@/entities/race/ui/race-number-chip';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -37,11 +39,7 @@ export function RacePageHeader({
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
         {venueShortName && <span className="text-text-sub text-sm">{venueShortName}</span>}
-        {raceNumber && (
-          <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
-            {raceNumber}R
-          </span>
-        )}
+        {raceNumber && <RaceNumberChip raceNumber={raceNumber} />}
         {eventName && (
           <>
             <span className="text-gray-300">/</span>
@@ -72,13 +70,7 @@ export function RacePageHeader({
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
-      <div className="text-text-sub flex items-center gap-3 text-sm">
-        <span>{surface}</span>
-        <span className="h-1 w-1 rounded-full bg-gray-300" />
-        <span>{distance}m</span>
-        <span className="h-1 w-1 rounded-full bg-gray-300" />
-        <span>{entrantCount}頭</span>
-      </div>
+      <RaceMetaRow surface={surface} distance={distance} entrantCount={entrantCount} />
     </div>
   );
 }

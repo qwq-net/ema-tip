@@ -248,7 +248,6 @@ function validateBetSubmission(betCount: number, amount: number, totalAmount: nu
 
 interface BetTableProps {
   raceId: string;
-  eventId: string;
   walletId: string;
   balance: number;
   entries: Entry[];
@@ -263,7 +262,6 @@ interface BetTableProps {
 
 export function BetTable({
   raceId,
-  eventId,
   walletId,
   balance,
   entries,
@@ -284,7 +282,6 @@ export function BetTable({
   });
 
   const { odds, oddsDeltas, oddsVersion, connectionStatus } = useRaceOddsData(raceId, initialOdds, fixedOddsMode, {
-    eventId,
     onRaceBroadcast: () => router.push(`/races/${raceId}/standby`),
     onRaceClosed: () => setIsClosed(true),
     onRaceReopened: (newClosingAt) => {

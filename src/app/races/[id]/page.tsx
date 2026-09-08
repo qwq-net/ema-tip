@@ -140,7 +140,6 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
 
       <BetTable
         raceId={race.id}
-        eventId={race.eventId}
         walletId={wallet.id}
         balance={wallet.balance}
         entries={entries}

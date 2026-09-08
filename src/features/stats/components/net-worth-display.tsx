@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { cn } from '@/shared/utils/cn';
+import { formatYen } from '@/shared/utils/format-yen';
 import { TrendingUp } from 'lucide-react';
 
 interface NetWorthDisplayProps {
@@ -18,8 +19,8 @@ export function NetWorthDisplay({ amount }: NetWorthDisplayProps) {
         <TrendingUp className={cn('h-4 w-4', isPositive ? 'text-turf-800' : 'text-red-700')} />
       </CardHeader>
       <CardContent>
-        <div className={cn('text-2xl font-semibold', isPositive ? 'text-turf-800' : 'text-red-700')}>
-          ¥{amount.toLocaleString('ja-JP')}
+        <div className={cn('text-2xl font-semibold tabular-nums', isPositive ? 'text-turf-800' : 'text-red-700')}>
+          {formatYen(amount)}
         </div>
         <p className="text-text-sub text-sm">資産 - 借金</p>
       </CardContent>

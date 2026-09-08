@@ -1,4 +1,6 @@
 import { getDisplayStatus } from '@/entities/race/lib/status';
+import { RaceMetaRow } from '@/entities/race/ui/race-meta-row';
+import { RaceNumberChip } from '@/entities/race/ui/race-number-chip';
 import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
 import { Bet5RaceSequence } from '@/features/betting/ui/bet5-race-sequence';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
@@ -154,11 +156,7 @@ export default async function SokubetPage() {
                             <div className="flex-1">
                               <div className="mb-1 flex items-center gap-2">
                                 <span className="text-text-sub text-sm">{race.venue.shortName}</span>
-                                {race.raceNumber && (
-                                  <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
-                                    {race.raceNumber}R
-                                  </span>
-                                )}
+                                {race.raceNumber && <RaceNumberChip raceNumber={race.raceNumber} />}
                                 <Badge
                                   variant="status"
                                   label={getDisplayStatus(
@@ -168,13 +166,12 @@ export default async function SokubetPage() {
                                 />
                               </div>
                               <h3 className="text-text-main text-xl font-semibold">{race.name}</h3>
-                              <div className="text-text-sub mt-2 flex items-center gap-3 text-sm">
-                                <span>{race.surface}</span>
-                                <span className="h-1 w-1 rounded-full bg-gray-300" />
-                                <span>{race.distance}m</span>
-                                <span className="h-1 w-1 rounded-full bg-gray-300" />
-                                <span>{race.entries.filter((e) => e.status === 'ENTRANT').length}頭</span>
-                              </div>
+                              <RaceMetaRow
+                                surface={race.surface}
+                                distance={race.distance}
+                                entrantCount={race.entries.filter((e) => e.status === 'ENTRANT').length}
+                                className="mt-2"
+                              />
                             </div>
                             <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">
                               <ChevronLeft size={20} className="rotate-180" />

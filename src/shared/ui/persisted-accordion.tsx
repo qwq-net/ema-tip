@@ -65,15 +65,10 @@ export function PersistedAccordion({ storageKey, allIds, emptyState, children }:
   return (
     <div className="space-y-4">
       <div className="flex justify-start gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-sm font-normal"
-          onClick={() => handleValueChange(allIds)}
-        >
+        <Button variant="outline" size="sm" className="h-8 text-sm" onClick={() => handleValueChange(allIds)}>
           全て開く
         </Button>
-        <Button variant="outline" size="sm" className="h-8 text-sm font-normal" onClick={() => handleValueChange([])}>
+        <Button variant="outline" size="sm" className="h-8 text-sm" onClick={() => handleValueChange([])}>
           全て閉じる
         </Button>
       </div>

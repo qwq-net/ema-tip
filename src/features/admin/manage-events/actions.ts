@@ -2,13 +2,13 @@
 
 import { BET_TYPE_ORDER, toAllowedBetTypes } from '@/entities/bet';
 import { db } from '@/shared/db';
-import { eventDefaultAllowedBetTypes, events, wallets } from '@/shared/db/schema';
+import { eventDefaultAllowedBetTypes, events, raceAllowedBetTypes, raceInstances, wallets } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { ActionError, runAction } from '@/shared/utils/action-result';
 import { requireAdmin } from '@/shared/utils/admin';
 import { firstRow } from '@/shared/utils/first-row';
 import { formString } from '@/shared/utils/form';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 import { cache } from 'react';
@@ -91,6 +91,24 @@ export async function createEvent(formData: FormData) {
   revalidatePath('/admin/events');
 }
 
+/**
+ * イベントの既定券種の変更を、それが実際に効くレースへ SSE で通知する。
+ * デフォルトが効くのは自前の制限を持たないレースだけで、個別指定のレースでは購入可能な種別が変わらない。
+ * イベント単位で一斉に通知すると、個別指定のレースを見ている利用者にも変更なしの通知が届く。
+ */
+async function notifyDefaultBetTypesChanged(eventId: string): Promise<void> {
+  // 制限行を持つレースは結合先が埋まるため、null 行だけが自前の制限を持たないレースになる
+  const affectedRaces = await db
+    .select({ id: raceInstances.id })
+    .from(raceInstances)
+    .leftJoin(raceAllowedBetTypes, eq(raceAllowedBetTypes.raceId, raceInstances.id))
+    .where(and(eq(raceInstances.eventId, eventId), isNull(raceAllowedBetTypes.raceId)));
+
+  for (const race of affectedRaces) {
+    raceEventEmitter.emit(RACE_EVENTS.BET_RESTRICTION_UPDATED, { raceId: race.id, timestamp: Date.now() });
+  }
+}
+
 export async function updateEvent(id: string, formData: FormData) {
   return runAction(async () => {
     await requireAdmin();
@@ -154,7 +172,7 @@ export async function updateEvent(id: string, formData: FormData) {
     const afterList = parse.data.allowedBetTypes ?? [];
     const isChanged = beforeSet.size !== afterList.length || afterList.some((t) => !beforeSet.has(t));
     if (isChanged) {
-      raceEventEmitter.emit(RACE_EVENTS.BET_RESTRICTION_UPDATED, { eventId: id, timestamp: Date.now() });
+      await notifyDefaultBetTypesChanged(id);
     }
 
     // 一覧に加えて、管理者が開いている詳細ページも再検証しないと保存が画面へ反映されない

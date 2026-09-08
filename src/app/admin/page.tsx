@@ -191,13 +191,12 @@ export default async function AdminPage() {
               <h2 className="text-secondary font-semibold">管理者向けクイックガイド</h2>
             </div>
           </div>
-          <Link
-            href="/admin/guide"
-            className="text-primary rounded-control flex shrink-0 items-center gap-2 border border-gray-200 bg-white px-4 py-2 text-sm font-semibold transition hover:bg-gray-50 active:scale-[.96]"
-          >
-            ガイドへ
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <Button asChild variant="secondary" className="shrink-0">
+            <Link href="/admin/guide">
+              ガイドへ
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </CardContent>
       </Card>
 
@@ -218,7 +217,7 @@ export default async function AdminPage() {
           ) : (
             <div className="rounded-control flex flex-col items-center gap-3 border border-dashed border-gray-200 p-6 text-center">
               <p className="text-text-sub text-sm">開催中や準備中のイベントはありません</p>
-              <Button asChild className="font-semibold">
+              <Button asChild>
                 <Link href="/admin/events/new">
                   <Plus className="mr-2 h-4 w-4" />
                   新規イベント作成

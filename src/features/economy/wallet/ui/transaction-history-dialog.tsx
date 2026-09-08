@@ -1,11 +1,11 @@
 'use client';
 
+import { describeTransaction } from '@/entities/wallet/describe-transaction';
 import type { Transaction } from '@/entities/wallet/ui/transaction-list';
 import { TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui';
 import { useEffect, useState } from 'react';
 import { getWalletTransactions } from '../queries';
-import { describeTransaction } from './describe-transaction';
 
 interface TransactionHistoryDialogProps {
   walletId: string;

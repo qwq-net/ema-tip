@@ -67,16 +67,11 @@ export function ConfirmDialog({
             </AlertDialog.Description>
           </div>
           <div className="mt-6 flex flex-col gap-3">
-            <Button
-              variant={confirmVariant}
-              onClick={handleConfirm}
-              disabled={isPending}
-              className="w-full font-semibold"
-            >
+            <Button variant={confirmVariant} onClick={handleConfirm} disabled={isPending} className="w-full">
               {isPending ? '実行中...' : confirmLabel}
             </Button>
             <AlertDialog.Cancel asChild>
-              <Button variant="outline" disabled={isPending} className="w-full font-semibold">
+              <Button variant="outline" disabled={isPending} className="w-full">
                 キャンセル
               </Button>
             </AlertDialog.Cancel>

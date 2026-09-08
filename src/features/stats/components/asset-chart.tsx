@@ -1,5 +1,6 @@
 'use client';
 
+import { formatYen } from '@/shared/utils/format-yen';
 import { useId } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { AssetHistoryPoint } from '../utils';
@@ -79,7 +80,7 @@ export function AssetChart({ data }: AssetChartProps) {
             minTickGap={48}
           />
           <YAxis
-            tickFormatter={(value: number) => `¥${value.toLocaleString('ja-JP')}`}
+            tickFormatter={(value: number) => formatYen(value)}
             tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
             tickLine={false}
             axisLine={false}

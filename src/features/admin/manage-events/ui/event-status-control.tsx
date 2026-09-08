@@ -42,7 +42,7 @@ export function EventStatusAction({ eventId, next, label, icon, variant, done, c
   };
 
   const button = (
-    <Button variant={variant} disabled={isPending} onClick={confirm ? undefined : run} className="font-semibold">
+    <Button variant={variant} disabled={isPending} onClick={confirm ? undefined : run}>
       <Icon className="mr-2 h-4 w-4" />
       {label}
     </Button>

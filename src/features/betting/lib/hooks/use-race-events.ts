@@ -57,11 +57,13 @@ function dispatchRaceMessage(data: SSEMessage, handlers: RaceMessageHandlers): v
       handlers.onRaceResultUpdated(data.results);
       break;
     case 'BET_RESTRICTION_UPDATED':
+      toast.info('購入できる馬券種別が変更されました');
+      handlers.refresh();
+      break;
     case 'RACE_FINALIZED':
     case 'RANKING_UPDATED':
     case 'connected':
-      // 券種制限は呼び出し元が先に処理する。connected は useSSE が先に返すためここへ来ない。
-      // 残りはこのフックの利用者が購読していない。
+      // connected は useSSE が先に返すためここへ来ない。残りはこのフックの利用者が購読していない。
       // 列挙しておくことで、メッセージ種別が増えたときに分岐漏れを検出できる
       break;
   }
@@ -69,8 +71,6 @@ function dispatchRaceMessage(data: SSEMessage, handlers: RaceMessageHandlers): v
 
 interface UseRaceEventsProps {
   raceId: string;
-  // 所属イベントのデフォルト設定変更を受け取るために使う。省略時はレース単位の変更のみ拾う
-  eventId?: string;
   isFinalized: boolean;
   onRaceBroadcast?: () => void;
   onRaceOddsUpdated?: (data: SSERaceOddsUpdatedMessage) => void;
@@ -82,7 +82,6 @@ interface UseRaceEventsProps {
 
 export function useRaceEvents({
   raceId,
-  eventId,
   isFinalized,
   onRaceBroadcast = noop,
   onRaceOddsUpdated = noop,
@@ -95,15 +94,6 @@ export function useRaceEvents({
 
   const handleMessage = useCallback(
     (data: SSEMessage) => {
-      // 券種制限だけはレース単位とイベントデフォルトの2経路で届くため、レース宛て判定の外で扱う
-      if (data.type === 'BET_RESTRICTION_UPDATED') {
-        if (isForRace(data, raceId) || (eventId !== undefined && data.eventId === eventId)) {
-          toast.info('購入できる馬券種別が変更されました');
-          router.refresh();
-        }
-        return;
-      }
-
       if (!isForRace(data, raceId)) return;
 
       dispatchRaceMessage(data, {
@@ -120,7 +110,6 @@ export function useRaceEvents({
     },
     [
       raceId,
-      eventId,
       onRaceBroadcast,
       router,
       onRaceOddsUpdated,

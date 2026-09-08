@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { formatYen } from '@/shared/utils/format-yen';
 import { Skull } from 'lucide-react';
 
 interface KarmaDisplayProps {
@@ -15,7 +16,7 @@ export function KarmaDisplay({ totalKarma }: KarmaDisplayProps) {
         <Skull className="text-error h-4 w-4" />
       </CardHeader>
       <CardContent>
-        <div className="text-error text-2xl font-semibold">¥{totalKarma.toLocaleString('ja-JP')}</div>
+        <div className="text-error text-2xl font-semibold">{formatYen(totalKarma)}</div>
         <p className="text-text-sub text-sm">このカルマが消えることはありません...</p>
       </CardContent>
     </Card>

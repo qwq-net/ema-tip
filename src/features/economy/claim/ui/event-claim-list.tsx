@@ -3,6 +3,7 @@
 import { type EventStatus } from '@/shared/constants/status';
 import { toast } from '@/shared/lib/toast';
 import { Badge, Button, Card, CardContent, CardHeader, EmptyState } from '@/shared/ui';
+import { formatYen } from '@/shared/utils/format-yen';
 import { useTransition } from 'react';
 import { claimEvent } from '../actions';
 
@@ -66,20 +67,15 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
                 <h2 className="text-lg font-semibold">{event.name}</h2>
                 <Badge
                   label={event.isJoined ? '参加済み' : event.status}
-                  variant={event.isJoined ? 'role' : 'status'}
-                  className={event.isJoined ? 'bg-blue-100 text-blue-700' : undefined}
+                  variant={event.isJoined ? 'outline' : 'status'}
                 />
               </div>
-              <p className="mt-1 text-sm text-gray-600">開催日: {event.date}</p>
+              <p className="text-text-sub mt-1 text-sm">開催日: {event.date}</p>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col">
-              <p className="text-text-sub mb-4 line-clamp-2 flex-1 text-sm">
-                {event.description || '説明はありません'}
-              </p>
+              <p className="text-text-sub mb-4 flex-1 text-sm">{event.description || '説明はありません'}</p>
               <div className="mt-auto flex items-center justify-between pt-4">
-                <span className="text-primary font-semibold">
-                  配布: {event.distributeAmount.toLocaleString('ja-JP')} 円
-                </span>
+                <span className="text-primary font-semibold">配布: {formatYen(event.distributeAmount)}</span>
                 <Button
                   onClick={() => handleClaim(event.id)}
                   disabled={isPending || event.status !== 'ACTIVE' || event.isJoined}

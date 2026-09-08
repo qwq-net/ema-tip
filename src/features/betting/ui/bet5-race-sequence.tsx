@@ -1,3 +1,4 @@
+import { RaceNumberChip } from '@/entities/race/ui/race-number-chip';
 import { cn } from '@/shared/utils/cn';
 import { ChevronRight } from 'lucide-react';
 
@@ -11,9 +12,7 @@ export function Bet5RaceSequence({ raceNumbers, className }: { raceNumbers: (num
       {raceNumbers.map((raceNumber, index) => (
         <span key={index} className="inline-flex items-center gap-1.5">
           {index > 0 && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-          <span className="rounded-chip flex h-5 w-7 items-center justify-center bg-gray-100 text-sm font-semibold text-gray-600">
-            {raceNumber ?? '-'}R
-          </span>
+          <RaceNumberChip raceNumber={raceNumber} />
         </span>
       ))}
     </span>

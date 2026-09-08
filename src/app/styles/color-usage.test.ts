@@ -82,9 +82,7 @@ const GRANDFATHERED = new Set([
   'src/app/admin/races/[id]/page.tsx',
   'src/entities/race/ui/race-page-header.tsx',
   'src/entities/wallet/ui/transaction-list.tsx',
-  'src/features/admin/bet5/ui/bet5-manage-card.tsx',
   'src/features/admin/bet5/ui/bet5-ticket-list.tsx',
-  'src/features/admin/import-race/ui/import-race-client.tsx',
   'src/features/admin/manage-entries/ui/entry-dnd.tsx',
   'src/features/admin/manage-events/ui/admin-ranking-manager.tsx',
   'src/features/admin/manage-horses/ui/horse-form.tsx',
@@ -96,7 +94,6 @@ const GRANDFATHERED = new Set([
   'src/features/betting/ui/bet5-voting-form.tsx',
   'src/features/betting/ui/numeric-keypad.tsx',
   'src/features/betting/ui/purchased-ticket-list.tsx',
-  'src/features/economy/claim/ui/event-claim-list.tsx',
   'src/features/economy/loan/ui/loan-banner.tsx',
   'src/features/ranking/components/ranking-list.tsx',
   'src/features/stats/components/asset-chart.tsx',
@@ -104,7 +101,6 @@ const GRANDFATHERED = new Set([
   'src/features/stats/components/event-stats-card.tsx',
   'src/features/stats/components/net-worth-display.tsx',
   'src/features/user/ui/editable-user-profile.tsx',
-  'src/features/user/ui/name-change-form.tsx',
 ]);
 
 // 任意値 hex を認めるファイル。Discord のブランド色のみ
