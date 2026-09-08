@@ -5,14 +5,10 @@ import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 
 export default function CreateVenuePage() {
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Breadcrumbs items={[{ label: '競馬場管理', href: '/admin/venues' }, { label: '新規会場登録' }]} />
-      </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <Breadcrumbs items={[{ label: '競馬場管理', href: '/admin/venues' }, { label: '新規競馬場登録' }]} />
 
-      <div className="mb-8">
-        <AdminPageHeader title="新規競馬場登録" description="新しい競馬場を登録します。" />
-      </div>
+      <AdminPageHeader title="新規競馬場登録" description="新しい競馬場を登録します。" />
 
       <Card className="p-6">
         <VenueForm redirectTo="/admin/venues" />

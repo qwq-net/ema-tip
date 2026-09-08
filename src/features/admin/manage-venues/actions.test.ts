@@ -38,11 +38,11 @@ describe('deleteVenue', () => {
 
     const result = await deleteVenue('venue-1');
 
-    expect(result).toEqual({ success: false, error: 'レースまたはレース定義で使用中の競馬場は削除できません' });
+    expect(result).toEqual({ success: false, error: 'レースまたはレースマスタで使用中の競馬場は削除できません' });
     expect(db.delete).not.toHaveBeenCalled();
   });
 
-  it('レース定義の既定競馬場になっている競馬場も削除しない', async () => {
+  it('レースマスタの既定競馬場になっている競馬場も削除しない', async () => {
     (db.query.raceDefinitions.findFirst as unknown as Mock).mockResolvedValue({ id: 'def-1' });
 
     const result = await deleteVenue('venue-1');

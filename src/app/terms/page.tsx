@@ -1,3 +1,4 @@
+import { PageContainer } from '@/shared/ui/layout/page-container';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -6,8 +7,8 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-text-main mb-8 text-3xl font-semibold">利用規約</h1>
+    <PageContainer width="narrow">
+      <h1 className="text-text-main text-3xl font-semibold">利用規約</h1>
 
       <div className="space-y-8 text-gray-700">
         <section>
@@ -60,7 +61,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-text-main mb-4 text-xl font-semibold">免責事項（情報の扱い）</h2>
+          <h2 className="text-text-main mb-4 text-xl font-semibold">情報の扱いに関する免責事項</h2>
           <p className="leading-relaxed">
             当サイトは正確な情報を提供する情報サイトではありません。 また、実在する団体や競技とは一切関係ありません。
             記載されている情報は全て演出またはフィクションです。
@@ -80,6 +81,6 @@ export default function TermsPage() {
           <p className="leading-relaxed">本サービスに関するお問い合わせやトラブルのご連絡は、受け付けておりません。</p>
         </section>
       </div>
-    </div>
+    </PageContainer>
   );
 }

@@ -82,7 +82,7 @@ export async function deleteVenue(id: string) {
       db.query.raceDefinitions.findFirst({ where: eq(raceDefinitions.defaultVenueId, id), columns: { id: true } }),
     ]);
     if (race || definition) {
-      throw new ActionError('レースまたはレース定義で使用中の競馬場は削除できません');
+      throw new ActionError('レースまたはレースマスタで使用中の競馬場は削除できません');
     }
 
     await db.delete(venues).where(eq(venues.id, id));

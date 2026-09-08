@@ -11,14 +11,10 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
   if (!venue) notFound();
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Breadcrumbs items={[{ label: '競馬場管理', href: '/admin/venues' }, { label: venue.name }]} />
-      </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <Breadcrumbs items={[{ label: '競馬場管理', href: '/admin/venues' }, { label: venue.name }]} />
 
-      <div className="mb-8">
-        <AdminPageHeader title="競馬場情報の編集" description="競馬場の情報を編集します。" />
-      </div>
+      <AdminPageHeader title="競馬場情報の編集" description="競馬場の情報を編集します。" />
 
       <Card className="p-6">
         <VenueForm

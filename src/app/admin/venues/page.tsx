@@ -21,7 +21,7 @@ export default function AdminVenuesPage() {
             <Button asChild className="gap-2">
               <Link href="/admin/venues/new">
                 <Plus className="h-4 w-4" />
-                新規登録
+                競馬場を追加
               </Link>
             </Button>
           }

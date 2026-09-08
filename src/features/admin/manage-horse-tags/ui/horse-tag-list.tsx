@@ -53,22 +53,26 @@ export function HorseTagList({ tags }: HorseTagListProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              タグを追加
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>新規タグ登録</DialogTitle>
-            </DialogHeader>
-            <HorseTagForm onSuccess={() => setIsAddOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <AdminSectionTitle
+        actions={
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                タグを追加
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>新規タグ登録</DialogTitle>
+              </DialogHeader>
+              <HorseTagForm onSuccess={() => setIsAddOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        }
+      >
+        登録済みのタグ
+      </AdminSectionTitle>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((type) => {
@@ -76,7 +80,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
           return (
             <Card key={type}>
               <CardHeader className="pb-3">
-                <AdminSectionTitle>{HORSE_TAG_CATEGORIES[type]}</AdminSectionTitle>
+                <AdminSectionTitle as="h3">{HORSE_TAG_CATEGORIES[type]}</AdminSectionTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -87,19 +91,21 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                         className="rounded-control flex items-center gap-1 border border-gray-200 bg-gray-50 px-2 py-1 text-sm"
                       >
                         <span className="text-gray-700">{tag.content}</span>
-                        <div className="ml-2 flex items-center gap-1">
+                        <div className="ml-2 flex items-center gap-2">
                           <button
+                            type="button"
                             onClick={() => setEditingTag(tag)}
                             aria-label={`${tag.content} を編集`}
-                            className="text-text-sub hover:text-primary transition-colors"
+                            className="rounded-control hover:text-primary text-text-sub inline-flex h-6 w-6 items-center justify-center transition-colors hover:bg-gray-100"
                           >
                             <Edit className="h-3 w-3" />
                           </button>
                           <ConfirmDialog
                             trigger={
                               <button
+                                type="button"
                                 aria-label={`${tag.content} を削除`}
-                                className="text-text-sub transition-colors hover:text-red-500"
+                                className="rounded-control hover:text-error text-text-sub inline-flex h-6 w-6 items-center justify-center transition-colors hover:bg-gray-100"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -113,7 +119,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
                       </div>
                     ))
                   ) : (
-                    <span className="text-text-sub text-sm italic">登録なし</span>
+                    <span className="text-text-sub text-sm">登録なし</span>
                   )}
                 </div>
               </CardContent>

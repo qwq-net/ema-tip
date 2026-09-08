@@ -14,16 +14,12 @@ export default async function EditRaceDefinitionPage({ params }: { params: Promi
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Breadcrumbs
-          items={[{ label: 'レースマスタ管理', href: '/admin/race-definitions' }, { label: raceDefinition.name }]}
-        />
-      </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <Breadcrumbs
+        items={[{ label: 'レースマスタ管理', href: '/admin/race-definitions' }, { label: raceDefinition.name }]}
+      />
 
-      <div className="mb-8">
-        <AdminPageHeader title="レース定義の編集" description="レース定義（マスタ）の内容を編集します。" />
-      </div>
+      <AdminPageHeader title="レースマスタの編集" description="レースマスタの内容を編集します。" />
 
       <Card className="p-6">
         <RaceDefinitionForm

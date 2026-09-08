@@ -7,16 +7,13 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'レース定義',
+  title: 'レースマスタ管理',
 };
 
 export default function RaceDefinitionsPage() {
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="レース定義（マスタ）管理"
-        description="毎年開催されるレースの基本情報（マスタデータ）を管理します。"
-      />
+      <AdminPageHeader title="レースマスタ管理" description="毎年開催されるレースの基本情報を管理します。" />
 
       <div className="space-y-4">
         <AdminSectionTitle
@@ -24,12 +21,12 @@ export default function RaceDefinitionsPage() {
             <Button asChild className="gap-2">
               <Link href="/admin/race-definitions/new">
                 <Plus className="h-4 w-4" />
-                新規登録
+                レースマスタを追加
               </Link>
             </Button>
           }
         >
-          登録済みのレース定義
+          登録済みのレースマスタ
         </AdminSectionTitle>
 
         <Suspense fallback={<AdminLoadingCard />}>

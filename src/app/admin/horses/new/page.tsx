@@ -8,14 +8,10 @@ export default async function CreateHorsePage() {
   const tagOptions = await getHorseTags();
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Breadcrumbs items={[{ label: '馬マスタ管理', href: '/admin/horses' }, { label: '新規馬登録' }]} />
-      </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <Breadcrumbs items={[{ label: '馬マスタ管理', href: '/admin/horses' }, { label: '新規馬登録' }]} />
 
-      <div className="mb-8">
-        <AdminPageHeader title="新規馬登録" description="新しい競走馬の情報を入力してください。" />
-      </div>
+      <AdminPageHeader title="新規馬登録" description="新しい競走馬の情報を入力してください。" />
 
       <Card className="p-6">
         <HorseForm tagOptions={tagOptions} redirectTo="/admin/horses" />

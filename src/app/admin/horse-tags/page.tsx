@@ -16,7 +16,7 @@ export default async function HorseTagsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="馬タグ管理"
-        description="馬の詳細情報に使用するタグ（脚質、特性、来歴など）を管理します。"
+        description="馬の詳細情報に使うタグを管理します。脚質、特性、来歴、その他の 4 種類があります。"
       />
 
       <HorseTagList tags={tags} />

@@ -15,7 +15,7 @@ const raceDefinitionSchema = z.object({
   type: z.enum(RACE_TYPES),
   direction: z.enum(VENUE_DIRECTIONS),
   defaultDistance: z.coerce.number().min(100, '距離は100m以上で入力してください'),
-  defaultVenueId: z.string().min(1, '開催会場は必須です'),
+  defaultVenueId: z.string().min(1, '競馬場は必須です'),
   defaultSurface: z.enum(RACE_SURFACES),
 });
 
@@ -97,7 +97,7 @@ export async function deleteRaceDefinition(id: string) {
       columns: { id: true },
     });
     if (race) {
-      throw new ActionError('レースで使用中のレース定義は削除できません');
+      throw new ActionError('レースで使用中のレースマスタは削除できません');
     }
 
     await db.delete(raceDefinitions).where(eq(raceDefinitions.id, id));

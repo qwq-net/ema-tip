@@ -54,7 +54,7 @@ const ROLE_STYLES = {
   TIPSTER: 'bg-cat-orange-bg text-cat-orange-text',
   AI_TIPSTER: 'bg-cat-purple-bg text-cat-purple-text',
   GUEST: 'bg-gray-100 text-gray-800',
-  You: 'bg-turf-100 text-turf-800',
+  自分: 'bg-turf-100 text-turf-800',
 } satisfies Record<string, string>;
 
 const ROLE_FALLBACK = 'bg-gray-100 text-gray-800';

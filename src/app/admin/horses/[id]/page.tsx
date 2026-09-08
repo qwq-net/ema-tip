@@ -23,14 +23,10 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Breadcrumbs items={[{ label: '馬マスタ管理', href: '/admin/horses' }, { label: horse.name }]} />
-      </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <Breadcrumbs items={[{ label: '馬マスタ管理', href: '/admin/horses' }, { label: horse.name }]} />
 
-      <div className="mb-8">
-        <AdminPageHeader title="馬情報の編集" description="馬情報を編集します。" />
-      </div>
+      <AdminPageHeader title="馬情報の編集" description="馬情報を編集します。" />
 
       <Card className="p-6">
         <HorseForm

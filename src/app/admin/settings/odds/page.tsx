@@ -8,13 +8,11 @@ export default async function DefaultOddsSettingsPage() {
   const defaultOdds = await getDefaultGuaranteedOdds();
 
   return (
-    <div className="mx-auto max-w-4xl py-8">
-      <div className="mb-8">
-        <AdminPageHeader
-          title="デフォルト保証オッズ設定"
-          description="レース単位で上書きしていない券種に適用される保証オッズです。"
-        />
-      </div>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <AdminPageHeader
+        title="デフォルト保証オッズ設定"
+        description="レース単位で上書きしていない券種に適用される保証オッズです。"
+      />
 
       <GuaranteedOddsForm
         key={JSON.stringify(defaultOdds)}

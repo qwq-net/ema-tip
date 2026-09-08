@@ -1,7 +1,9 @@
 'use client';
 
 import type { Role } from '@/entities/user';
-import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
+import { SegmentedControl } from '@/features/admin/shared/ui/segmented-control';
+import { Badge, Button, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
+import { lookup } from '@/shared/utils/lookup';
 import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -26,7 +28,20 @@ interface UserListProps {
   currentUserId: string;
 }
 
-type TabType = 'ALL_USERS' | 'GUEST' | 'AI';
+const TAB_OPTIONS = [
+  { value: 'ALL_USERS', label: 'ユーザー' },
+  { value: 'GUEST', label: 'ゲスト' },
+  { value: 'AI', label: 'AI' },
+] as const;
+
+type TabType = (typeof TAB_OPTIONS)[number]['value'];
+
+// ログイン手段の表示名。accounts を持たないユーザーはゲストコードでの登録
+const PROVIDER_LABELS = {
+  discord: 'Discord',
+} satisfies Record<string, string>;
+
+const PROVIDER_FALLBACK = 'ゲストコード';
 
 export function UserList({ users, currentUserId }: UserListProps) {
   const [activeTab, setActiveTab] = useState<TabType>('ALL_USERS');
@@ -39,56 +54,24 @@ export function UserList({ users, currentUserId }: UserListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="rounded-control flex space-x-1 bg-gray-100 p-1">
-          <button
-            onClick={() => setActiveTab('ALL_USERS')}
-            className={clsx(
-              'rounded-control px-3 py-1.5 text-sm font-semibold transition',
-              activeTab === 'ALL_USERS' ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'
-            )}
-          >
-            ユーザー
-          </button>
-          <button
-            onClick={() => setActiveTab('GUEST')}
-            className={clsx(
-              'rounded-control px-3 py-1.5 text-sm font-semibold transition',
-              activeTab === 'GUEST' ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'
-            )}
-          >
-            ゲスト
-          </button>
-          <button
-            onClick={() => setActiveTab('AI')}
-            className={clsx(
-              'rounded-control px-3 py-1.5 text-sm font-semibold transition',
-              activeTab === 'AI' ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'
-            )}
-          >
-            AI
-          </button>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SegmentedControl options={TAB_OPTIONS} value={activeTab} onChange={setActiveTab} />
 
-        <Link
-          href="/admin/users/guests"
-          className="rounded-control text-text-main inline-flex items-center bg-white px-3 py-2 text-sm font-semibold ring-1 ring-gray-300 ring-inset hover:bg-gray-50"
-        >
-          ゲストコード管理
-        </Link>
+        <Button asChild variant="secondary">
+          <Link href="/admin/users/guests">ゲストコード管理</Link>
+        </Button>
       </div>
 
       <TableShell>
         <TableHead>
           <Th>ユーザー</Th>
-          <Th>ID</Th>
           <Th>ロール</Th>
           <Th>ステータス</Th>
           <Th>操作</Th>
         </TableHead>
         <TableBody>
           {filteredUsers.length === 0 ? (
-            <TableEmptyRow colSpan={5}>該当するユーザーがいません</TableEmptyRow>
+            <TableEmptyRow colSpan={4}>該当するユーザーがいません</TableEmptyRow>
           ) : (
             filteredUsers.map((user) => (
               <TableRow
@@ -100,7 +83,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
                     {user.image ? (
                       <Image
                         src={user.image}
-                        alt="User Icon"
+                        alt=""
                         width={32}
                         height={32}
                         className="rounded-full ring-1 ring-gray-200"
@@ -111,21 +94,23 @@ export function UserList({ users, currentUserId }: UserListProps) {
                       </div>
                     )}
                     <div>
-                      <div className="text-text-main font-semibold">{user.name || '名前なし'}</div>
-                      <div className="text-text-sub text-sm">{user.accounts[0]?.provider || 'credential'}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-main font-semibold">{user.name || '名前なし'}</span>
+                        {user.id === currentUserId && <Badge variant="role" label="自分" />}
+                      </div>
+                      <div className="text-text-sub text-sm">
+                        {lookup(PROVIDER_LABELS, user.accounts[0]?.provider ?? '') ?? PROVIDER_FALLBACK}
+                      </div>
                     </div>
                   </div>
                 </Td>
                 <Td>
-                  <div className="flex items-center gap-2">
-                    <code className="rounded-chip text-text-sub bg-gray-100 px-1.5 py-0.5 font-mono text-sm">
-                      {user.id.substring(0, 8)}...
-                    </code>
-                    {user.id === currentUserId && <Badge variant="role" label="You" />}
-                  </div>
-                </Td>
-                <Td>
-                  <UserRoleSelect userId={user.id} currentRole={user.role} isCurrentUser={user.id === currentUserId} />
+                  <UserRoleSelect
+                    userId={user.id}
+                    userName={user.name ?? '名前なし'}
+                    currentRole={user.role}
+                    isCurrentUser={user.id === currentUserId}
+                  />
                 </Td>
                 <Td>
                   {user.disabledAt ? <Badge variant="status" label="無効" /> : <Badge variant="status" label="有効" />}
@@ -133,6 +118,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
                 <Td>
                   <UserActionsMenu
                     userId={user.id}
+                    userName={user.name ?? '名前なし'}
                     isDisabled={Boolean(user.disabledAt)}
                     isCurrentUser={user.id === currentUserId}
                   />

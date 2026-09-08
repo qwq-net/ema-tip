@@ -28,7 +28,7 @@ export default function HorsesPage() {
             <Button asChild className="gap-2">
               <Link href="/admin/horses/new">
                 <Plus className="h-4 w-4" />
-                新規馬登録
+                馬を追加
               </Link>
             </Button>
           }

@@ -1,32 +1,21 @@
 import { ConfirmDeleteButton } from '@/features/admin/shared/ui/confirm-delete-button';
-import { DIRECTION_LABELS } from '@/shared/constants/race';
+import { DIRECTION_LABELS, type VENUE_AREAS } from '@/shared/constants/race';
 import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
-import { lookup } from '@/shared/utils/lookup';
 import Link from 'next/link';
 import { deleteVenue, getVenues } from '../actions';
 
-// 回りのバッジ色。直線は色を持たず、下の既定色で出す
-const DIRECTION_BADGE_CLASSES = {
-  LEFT: 'bg-orange-50 text-orange-700 ring-orange-200',
-  RIGHT: 'bg-green-50 text-green-700 ring-green-200',
-} satisfies Record<string, string>;
-
-// 地域のラベルとバッジ色。国内 2 区分以外はすべて海外として扱う
+// 地域の表示名。国内 2 区分と海外の 3 分類を網羅します。
 const AREA_LABELS = {
   EAST_JAPAN: '東日本',
   WEST_JAPAN: '西日本',
-} satisfies Record<string, string>;
-
-const AREA_BADGE_CLASSES = {
-  EAST_JAPAN: 'bg-blue-50 text-blue-700 ring-blue-200',
-  WEST_JAPAN: 'bg-red-50 text-red-700 ring-red-200',
-} satisfies Record<string, string>;
+  OVERSEAS: '海外',
+} satisfies Record<(typeof VENUE_AREAS)[number], string>;
 
 export async function VenueList() {
   const venues = await getVenues();
 
   return (
-    <TableShell className="min-w-[500px]">
+    <TableShell>
       <TableHead>
         <Th>競馬場名</Th>
         <Th>コード</Th>
@@ -50,18 +39,10 @@ export async function VenueList() {
             <Td className="text-text-sub font-mono">{venue.code || '-'}</Td>
             <Td>{venue.shortName}</Td>
             <Td>
-              <Badge
-                label={DIRECTION_LABELS[venue.defaultDirection] || venue.defaultDirection}
-                className={
-                  lookup(DIRECTION_BADGE_CLASSES, venue.defaultDirection) ?? 'bg-gray-50 text-gray-700 ring-gray-200'
-                }
-              />
+              <Badge label={DIRECTION_LABELS[venue.defaultDirection]} />
             </Td>
             <Td>
-              <Badge
-                label={lookup(AREA_LABELS, venue.area) ?? '海外'}
-                className={lookup(AREA_BADGE_CLASSES, venue.area) ?? 'bg-purple-50 text-purple-700 ring-purple-200'}
-              />
+              <Badge label={AREA_LABELS[venue.area]} />
             </Td>
             <Td className="text-right">
               <div className="flex justify-end">

@@ -19,6 +19,7 @@ export function SegmentedControl<T extends string>({
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
+          aria-pressed={value === option.value}
           className={clsx(
             'rounded-control px-3 py-1.5 text-sm font-semibold transition',
             value === option.value ? 'text-text-main bg-white' : 'text-text-sub hover:text-text-main'

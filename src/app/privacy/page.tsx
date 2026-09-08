@@ -1,3 +1,4 @@
+import { PageContainer } from '@/shared/ui/layout/page-container';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -6,8 +7,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-text-main mb-8 text-3xl font-semibold">プライバシーポリシー</h1>
+    <PageContainer width="narrow">
+      <h1 className="text-text-main text-3xl font-semibold">プライバシーポリシー</h1>
 
       <div className="space-y-8 text-gray-700">
         <section>
@@ -28,10 +29,10 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-text-main mb-4 text-xl font-semibold">Cookie（クッキー）について</h2>
+          <h2 className="text-text-main mb-4 text-xl font-semibold">Cookie について</h2>
           <p className="leading-relaxed">
-            当サイトでは、ログイン状態の維持など、サービスの基本機能を提供するためにCookie（クッキー）を使用しています。
-            アクセス解析や広告配信を目的とした、個人の行動を追跡するためのCookieは使用しておりません。
+            当サイトでは、ログイン状態の維持など、サービスの基本機能を提供するために Cookie を使用しています。
+            アクセス解析や広告配信を目的とした、個人の行動を追跡するための Cookie は使用しておりません。
           </p>
         </section>
 
@@ -42,6 +43,6 @@ export default function PrivacyPage() {
           </p>
         </section>
       </div>
-    </div>
+    </PageContainer>
   );
 }

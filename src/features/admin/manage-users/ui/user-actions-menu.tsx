@@ -8,11 +8,13 @@ import { deleteUser, toggleUserStatus } from '../actions';
 
 interface UserActionsMenuProps {
   userId: string;
+  // 行の対象ユーザー名。アイコンだけのボタンをどのユーザーへの操作か読み上げるために使う
+  userName: string;
   isDisabled: boolean;
   isCurrentUser: boolean;
 }
 
-export function UserActionsMenu({ userId, isDisabled, isCurrentUser }: UserActionsMenuProps) {
+export function UserActionsMenu({ userId, userName, isDisabled, isCurrentUser }: UserActionsMenuProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleToggleStatus = () => {
@@ -41,21 +43,28 @@ export function UserActionsMenu({ userId, isDisabled, isCurrentUser }: UserActio
   return (
     <div className="flex items-center gap-2">
       <Button
-        variant={isDisabled ? 'destructive-outline' : 'destructive'}
-        size="sm"
+        variant="ghost"
+        size="icon"
+        className="text-text-sub hover:text-error"
         onClick={handleToggleStatus}
         disabled={isPending}
-        title={isDisabled ? '有効化' : '無効化'}
+        aria-label={isDisabled ? `${userName} を有効化` : `${userName} を無効化`}
       >
         {isDisabled ? <Undo className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
       </Button>
       <ConfirmDialog
         trigger={
-          <Button variant="destructive" size="sm" disabled={isPending} title="削除">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-text-sub hover:text-error"
+            disabled={isPending}
+            aria-label={`${userName} を削除`}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         }
-        title="このユーザーを削除しますか？"
+        title={`${userName} を削除しますか？`}
         description="この操作は取り消せません。"
         confirmLabel="削除する"
         onConfirm={handleDelete}

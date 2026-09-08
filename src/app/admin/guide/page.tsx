@@ -1,3 +1,4 @@
+import { AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { Card } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { ChevronRight } from 'lucide-react';
@@ -33,7 +34,7 @@ const FLOW_STEPS: Step[] = [
   },
   {
     title: 'レース作成',
-    description: '会場とレース番号を選びます。条件はマスタから読み込めます。',
+    description: '競馬場とレース番号を選びます。条件はマスタから読み込めます。',
     href: '/admin/races/new',
   },
   {
@@ -110,14 +111,11 @@ function StepList({ steps, tone, ordered = false }: { steps: Step[]; tone: keyof
 export default function AdminGuidePage() {
   return (
     <div className="max-w-3xl space-y-10 pb-12">
-      <div>
-        <h1 className="text-text-main text-2xl font-semibold">クイックガイド</h1>
-        <p className="text-text-sub mt-1">マスタの準備からイベント開催までの流れです。</p>
-      </div>
+      <AdminPageHeader title="クイックガイド" description="マスタの準備からイベント開催までの流れです。" />
 
       <section className="space-y-3">
         <div className="flex items-baseline gap-3">
-          <h2 className="text-secondary text-lg font-semibold">準備編 マスタデータ</h2>
+          <AdminSectionTitle>準備編 マスタデータ</AdminSectionTitle>
           <p className="text-text-sub text-sm">初回や新要素の追加時のみ</p>
         </div>
         <StepList steps={MASTER_STEPS} tone="neutral" ordered />
@@ -125,7 +123,7 @@ export default function AdminGuidePage() {
 
       <section className="space-y-3">
         <div className="flex items-baseline gap-3">
-          <h2 className="text-secondary text-lg font-semibold">運用編 イベント開催</h2>
+          <AdminSectionTitle>運用編 イベント開催</AdminSectionTitle>
           <p className="text-text-sub text-sm">イベントごとに毎回行うフロー</p>
         </div>
         <StepList steps={FLOW_STEPS} tone="brand" ordered />
@@ -133,7 +131,7 @@ export default function AdminGuidePage() {
 
       <section className="space-y-3">
         <div className="flex items-baseline gap-3">
-          <h2 className="text-secondary text-lg font-semibold">その他の管理</h2>
+          <AdminSectionTitle>その他の管理</AdminSectionTitle>
           <p className="text-text-sub text-sm">必要になったときに使います</p>
         </div>
         <StepList steps={OTHER_ITEMS} tone="neutral" />

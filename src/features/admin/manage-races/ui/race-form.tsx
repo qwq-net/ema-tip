@@ -214,7 +214,7 @@ export function RaceForm({
         </div>
 
         <Label>
-          レース定義
+          レースマスタ
           <Select name="raceDefinitionId" value={raceDefinitionId} onChange={handleDefinitionChange}>
             <option value="">選択なし</option>
             {raceDefinitions.map((def) => (

@@ -1,9 +1,24 @@
 'use client';
 
+import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, ConfirmDialog, Input, TableBody, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  ConfirmDialog,
+  Input,
+  Label,
+  TableBody,
+  TableEmptyRow,
+  TableHead,
+  TableRow,
+  TableShell,
+  Td,
+  Th,
+} from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
-import { Ban, Trash2 } from 'lucide-react';
+import { Ban, Snowflake } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { generateGuestCode, invalidateGuestCode, invalidateUsersByCode } from '../actions/guest-actions';
@@ -30,6 +45,7 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
     try {
       await generateGuestCode(title);
       setTitle('');
+      toast.success('ゲストコードを発行しました');
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -63,21 +79,23 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-control border border-gray-200 bg-white p-6">
-        <h3 className="text-text-main mb-4 text-lg font-semibold">新規ゲストコード発行</h3>
-        <div className="flex gap-4">
-          <Input
-            type="text"
-            placeholder="イベント名や用途など識別可能な言葉を入力してください"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="max-w-lg"
-          />
-          <Button onClick={handleGenerate} disabled={isGenerating || !title} className="disabled:opacity-50">
+      <Card className="space-y-4 p-6">
+        <AdminSectionTitle>新規ゲストコード発行</AdminSectionTitle>
+        <div className="flex flex-wrap gap-3">
+          <Label className="min-w-0 flex-1 basis-full sm:basis-auto">
+            用途
+            <Input
+              type="text"
+              placeholder="例: 第3回 えま杯"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </Label>
+          <Button onClick={handleGenerate} disabled={isGenerating || !title} className="self-end">
             {isGenerating ? '発行中...' : 'コード発行'}
           </Button>
         </div>
-      </div>
+      </Card>
 
       <TableShell>
         <TableHead>
@@ -89,6 +107,7 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
           <Th className="text-right">操作</Th>
         </TableHead>
         <TableBody>
+          {codes.length === 0 && <TableEmptyRow colSpan={6}>発行済みのコードはありません</TableEmptyRow>}
           {codes.map((code) => (
             <TableRow key={code.code}>
               <Td className="text-text-main font-mono font-semibold">{code.code}</Td>
@@ -109,14 +128,14 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-600 hover:bg-red-50 hover:text-red-900"
-                        title="このコードの全ユーザーを凍結"
+                        className="text-text-sub hover:text-error"
+                        aria-label={`${code.title} のユーザーを凍結`}
                       >
-                        <Ban className="h-4 w-4" />
+                        <Snowflake className="h-4 w-4" />
                       </Button>
                     }
                     title="ユーザーの一括凍結"
-                    description="危険: このコードで登録した全てのユーザーを凍結します。本当によろしいですか？"
+                    description="このコードで登録した全てのユーザーを凍結します。凍結したユーザーはログインできなくなります。"
                     confirmLabel="凍結する"
                     onConfirm={() => handleInvalidateUsers(code.code)}
                   />
@@ -126,10 +145,10 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-orange-600 hover:bg-orange-50 hover:text-orange-900"
-                          title="コード無効化"
+                          className="text-text-sub hover:text-error"
+                          aria-label={`${code.title} を無効化`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Ban className="h-4 w-4" />
                         </Button>
                       }
                       title="ゲストコードの無効化"

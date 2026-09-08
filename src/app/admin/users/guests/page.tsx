@@ -12,12 +12,10 @@ export default async function GuestCodesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <AdminPageHeader
-          title="ゲストコード管理"
-          description="ゲストユーザー用のアクセスコードの発行と管理を行います。"
-        />
-      </div>
+      <AdminPageHeader
+        title="ゲストコード管理"
+        description="ゲストユーザー用のアクセスコードの発行と管理を行います。"
+      />
 
       <GuestCodeManager codes={codes} />
     </div>

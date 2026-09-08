@@ -204,6 +204,7 @@ export function HorseForm({ initialData, tagOptions, redirectTo }: HorseFormProp
                         key={`${masterTag.type}-${masterTag.content}`}
                         type="button"
                         onClick={() => toggleTag(masterTag)}
+                        aria-pressed={isActive}
                         className={cn(
                           'rounded-control border px-2.5 py-1 text-sm font-semibold transition select-none',
                           isActive

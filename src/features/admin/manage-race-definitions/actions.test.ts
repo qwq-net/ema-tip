@@ -31,16 +31,16 @@ describe('deleteRaceDefinition', () => {
     (db.delete as unknown as Mock).mockReturnValue({ where: deleteWhere });
   });
 
-  it('レースで使用中のレース定義は削除せず、理由をエラーとして返す', async () => {
+  it('レースで使用中のレースマスタは削除せず、理由をエラーとして返す', async () => {
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ id: 'race-1' });
 
     const result = await deleteRaceDefinition('def-1');
 
-    expect(result).toEqual({ success: false, error: 'レースで使用中のレース定義は削除できません' });
+    expect(result).toEqual({ success: false, error: 'レースで使用中のレースマスタは削除できません' });
     expect(db.delete).not.toHaveBeenCalled();
   });
 
-  it('未使用のレース定義は削除して成功を返す', async () => {
+  it('未使用のレースマスタは削除して成功を返す', async () => {
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(undefined);
 
     const result = await deleteRaceDefinition('def-1');
