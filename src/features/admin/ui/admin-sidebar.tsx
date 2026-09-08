@@ -96,6 +96,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     }
   }, [isOpen]);
 
+  // 開いたドロワーは Escape でも閉じられるようにします
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   const filteredGroups = NAV_GROUPS.filter((group) => group.role.some((role) => role === user.role));
 
   return (
@@ -110,6 +120,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             onClick={() => setIsOpen(!isOpen)}
             className="rounded-control text-text-sub p-2 transition-colors hover:bg-gray-100"
             aria-label="メニューを開閉"
+            aria-expanded={isOpen}
+            aria-controls="admin-drawer"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -126,6 +138,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       )}
 
       <aside
+        id="admin-drawer"
         className={cn(
           'bg-secondary fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-800 text-white md:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'

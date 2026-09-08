@@ -17,7 +17,7 @@ export default function NotFound() {
           <p className="text-text-sub text-sm">お探しのページは存在しないか、移動した可能性があります。</p>
         </div>
         <Button asChild variant="primary">
-          <Link href="/mypage">マイページに戻る</Link>
+          <Link href="/">トップへ戻る</Link>
         </Button>
       </div>
     </div>

@@ -181,7 +181,7 @@ export default async function AdminPage() {
     <div className="max-w-5xl space-y-8">
       <AdminPageHeader title="ダッシュボード" />
 
-      <Card className="border-turf-100 bg-turf-50/70 hover:bg-turf-50 transition">
+      <Card className="border-turf-100 bg-turf-50/70">
         <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
           <div className="flex items-center gap-4">
             <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">

@@ -10,10 +10,10 @@ import {
   VENUE_DIRECTIONS,
 } from '@/shared/constants/race';
 import { toast } from '@/shared/lib/toast';
-import { Input, Label, Select, SubmitButton } from '@/shared/ui';
+import { Input, Label, NumericInput, Select, SubmitButton } from '@/shared/ui';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRouter } from 'next/navigation';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { createRaceDefinition, updateRaceDefinition } from '../actions';
 
 interface RaceDefinitionFormProps {
@@ -39,8 +39,16 @@ export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefi
 
   const venueSelectRef = useRef<HTMLSelectElement>(null);
   const directionSelectRef = useRef<HTMLSelectElement>(null);
+  const [distance, setDistance] = useState(initialData?.defaultDistance ?? 2400);
 
   async function handleSubmit(formData: FormData) {
+    // NumericInput に min を渡すと打ち直しの途中値まで弾かれるため、下限は送信時に確かめます
+    if (distance < 100) {
+      toast.error('距離は 100m 以上で入力してください');
+      return;
+    }
+    // NumericInput は表示値に桁区切りを入れるため、数値は state から詰め直します
+    formData.set('defaultDistance', String(distance));
     try {
       if (initialData) {
         await updateRaceDefinition(initialData.id, formData);
@@ -48,6 +56,7 @@ export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefi
       } else {
         await createRaceDefinition(formData);
         formRef.current?.reset();
+        setDistance(2400);
         toast.success('レースマスタを登録しました');
       }
       router.push(redirectTo);
@@ -94,43 +103,30 @@ export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefi
         </Label>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Label>
-          競馬場
-          <Select
-            name="defaultVenueId"
-            required
-            defaultValue={initialData?.defaultVenueId || ''}
-            ref={venueSelectRef}
-            onChange={handleVenueChange}
-          >
-            <option value="" disabled>
-              競馬場を選択
+      <Label>
+        競馬場
+        <Select
+          name="defaultVenueId"
+          required
+          defaultValue={initialData?.defaultVenueId || ''}
+          ref={venueSelectRef}
+          onChange={handleVenueChange}
+        >
+          <option value="" disabled>
+            競馬場を選択
+          </option>
+          {venues.map((venue) => (
+            <option key={venue.id} value={venue.id}>
+              {venue.name}
             </option>
-            {venues.map((venue) => (
-              <option key={venue.id} value={venue.id}>
-                {venue.name}
-              </option>
-            ))}
-          </Select>
-        </Label>
-      </div>
+          ))}
+        </Select>
+      </Label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Label>
           距離
-          <span className="relative block">
-            <Input
-              name="defaultDistance"
-              type="number"
-              required
-              min={100}
-              defaultValue={initialData?.defaultDistance ?? 2400}
-              placeholder="2400"
-              className="pr-8"
-            />
-            <span className="text-text-sub absolute top-2 right-3 text-sm">m</span>
-          </span>
+          <NumericInput value={distance} onChange={setDistance} suffix="m" />
         </Label>
         <Label>
           既定の馬場
@@ -152,6 +148,7 @@ export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefi
             required
             defaultValue={initialData?.defaultDirection || 'RIGHT'}
             ref={directionSelectRef}
+            aria-describedby="direction-help"
           >
             {VENUE_DIRECTIONS.map((dir) => (
               <option key={dir} value={dir}>
@@ -160,7 +157,9 @@ export function RaceDefinitionForm({ initialData, venues, redirectTo }: RaceDefi
             ))}
           </Select>
         </Label>
-        <p className="text-text-sub mt-1 text-sm">選択した競馬場の方向が自動選択されます</p>
+        <p id="direction-help" className="text-text-sub mt-1 text-sm">
+          選択した競馬場の方向が自動選択されます
+        </p>
       </div>
 
       <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>

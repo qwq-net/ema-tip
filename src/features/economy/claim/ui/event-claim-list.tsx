@@ -76,7 +76,7 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
               <p className="text-text-sub mb-4 line-clamp-2 flex-1 text-sm">
                 {event.description || '説明はありません'}
               </p>
-              <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-4">
+              <div className="mt-auto flex items-center justify-between pt-4">
                 <span className="text-primary font-semibold">
                   配布: {event.distributeAmount.toLocaleString('ja-JP')} 円
                 </span>

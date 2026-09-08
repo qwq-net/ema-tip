@@ -1,11 +1,11 @@
 'use client';
 
+import { resultDiffClass } from '@/entities/ranking';
 import { TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { AssetChart } from '@/features/stats/components/asset-chart';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
-import { cn } from '@/shared/utils/cn';
 import { ChevronDown } from 'lucide-react';
 import type { EventStats } from '../utils';
 
@@ -29,7 +29,7 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
                   <span>
                     所持金: <span className="font-semibold">¥{event.balance.toLocaleString('ja-JP')}</span>
                   </span>
-                  <span className={cn(event.net >= 0 ? 'text-blue-600' : 'text-red-600')}>
+                  <span className={resultDiffClass(event.net)}>
                     収支:{' '}
                     <span className="font-semibold">
                       {event.net > 0 && '+'}

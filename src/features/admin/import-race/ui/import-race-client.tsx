@@ -136,9 +136,10 @@ export function ImportRaceClient({ events, venues }: Props) {
         <div className="flex gap-2">
           <Input
             aria-label="Netkeiba の出馬表 URL"
+            aria-describedby="import-url-help"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://race.netkeiba.com/race/shutuba.html?race_id=... (地方: nar.netkeiba.com)"
+            placeholder="https://race.netkeiba.com/race/shutuba.html?race_id=..."
             className="flex-1"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleFetch();
@@ -148,6 +149,9 @@ export function ImportRaceClient({ events, venues }: Props) {
             {isPendingFetch ? '取得中...' : '解析'}
           </Button>
         </div>
+        <p id="import-url-help" className="text-text-sub text-sm">
+          地方競馬は nar.netkeiba.com の出馬表 URL を貼り付けます。
+        </p>
         {fetchError && <p className="text-sm text-red-600">{fetchError}</p>}
       </Card>
 
@@ -213,14 +217,17 @@ export function ImportRaceClient({ events, venues }: Props) {
             <div className="flex items-center gap-2">
               <Checkbox id="fixedOddsMode" checked={fixedOddsMode} onCheckedChange={setFixedOddsMode} />
               <label htmlFor="fixedOddsMode" className="cursor-pointer text-sm text-gray-700">
-                固定オッズモードで登録（Netkeibaオッズで払戻）
+                固定オッズモードで登録する。払戻は Netkeiba のオッズで計算します
               </label>
             </div>
           </Card>
 
           <Card className="space-y-4 p-6">
             <h2 className="text-text-main text-lg font-semibold">
-              出走馬一覧（{preview.horses.filter((h) => !h.scratched).length}頭）
+              出走馬一覧
+              <span className="text-text-sub ml-2 text-sm font-normal">
+                {preview.horses.filter((h) => !h.scratched).length}頭
+              </span>
               {preview.horses.some((h) => h.scratched) && (
                 <span className="ml-2 text-sm font-semibold text-red-500">
                   取消・除外 {preview.horses.filter((h) => h.scratched).length}頭

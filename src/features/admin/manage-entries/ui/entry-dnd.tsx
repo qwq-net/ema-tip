@@ -350,7 +350,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
             className="rounded-control h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto border border-gray-300 bg-white p-4"
           >
             {entries.length === 0 ? (
-              <div className="text-text-sub py-8 text-center text-sm">左から馬をドラッグまたはクリックして追加</div>
+              <div className="text-text-sub py-8 text-center text-sm">一覧から馬を押すかドラッグして追加</div>
             ) : (
               <SortableContext items={entries.map((h) => h.id)} strategy={verticalListSortingStrategy}>
                 {entries.map((horse, index) => (
@@ -384,14 +384,9 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       </DragOverlay>
 
       <div className="mt-6">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isPending}
-          className="hover:bg-primary-hover rounded-control bg-primary w-full px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="button" onClick={handleSave} disabled={isPending} className="w-full">
           {isPending ? '保存中...' : `登録する (${entries.length}頭)`}
-        </button>
+        </Button>
       </div>
     </DndContext>
   );

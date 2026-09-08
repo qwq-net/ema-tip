@@ -15,7 +15,7 @@ export async function RaceDefinitionList() {
         <Th>格付け</Th>
         <Th>コース</Th>
         <Th>方向</Th>
-        <Th className="w-32 text-right">操作</Th>
+        <Th className="text-right">操作</Th>
       </TableHead>
       <TableBody>
         {definitions.length === 0 && <TableEmptyRow colSpan={6}>登録されているレースマスタはありません</TableEmptyRow>}

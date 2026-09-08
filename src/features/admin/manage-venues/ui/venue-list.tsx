@@ -22,7 +22,7 @@ export async function VenueList() {
         <Th>略称</Th>
         <Th>回り</Th>
         <Th>地域</Th>
-        <Th className="w-32 text-right">操作</Th>
+        <Th className="text-right">操作</Th>
       </TableHead>
       <TableBody>
         {venues.length === 0 && <TableEmptyRow colSpan={6}>登録されている競馬場はありません</TableEmptyRow>}

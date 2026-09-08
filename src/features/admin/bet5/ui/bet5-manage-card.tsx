@@ -234,10 +234,9 @@ export function Bet5ManageCard({
               return (
                 <li
                   key={race.id}
-                  className="rounded-control flex items-center gap-2 border border-gray-100 bg-gray-50 px-3 py-2"
+                  className="rounded-control flex items-center gap-3 border border-gray-100 bg-gray-50 px-3 py-2"
                 >
                   <span className="font-semibold">{race.raceNumber ? `${race.raceNumber}R` : '-'}</span>
-                  <span className="text-gray-300">|</span>
                   <Link
                     href={`/admin/races/${race.id}`}
                     className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-800 hover:underline"
@@ -245,13 +244,10 @@ export function Bet5ManageCard({
                     <span>{race.name}</span>
                     <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
-                  <span className="text-gray-300">|</span>
                   <span className="text-gray-600">{race.entryCount}頭</span>
                   {stat && (
                     <>
-                      <span className="text-gray-300">|</span>
                       <span className="text-gray-600">的中：{stat.hitCount ?? '-'}</span>
-                      <span className="text-gray-300">|</span>
                       <span className="text-gray-600">連続的中：{stat.consecutiveHitCount ?? '-'}</span>
                     </>
                   )}

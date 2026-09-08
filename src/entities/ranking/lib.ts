@@ -31,7 +31,9 @@ export function formatSignedYen(value: number): string {
   return `${sign}${Math.abs(value).toLocaleString('ja-JP')}円`;
 }
 
-/** 収支の文字色。プラスと 0 は情報色の青、マイナスはエラー色の赤のトークンを返す。 */
+/** 収支の文字色。プラスは情報色の青、マイナスはエラー色の赤、増減なしの 0 は本文色を返す。 */
 export function resultDiffClass(diff: number): string {
-  return diff >= 0 ? 'text-info' : 'text-error';
+  if (diff > 0) return 'text-info';
+  if (diff < 0) return 'text-error';
+  return 'text-text-main';
 }

@@ -46,9 +46,9 @@ describe('formatSignedYen', () => {
 });
 
 describe('resultDiffClass', () => {
-  it('プラスと 0 は情報色、マイナスはエラー色のトークンを返すこと', () => {
+  it('プラスは情報色、マイナスはエラー色、0 は本文色のトークンを返すこと', () => {
     expect(resultDiffClass(9400)).toBe('text-info');
-    expect(resultDiffClass(0)).toBe('text-info');
+    expect(resultDiffClass(0)).toBe('text-text-main');
     expect(resultDiffClass(-1)).toBe('text-error');
   });
 });

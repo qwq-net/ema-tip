@@ -56,7 +56,7 @@ export function HorseList({ horses }: { horses: Horse[] }) {
           <Th>種別</Th>
           <Th>性齢</Th>
           <Th>備考</Th>
-          <Th className="w-32 text-right">操作</Th>
+          <Th className="text-right">操作</Th>
         </TableHead>
         <TableBody>
           {horses.length === 0 && <TableEmptyRow colSpan={8}>登録されている馬はありません</TableEmptyRow>}

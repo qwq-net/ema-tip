@@ -27,7 +27,12 @@ export function formatRemainingTime(ms: number): string {
  * remainingMs は締切未設定または受付終了時は null。
  */
 export function useRaceTimer({ initialStatus, closingAt: initialClosingAt }: UseRaceTimerProps) {
-  const [isClosed, setIsClosed] = useState(initialStatus !== 'SCHEDULED');
+  // 締切を過ぎたレースを開いたときに 1 秒だけ残り時間が出ないよう、初回描画で判定します
+  const [isClosed, setIsClosed] = useState(
+    () =>
+      initialStatus !== 'SCHEDULED' ||
+      (initialClosingAt !== null && new Date(initialClosingAt).getTime() - Date.now() <= 0)
+  );
   const [closingAt, setClosingAt] = useState(initialClosingAt);
   const [now, setNow] = useState(() => Date.now());
 
