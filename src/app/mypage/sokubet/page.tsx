@@ -86,9 +86,7 @@ export default async function SokubetPage() {
                                 </Link>
                               </Button>
                             )}
-                            {hasPurchasedBet5 && (
-                              <Badge label="BET5 購入済み" className="bg-turf-600 border-0 text-white" />
-                            )}
+                            {hasPurchasedBet5 && <Badge variant="status" label="BET5 購入済み" />}
                           </div>
                         )}
                       </div>

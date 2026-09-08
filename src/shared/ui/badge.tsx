@@ -32,6 +32,7 @@ const STATUS_STYLES = {
   有効: 'bg-cat-green-bg text-cat-green-text',
   出走前: 'bg-cat-green-bg text-cat-green-text',
   準備中: 'bg-cat-green-bg text-cat-green-text',
+  'BET5 購入済み': 'bg-cat-green-bg text-cat-green-text',
   公開中: 'bg-cat-green-bg text-cat-green-text',
   ACTIVE: 'bg-cat-blue-bg text-cat-blue-text',
   開催中: 'bg-cat-blue-bg text-cat-blue-text',
