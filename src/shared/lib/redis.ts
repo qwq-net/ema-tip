@@ -12,6 +12,9 @@ declare global {
 function createRedis() {
   const client = new Redis(redisUrl, {
     maxRetriesPerRequest: 3,
+    // 生成時ではなく最初のコマンド発行時に接続する。
+    // これがないと next build と単体テストが読み込みだけで接続を張り、Redis のない環境で ECONNREFUSED を吐く
+    lazyConnect: true,
   });
 
   client.on('error', (err) => {

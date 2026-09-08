@@ -39,8 +39,9 @@ class RaceEventEmitter extends EventEmitter {
   }
 
   private subscribe(): Redis {
-    // 購読モードの接続は他コマンドを受け付けないため、共有クライアントとは別に持つ
-    const subscriber = redis.duplicate();
+    // 購読モードの接続は他コマンドを受け付けないため、共有クライアントとは別に持つ。
+    // 共有クライアントの遅延接続は複製されると購読が始まらないため、複製側だけ即時接続へ上書きする
+    const subscriber = redis.duplicate({ lazyConnect: false });
     subscriber.on('error', (cause: unknown) => {
       console.error('[SSE] 購読接続でエラー:', cause);
     });

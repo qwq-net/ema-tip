@@ -12,8 +12,9 @@ Dockerfile
 docker-compose.yml
 docker-compose.override.yml
 docker-compose.prod.yml
-README.md
+*.md
 docs
+.github
 # ビルドコンテキストに不要な生成物とローカルデータ。.pnpm-store は dev のバインドマウントが作る
 .pnpm-store
 backups
@@ -22,3 +23,5 @@ playwright-report
 tmp
 e2e
 *.tsbuildinfo
+# 負荷計測ツールはイメージへ入れない。本番では task perf:*:prod が repository の tools/ をマウントする
+tools

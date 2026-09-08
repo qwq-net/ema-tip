@@ -9,10 +9,15 @@ export async function proxy(request: NextRequest) {
     throw new Error('AUTH_SECRET または NEXTAUTH_SECRET が設定されていません');
   }
 
-  const isSecure =
-    request.headers.get('x-forwarded-proto') === 'https' ||
-    process.env.NODE_ENV === 'production' ||
-    (process.env.NEXTAUTH_URL ?? '').startsWith('https://');
+  // 受け取った scheme。前段のプロキシが付けていなければ、このリクエスト自身の scheme を使う
+  const forwardedProto = request.headers.get('x-forwarded-proto') ?? request.nextUrl.protocol.replace(':', '');
+
+  // Cookie 名の判定は next-auth と同じ規則にする。next-auth は AUTH_URL または NEXTAUTH_URL が
+  // あればその scheme、無ければリクエストの scheme が https のときだけ __Secure- を付ける。
+  // 以前は x-forwarded-proto が https なら __Secure- を探していたため、AUTH_URL が http の dev を
+  // Cloudflare Tunnel 経由で開くと next-auth が発行した平文名の Cookie を読めず /admin が 404 になっていた
+  const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
+  const isSecure = authUrl ? authUrl.startsWith('https://') : forwardedProto === 'https';
 
   const token = await getToken({
     req: request,
@@ -35,7 +40,6 @@ export async function proxy(request: NextRequest) {
     requestHeaders.set('x-forwarded-host', forwardedHost);
   }
 
-  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
   requestHeaders.set('x-forwarded-proto', forwardedProto);
 
   return NextResponse.next({
