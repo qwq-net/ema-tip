@@ -209,6 +209,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   // 払戻表ができた後に保証オッズを変えると、計算済みの払戻と食い違うため編集を閉じる
   const isGuaranteedOddsLocked = race.status === 'FINALIZED' || payoutResults.length > 0;
 
+  // 保存後の再マウント用に値を key にする。隣り合う 2 つのフォームは値が両方 null のとき key が重なるので接頭辞で区別する
   const settingCards = (
     <>
       {isGuaranteedOddsLocked ? (
@@ -220,7 +221,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         </Card>
       ) : (
         <GuaranteedOddsForm
-          key={JSON.stringify(race.guaranteedOdds)}
+          key={`guaranteed-odds-${JSON.stringify(race.guaranteedOdds)}`}
           title="保証オッズ設定"
           description="このレースだけ変える券種を 1.1 倍以上で入力します。空欄の券種はデフォルト設定の値を使い、その値を薄く表示しています。"
           initialOdds={race.guaranteedOdds ?? {}}
@@ -230,7 +231,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         />
       )}
       <RaceBetTypesForm
-        key={JSON.stringify(raceAllowed)}
+        key={`bet-types-${JSON.stringify(raceAllowed)}`}
         raceId={race.id}
         initialTypes={raceAllowed}
         eventDefaultTypes={eventDefault}
