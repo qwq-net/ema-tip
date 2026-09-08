@@ -46,7 +46,7 @@ export default async function SokubetPage() {
           description="開催が始まると、ここから投票できます。"
           action={
             <Button asChild variant="outline">
-              <Link href="/mypage/claim">参加できるイベントを見る</Link>
+              <Link href="/mypage/claim">お小遣いを貰う</Link>
             </Button>
           }
         />
@@ -92,14 +92,20 @@ export default async function SokubetPage() {
                       </div>
                       <p className="text-text-sub mt-1 text-sm">{event.date}</p>
                     </div>
-                    <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
-                      <Wallet size={16} className="text-text-sub" />
-                      <span className="text-text-sub text-sm text-nowrap">購入可能残高</span>
-                      <span className="text-text-main flex-1 text-right text-lg font-semibold sm:flex-none">
-                        {Math.floor(balance).toLocaleString('ja-JP')}
-                        <span className="text-text-sub ml-0.5 text-sm">円</span>
-                      </span>
-                    </div>
+                    {hasWallet ? (
+                      <div className="rounded-surface flex items-center gap-2 bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
+                        <Wallet size={16} className="text-text-sub" />
+                        <span className="text-text-sub text-sm text-nowrap">購入可能残高</span>
+                        <span className="text-text-main flex-1 text-right text-lg font-semibold sm:flex-none">
+                          {Math.floor(balance).toLocaleString('ja-JP')}
+                          <span className="text-text-sub ml-0.5 text-sm">円</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <Button asChild variant="outline" className="shrink-0">
+                        <Link href="/mypage/claim">お小遣いを貰う</Link>
+                      </Button>
+                    )}
                   </div>
                   {bet5Id && bet5Open && (
                     <div className="mb-4">

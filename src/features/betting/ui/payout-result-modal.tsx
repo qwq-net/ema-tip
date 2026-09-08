@@ -3,8 +3,7 @@
 import type { BetType } from '@/entities/bet';
 import { BET_TYPES } from '@/entities/bet';
 import { BET_TYPE_COLORS } from '@/entities/bet/ui/bet-type-badge';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui';
 
 interface ResultItem {
   type: BetType;
@@ -38,27 +37,23 @@ const TYPE_LABELS = {
 export function PayoutResultModal({ raceName, raceDate, results, open, onOpenChange }: PayoutResultModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl gap-0 border-gray-700 bg-black p-0 shadow-2xl">
-        <div className="flex items-center justify-between bg-linear-to-b from-blue-900 to-blue-950 px-6 py-3 text-white">
+      <DialogContent
+        className="max-w-4xl gap-0 border-gray-700 bg-black p-0 shadow-2xl"
+        closeClassName="text-gray-300 hover:bg-white/10 hover:text-white"
+      >
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 bg-linear-to-b from-blue-900 to-blue-950 px-6 py-3 pr-12 text-white">
           <div className="flex items-end gap-4">
             <DialogTitle asChild>
-              <div className="flex items-end gap-4">
+              <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
                 <span className="text-xl font-semibold tracking-widest">{raceDate}</span>
                 <span className="text-2xl font-semibold">{raceName}</span>
               </div>
             </DialogTitle>
             <DialogDescription className="sr-only">{raceName}の払戻金結果を表示しています。</DialogDescription>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end">
-              <span className="text-xl font-semibold tracking-widest">払戻金</span>
-              <span className="text-sm text-gray-300">100円につき</span>
-            </div>
-            <DialogClose asChild>
-              <button aria-label="閉じる" className="text-gray-400 hover:text-white">
-                <X size={28} />
-              </button>
-            </DialogClose>
+          <div className="flex flex-col items-end">
+            <span className="text-xl font-semibold tracking-widest">払戻金</span>
+            <span className="text-sm text-gray-300">100円につき</span>
           </div>
         </div>
 

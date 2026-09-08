@@ -13,7 +13,7 @@ import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Alert, Badge, Checkbox, ConfirmDialog, EmptyState, LiveConnectionStatus } from '@/shared/ui';
+import { Alert, Badge, Checkbox, ConfirmDialog, EmptyState, LiveStatusPill } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
@@ -210,6 +210,25 @@ function OddsHeaderInfo({ fixedOddsMode, updatedAt, oddsVersion, guaranteedOdds 
   );
 }
 
+/**
+ * まだ 1 件も購入がなく、変動オッズが立っていないことの案内。
+ * 固定オッズのレースでは Netkeiba の値が最初から入るため何も出さない。
+ */
+function OddsPendingAlert({
+  fixedOddsMode,
+  odds,
+}: {
+  fixedOddsMode: boolean;
+  odds: { updatedAt?: Date | string | null } | null | undefined;
+}) {
+  if (fixedOddsMode || odds?.updatedAt) return null;
+  return (
+    <Alert variant="info" icon={Info}>
+      まだ購入がないため、オッズは確定していません。的中したときの倍率は保証オッズが下限になります。
+    </Alert>
+  );
+}
+
 // 購入確定前のバリデーション。エラーメッセージを返し、問題なければ null を返す。
 function validateBetSubmission(betCount: number, amount: number, totalAmount: number, balance: number): string | null {
   if (betCount === 0) {
@@ -360,9 +379,7 @@ export function BetTable({
   if (rows.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
-          <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
-        </div>
+        <LiveStatusPill status={connectionStatus} fixed />
         <EmptyState
           icon={AlertCircle}
           title="出走馬が登録されていません"
@@ -374,9 +391,7 @@ export function BetTable({
 
   return (
     <div className="space-y-6">
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
-        <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
-      </div>
+      <LiveStatusPill status={connectionStatus} fixed />
       {isClosed && (
         <Alert variant="error" icon={AlertCircle}>
           このレースは受付を終了しました。現在、馬券を購入することはできません。
@@ -387,6 +402,7 @@ export function BetTable({
           締切まで残り {formatRemainingTime(remainingMs)}
         </Alert>
       )}
+      <OddsPendingAlert fixedOddsMode={fixedOddsMode} odds={odds} />
       {allowedBetTypes && (
         <div className="rounded-control bg-primary/5 text-primary ring-primary/10 flex items-center gap-2 p-3 text-sm font-semibold ring-1">
           <Info className="h-4 w-4 shrink-0" />
@@ -431,23 +447,23 @@ export function BetTable({
       </div>
       <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
         {/* 騎手は意図的に表示しない。ゲーム内の予想への影響が薄く、レース登録の運用負担を増やさないため */}
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-max text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
-              <th className="px-2 py-2 text-center text-sm font-semibold">枠番</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold">馬番</th>
-              <th className="px-2 py-2 text-sm font-semibold">馬名</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold">性齢</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold">単勝オッズ</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold">複勝オッズ</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold">
+              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">枠番</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">馬番</th>
+              <th className="px-2 py-2 text-sm font-semibold whitespace-nowrap">馬名</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">性齢</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">単勝オッズ</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">複勝オッズ</th>
+              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">
                 <span className="inline-flex items-center gap-0.5">
                   人気
                   <PopularityHelp />
                 </span>
               </th>
               {displayColumnLabels.map((label, i) => (
-                <th key={i} className="px-2 py-2 text-center text-sm font-semibold">
+                <th key={i} className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">
                   {label}
                 </th>
               ))}

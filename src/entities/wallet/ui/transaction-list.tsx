@@ -1,5 +1,6 @@
 'use client';
 
+import { TRANSACTION_TYPE_LABELS } from '@/entities/wallet/constants';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { lookup } from '@/shared/utils/lookup';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
@@ -18,16 +19,6 @@ interface TransactionListProps {
   // 全件を渡す戦績ページは渡さない。件数だけで判定すると全件表示でも注記が出てしまう
   truncated?: boolean;
 }
-
-// 取引種別の表示名の単一管理点。キーは transactionTypeEnum の値に一致させること。
-// 通常馬券は「購入」、取消馬による REFUND は的中の払戻と区別して「返還」と表示する
-export const TRANSACTION_TYPE_LABELS = {
-  DISTRIBUTION: '配布金',
-  BET: '購入',
-  PAYOUT: '払戻',
-  REFUND: '返還',
-  LOAN: '借入金',
-} satisfies Record<string, string>;
 
 export function TransactionList({ transactions, truncated = false }: TransactionListProps) {
   if (transactions.length === 0) {

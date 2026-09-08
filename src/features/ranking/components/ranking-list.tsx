@@ -72,11 +72,7 @@ export function RankingList({
 
   return (
     <div className="w-full space-y-4">
-      {showLiveStatus && (
-        <div className="fixed top-4 right-4 z-50">
-          <LiveStatusPill status={connectionStatus} />
-        </div>
-      )}
+      {showLiveStatus && <LiveStatusPill status={connectionStatus} fixed />}
       <div className="rounded-control flex flex-wrap items-center justify-between gap-2 bg-gray-50 p-4">
         <div className="flex items-center gap-2">
           <StatusBadges published={published} displayMode={displayMode} />

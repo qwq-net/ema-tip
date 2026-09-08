@@ -8,6 +8,7 @@ import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, raceInstances } from '@/shared/db/schema';
 import { Alert, Card } from '@/shared/ui';
 import { type BreadcrumbItem, Breadcrumbs } from '@/shared/ui/breadcrumbs';
+import { PageContainer } from '@/shared/ui/layout/page-container';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { AlertCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
@@ -43,13 +44,11 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
 
   if (!bet5Event) {
     return (
-      <div className="flex flex-col items-center p-4 lg:p-8">
-        <div className="w-full max-w-4xl space-y-4">
-          <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-          <h1 className="text-text-main text-2xl font-semibold">BET5</h1>
-          <p className="text-text-sub">このイベントではBET5は開催されていません。</p>
-        </div>
-      </div>
+      <PageContainer>
+        <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
+        <h1 className="text-text-main text-3xl font-semibold">BET5</h1>
+        <p className="text-text-sub">このイベントではBET5は開催されていません。</p>
+      </PageContainer>
     );
   }
 
@@ -101,80 +100,78 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
   const carryoverAmount = bet5Event.status === 'FINALIZED' ? 0 : event.carryoverAmount;
 
   return (
-    <div className="flex flex-col items-center p-4 lg:p-8">
-      <div className="w-full max-w-4xl space-y-6">
-        <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-        <h1 className="text-text-main text-xl font-semibold">BET5 投票</h1>
+    <PageContainer>
+      <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
+      <h1 className="text-text-main text-3xl font-semibold">BET5 投票</h1>
 
-        <Card className="bg-turf-950 border-0 p-6 text-white">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">BET5</span>
-              <h2 className="text-lg font-semibold">5レース的中・一攫千金チャンス！</h2>
-            </div>
-            {isOpen ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
-                </span>
-                受付中
-              </span>
-            ) : (
-              <span className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white/80">
-                受付終了
-              </span>
-            )}
+      <Card className="bg-turf-950 border-0 p-6 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="bg-gold text-turf-950 rounded-chip px-2 py-0.5 text-sm font-semibold">BET5</span>
+            <h2 className="text-lg font-semibold">5レース的中・一攫千金チャンス！</h2>
           </div>
-          <div className="mt-4">
-            <p className="text-turf-100 text-sm">BET5プール金額</p>
-            <p className="text-gold text-3xl font-semibold tabular-nums">
-              {(bet5Event.initialPot + carryoverAmount).toLocaleString('ja-JP')}円
-              <span className="text-turf-100 ml-1.5 text-base font-semibold">+ プレイヤーの購入金額</span>
-            </p>
-            {carryoverAmount > 0 && (
-              <p className="text-gold mt-1 text-sm font-semibold tabular-nums">
-                うちキャリーオーバー {carryoverAmount.toLocaleString('ja-JP')}円
-              </p>
-            )}
-          </div>
-          <p className="text-turf-100 mt-3 text-sm">
-            5つのレース全ての1着馬を予想してください。1口100円から投票できます。
-            的中者がいなかった馬券の売上は、キャリーオーバーとしてこのプールへ加算されます。
+          {isOpen ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+              </span>
+              受付中
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white/80">
+              受付終了
+            </span>
+          )}
+        </div>
+        <div className="mt-4">
+          <p className="text-turf-100 text-sm">BET5プール金額</p>
+          <p className="text-gold text-3xl font-semibold tabular-nums">
+            {(bet5Event.initialPot + carryoverAmount).toLocaleString('ja-JP')}円
+            <span className="text-turf-100 ml-1.5 text-base font-semibold">+ プレイヤーの購入金額</span>
           </p>
-        </Card>
+          {carryoverAmount > 0 && (
+            <p className="text-gold mt-1 text-sm font-semibold tabular-nums">
+              うちキャリーオーバー {carryoverAmount.toLocaleString('ja-JP')}円
+            </p>
+          )}
+        </div>
+        <p className="text-turf-100 mt-3 text-sm">
+          5つのレース全ての1着馬を予想してください。1口100円から投票できます。
+          的中者がいなかった馬券の売上は、キャリーオーバーとしてこのプールへ加算されます。
+        </p>
+      </Card>
 
-        <Bet5MyTicketsDialog tickets={myTickets} races={orderedRaces} />
+      <Bet5MyTicketsDialog tickets={myTickets} races={orderedRaces} />
 
-        <LoanBanner
-          eventId={id}
-          balance={wallet.balance}
-          distributeAmount={event.distributeAmount}
-          loanAmount={event.loanAmount ?? event.distributeAmount}
-          hasLoaned={wallet.totalLoaned > 0}
-          loanEnabled={event.loanEnabled}
-          loanThresholdPercent={event.loanThresholdPercent}
-        />
+      <LoanBanner
+        eventId={id}
+        balance={wallet.balance}
+        distributeAmount={event.distributeAmount}
+        loanAmount={event.loanAmount ?? event.distributeAmount}
+        hasLoaned={wallet.totalLoaned > 0}
+        loanEnabled={event.loanEnabled}
+        loanThresholdPercent={event.loanThresholdPercent}
+      />
 
-        {isOpen ? (
-          <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />
-        ) : (
-          <div className="space-y-4">
-            {hasClosedRace && bet5Event.status === 'SCHEDULED' && (
-              <Alert variant="error" icon={AlertCircle}>
-                対象レースが既に締め切られているため、BET5の投票受付は終了しました。
-              </Alert>
-            )}
-            <div className="rounded-control bg-gray-50 p-8 text-center">
-              <p className="text-text-sub text-lg font-semibold">投票受付は終了しました</p>
-              <p className="text-text-sub mt-2 flex flex-wrap items-center justify-center gap-1.5 text-sm">
-                対象レース:
-                <Bet5RaceSequence raceNumbers={orderedRaces.map((race) => race.raceNumber)} />
-              </p>
-            </div>
+      {isOpen ? (
+        <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />
+      ) : (
+        <div className="space-y-4">
+          {hasClosedRace && bet5Event.status === 'SCHEDULED' && (
+            <Alert variant="error" icon={AlertCircle}>
+              対象レースが既に締め切られているため、BET5の投票受付は終了しました。
+            </Alert>
+          )}
+          <div className="rounded-control bg-gray-50 p-8 text-center">
+            <p className="text-text-sub text-lg font-semibold">投票受付は終了しました</p>
+            <p className="text-text-sub mt-2 flex flex-wrap items-center justify-center gap-1.5 text-sm">
+              対象レース:
+              <Bet5RaceSequence raceNumbers={orderedRaces.map((race) => race.raceNumber)} />
+            </p>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </PageContainer>
   );
 }

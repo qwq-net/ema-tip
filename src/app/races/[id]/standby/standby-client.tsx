@@ -5,32 +5,20 @@ import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import type { PayoutResult } from '@/features/betting/lib/hooks/use-race-results';
 import { useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
+import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
+import { medalRankClass } from '@/shared/constants/rank-medal';
 import type { RaceStatus } from '@/shared/constants/status';
 import type { ConnectionStatus } from '@/shared/hooks/use-sse';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
 import { Badge, Button, LiveStatusPill } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { type ComponentProps, useCallback, useState } from 'react';
 
 /** 待機画面の土台となるレース状態を返す。払戻確定が最優先で、次に締切、どちらでもなければ出走前。 */
 function toBaseStatus(isFinalized: boolean, isClosed: boolean): RaceStatus {
   if (isFinalized) return 'FINALIZED';
   return isClosed ? 'CLOSED' : 'SCHEDULED';
-}
-
-// 着順マーカーの配色。1〜3着は金銀銅で、4着以下は共通のグレー
-function getRankColor(rank: number) {
-  switch (rank) {
-    case 1:
-      return 'bg-amber-100 text-amber-700 ring-amber-200';
-    case 2:
-      return 'bg-gray-100 text-gray-700 ring-gray-200';
-    case 3:
-      return 'bg-orange-100 text-orange-700 ring-orange-200';
-    default:
-      return 'bg-gray-100 text-gray-600 ring-gray-200';
-  }
 }
 
 interface RankingCardProps {
@@ -54,9 +42,9 @@ function RankingCard({ ranking, isFinalized }: RankingCardProps) {
         {ranking.map((result) => (
           <div key={result.horseNumber} className="flex items-center px-6 py-3">
             <div
-              className={`rounded-chip flex h-6 w-6 shrink-0 items-center justify-center text-sm font-semibold ring-1 ring-inset ${getRankColor(
-                result.finishPosition
-              )}`}
+              className={`rounded-chip flex h-6 w-6 shrink-0 items-center justify-center text-sm font-semibold ${
+                medalRankClass(result.finishPosition) ?? 'text-text-sub bg-gray-100'
+              }`}
             >
               {result.finishPosition}
             </div>
@@ -115,10 +103,10 @@ interface LiveStatusBarProps {
   connectionStatus: ConnectionStatus;
 }
 
-/** 画面右上に固定する音声通知の切り替えと SSE 接続状態の表示。 */
+/** 画面右上に固定する音声通知の切り替えと SSE 接続状態の表示。ヘッダーの 64px を避けて下に置く。 */
 function LiveStatusBar({ isAudioEnabled, onToggleAudio, connectionStatus }: LiveStatusBarProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+    <div className="fixed top-20 right-4 z-40 flex items-center gap-2">
       <button
         onClick={onToggleAudio}
         className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition ${
@@ -148,7 +136,8 @@ interface StandbyClientProps {
   initialResults?: PayoutResult[];
   initialRanking?: { finishPosition: number; horseNumber: number; bracketNumber: number; horseName: string }[];
   isFinalized: boolean;
-  hasTickets?: boolean;
+  ticketGroups: ComponentProps<typeof PurchasedTicketList>['ticketGroups'];
+  fixedOddsMode: boolean;
   entryCount: number;
 }
 
@@ -157,9 +146,11 @@ export function StandbyClient({
   initialResults = [],
   initialRanking = [],
   isFinalized: initialIsFinalized,
-  hasTickets,
+  ticketGroups,
+  fixedOddsMode,
   entryCount,
 }: StandbyClientProps) {
+  const hasTickets = ticketGroups.length > 0;
   const [showModal, setShowModal] = useState(false);
   const [isClosed, setIsClosed] = useState(() => {
     if (initialIsFinalized) return true;
@@ -258,31 +249,18 @@ export function StandbyClient({
 
       {!initialIsFinalized && !hasTickets && <WaitingNotice isClosed={isClosed} />}
 
-      {initialIsFinalized && !hasTickets && (
-        <div className="rounded-surface mb-8 overflow-hidden border border-gray-100 bg-white">
-          <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
-            <div className="text-text-sub flex items-center gap-2">
-              <Badge variant="status" label="情報" className="bg-gray-100 text-gray-600" />
-              <span className="text-sm font-semibold">結果発表済み</span>
-            </div>
-          </div>
-          <div className="p-6">
-            <h2 className="text-text-main mb-2 text-lg font-semibold">このレースの結果が発表されました</h2>
-            <p className="text-sm leading-relaxed text-gray-600">
-              購入した馬券はありませんが、下のボタンから払戻結果などの詳細情報を確認いただけます。
-            </p>
-            <div className="mt-6 flex justify-center">
-              <Button
-                onClick={() => setShowModal(true)}
-                variant="primary"
-                className="w-full px-8 font-semibold sm:w-auto"
-              >
-                払戻結果を確認する
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PurchasedTicketList
+        ticketGroups={ticketGroups}
+        fixedOddsMode={fixedOddsMode}
+        emptyDescription={initialIsFinalized ? '結果は発表済みです。払戻の内訳は確認できます。' : ''}
+        emptyAction={
+          initialIsFinalized ? (
+            <Button onClick={() => setShowModal(true)} variant="primary" className="px-8 font-semibold">
+              払戻結果を確認する
+            </Button>
+          ) : null
+        }
+      />
 
       {/* 確定済みで SSE を張っていないときは、接続状態も音声通知も意味を持たないため丸ごと出さない */}
       {connectionStatus !== 'DISABLED' && (

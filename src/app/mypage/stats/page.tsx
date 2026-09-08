@@ -32,7 +32,7 @@ export default async function StatsPage() {
 
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>全期間資産推移</CardTitle>
+          <CardTitle as="h2">全期間資産推移</CardTitle>
         </CardHeader>
         <CardContent>
           <AssetChart data={stats.globalHistory} />

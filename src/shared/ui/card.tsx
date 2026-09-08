@@ -9,11 +9,19 @@ export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('p-6 pb-0', className)} {...props} />;
 }
 
-export function CardTitle({ className, children, ...props }: ComponentProps<'h3'>) {
+interface CardTitleProps extends ComponentProps<'h3'> {
+  as?: 'h2' | 'h3' | 'h4';
+}
+
+/**
+ * カードの見出し。as でページの見出し階層に合わせた見出しレベルを選ぶ。
+ * as を変えても文字サイズは text-lg のままで、見た目は変わらない。
+ */
+export function CardTitle({ className, children, as: Tag = 'h3', ...props }: CardTitleProps) {
   return (
-    <h3 className={cn('text-text-main text-lg font-semibold', className)} {...props}>
+    <Tag className={cn('text-text-main text-lg font-semibold', className)} {...props}>
       {children}
-    </h3>
+    </Tag>
   );
 }
 

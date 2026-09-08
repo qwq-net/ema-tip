@@ -7,6 +7,7 @@ import { RaceBetTypesForm } from '@/features/admin/manage-races/ui/race-bet-type
 import { RaceResultForm, type RaceResultFormRace } from '@/features/admin/manage-races/ui/race-result-form';
 import { GuaranteedOddsForm } from '@/features/admin/shared/ui/guaranteed-odds-form';
 import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { medalRankClass } from '@/shared/constants/rank-medal';
 import { db } from '@/shared/db';
 import {
   bet5Events,
@@ -30,13 +31,10 @@ export const metadata: Metadata = {
   title: 'レース詳細編集',
 };
 
-// 確定済み結果の着順バッジ色。1〜3着は金銀銅、4着以下は淡色で出す。
-// 枠線を持つぶん共通の rank-medal とは別の組で、この画面に閉じて持つ
+// 確定済み結果の着順バッジ色。1〜3着はランキングと共通の金銀銅、4着以下は淡色で出す。
+// 枠線はどの順位でも中立のグレーで、色は地色と文字色だけで表す
 function resultRankClass(index: number): string {
-  if (index === 0) return 'border-amber-200 bg-amber-100 text-amber-700';
-  if (index === 1) return 'border-gray-200 bg-gray-100 text-gray-700';
-  if (index === 2) return 'border-orange-200 bg-orange-100 text-orange-700';
-  return 'text-text-sub border-gray-100 bg-gray-50';
+  return `border-gray-200 ${medalRankClass(index + 1) ?? 'text-text-sub bg-gray-50'}`;
 }
 
 type RaceWithRelations = NonNullable<Awaited<ReturnType<typeof getRaceById>>>;

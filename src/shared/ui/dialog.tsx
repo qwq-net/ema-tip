@@ -27,8 +27,11 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    /** 閉じるボタンの見た目を差し替える。暗い面のダイアログでは既定のグレーが沈んで見えないため。 */
+    closeClassName?: string;
+  }
+>(({ className, children, closeClassName, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -40,7 +43,12 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="rounded-control text-text-sub hover:text-text-main absolute top-2 right-2 inline-flex h-10 w-10 items-center justify-center transition-colors hover:bg-gray-100 disabled:pointer-events-none">
+      <DialogPrimitive.Close
+        className={cn(
+          'rounded-control text-text-sub hover:text-text-main absolute top-2 right-2 inline-flex h-10 w-10 items-center justify-center transition-colors hover:bg-gray-100 disabled:pointer-events-none',
+          closeClassName
+        )}
+      >
         <X className="h-4 w-4" />
         <span className="sr-only">閉じる</span>
       </DialogPrimitive.Close>

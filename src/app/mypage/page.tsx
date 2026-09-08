@@ -53,6 +53,8 @@ export default async function MyPage() {
 
   return (
     <PageContainer>
+      <h1 className="text-text-main text-3xl font-semibold">マイページ</h1>
+
       <Card>
         <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
           <EditableUserProfile user={session.user} />
@@ -79,7 +81,7 @@ export default async function MyPage() {
                 <div className={`rounded-surface mb-6 flex h-20 w-20 items-center justify-center ${item.color}`}>
                   {item.icon}
                 </div>
-                <h3 className="text-text-main text-2xl leading-tight font-semibold">{item.title}</h3>
+                <h2 className="text-text-main text-2xl leading-tight font-semibold">{item.title}</h2>
                 <p className="text-text-sub mt-3 text-sm">{item.description}</p>
               </CardContent>
             </Card>

@@ -1,14 +1,11 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-
 import { useId } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { AssetHistoryPoint } from '../utils';
 
 interface AssetChartProps {
   data: AssetHistoryPoint[];
-  title?: string;
 }
 
 // dot と activeDot の描画関数が受け取るパラメータ。recharts は payload を any で渡すため、
@@ -26,20 +23,12 @@ function amountColorClass(amount: number): string {
   return 'text-gray-600';
 }
 
-export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
+// 見出しとカード枠は呼び手が持つ。この部品は描画領域だけを返す
+export function AssetChart({ data }: AssetChartProps) {
   const chartId = useId().replace(/:/g, '');
 
   if (data.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-text-sub flex h-[300px] items-center justify-center">データがありません</div>
-        </CardContent>
-      </Card>
-    );
+    return <div className="text-text-sub flex h-[300px] items-center justify-center">データがありません</div>;
   }
 
   const balances = data.map((point) => point.balance);
@@ -55,111 +44,114 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
   // 取引が多いイベントでは全点ドットが団子になるため、点数が少ないときだけ描画する
   const showDots = data.length <= 30;
 
+  // グラフは全体像だけを読み上げる。日時の羅列を1点ずつ辿らせないため、
+  // recharts のキーボード操作レイヤーを切って停留点も外す
+  const currentBalance = data[data.length - 1]?.balance ?? 0;
+  const summary = `${data.length}件の取引。最小 ${dataMin.toLocaleString('ja-JP')}円、最大 ${dataMax.toLocaleString('ja-JP')}円、現在 ${currentBalance.toLocaleString('ja-JP')}円`;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              {crossesZero && (
-                <defs>
-                  <linearGradient id={`${chartId}-splitColor`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset={off} stopColor="var(--color-primary)" stopOpacity={1} />
-                    <stop offset={off} stopColor="var(--color-error)" stopOpacity={1} />
-                  </linearGradient>
-                  <linearGradient id={`${chartId}-splitFill`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0.3} />
-                    <stop offset={off} stopColor="var(--color-error)" stopOpacity={0.3} />
-                  </linearGradient>
-                </defs>
-              )}
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-gray-200)" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
-                tickLine={false}
-                axisLine={{ stroke: 'var(--color-gray-200)' }}
-                minTickGap={48}
-              />
-              <YAxis
-                tickFormatter={(value: number) => `¥${value.toLocaleString('ja-JP')}`}
-                tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
-                tickLine={false}
-                axisLine={false}
-                width={80}
-              />
-              <ReferenceLine y={0} stroke="var(--color-text-sub)" strokeDasharray="3 3" />
-              <Tooltip
-                content={({ active, payload }) => {
-                  const [firstPoint] = payload;
-                  if (active && firstPoint) {
-                    // SAFETY: この Tooltip は AssetHistoryPoint[] を data に持つチャート専用
-                    const data = firstPoint.payload as AssetHistoryPoint;
-                    return (
-                      <div className="rounded-control border border-gray-200 bg-white p-3 text-sm shadow-md">
-                        <div className="text-text-sub text-sm">{data.date}</div>
-                        <div className="text-text-main mb-1 font-semibold">{data.label || '不明な操作'}</div>
-                        <div className="flex flex-col gap-0.5 tabular-nums">
-                          <div className={`text-lg font-semibold ${amountColorClass(data.amount)}`}>
-                            {data.amount > 0 ? '+' : ''}
-                            {data.amount.toLocaleString('ja-JP')}円
-                          </div>
-                          <div className="text-text-sub text-sm">残高: {data.balance.toLocaleString('ja-JP')}円</div>
-                        </div>
+    <div className="h-[300px] w-full" role="img" aria-label={summary}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+          tabIndex={-1}
+          accessibilityLayer={false}
+        >
+          {crossesZero && (
+            <defs>
+              <linearGradient id={`${chartId}-splitColor`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset={off} stopColor="var(--color-primary)" stopOpacity={1} />
+                <stop offset={off} stopColor="var(--color-error)" stopOpacity={1} />
+              </linearGradient>
+              <linearGradient id={`${chartId}-splitFill`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0.3} />
+                <stop offset={off} stopColor="var(--color-error)" stopOpacity={0.3} />
+              </linearGradient>
+            </defs>
+          )}
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-gray-200)" />
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
+            tickLine={false}
+            axisLine={{ stroke: 'var(--color-gray-200)' }}
+            minTickGap={48}
+          />
+          <YAxis
+            tickFormatter={(value: number) => `¥${value.toLocaleString('ja-JP')}`}
+            tick={{ fontSize: 12, fill: 'var(--color-text-sub)' }}
+            tickLine={false}
+            axisLine={false}
+            width={80}
+          />
+          <ReferenceLine y={0} stroke="var(--color-text-sub)" strokeDasharray="3 3" />
+          <Tooltip
+            content={({ active, payload }) => {
+              const [firstPoint] = payload;
+              if (active && firstPoint) {
+                // SAFETY: この Tooltip は AssetHistoryPoint[] を data に持つチャート専用
+                const data = firstPoint.payload as AssetHistoryPoint;
+                return (
+                  <div className="rounded-control border border-gray-200 bg-white p-3 text-sm shadow-md">
+                    <div className="text-text-sub text-sm">{data.date}</div>
+                    <div className="text-text-main mb-1 font-semibold">{data.label || '不明な操作'}</div>
+                    <div className="flex flex-col gap-0.5 tabular-nums">
+                      <div className={`text-lg font-semibold ${amountColorClass(data.amount)}`}>
+                        {data.amount > 0 ? '+' : ''}
+                        {data.amount.toLocaleString('ja-JP')}円
                       </div>
+                      <div className="text-text-sub text-sm">残高: {data.balance.toLocaleString('ja-JP')}円</div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="balance"
+            stroke={crossesZero ? `url(#${chartId}-splitColor)` : solidColor}
+            fill={crossesZero ? `url(#${chartId}-splitFill)` : solidColor}
+            fillOpacity={crossesZero ? undefined : 0.3}
+            strokeWidth={2}
+            dot={
+              showDots
+                ? (props: AssetDotProps) => {
+                    const { cx, cy, payload } = props;
+                    const isPositive = payload.balance >= 0;
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                        stroke={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                        fillOpacity={1}
+                        strokeWidth={1}
+                      />
                     );
                   }
-                  return null;
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="balance"
-                stroke={crossesZero ? `url(#${chartId}-splitColor)` : solidColor}
-                fill={crossesZero ? `url(#${chartId}-splitFill)` : solidColor}
-                fillOpacity={crossesZero ? undefined : 0.3}
-                strokeWidth={2}
-                dot={
-                  showDots
-                    ? (props: AssetDotProps) => {
-                        const { cx, cy, payload } = props;
-                        const isPositive = payload.balance >= 0;
-                        return (
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={4}
-                            fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
-                            stroke={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
-                            fillOpacity={1}
-                            strokeWidth={1}
-                          />
-                        );
-                      }
-                    : false
-                }
-                activeDot={(props: AssetDotProps) => {
-                  const { cx, cy, payload } = props;
-                  const isPositive = payload.balance >= 0;
-                  return (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={6}
-                      fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
-                      stroke="white"
-                      strokeWidth={2}
-                    />
-                  );
-                }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+                : false
+            }
+            activeDot={(props: AssetDotProps) => {
+              const { cx, cy, payload } = props;
+              const isPositive = payload.balance >= 0;
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={6}
+                  fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                  stroke="white"
+                  strokeWidth={2}
+                />
+              );
+            }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

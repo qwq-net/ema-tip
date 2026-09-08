@@ -31,7 +31,7 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
         description="イベントに参加すると軍資金が配られ、ここに残高が表示されます。"
         action={
           <Button asChild variant="outline">
-            <Link href="/mypage/claim">イベントに参加する</Link>
+            <Link href="/mypage/claim">お小遣いを貰う</Link>
           </Button>
         }
       />
@@ -51,9 +51,9 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-text-main line-clamp-1 font-semibold" title={wallet.event.name}>
+              <h2 className="text-text-main line-clamp-1 font-semibold" title={wallet.event.name}>
                 {wallet.event.name}
-              </h3>
+              </h2>
               <div className="flex items-baseline gap-1">
                 <span className="text-secondary text-2xl font-semibold">{wallet.balance.toLocaleString('ja-JP')}</span>
                 <span className="text-text-sub text-sm">円</span>

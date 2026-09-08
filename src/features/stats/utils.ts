@@ -1,4 +1,5 @@
-import { TRANSACTION_TYPE_LABELS, type Transaction } from '@/entities/wallet/ui/transaction-list';
+import { TRANSACTION_TYPE_LABELS } from '@/entities/wallet/constants';
+import { type Transaction } from '@/entities/wallet/ui/transaction-list';
 import { lookup } from '@/shared/utils/lookup';
 
 export interface AssetHistoryPoint {

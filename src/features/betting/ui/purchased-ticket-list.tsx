@@ -8,6 +8,7 @@ import { Badge, EmptyState } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { ChevronDown, ChevronUp, Play, Ticket } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 interface BetTicket {
@@ -39,11 +40,27 @@ interface BetGroup {
 interface PurchasedTicketListProps {
   ticketGroups: BetGroup[];
   fixedOddsMode?: boolean;
+  /** 0 件のときに空状態へ添える補足文。空文字なら出さない。 */
+  emptyDescription?: string;
+  /** 0 件のときに空状態へ添える操作。馬券が 1 件でもあれば描かれない。 */
+  emptyAction?: ReactNode;
 }
 
-export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: PurchasedTicketListProps) {
+export function PurchasedTicketList({
+  ticketGroups,
+  fixedOddsMode = false,
+  emptyDescription = '',
+  emptyAction,
+}: PurchasedTicketListProps) {
   if (ticketGroups.length === 0) {
-    return <EmptyState icon={Ticket} title="このレースで購入した馬券はありません" />;
+    return (
+      <EmptyState
+        icon={Ticket}
+        title="このレースで購入した馬券はありません"
+        description={emptyDescription}
+        action={emptyAction}
+      />
+    );
   }
 
   const totalAmount = ticketGroups.reduce((sum, group) => sum + group.totalAmount, 0);

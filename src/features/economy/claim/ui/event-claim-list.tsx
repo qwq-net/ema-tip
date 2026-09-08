@@ -63,7 +63,7 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
           <Card key={event.id} className="flex flex-col transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <h3 className="text-lg font-semibold">{event.name}</h3>
+                <h2 className="text-lg font-semibold">{event.name}</h2>
                 <Badge
                   label={event.isJoined ? '参加済み' : event.status}
                   variant={event.isJoined ? 'role' : 'status'}

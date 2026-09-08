@@ -6,7 +6,7 @@ import { Checkbox, ConfirmDialog } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 
 interface RaceWithEntries {
   id: string;
@@ -41,6 +41,27 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
   const [amount, setAmount] = useState(100);
   const [activeTab, setActiveTab] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  // 固定フッターの実高ぶんを本文の下余白にする。固定値では 18 頭立ての下位馬がフッターに隠れて選べない。
+  // md 以上ではフッターが通常配置へ戻るため 0 を返し、余白を足さない
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return undefined;
+    const measure = () => {
+      const isFixed = window.getComputedStyle(footer).position === 'fixed';
+      setFooterHeight(isFixed ? footer.getBoundingClientRect().height : 0);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(footer);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
 
   // 選択後に取消となった馬を選択状態から取り除く。残すと点数に数えられ、外れ確定の買い目に課金される
   let selectionsChanged = false;
@@ -133,7 +154,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
 
   return (
     <>
-      <div className="space-y-6 pb-32">
+      <div className="space-y-6" style={{ paddingBottom: footerHeight + 24 }}>
         <div className="rounded-surface divide-y divide-gray-100 overflow-hidden border border-gray-200 bg-white">
           {races.map((race, index) => {
             const selectionCount = selections[race.id]?.length ?? 0;
@@ -142,7 +163,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 key={race.id}
                 type="button"
                 onClick={() => setActiveTab(index)}
-                aria-current={index === activeTab || undefined}
+                aria-pressed={index === activeTab}
                 className={cn(
                   'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50',
                   index === activeTab && 'bg-turf-50/70'
@@ -165,34 +186,6 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                 >
                   {selectionCount > 0 ? `${selectionCount}頭選択` : '未選択'}
                 </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex overflow-x-auto border-b border-gray-200">
-          {races.map((race, index) => {
-            const isSelected = index === activeTab;
-            const selectionCount = selections[race.id]?.length ?? 0;
-            return (
-              <button
-                key={race.id}
-                type="button"
-                onClick={() => setActiveTab(index)}
-                aria-current={isSelected || undefined}
-                className={cn(
-                  'relative flex min-w-[80px] flex-1 flex-col items-center justify-center gap-1 px-4 py-3 text-sm font-semibold transition-colors hover:bg-gray-50',
-                  isSelected ? 'border-turf-600 bg-turf-50/70 border-b-2' : 'text-text-sub'
-                )}
-              >
-                <span className={cn('text-sm whitespace-nowrap', isSelected && 'text-turf-800 font-semibold')}>
-                  {race.raceNumber}R
-                </span>
-                {selectionCount > 0 && (
-                  <span className="bg-turf-100 text-turf-800 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-sm font-semibold">
-                    {selectionCount}
-                  </span>
-                )}
               </button>
             );
           })}
@@ -265,7 +258,10 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg md:relative md:border-none md:bg-transparent md:p-0 md:pb-0 md:shadow-none">
+        <div
+          ref={footerRef}
+          className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg md:relative md:border-none md:bg-transparent md:p-0 md:pb-0 md:shadow-none"
+        >
           <div className="container mx-auto max-w-4xl space-y-2 md:px-0">
             <div className="rounded-control flex items-center justify-between bg-gray-50 px-3 py-2 text-sm">
               <span className="text-gray-600">{activeRace.raceNumber}R 選択馬:</span>

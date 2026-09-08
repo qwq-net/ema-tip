@@ -5,7 +5,6 @@ import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { isGuaranteedBet } from '@/features/betting/lib/guaranteed';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
-import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { PageContainer } from '@/shared/ui/layout/page-container';
 import { requireLoginPage } from '@/shared/utils/admin';
@@ -181,12 +180,11 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
         isFinalized={isFinalized}
         initialResults={initialResults}
         initialRanking={initialRanking}
-        hasTickets={ticketGroups.length > 0}
+        ticketGroups={ticketGroups}
+        fixedOddsMode={race.fixedOddsMode}
         // 投票画面の頭数表示と揃え、取消・除外馬を除いた出走頭数を渡す
         entryCount={entries.filter((entry) => entry.status === 'ENTRANT').length}
       />
-
-      <PurchasedTicketList ticketGroups={ticketGroups} fixedOddsMode={race.fixedOddsMode} />
     </PageContainer>
   );
 }

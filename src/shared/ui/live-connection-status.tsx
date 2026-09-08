@@ -45,12 +45,27 @@ export function LiveConnectionStatus({ status, className, showText = true }: Liv
   );
 }
 
-/** 黒地の丸いピルに接続状態を載せた表示。結果待機とランキングで画面右上に固定して使う。 */
-export function LiveStatusPill({ status, className }: { status: ConnectionStatus; className?: string }) {
+/**
+ * 黒地の丸いピルに接続状態を載せた表示。結果待機とランキングで画面右上に固定して使う。
+ * fixed を渡すと自分で右上へ固定する。位置はヘッダーの 64px を避けて下にずらし、重なりを防ぐ。
+ */
+export function LiveStatusPill({
+  status,
+  className,
+  fixed = false,
+}: {
+  status: ConnectionStatus;
+  className?: string;
+  fixed?: boolean;
+}) {
   if (status === 'DISABLED') return null;
   return (
     <div
-      className={cn('flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm', className)}
+      className={cn(
+        'flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm',
+        fixed && 'fixed top-20 right-4 z-40',
+        className
+      )}
     >
       <LiveConnectionStatus status={status} showText={true} className="text-white" />
     </div>
