@@ -63,9 +63,7 @@ export function HorseTagForm({ initialData, onSuccess }: HorseTagFormProps) {
         <Input name="content" defaultValue={initialData?.content} placeholder="例: 逃げ, G1, ~1200m" required />
       </Label>
 
-      <SubmitButton className="from-primary to-primary/80 w-full bg-linear-to-r">
-        {initialData ? '更新する' : '登録する'}
-      </SubmitButton>
+      <SubmitButton className="w-full">{initialData ? '更新する' : '登録する'}</SubmitButton>
     </form>
   );
 }

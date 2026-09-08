@@ -425,7 +425,7 @@ interface ManualFinalizeActionsProps {
   onFinalize: () => Promise<void>;
 }
 
-/** 手動で並べ替えた着順を確定する操作。確認ダイアログで上位3着を提示してから払戻計算へ進む。 */
+/** 手動で並べ替えた着順を確定する操作。確認ダイアログで上位3着を提示してから払戻計算へ進む。並べ替え前は secondary で控えめに、並べ替え後は primary で確定を促す。 */
 function ManualFinalizeActions({
   sortedEntries,
   canFinalizePayout,
@@ -438,16 +438,11 @@ function ManualFinalizeActions({
     <ConfirmDialog
       trigger={
         <Button
-          className={cn(
-            'relative w-full py-6 text-lg font-semibold active:scale-[0.98]',
-            isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
-          )}
+          variant={isChanged ? 'primary' : 'secondary'}
+          className="w-full py-6 text-lg font-semibold"
           disabled={isPending || isPayoutMoving || canFinalizePayout}
         >
           {canFinalizePayout ? '着順確定済み' : '着順を確定する'}
-          {isChanged && !isPending && (
-            <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
-          )}
         </Button>
       }
       icon={

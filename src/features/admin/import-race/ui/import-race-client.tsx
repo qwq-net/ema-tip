@@ -268,11 +268,7 @@ export function ImportRaceClient({ events, venues }: Props) {
             </div>
 
             <div className="flex justify-end">
-              <Button
-                onClick={handleImport}
-                disabled={isPendingImport}
-                className="from-primary to-primary/80 bg-linear-to-r"
-              >
+              <Button onClick={handleImport} disabled={isPendingImport}>
                 {isPendingImport ? 'インポート中...' : 'インポート確定'}
               </Button>
             </div>
