@@ -81,7 +81,6 @@ const GRANDFATHERED = new Set([
   'src/app/admin/races/[id]/layout.tsx',
   'src/app/admin/races/[id]/page.tsx',
   'src/entities/race/ui/race-page-header.tsx',
-  'src/entities/wallet/ui/transaction-list.tsx',
   'src/features/admin/bet5/ui/bet5-ticket-list.tsx',
   'src/features/admin/manage-entries/ui/entry-dnd.tsx',
   'src/features/admin/manage-events/ui/admin-ranking-manager.tsx',

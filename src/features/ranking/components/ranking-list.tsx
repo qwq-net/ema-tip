@@ -31,7 +31,7 @@ function StatusBadges({ published, displayMode }: { published: boolean; displayM
   }
   return (
     <>
-      <Badge variant="status" label="公開中" className="bg-green-100 text-green-800" />
+      <Badge variant="status" label="公開中" />
       {displayMode === 'FULL_WITH_LOAN' && (
         <Badge variant="status" label="借金込み" className="bg-orange-100 text-orange-800" />
       )}
