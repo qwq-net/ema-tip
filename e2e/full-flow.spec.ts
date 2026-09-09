@@ -38,13 +38,15 @@ async function signupGuest(page: Page, name: string) {
   await page.waitForURL('**/mypage', { timeout: 30_000 });
 }
 
-// イベントに参加して軍資金を受け取る
+// イベントに参加して軍資金を受け取る。
+// カードは見出しと参加ボタンを両方持つ最も内側の div。参加後はボタンの文言が参加済みへ変わるため、
+// 参加する だけで絞ると開催中イベントがこれ 1 件だけの環境でカードを見失う
 async function joinEvent(page: Page) {
   await page.goto('/mypage/claim');
   const card = page
     .locator('div')
     .filter({ has: page.getByRole('heading', { name: E2E.eventName }) })
-    .filter({ has: page.getByRole('button', { name: '参加する' }) })
+    .filter({ has: page.getByRole('button', { name: /参加する|参加済み/ }) })
     .last();
   await card.getByRole('button', { name: '参加する' }).click();
   await expect(card.getByRole('button', { name: '参加済み' })).toBeVisible();
