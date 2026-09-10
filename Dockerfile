@@ -2,7 +2,7 @@
 # corepack は Node 25 以降同梱されないため npm で導入する
 ARG PNPM_VERSION=11.25.0
 
-FROM node:24-alpine AS deps
+FROM node:26-alpine AS deps
 ARG PNPM_VERSION
 WORKDIR /app
 RUN npm install -g pnpm@${PNPM_VERSION}
@@ -10,7 +10,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --store-dir /pnpm/store
 
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 ARG PNPM_VERSION
 WORKDIR /app
 RUN npm install -g pnpm@${PNPM_VERSION}
@@ -33,7 +33,7 @@ FROM builder AS prod-deps
 # prune は TTY が無いと node_modules の削除確認で止まる。builder の ENV CI=true がそれを抑える
 RUN pnpm prune --prod
 
-FROM node:24-alpine AS runner
+FROM node:26-alpine AS runner
 ARG PNPM_VERSION
 WORKDIR /app
 ENV NODE_ENV=production
