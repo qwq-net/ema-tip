@@ -74,7 +74,7 @@ const NETKEIBA_SCRATCHED_ODDS = 999.9;
 const netkeibaOddsPayloadSchema = z.object({
   odds: z
     .object({ '1': z.record(z.string(), z.array(z.string())).optional() })
-    .passthrough()
+    .loose()
     .optional(),
 });
 

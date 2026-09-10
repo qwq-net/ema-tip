@@ -66,7 +66,7 @@ export async function updateRaceDefinition(id: string, formData: FormData) {
   });
 
   if (!parse.success) {
-    console.error('Validation Error:', parse.error.format());
+    console.error('Validation Error:', parse.error.issues);
     throw new Error('入力内容が無効です');
   }
 

@@ -50,7 +50,7 @@ async function updateRaceInner(id: string, formData: FormData) {
   });
 
   if (!parse.success) {
-    console.error('Validation Error Details:', parse.error.format());
+    console.error('Validation Error Details:', parse.error.issues);
     throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
   }
 

@@ -38,8 +38,8 @@ interface PlaceBetsArgs {
 // 文字列の金額が算術で数値に化けたり、UUID でない ID が DB エラーになる経路をここで閉じる。
 // 点数・金額・馬番の中身は後続の個別チェックが担い、エラー文言もそちらで出し分ける
 const placeBetsArgsSchema = z.object({
-  raceId: z.string().uuid(),
-  walletId: z.string().uuid(),
+  raceId: z.uuid(),
+  walletId: z.uuid(),
   betType: z.enum(BET_TYPE_ORDER),
   combinations: z.array(z.array(z.number())),
   amountPerBet: z.number(),

@@ -29,7 +29,7 @@ export async function createRace(formData: FormData) {
   });
 
   if (!parse.success) {
-    console.error('Validation Error Details:', parse.error.format());
+    console.error('Validation Error Details:', parse.error.issues);
     throw new Error(ADMIN_ERRORS.INVALID_INPUT);
   }
 

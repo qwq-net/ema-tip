@@ -7,7 +7,7 @@ export const MIN_GUARANTEED_ODDS = 1.1;
 const rateSchema = z.number().min(MIN_GUARANTEED_ODDS, `保証オッズは ${MIN_GUARANTEED_ODDS} 倍以上で入力してください`);
 
 // レース単位の上書き。券種キーだけを許し、載っていない券種はデフォルトを使う意味になる
-export const guaranteedOddsOverrideSchema = z.record(z.enum(BET_TYPE_ORDER), rateSchema);
+export const guaranteedOddsOverrideSchema = z.partialRecord(z.enum(BET_TYPE_ORDER), rateSchema);
 
 // システム既定値。未上書きレースの最後の受け皿なので全券種が揃っていることを要求する
 export const defaultGuaranteedOddsSchema = guaranteedOddsOverrideSchema.refine(

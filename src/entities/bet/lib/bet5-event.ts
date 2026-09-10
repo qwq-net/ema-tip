@@ -8,7 +8,7 @@ import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from './bet5'
 
 // 1 レース分の選択。同じ馬の重複は点数と支払いだけを増やして的中単位を増やさないため拒否する
 const horseIdListSchema = z
-  .array(z.string().uuid())
+  .array(z.uuid())
   .refine((ids) => new Set(ids).size === ids.length, { message: '同じ馬を重複して選択できません' });
 
 export const Bet5SelectionSchema = z.object({

@@ -26,7 +26,8 @@ const eventSchema = z.object({
   allowedBetTypes: z.preprocess(
     (value) => {
       try {
-        return JSON.parse(String(value));
+        const parsed: unknown = JSON.parse(String(value));
+        return parsed;
       } catch {
         return undefined;
       }
@@ -50,7 +51,7 @@ export async function createEvent(formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error(`無効な入力です: ${JSON.stringify(parse.error.flatten())}`);
+    throw new Error(`無効な入力です: ${JSON.stringify(z.flattenError(parse.error))}`);
   }
 
   // キャリーオーバーは前イベントからの「移動」。コピー元を残すと複数イベント作成時に二重計上される
@@ -125,7 +126,7 @@ export async function updateEvent(id: string, formData: FormData) {
     });
 
     if (!parse.success) {
-      throw new Error(`無効な入力です: ${JSON.stringify(parse.error.flatten())}`);
+      throw new Error(`無効な入力です: ${JSON.stringify(z.flattenError(parse.error))}`);
     }
 
     // ウォレットは参加時点の配布金額で作られる。参加者がいる状態で変えると収支の基準が全員分ずれるため、変更は参加者が出る前だけ受け付ける
