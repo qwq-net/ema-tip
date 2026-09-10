@@ -52,9 +52,16 @@ async function joinEvent(page: Page) {
   await expect(card.getByRole('button', { name: '参加済み' })).toBeVisible();
 }
 
-// 指定馬番の単勝を 100 円買い、トーストと残高減算を確認する
+// 指定馬番の単勝を 100 円買い、トーストと残高減算を確認する。
+// オッズ更新は SSE で届く。購読が確立する前に買うと通知が捨てられて人気表示が出ないため、
+// SSE の応答を待ってから買う。開発サーバーは初回アクセスでルートをコンパイルするため、コールドスタートの CI で数秒遅れる
 async function buyWin(page: Page, horseNumber: number, horseName: string, balanceBefore: number) {
+  const sseConnected = page.waitForResponse(
+    (response) => response.url().includes('/api/events/race-status') && response.status() === 200,
+    { timeout: 30_000 }
+  );
   await page.goto(`/races/${fx.raceId}`);
+  await sseConnected;
   await page.getByRole('checkbox', { name: `1着候補 に${horseName}(${horseNumber}番)を選択` }).check();
   await page.getByRole('button', { name: '購入確定' }).click();
   await page.getByRole('button', { name: '購入する' }).click();
