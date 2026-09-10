@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, CardContent } from '@/shared/ui';
+import { Button, Card, CardContent, CardTitle } from '@/shared/ui';
 import { Info } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,7 +18,9 @@ export function WalletMissingCard({
       <Card className="max-w-md">
         <CardContent className="pt-6 text-center">
           <Info className="text-turf-600 mx-auto mb-4 h-12 w-12" />
-          <h2 className="mb-2 text-xl font-semibold">ウォレットが見つかりません</h2>
+          <CardTitle as="h2" className="mb-2">
+            ウォレットが見つかりません
+          </CardTitle>
           <p className="text-text-sub">{description}</p>
           <div className="mt-6 flex flex-col gap-3">
             <Button asChild className="w-full">

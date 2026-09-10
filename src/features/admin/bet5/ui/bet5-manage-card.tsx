@@ -68,7 +68,7 @@ function Bet5ActionRow({ status, isPending, canCalculatePayout, onClose, onCalcu
         <ConfirmDialog
           trigger={
             <Button variant="destructive" disabled={isPending}>
-              <Lock className="mr-2 h-4 w-4" />
+              <Lock />
               受付を締め切る
             </Button>
           }
@@ -83,7 +83,7 @@ function Bet5ActionRow({ status, isPending, canCalculatePayout, onClose, onCalcu
         <ConfirmDialog
           trigger={
             <Button variant="secondary" disabled={isPending || !canCalculatePayout}>
-              <Calculator className="mr-2 h-4 w-4" />
+              <Calculator />
               配当計算・払戻実行
             </Button>
           }
@@ -218,7 +218,7 @@ export function Bet5ManageCard({
                 className="shrink-0 whitespace-nowrap"
                 disabled={!canEditPot || isPending || initialPot === bet5Event.initialPot}
               >
-                <Sparkles className="mr-2 h-4 w-4" />
+                <Sparkles />
                 プールを更新
               </Button>
             </div>

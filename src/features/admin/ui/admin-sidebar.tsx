@@ -210,7 +210,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             className="mb-2 w-full border-gray-600 bg-transparent text-gray-300 hover:bg-white/10 hover:text-white"
           >
             <Link href="/mypage" onClick={() => setIsOpen(false)}>
-              <ExternalLink className="mr-2 h-4 w-4" />
+              <ExternalLink />
               マイページ
             </Link>
           </Button>

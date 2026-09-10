@@ -1,6 +1,11 @@
 import { cn } from '@/shared/utils/cn';
 import type { ComponentProps, ReactNode } from 'react';
 
+/** 枠のない素の table。TableShell の枠が要らないアコーディオンの内側などで使い、TableHead や Th や Td と組む。 */
+export function Table({ className, ...props }: ComponentProps<'table'>) {
+  return <table className={cn('w-full border-collapse', className)} {...props} />;
+}
+
 /**
  * 一覧テーブルの標準スタイル一式。TableShell > TableHead / TableBody > TableRow > Th / Td で組む。
  * TableShell は横スクロール可能な枠付きカードとして描画するため、親側での枠・overflow 指定は不要。
@@ -8,9 +13,9 @@ import type { ComponentProps, ReactNode } from 'react';
 export function TableShell({ className, children, ...props }: ComponentProps<'table'>) {
   return (
     <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
-      <table className={cn('w-full border-collapse', className)} {...props}>
+      <Table className={className} {...props}>
         {children}
-      </table>
+      </Table>
     </div>
   );
 }

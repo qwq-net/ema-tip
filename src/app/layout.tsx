@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className="antialiased">
+      <body>
         <NextTopLoader
           color="var(--color-primary)"
           showSpinner={false}

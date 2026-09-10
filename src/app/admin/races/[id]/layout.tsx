@@ -2,6 +2,7 @@ import { formatRaceLabel } from '@/entities/race/lib/label';
 import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
+import { AdminPage } from '@/features/admin/ui/admin-page';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
 import { db } from '@/shared/db';
 import { raceEntries } from '@/shared/db/schema';
@@ -34,7 +35,7 @@ export default async function RaceDetailLayout({
   const base = `/admin/races/${id}`;
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <Breadcrumbs
         items={[
           { label: 'イベント管理', href: '/admin/events' },
@@ -56,24 +57,17 @@ export default async function RaceDetailLayout({
         surface={race.surface}
         distance={race.distance}
         entrantCount={entrantRows[0]?.value ?? 0}
-        actions={
-          race.netkeibaUrl ? (
-            <UpdateNetkeibaOddsButton
-              raceId={race.id}
-              className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
-            />
-          ) : undefined
-        }
+        actions={race.netkeibaUrl ? <UpdateNetkeibaOddsButton raceId={race.id} /> : undefined}
       />
       <AdminTabs
         items={[
-          { href: base, label: '確定・設定', icon: <Flag className="h-4 w-4" /> },
-          { href: `${base}/entries`, label: '出走馬', icon: <ClipboardList className="h-4 w-4" /> },
-          { href: `${base}/bets`, label: '馬券', icon: <Ticket className="h-4 w-4" /> },
-          { href: `${base}/edit`, label: '編集', icon: <Pencil className="h-4 w-4" /> },
+          { href: base, label: '確定・設定', icon: <Flag /> },
+          { href: `${base}/entries`, label: '出走馬', icon: <ClipboardList /> },
+          { href: `${base}/bets`, label: '馬券', icon: <Ticket /> },
+          { href: `${base}/edit`, label: '編集', icon: <Pencil /> },
         ]}
       />
       {children}
-    </div>
+    </AdminPage>
   );
 }

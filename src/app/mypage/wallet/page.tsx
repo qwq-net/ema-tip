@@ -1,5 +1,6 @@
 import { WalletOverview, getEventWallets } from '@/features/economy/wallet';
 import { PageContainer } from '@/shared/ui/layout/page-container';
+import { PageHeader } from '@/shared/ui/layout/page-header';
 import { requireLoginPage } from '@/shared/utils/admin';
 
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
@@ -17,15 +18,8 @@ export default async function WalletPage() {
   return (
     <PageContainer>
       <Breadcrumbs items={[{ label: 'マイページ', href: '/mypage' }, { label: 'ウォレット確認' }]} />
-
-      <div>
-        <h1 className="text-text-main text-3xl font-semibold">ウォレット確認</h1>
-        <p className="text-text-sub mt-2">参加中のイベント資金と利用履歴を確認できます。</p>
-      </div>
-
-      <section>
-        <WalletOverview wallets={userWallets} />
-      </section>
+      <PageHeader title="ウォレット確認" description="参加中のイベント資金と利用履歴を確認できます。" />
+      <WalletOverview wallets={userWallets} />
     </PageContainer>
   );
 }

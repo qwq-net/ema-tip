@@ -2,10 +2,9 @@
 
 import { fetchNetkeibaRaceResult } from '@/features/admin/import-race/actions';
 import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/types';
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, Card, ConfirmDialog } from '@/shared/ui';
+import { Badge, Button, Card, ConfirmDialog, SectionTitle } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
@@ -232,7 +231,7 @@ function ResultOrderingPanel({
     <Card className="p-6 lg:col-span-2">
       <div className="mb-4">
         <div className="flex items-center justify-between gap-2">
-          <AdminSectionTitle icon={ListOrdered}>着順設定</AdminSectionTitle>
+          <SectionTitle icon={ListOrdered}>着順設定</SectionTitle>
           {!race.fixedOddsMode && isChanged && (
             <Button
               variant="ghost"
@@ -373,7 +372,7 @@ function NetkeibaFinalizeActions({
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="animate-spin" />
             取得中...
           </>
         ) : (
@@ -534,7 +533,7 @@ function FinalizeActionGroup({
             onClick={onReopen}
             disabled={isPending || canFinalizePayout}
           >
-            <RotateCcw className="mr-2 h-4 w-4" />
+            <RotateCcw />
             受付を再開する
           </Button>
 
@@ -787,7 +786,7 @@ export function RaceResultForm({
 
         <Card className="p-6">
           <div className="mb-4">
-            <AdminSectionTitle icon={Settings2}>レース情報</AdminSectionTitle>
+            <SectionTitle icon={Settings2}>レース情報</SectionTitle>
           </div>
 
           <div className="divide-y divide-gray-100 text-sm">

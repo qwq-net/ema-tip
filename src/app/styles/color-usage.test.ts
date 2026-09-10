@@ -76,15 +76,14 @@ const SANCTIONED = new Set([
 
 // 意味色の手組みが残る既存ファイル。新規追加は禁止で、直書きを解消したらここから削除する
 const GRANDFATHERED = new Set([
-  'src/app/admin/races/[id]/bets/page.tsx',
-  'src/app/admin/races/[id]/layout.tsx',
-  'src/app/admin/races/[id]/page.tsx',
   'src/entities/race/ui/race-page-header.tsx',
   'src/features/admin/bet5/ui/bet5-ticket-list.tsx',
+  'src/features/admin/manage-bets/ui/race-bets.tsx',
   'src/features/admin/manage-entries/ui/entry-dnd.tsx',
   'src/features/admin/manage-events/ui/admin-ranking-manager.tsx',
   'src/features/admin/manage-horses/ui/horse-form.tsx',
   'src/features/admin/manage-races/ui/kitchen-timer.tsx',
+  'src/features/admin/manage-races/ui/race-info-card.tsx',
   'src/features/admin/manage-races/ui/race-result-form.tsx',
   'src/features/admin/manage-users/ui/user-list.tsx',
   'src/features/auth/ui/emoji-keypad.tsx',

@@ -1,19 +1,19 @@
 import { getDefaultGuaranteedOdds } from '@/entities/race/lib/guaranteed-odds';
 import { updateSystemDefaultOdds } from '@/features/admin/manage-settings/actions';
 import { GuaranteedOddsForm } from '@/features/admin/shared/ui/guaranteed-odds-form';
-import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPage } from '@/features/admin/ui/admin-page';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
+import { AdminPageHeader } from '@/shared/ui/layout/admin-page-header';
 
 export default async function DefaultOddsSettingsPage() {
   const defaultOdds = await getDefaultGuaranteedOdds();
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <AdminPage width="medium">
       <AdminPageHeader
         title="デフォルト保証オッズ設定"
         description="レース単位で上書きしていない券種に適用される保証オッズです。"
       />
-
       <GuaranteedOddsForm
         key={JSON.stringify(defaultOdds)}
         title="保証オッズ設定値"
@@ -23,6 +23,6 @@ export default async function DefaultOddsSettingsPage() {
         action={updateSystemDefaultOdds}
         successMessage="デフォルト保証オッズを更新しました"
       />
-    </div>
+    </AdminPage>
   );
 }

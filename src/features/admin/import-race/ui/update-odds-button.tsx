@@ -2,13 +2,12 @@
 
 import { toast } from '@/shared/lib/toast';
 import { Button } from '@/shared/ui';
-import { cn } from '@/shared/utils/cn';
 import { RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { updateOddsFromNetkeiba } from '../actions';
 
-export function UpdateNetkeibaOddsButton({ raceId, className }: { raceId: string; className?: string }) {
+export function UpdateNetkeibaOddsButton({ raceId }: { raceId: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -29,8 +28,8 @@ export function UpdateNetkeibaOddsButton({ raceId, className }: { raceId: string
   }
 
   return (
-    <Button variant="outline" onClick={handleUpdate} disabled={isPending} className={className}>
-      <RefreshCw className={cn('mr-1.5 h-3.5 w-3.5', isPending && 'animate-spin')} />
+    <Button variant="outline" onClick={handleUpdate} disabled={isPending}>
+      <RefreshCw className={isPending ? 'animate-spin' : undefined} />
       {isPending ? 'オッズ更新中...' : 'オッズを更新'}
     </Button>
   );

@@ -9,10 +9,9 @@ import {
   resultDiffClass,
 } from '@/entities/ranking';
 import { updateRankingDisplayMode } from '@/entities/ranking/actions';
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Button, Card, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
+import { Button, Card, SectionTitle, Table, TableBody, TableEmptyRow, TableHead, TableRow, Td, Th } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { Banknote, EyeOff, Trophy, Users } from 'lucide-react';
 import { useOptimistic, useState, useTransition } from 'react';
@@ -85,7 +84,7 @@ export function AdminRankingManager({
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <AdminSectionTitle className="mb-4">公開設定</AdminSectionTitle>
+        <SectionTitle className="mb-4">公開設定</SectionTitle>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-text-sub text-sm">
@@ -100,7 +99,7 @@ export function AdminRankingManager({
               onClick={() => handleModeChange('HIDDEN')}
               className={optimisticMode === 'HIDDEN' ? 'text-text-main bg-gray-200' : ''}
             >
-              <EyeOff className="mr-2 h-4 w-4" />
+              <EyeOff />
               非公開
             </Button>
             <Button
@@ -110,7 +109,7 @@ export function AdminRankingManager({
               onClick={() => handleModeChange('ANONYMOUS')}
               className={optimisticMode === 'ANONYMOUS' ? 'bg-turf-100 text-turf-900 hover:bg-turf-200' : ''}
             >
-              <Users className="mr-2 h-4 w-4" />
+              <Users />
               匿名公開
             </Button>
             <Button
@@ -120,7 +119,7 @@ export function AdminRankingManager({
               onClick={() => handleModeChange('FULL')}
               className={optimisticMode === 'FULL' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''}
             >
-              <Trophy className="mr-2 h-4 w-4" />
+              <Trophy />
               公開
             </Button>
             <Button
@@ -130,7 +129,7 @@ export function AdminRankingManager({
               onClick={() => handleModeChange('FULL_WITH_LOAN')}
               className={optimisticMode === 'FULL_WITH_LOAN' ? 'bg-orange-100 text-orange-900 hover:bg-orange-200' : ''}
             >
-              <Banknote className="mr-2 h-4 w-4" />
+              <Banknote />
               借金込み
             </Button>
           </div>
@@ -139,7 +138,7 @@ export function AdminRankingManager({
 
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <AdminSectionTitle icon={Trophy}>ランキング一覧</AdminSectionTitle>
+          <SectionTitle icon={Trophy}>ランキング一覧</SectionTitle>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <div role="group" aria-label="表示の切り替え" className="rounded-control inline-flex bg-gray-100 p-0.5">
               {ADMIN_VIEWS.map((candidate) => (
@@ -164,7 +163,7 @@ export function AdminRankingManager({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] border-collapse">
+          <Table className="min-w-[600px]">
             <TableHead>
               <Th>順位</Th>
               <Th>ユーザー名</Th>
@@ -209,7 +208,7 @@ export function AdminRankingManager({
                 );
               })}
             </TableBody>
-          </table>
+          </Table>
         </div>
       </Card>
     </div>

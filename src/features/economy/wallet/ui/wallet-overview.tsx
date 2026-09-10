@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, EmptyState } from '@/shared/ui';
+import { Button, Card, CardTitle, EmptyState } from '@/shared/ui';
 import { History, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -51,9 +51,9 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
             </div>
 
             <div className="space-y-1">
-              <h2 className="text-text-main line-clamp-1 font-semibold" title={wallet.event.name}>
+              <CardTitle as="h2" className="line-clamp-1" title={wallet.event.name}>
                 {wallet.event.name}
-              </h2>
+              </CardTitle>
               <div className="flex items-baseline gap-1">
                 <span className="text-secondary text-2xl font-semibold">{wallet.balance.toLocaleString('ja-JP')}</span>
                 <span className="text-text-sub text-sm">円</span>
@@ -61,13 +61,15 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
             </div>
 
             <div className="mt-6 flex items-center justify-end border-t border-gray-100 pt-4">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setSelectedWallet({ id: wallet.id, name: wallet.event.name })}
-                className="hover:text-primary text-text-sub flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                className="hover:text-primary text-text-sub gap-1.5 px-0 hover:bg-transparent"
               >
-                <History size={14} />
+                <History />
                 履歴を見る
-              </button>
+              </Button>
             </div>
           </Card>
         ))}

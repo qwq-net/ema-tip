@@ -1,4 +1,5 @@
 import type { ForecastWithUser } from '@/features/forecasts/types';
+import { CardTitle, Table } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
 import { User } from 'lucide-react';
@@ -49,10 +50,12 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
 
   return (
     <div className="rounded-control mt-8 space-y-4 border border-gray-200 bg-white p-6">
-      <h3 className="text-text-main border-b border-gray-200 pb-2 text-lg font-semibold">予想・見解</h3>
+      <CardTitle as="h3" className="border-b border-gray-200 pb-2">
+        予想・見解
+      </CardTitle>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+        <Table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
               <th className="text-text-sub w-12 px-3 py-2 text-center text-sm">枠</th>
@@ -104,7 +107,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

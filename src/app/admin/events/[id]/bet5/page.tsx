@@ -1,8 +1,5 @@
-import { getDisplayStatus } from '@/entities/race/lib/status';
 import { getBet5AdminData } from '@/features/admin/bet5/queries';
-import { Bet5ConfigForm } from '@/features/admin/bet5/ui/bet5-config-form';
-import { Bet5ManageCard } from '@/features/admin/bet5/ui/bet5-manage-card';
-import { Bet5TicketList } from '@/features/admin/bet5/ui/bet5-ticket-list';
+import { Bet5AdminView } from '@/features/admin/bet5/ui/bet5-admin-view';
 import { getBet5TicketsAction } from '@/features/betting/actions/bet5';
 import { db } from '@/shared/db';
 import { raceEntries } from '@/shared/db/schema';
@@ -18,21 +15,21 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
 
   const adminData = await getBet5AdminData(id);
-
   if (!adminData) {
     notFound();
   }
-
   const { event, races, bet5Event, horseMap } = adminData;
 
   let tickets: Awaited<ReturnType<typeof getBet5TicketsAction>> = [];
   let winnerRows: { raceId: string; horseId: string }[] = [];
-
-  const targetRaceIds = bet5Event
-    ? [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id]
-    : [];
-
   if (bet5Event) {
+    const targetRaceIds = [
+      bet5Event.race1Id,
+      bet5Event.race2Id,
+      bet5Event.race3Id,
+      bet5Event.race4Id,
+      bet5Event.race5Id,
+    ];
     [tickets, winnerRows] = await Promise.all([
       getBet5TicketsAction(bet5Event.id),
       db.query.raceEntries.findMany({
@@ -45,135 +42,15 @@ export default async function Bet5AdminPage({ params }: { params: Promise<{ id: 
     ]);
   }
 
-  const targetRaces = bet5Event
-    ? targetRaceIds
-        .map((raceId) => races.find((race) => race.id === raceId))
-        .filter((race): race is (typeof races)[number] => race !== undefined)
-        .map((race) => ({
-          id: race.id,
-          raceNumber: race.raceNumber,
-          name: race.name,
-          // DB の status は着順確定を表現しない。1着が記録済みなら RANKING_CONFIRMED として扱う
-          status: getDisplayStatus(
-            race.status,
-            winnerRows.some((row) => row.raceId === race.id)
-          ),
-          entryCount: race.entries.length,
-        }))
-    : [];
-
-  const winnerHorseIdByRaceId = new Map<string, string | null>();
-  const winnerSetByRaceId = new Map<string, Set<string>>();
-  winnerRows.forEach((row) => {
-    let winners = winnerSetByRaceId.get(row.raceId);
-    if (!winners) {
-      winners = new Set<string>();
-      winnerSetByRaceId.set(row.raceId, winners);
-    }
-    winners.add(row.horseId);
-  });
-  targetRaceIds.forEach((raceId) => {
-    const [winner, ...rest] = winnerSetByRaceId.get(raceId) ?? [];
-    winnerHorseIdByRaceId.set(raceId, winner !== undefined && rest.length === 0 ? winner : null);
-  });
-
-  const isRaceResolved = (status: string) => status === 'RANKING_CONFIRMED' || status === 'FINALIZED';
-  type Bet5Ticket = (typeof tickets)[number];
-  const getRaceHorseIds = (ticket: Bet5Ticket, position: number) => {
-    switch (position) {
-      case 1:
-        return ticket.race1HorseIds;
-      case 2:
-        return ticket.race2HorseIds;
-      case 3:
-        return ticket.race3HorseIds;
-      case 4:
-        return ticket.race4HorseIds;
-      case 5:
-        return ticket.race5HorseIds;
-      default:
-        return [];
-    }
-  };
-
-  const raceLiveStats = targetRaces
-    .map((race, index) => {
-      if (!isRaceResolved(race.status)) return null;
-
-      const winnerHorseId = winnerHorseIdByRaceId.get(race.id);
-      if (!winnerHorseId) {
-        return {
-          raceId: race.id,
-          raceNumber: race.raceNumber,
-          raceName: race.name,
-          entryCount: race.entryCount,
-          hitCount: null,
-          consecutiveHitCount: null,
-        };
-      }
-
-      const hitCount = tickets.filter((ticket) => getRaceHorseIds(ticket, index + 1).includes(winnerHorseId)).length;
-
-      const canComputeConsecutive = targetRaces
-        .slice(0, index + 1)
-        .every((targetRace) => winnerHorseIdByRaceId.get(targetRace.id));
-
-      const consecutiveHitCount = canComputeConsecutive
-        ? tickets.filter((ticket) =>
-            targetRaces.slice(0, index + 1).every((targetRace, pos) => {
-              const winner = winnerHorseIdByRaceId.get(targetRace.id);
-              if (!winner) return false;
-              return getRaceHorseIds(ticket, pos + 1).includes(winner);
-            })
-          ).length
-        : null;
-
-      return {
-        raceId: race.id,
-        raceNumber: race.raceNumber,
-        raceName: race.name,
-        entryCount: race.entryCount,
-        hitCount,
-        consecutiveHitCount,
-      };
-    })
-    .filter((stat): stat is NonNullable<typeof stat> => stat !== null);
-
-  // BET5に設定できるのは締め切られていないレースのみ
-  const selectableRaces = races.filter((race) => race.status === 'SCHEDULED');
-
   return (
-    <div className="max-w-4xl space-y-6">
-      {!bet5Event &&
-        (selectableRaces.length >= 5 ? (
-          <Bet5ConfigForm
-            eventId={id}
-            eventName={event.name}
-            defaultInitialPot={event.distributeAmount * 10}
-            races={selectableRaces.map((r) => ({ id: r.id, raceNumber: r.raceNumber, name: r.name }))}
-          />
-        ) : (
-          <div className="rounded-control bg-gray-50 p-8 text-center">
-            <p className="text-text-sub text-lg font-semibold">BET5を設定できません</p>
-            <p className="text-text-sub mt-2 text-sm">
-              BET5の設定には締め切られていないレースが5件以上必要です。現在は {selectableRaces.length} 件です。
-            </p>
-          </div>
-        ))}
-      {bet5Event && (
-        <div className="space-y-8">
-          <Bet5ManageCard
-            bet5Event={bet5Event}
-            eventId={id}
-            distributeAmount={event.distributeAmount}
-            targetRaces={targetRaces}
-            raceLiveStats={raceLiveStats}
-          />
-          <div className="border-t border-gray-100 pt-8">
-            <Bet5TicketList tickets={tickets} horseMap={horseMap} isFinalized={bet5Event.status === 'FINALIZED'} />
-          </div>
-        </div>
-      )}
-    </div>
+    <Bet5AdminView
+      eventId={id}
+      event={event}
+      races={races}
+      bet5Event={bet5Event}
+      horseMap={horseMap}
+      tickets={tickets}
+      winnerRows={winnerRows}
+    />
   );
 }

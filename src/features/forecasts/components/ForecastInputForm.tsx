@@ -5,7 +5,7 @@ import { upsertForecast } from '@/features/forecasts/actions';
 import { FORECAST_SYMBOLS } from '@/features/forecasts/constants';
 import type { ForecastSelection } from '@/features/forecasts/types';
 import { toast } from '@/shared/lib/toast';
-import { Button, EmptyState, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
+import { Button, CardTitle, EmptyState, Table, TableBody, TableHead, TableRow, Td, Textarea, Th } from '@/shared/ui';
 import { Badge } from '@/shared/ui/badge';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
@@ -111,9 +111,9 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
   return (
     <div className="rounded-surface space-y-6 border border-gray-100 bg-white p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-text-main text-lg font-semibold">予想入力</h2>
+        <CardTitle as="h2">予想入力</CardTitle>
         <Button onClick={handleSubmit} disabled={isPending}>
-          {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+          {isPending ? <Loader2 className="animate-spin" /> : <Save />}
           保存する
         </Button>
       </div>
@@ -134,7 +134,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
       </ul>
 
       <div className="hidden overflow-x-auto sm:block">
-        <table className="w-full min-w-[600px] border-collapse">
+        <Table className="min-w-[600px]">
           <TableHead>
             <Th>枠</Th>
             <Th>馬番</Th>
@@ -159,7 +159,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
               </TableRow>
             ))}
           </TableBody>
-        </table>
+        </Table>
       </div>
 
       <div className="space-y-2">

@@ -1,8 +1,9 @@
 import { EventList } from '@/features/admin/manage-events';
-import { AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { AdminPage } from '@/features/admin/ui/admin-page';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
-import { Button } from '@/shared/ui';
+import { Button, SectionTitle } from '@/shared/ui';
+import { AdminPageHeader } from '@/shared/ui/layout/admin-page-header';
 import { desc } from 'drizzle-orm';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -18,25 +19,21 @@ export default async function AdminEventsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <AdminPageHeader title="イベント管理" description="イベントの作成・ステータス管理を行います" />
-
-      <div className="space-y-4">
-        <AdminSectionTitle
-          actions={
-            <Button asChild className="gap-2">
-              <Link href="/admin/events/new">
-                <Plus className="h-4 w-4" />
-                新規イベント作成
-              </Link>
-            </Button>
-          }
-        >
-          すべてのイベント
-        </AdminSectionTitle>
-
-        <EventList events={allEvents} />
-      </div>
-    </div>
+      <SectionTitle
+        actions={
+          <Button asChild>
+            <Link href="/admin/events/new">
+              <Plus />
+              新規イベント作成
+            </Link>
+          </Button>
+        }
+      >
+        すべてのイベント
+      </SectionTitle>
+      <EventList events={allEvents} />
+    </AdminPage>
   );
 }

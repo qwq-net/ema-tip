@@ -9,7 +9,7 @@ import {
 } from '@/entities/ranking';
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
 import { medalRankClass } from '@/shared/constants/rank-medal';
-import { Badge, LiveStatusPill } from '@/shared/ui';
+import { Badge, LiveStatusPill, SectionTitle } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { Trophy, Users } from 'lucide-react';
 
@@ -86,10 +86,7 @@ export function RankingList({
 
       <div className="rounded-surface overflow-hidden border border-gray-200 bg-white">
         <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Trophy className={`h-5 w-5 ${published ? 'text-amber-500' : 'text-text-sub'}`} />
-            <h2 className="text-text-main font-semibold">ランキング</h2>
-          </div>
+          <SectionTitle icon={Trophy}>ランキング</SectionTitle>
         </div>
 
         <div className="divide-y divide-gray-100">

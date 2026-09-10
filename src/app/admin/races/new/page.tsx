@@ -2,9 +2,7 @@ import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/act
 import { getEvents } from '@/features/admin/manage-races/actions';
 import { RaceForm } from '@/features/admin/manage-races/ui/race-form';
 import { getVenues } from '@/features/admin/manage-venues/actions';
-import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
-import { Card } from '@/shared/ui';
-import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
+import { AdminFormPage } from '@/features/admin/ui/admin-form-page';
 
 export default async function CreateRacePage({ searchParams }: { searchParams: Promise<{ eventId?: string }> }) {
   const [{ eventId }, events, raceDefinitions, venues] = await Promise.all([
@@ -18,30 +16,22 @@ export default async function CreateRacePage({ searchParams }: { searchParams: P
   const eventHref = selectedEvent ? `/admin/events/${selectedEvent.id}` : '/admin/events';
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Breadcrumbs
-          items={[
-            { label: 'イベント管理', href: '/admin/events' },
-            ...(selectedEvent ? [{ label: selectedEvent.name, href: eventHref }] : []),
-            { label: '新規レース登録' },
-          ]}
-        />
-      </div>
-
-      <div className="mb-8">
-        <AdminPageHeader title="新規レース登録" description="新しいレースの基本情報を入力してください。" />
-      </div>
-
-      <Card className="p-6">
-        <RaceForm
-          events={events}
-          defaultEventId={eventId}
-          raceDefinitions={raceDefinitions}
-          venues={venues}
-          redirectTo={eventHref}
-        />
-      </Card>
-    </div>
+    <AdminFormPage
+      breadcrumbs={[
+        { label: 'イベント管理', href: '/admin/events' },
+        ...(selectedEvent ? [{ label: selectedEvent.name, href: eventHref }] : []),
+        { label: '新規レース登録' },
+      ]}
+      title="新規レース登録"
+      description="新しいレースの基本情報を入力してください。"
+    >
+      <RaceForm
+        events={events}
+        defaultEventId={eventId}
+        raceDefinitions={raceDefinitions}
+        venues={venues}
+        redirectTo={eventHref}
+      />
+    </AdminFormPage>
   );
 }

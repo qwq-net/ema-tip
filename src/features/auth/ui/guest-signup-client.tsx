@@ -9,6 +9,7 @@ import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
 import { Alert } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/forms';
+import { PageHeader } from '@/shared/ui/layout/page-header';
 import { splitGraphemes } from '@/shared/utils/graphemes';
 import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
@@ -100,10 +101,7 @@ export function GuestSignupClient() {
         <div className="rounded-surface space-y-6 border border-gray-200 bg-white p-6">
           <GuestAuthTabs activeTab="signup" />
 
-          <div className="text-center">
-            <h1 className="text-primary text-xl font-semibold tracking-tight">招待コード新規登録</h1>
-            <p className="text-text-sub mt-2 text-sm">招待コードと絵文字パスワードを入力</p>
-          </div>
+          <PageHeader title="招待コード新規登録" description="招待コードと絵文字パスワードを入力" />
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -179,7 +177,7 @@ export function GuestSignupClient() {
             <div>
               <TermsAgreement className="mb-4" />
               <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading && <Loader2 className="mr-2 -ml-1 h-4 w-4 animate-spin" />}
+                {isLoading && <Loader2 className="animate-spin" />}
                 {isLoading ? '登録処理中...' : '登録して参加'}
               </Button>
             </div>

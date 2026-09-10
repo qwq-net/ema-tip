@@ -43,7 +43,7 @@ export function EventStatusAction({ eventId, next, label, icon, variant, done, c
 
   const button = (
     <Button variant={variant} disabled={isPending} onClick={confirm ? undefined : run}>
-      <Icon className="mr-2 h-4 w-4" />
+      <Icon />
       {label}
     </Button>
   );
@@ -86,21 +86,14 @@ const PANEL_STYLES = {
 /**
  * イベント詳細ヘッダーの状態パネル。いまの状態・参加者に起きていること・次に進める操作を 1 つの枡に収める。
  * 準備中は開始、開催中は一時停止と終了、終了後は再開を出す。
+ * 横幅は md 以上で最小幅を自前に持つため、呼び手は幅を渡さない。
  */
-export function EventStatusPanel({
-  eventId,
-  status,
-  className,
-}: {
-  eventId: string;
-  status: EventStatus;
-  className?: string;
-}) {
+export function EventStatusPanel({ eventId, status }: { eventId: string; status: EventStatus }) {
   const style = PANEL_STYLES[status];
   return (
     <section
       aria-label="イベントの状態"
-      className={cn('rounded-control flex flex-col gap-3 border p-4', style.className, className)}
+      className={cn('rounded-control flex flex-col gap-3 border p-4 md:min-w-96', style.className)}
     >
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="status" label={status} />

@@ -17,7 +17,7 @@ export function RankingButton({ eventId, className, variant = 'outline', size = 
   return (
     <Button variant={variant} size={size} className={className} asChild>
       <Link href={`/ranking/${eventId}`} scroll={false}>
-        <Trophy className="mr-2 h-4 w-4" />
+        <Trophy />
         ランキング
       </Link>
     </Button>

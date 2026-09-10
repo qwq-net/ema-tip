@@ -13,7 +13,7 @@ import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
 import { medalRankClass } from '@/shared/constants/rank-medal';
 import { toast } from '@/shared/lib/toast';
-import { Alert, Badge, Checkbox, ConfirmDialog, EmptyState, LiveStatusPill } from '@/shared/ui';
+import { Alert, Badge, Checkbox, ConfirmDialog, EmptyState, LiveStatusPill, TableShell } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
@@ -442,94 +442,33 @@ export function BetTable({
           ))}
         </div>
       </div>
-      <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
-        {/* 騎手は意図的に表示しない。ゲーム内の予想への影響が薄く、レース登録の運用負担を増やさないため */}
-        <table className="w-full min-w-max text-left text-sm">
-          <thead className="bg-gray-50">
-            <tr className="border-b border-gray-200">
-              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">枠番</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">馬番</th>
-              <th className="px-2 py-2 text-sm font-semibold whitespace-nowrap">馬名</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">性齢</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">単勝オッズ</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">複勝オッズ</th>
-              <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">
-                <span className="inline-flex items-center gap-0.5">
-                  人気
-                  <PopularityHelp />
-                </span>
+      {/* 騎手は意図的に表示しない。ゲーム内の予想への影響が薄く、レース登録の運用負担を増やさないため */}
+      <TableShell className="min-w-max text-left text-sm">
+        <thead className="bg-gray-50">
+          <tr className="border-b border-gray-200">
+            <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">枠番</th>
+            <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">馬番</th>
+            <th className="px-2 py-2 text-sm font-semibold whitespace-nowrap">馬名</th>
+            <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">性齢</th>
+            <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">単勝オッズ</th>
+            <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">複勝オッズ</th>
+            <th className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">
+              <span className="inline-flex items-center gap-0.5">
+                人気
+                <PopularityHelp />
+              </span>
+            </th>
+            {displayColumnLabels.map((label, i) => (
+              <th key={i} className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">
+                {label}
               </th>
-              {displayColumnLabels.map((label, i) => (
-                <th key={i} className="px-2 py-2 text-center text-sm font-semibold whitespace-nowrap">
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isBracketType
-              ? Object.entries(bracketGroups).map(([bracket, bracketEntries]) =>
-                  bracketEntries.map((entry, idx) => {
-                    const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
-                    return (
-                      <tr
-                        key={entry.id}
-                        className={
-                          isScratched
-                            ? 'text-text-sub border-b border-gray-300 bg-red-50/50 line-through last:border-0'
-                            : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
-                        }
-                      >
-                        {idx === 0 && (
-                          <td className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
-                            <BracketBadge bracketNumber={Number(bracket)} />
-                          </td>
-                        )}
-                        <td className="px-2 py-2 text-center text-sm font-semibold">{entry.horseNumber}</td>
-                        <td className="px-2 py-2 text-sm font-semibold">
-                          {entry.horseName}
-                          {isScratched && (
-                            <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
-                              取消
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold tabular-nums">
-                          {isScratched ? (
-                            '-'
-                          ) : (
-                            <OddsValue
-                              value={odds?.winOdds?.[entry.horseNumber]?.toFixed(1) ?? '-.-'}
-                              delta={oddsDeltas[String(entry.horseNumber)]}
-                              version={oddsVersion}
-                            />
-                          )}
-                        </td>
-                        <PlaceOddsCell range={odds?.placeOdds?.[String(entry.horseNumber)]} isScratched={isScratched} />
-                        <PopularityCell
-                          rank={odds?.winPopularity?.[String(entry.horseNumber)]}
-                          isScratched={isScratched}
-                        />
-
-                        {idx === 0 && (
-                          <BracketSelectionCells
-                            bracketNumber={Number(bracket)}
-                            rowSpan={bracketEntries.length}
-                            columnCount={displayColumnCount}
-                            columnLabels={displayColumnLabels}
-                            selections={selections}
-                            disabled={isSelectionLocked}
-                            onToggle={handleCheckboxChange}
-                          />
-                        )}
-                      </tr>
-                    );
-                  })
-                )
-              : rows.map((entry) => {
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {isBracketType
+            ? Object.entries(bracketGroups).map(([bracket, bracketEntries]) =>
+                bracketEntries.map((entry, idx) => {
                   const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
                   return (
                     <tr
@@ -540,9 +479,11 @@ export function BetTable({
                           : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
                       }
                     >
-                      <td className="px-2 py-2 text-center">
-                        <BracketBadge bracketNumber={entry.bracketNumber} />
-                      </td>
+                      {idx === 0 && (
+                        <td className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
+                          <BracketBadge bracketNumber={Number(bracket)} />
+                        </td>
+                      )}
                       <td className="px-2 py-2 text-center text-sm font-semibold">{entry.horseNumber}</td>
                       <td className="px-2 py-2 text-sm font-semibold">
                         {entry.horseName}
@@ -572,23 +513,77 @@ export function BetTable({
                         isScratched={isScratched}
                       />
 
-                      {selections.slice(0, displayColumnCount).map((selection, colIdx) => (
-                        <td key={colIdx} className="px-2 py-2 text-center">
-                          <Checkbox
-                            checked={!isScratched && selection.has(entry.horseNumber)}
-                            onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber)}
-                            disabled={isSelectionLocked || isScratched}
-                            aria-label={`${displayColumnLabels[colIdx] ?? ''} に${entry.horseName}(${entry.horseNumber}番)を選択`}
-                            className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
-                          />
-                        </td>
-                      ))}
+                      {idx === 0 && (
+                        <BracketSelectionCells
+                          bracketNumber={Number(bracket)}
+                          rowSpan={bracketEntries.length}
+                          columnCount={displayColumnCount}
+                          columnLabels={displayColumnLabels}
+                          selections={selections}
+                          disabled={isSelectionLocked}
+                          onToggle={handleCheckboxChange}
+                        />
+                      )}
                     </tr>
                   );
-                })}
-          </tbody>
-        </table>
-      </div>
+                })
+              )
+            : rows.map((entry) => {
+                const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
+                return (
+                  <tr
+                    key={entry.id}
+                    className={
+                      isScratched
+                        ? 'text-text-sub border-b border-gray-300 bg-red-50/50 line-through last:border-0'
+                        : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
+                    }
+                  >
+                    <td className="px-2 py-2 text-center">
+                      <BracketBadge bracketNumber={entry.bracketNumber} />
+                    </td>
+                    <td className="px-2 py-2 text-center text-sm font-semibold">{entry.horseNumber}</td>
+                    <td className="px-2 py-2 text-sm font-semibold">
+                      {entry.horseName}
+                      {isScratched && (
+                        <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                          取消
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2 text-center">
+                      <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
+                    </td>
+                    <td className="px-2 py-2 text-center text-sm font-semibold tabular-nums">
+                      {isScratched ? (
+                        '-'
+                      ) : (
+                        <OddsValue
+                          value={odds?.winOdds?.[entry.horseNumber]?.toFixed(1) ?? '-.-'}
+                          delta={oddsDeltas[String(entry.horseNumber)]}
+                          version={oddsVersion}
+                        />
+                      )}
+                    </td>
+                    <PlaceOddsCell range={odds?.placeOdds?.[String(entry.horseNumber)]} isScratched={isScratched} />
+                    <PopularityCell rank={odds?.winPopularity?.[String(entry.horseNumber)]} isScratched={isScratched} />
+
+                    {selections.slice(0, displayColumnCount).map((selection, colIdx) => (
+                      <td key={colIdx} className="px-2 py-2 text-center">
+                        <Checkbox
+                          checked={!isScratched && selection.has(entry.horseNumber)}
+                          onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber)}
+                          disabled={isSelectionLocked || isScratched}
+                          aria-label={`${displayColumnLabels[colIdx] ?? ''} に${entry.horseName}(${entry.horseNumber}番)を選択`}
+                          className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+        </tbody>
+      </TableShell>
       <BetSummaryFooter
         betCount={betCount}
         totalAmount={totalAmount}

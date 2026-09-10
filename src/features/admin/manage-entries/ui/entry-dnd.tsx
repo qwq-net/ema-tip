@@ -9,9 +9,8 @@ import {
   type TypeFilter,
 } from '@/features/admin/shared/lib/filter-horses';
 import { SegmentedControl } from '@/features/admin/shared/ui/segmented-control';
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
-import { Button, Input } from '@/shared/ui';
+import { Button, Input, SectionTitle } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor, MAX_HORSES_PER_RACE } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -295,7 +294,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex min-w-0 flex-col">
           <div className="mb-3 flex min-h-8 items-center">
-            <AdminSectionTitle>登録馬一覧</AdminSectionTitle>
+            <SectionTitle>登録馬一覧</SectionTitle>
           </div>
           <div className="rounded-control flex h-[calc(100vh-320px)] min-h-[500px] flex-col border border-dashed border-gray-300 bg-gray-50">
             <div className="flex flex-wrap items-center gap-2 border-b border-dashed border-gray-300 p-3">
@@ -330,7 +329,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
         <div className="flex min-w-0 flex-col">
           <div className="mb-3 flex min-h-8 items-center justify-between">
-            <AdminSectionTitle>出走馬一覧 ({entries.length}頭)</AdminSectionTitle>
+            <SectionTitle>出走馬一覧 ({entries.length}頭)</SectionTitle>
             {entries.length > 0 && (
               <Button
                 type="button"

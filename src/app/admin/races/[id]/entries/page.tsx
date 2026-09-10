@@ -5,7 +5,7 @@ import {
   getRaceById,
   hasBetsForRace,
 } from '@/features/admin/manage-entries';
-import { Card } from '@/shared/ui';
+import { Card, CardContent, EmptyState } from '@/shared/ui';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
@@ -34,14 +34,16 @@ export default async function RaceEntriesPage({ params }: { params: Promise<{ id
   // saveEntries が拒否する状態では編集 UI を出さず、理由だけを示す
   const lockedReason = await resolveLockedReason(race.status, id);
   if (lockedReason) {
-    return <Card className="text-text-sub p-6 text-sm">{lockedReason}</Card>;
+    return <EmptyState title={lockedReason} />;
   }
 
   const [availableHorses, existingEntries] = await Promise.all([getAvailableHorses(id), getEntriesForRace(id)]);
 
   return (
-    <Card className="p-6">
-      <EntryDnd raceId={id} availableHorses={availableHorses} existingEntries={existingEntries} />
+    <Card>
+      <CardContent>
+        <EntryDnd raceId={id} availableHorses={availableHorses} existingEntries={existingEntries} />
+      </CardContent>
     </Card>
   );
 }

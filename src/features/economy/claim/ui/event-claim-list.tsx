@@ -2,7 +2,7 @@
 
 import { type EventStatus } from '@/shared/constants/status';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, Card, CardContent, CardHeader, EmptyState } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState } from '@/shared/ui';
 import { formatYen } from '@/shared/utils/format-yen';
 import { useTransition } from 'react';
 import { claimEvent } from '../actions';
@@ -64,7 +64,7 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
           <Card key={event.id} className="flex flex-col transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <h2 className="text-lg font-semibold">{event.name}</h2>
+                <CardTitle as="h2">{event.name}</CardTitle>
                 <Badge
                   label={event.isJoined ? '参加済み' : event.status}
                   variant={event.isJoined ? 'outline' : 'status'}

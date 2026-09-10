@@ -12,8 +12,10 @@ import { medalRankClass } from '@/shared/constants/rank-medal';
 import type { RaceStatus } from '@/shared/constants/status';
 import type { ConnectionStatus } from '@/shared/hooks/use-sse';
 import type { RaceResultItem } from '@/shared/lib/sse/types';
-import { Badge, Button, LiveStatusPill } from '@/shared/ui';
+import { Badge, Button, CardTitle, LiveStatusPill } from '@/shared/ui';
+import { PageHeader } from '@/shared/ui/layout/page-header';
 import { getBracketColor } from '@/shared/utils/bracket';
+import { cn } from '@/shared/utils/cn';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { type ComponentProps, useCallback, useState } from 'react';
 
@@ -37,7 +39,9 @@ function RankingCard({ ranking, isFinalized }: RankingCardProps) {
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
             R
           </span>
-          <h3 className="text-text-main text-sm font-semibold">{isFinalized ? '確定着順' : '着順速報'}</h3>
+          <CardTitle as="h2" className="text-sm">
+            {isFinalized ? '確定着順' : '着順速報'}
+          </CardTitle>
         </div>
       </div>
       <div className="divide-y divide-gray-100">
@@ -85,10 +89,8 @@ function WaitingNotice({ isClosed }: { isClosed: boolean }) {
           </span>
         </div>
       </div>
-      <div className="p-6">
-        <h2 className="text-text-main mb-2 text-lg font-semibold">
-          {isClosed ? 'レースは締め切られました' : 'レースの確定を待っています'}
-        </h2>
+      <div className="space-y-2 p-6">
+        <CardTitle as="h2">{isClosed ? 'レースは締め切られました' : 'レースの確定を待っています'}</CardTitle>
         <p className="text-sm leading-relaxed text-gray-600">
           {isClosed
             ? '結果発表をお待ちください。確定後に結果（払戻金等）の確認が可能です。'
@@ -109,15 +111,21 @@ interface LiveStatusBarProps {
 function LiveStatusBar({ isAudioEnabled, onToggleAudio, connectionStatus }: LiveStatusBarProps) {
   return (
     <div className="fixed top-20 right-4 z-40 flex items-center gap-2">
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
         onClick={onToggleAudio}
-        className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition ${
-          isAudioEnabled ? 'bg-turf-600 hover:bg-turf-700 text-white' : 'bg-gray-800/80 text-gray-400 hover:text-white'
-        }`}
+        className={cn(
+          'h-8 w-8 rounded-full shadow-lg backdrop-blur-sm',
+          isAudioEnabled
+            ? 'bg-turf-600 hover:bg-turf-700 text-white'
+            : 'bg-gray-800/80 text-gray-400 hover:bg-gray-800/80 hover:text-white'
+        )}
         aria-label={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}
       >
-        {isAudioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-      </button>
+        {isAudioEnabled ? <Volume2 /> : <VolumeX />}
+      </Button>
       <LiveStatusPill status={connectionStatus} />
     </div>
   );
@@ -143,6 +151,10 @@ interface StandbyClientProps {
   entryCount: number;
 }
 
+/**
+ * 結果待機画面の本体。SSE でレース状態と確定結果を受け取り、購入馬券の一覧と払戻結果のモーダルを描く。
+ * 見出しと LIVE 状態のピルと通知音の切り替えを持ち、外枠と操作の行は widgets/race-standby が組む。
+ */
 export function StandbyClient({
   race,
   initialResults = [],
@@ -215,26 +227,25 @@ export function StandbyClient({
 
   return (
     <>
-      <div className="mb-8 flex items-center justify-between border-b border-gray-100 pb-8">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Badge variant="status" label={displayStatus} />
-            <div className="flex items-center gap-2">
-              <span className="text-text-sub text-sm">{race.location}</span>
-              {race.raceNumber && <RaceNumberChip raceNumber={race.raceNumber} />}
-            </div>
-          </div>
-          <div>
-            <h1 className="text-text-main text-3xl font-semibold">{race.name}</h1>
-            <RaceMetaRow surface={race.surface} distance={race.distance} entrantCount={entryCount} className="mt-2" />
+      <div className="mb-8 space-y-4 border-b border-gray-100 pb-8">
+        <div className="flex items-center gap-3">
+          <Badge variant="status" label={displayStatus} />
+          <div className="flex items-center gap-2">
+            <span className="text-text-sub text-sm">{race.location}</span>
+            {race.raceNumber && <RaceNumberChip raceNumber={race.raceNumber} />}
           </div>
         </div>
-
-        {initialIsFinalized && hasTickets && (
-          <Button onClick={() => setShowModal(true)} variant="primary" className="px-6 font-semibold">
-            払戻結果を確認
-          </Button>
-        )}
+        <PageHeader
+          title={race.name}
+          description={<RaceMetaRow surface={race.surface} distance={race.distance} entrantCount={entryCount} />}
+          actions={
+            initialIsFinalized && hasTickets ? (
+              <Button onClick={() => setShowModal(true)} variant="primary" className="px-6">
+                払戻結果を確認
+              </Button>
+            ) : null
+          }
+        />
       </div>
 
       {ranking.length > 0 && <RankingCard ranking={ranking} isFinalized={initialIsFinalized} />}
@@ -247,7 +258,7 @@ export function StandbyClient({
         emptyDescription={initialIsFinalized ? '結果は発表済みです。払戻の内訳は確認できます。' : ''}
         emptyAction={
           initialIsFinalized ? (
-            <Button onClick={() => setShowModal(true)} variant="primary" className="px-8 font-semibold">
+            <Button onClick={() => setShowModal(true)} variant="primary" className="px-8">
               払戻結果を確認する
             </Button>
           ) : null

@@ -4,12 +4,9 @@ import { getDefaultGuaranteedOdds, resolveGuaranteedOdds } from '@/entities/race
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { isGuaranteedBet } from '@/features/betting/lib/guaranteed';
-import { GuaranteedOddsDialog } from '@/features/betting/ui/guaranteed-odds-dialog';
-import { RankingButton } from '@/features/ranking/components/ranking-button';
-import { PageContainer } from '@/shared/ui/layout/page-container';
 import { requireLoginPage } from '@/shared/utils/admin';
+import { RaceStandby } from '@/widgets/race-standby/ui/race-standby';
 import { notFound } from 'next/navigation';
-import { StandbyClient } from './standby-client';
 
 interface Entry {
   id: string;
@@ -34,7 +31,6 @@ interface ClientPayoutResult {
 }
 
 import { formatRaceLabel } from '@/entities/race/lib/label';
-import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -147,44 +143,37 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     .slice(0, 5);
 
   return (
-    <PageContainer>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Breadcrumbs
-          items={[
-            { label: 'マイページ', href: '/mypage' },
-            { label: '即BET', href: '/mypage/sokubet' },
-            {
-              label: formatRaceLabel({
-                venueShortName: race.venue.shortName,
-                raceNumber: race.raceNumber,
-                name: race.name,
-              }),
-              href: `/races/${id}`,
-            },
-            { label: '結果待機' },
-          ]}
-        />
-        <div className="flex items-center gap-2">
-          {hasGuaranteedOdds && <GuaranteedOddsDialog guaranteedOdds={guaranteedOdds} />}
-          <RankingButton eventId={race.eventId} />
-        </div>
-      </div>
-
-      <StandbyClient
-        race={{
+    <RaceStandby
+      breadcrumbs={[
+        { label: 'マイページ', href: '/mypage' },
+        { label: '即BET', href: '/mypage/sokubet' },
+        {
+          label: formatRaceLabel({
+            venueShortName: race.venue.shortName,
+            raceNumber: race.raceNumber,
+            name: race.name,
+          }),
+          href: `/races/${id}`,
+        },
+        { label: '結果待機' },
+      ]}
+      eventId={race.eventId}
+      guaranteedOdds={hasGuaranteedOdds ? guaranteedOdds : null}
+      standby={{
+        race: {
           ...race,
           location: race.venue.shortName,
           closingAt: race.closingAt,
           status: race.status,
-        }}
-        isFinalized={isFinalized}
-        initialResults={initialResults}
-        initialRanking={initialRanking}
-        ticketGroups={ticketGroups}
-        fixedOddsMode={race.fixedOddsMode}
+        },
+        isFinalized,
+        initialResults,
+        initialRanking,
+        ticketGroups,
+        fixedOddsMode: race.fixedOddsMode,
         // 投票画面の頭数表示と揃え、取消・除外馬を除いた出走頭数を渡す
-        entryCount={entries.filter((entry) => entry.status === 'ENTRANT').length}
-      />
-    </PageContainer>
+        entryCount: entries.filter((entry) => entry.status === 'ENTRANT').length,
+      }}
+    />
   );
 }

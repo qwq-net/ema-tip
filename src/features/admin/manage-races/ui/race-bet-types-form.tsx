@@ -2,9 +2,8 @@
 
 import type { BetType } from '@/entities/bet';
 import { BET_TYPE_LABELS, BET_TYPE_ORDER } from '@/entities/bet';
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
-import { Button, Card, Checkbox } from '@/shared/ui';
+import { Button, Card, Checkbox, SectionTitle } from '@/shared/ui';
 import { Ticket } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { updateRaceAllowedBetTypes } from '../actions/update-bet-types';
@@ -58,7 +57,7 @@ export function RaceBetTypesForm({ raceId, initialTypes, eventDefaultTypes }: Ra
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <AdminSectionTitle icon={Ticket}>購入可能な馬券種別</AdminSectionTitle>
+        <SectionTitle icon={Ticket}>購入可能な馬券種別</SectionTitle>
       </div>
 
       <div className="space-y-4">

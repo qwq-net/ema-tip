@@ -4,7 +4,7 @@ import sonarjs, { configs as sonarjsConfigs } from 'eslint-plugin-sonarjs';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import antiSlop from './tools/eslint/anti-slop.mjs';
-import { featureSliceNames } from './tools/eslint/feature-slices.mjs';
+import { sliceNames } from './tools/eslint/feature-slices.mjs';
 import { jsxA11yStrictRules } from './tools/eslint/jsx-a11y-strict.mjs';
 
 // CLI として手で実行する保守スクリプト。進行状況を標準出力へ流すため console.log を許可する
@@ -19,8 +19,46 @@ const cliScripts = [
 const testFiles = ['**/*.test.ts', '**/*.test.tsx', 'vitest.setup.ts', 'e2e/**/*.ts'];
 
 // features のスライス一覧はディレクトリから導出する。手書きの台帳を置くと実体とずれる
-const featureSlices = featureSliceNames();
+const featureSlices = sliceNames('features');
 const noAppImport = { regex: '^@/app/', message: 'features から app は参照できません' };
+const noWidgetImport = { regex: '^@/widgets/', message: 'widgets を参照できるのは app だけです' };
+
+// 見た目の規約を文章ではなく構造で守る。部品を迂回する書き方を lint で止め、代わりの部品を示す。
+// no-restricted-syntax は後のブロックが前の指定を置き換えるため、各ブロックで必要な群をすべて並べる
+const baseSyntax = [
+  {
+    selector: 'TSEnumDeclaration',
+    message: 'enum ではなく as const の配列とユニオン型を使います',
+  },
+  {
+    selector: 'ForInStatement',
+    message: 'for-in ではなく Object.keys や Object.entries を使います',
+  },
+];
+// 見出しと表は shared/ui の部品しか使わない。文字サイズと余白の揺れがここから出るため。
+// button と select と input は対象外。キーパッドやピル型トグルのような独自操作が features に多く、
+// Button の variant へ寄せると className の上書きの方が長くなる。a11y は jsx-a11y が見る
+const semanticElementSyntax = [
+  {
+    selector: 'JSXOpeningElement > JSXIdentifier[name=/^(h1|h2|h3|table)$/]',
+    message:
+      '生の見出しと表ではなく shared/ui の部品を使います。h1 は PageHeader か AdminPageHeader、h2 と h3 は SectionTitle か CardTitle、table は Table か TableShell',
+  },
+];
+// app 層は部品を並べるだけにする。見た目の判断を page に書かせない
+const appLayerSyntax = (hostSelector: string) => [
+  {
+    selector: hostSelector,
+    message: 'app 層は部品を組み立てるだけです。生の要素は shared/ui か features か widgets の部品へ移します',
+  },
+  {
+    selector: 'JSXAttribute[name.name="className"]',
+    message: 'app 層では className を渡しません。見た目は部品の props で決めます',
+  },
+];
+const hostElement = 'JSXOpeningElement > JSXIdentifier[name=/^[a-z]/]';
+// root layout だけは html と body を書く
+const hostElementExceptDocument = 'JSXOpeningElement > JSXIdentifier[name=/^(?!html$|body$)[a-z]/]';
 
 // 運用方針。ルールの採否とその理由はこのファイルのコメントが正本で、CLAUDE.md には書かない。
 // - warning は使わない。lint は --max-warnings 0 で、新しいルールは warn で入れて既存違反を潰し、
@@ -166,17 +204,7 @@ const eslintConfig = defineConfig([
       'prefer-template': 'error',
       'no-nested-ternary': 'error',
       'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'TSEnumDeclaration',
-          message: 'enum ではなく as const の配列とユニオン型を使います',
-        },
-        {
-          selector: 'ForInStatement',
-          message: 'for-in ではなく Object.keys や Object.entries を使います',
-        },
-      ],
+      'no-restricted-syntax': ['error', ...baseSyntax],
     },
   },
   // FSD の層方向。下位層から上位層を参照しない。
@@ -193,7 +221,10 @@ const eslintConfig = defineConfig([
               regex: '^@/entities/(?![a-z0-9-]+/(constants|types)$)',
               message: 'shared から entities は constants と types のみ参照できます',
             },
-            { regex: '^@/(features|app)/', message: 'shared から features と app は参照できません' },
+            {
+              regex: '^@/(features|widgets|app)/',
+              message: 'shared から features と widgets と app は参照できません',
+            },
           ],
         },
       ],
@@ -205,7 +236,12 @@ const eslintConfig = defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          patterns: [{ regex: '^@/(features|app)/', message: 'entities から features と app は参照できません' }],
+          patterns: [
+            {
+              regex: '^@/(features|widgets|app)/',
+              message: 'entities から features と widgets と app は参照できません',
+            },
+          ],
         },
       ],
     },
@@ -213,7 +249,7 @@ const eslintConfig = defineConfig([
   {
     files: ['src/features/**'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: [noAppImport] }],
+      'no-restricted-imports': ['error', { patterns: [noAppImport, noWidgetImport] }],
     },
   },
   // features のスライス同士は参照し合わない。共有したくなったものは entities か shared へ下ろす。
@@ -228,6 +264,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             noAppImport,
+            noWidgetImport,
             {
               regex: `^@/features/(?!${slice}(/|$))`,
               message: `features/${slice} から他のスライスは参照できません。共有する処理は entities か shared へ移します`,
@@ -237,6 +274,48 @@ const eslintConfig = defineConfig([
       ],
     },
   })),
+  // widgets は複数の features を組み合わせる層。app からだけ参照され、スライス同士は参照しない
+  ...sliceNames('widgets').map((slice) => ({
+    files: [`src/widgets/${slice}/**`],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { regex: '^@/app/', message: 'widgets から app は参照できません' },
+            {
+              regex: `^@/widgets/(?!${slice}(/|$))`,
+              message: `widgets/${slice} から他の widgets は参照できません。共有する処理は features か shared へ移します`,
+            },
+          ],
+        },
+      ],
+    },
+  })),
+  // 生要素の禁止。shared/ui だけが素の見出しと表を書ける
+  {
+    files: ['src/features/**/*.tsx', 'src/entities/**/*.tsx', 'src/widgets/**/*.tsx'],
+    rules: {
+      'no-restricted-syntax': ['error', ...baseSyntax, ...semanticElementSyntax],
+    },
+  },
+  {
+    files: ['src/app/**/*.tsx'],
+    rules: {
+      'no-restricted-syntax': ['error', ...baseSyntax, ...semanticElementSyntax, ...appLayerSyntax(hostElement)],
+    },
+  },
+  {
+    files: ['src/app/layout.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...baseSyntax,
+        ...semanticElementSyntax,
+        ...appLayerSyntax(hostElementExceptDocument),
+      ],
+    },
+  },
   {
     files: cliScripts,
     rules: { 'no-console': 'off' },

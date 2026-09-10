@@ -6,10 +6,12 @@ import {
   Badge,
   Button,
   Card,
+  CardTitle,
   Checkbox,
   Input,
   Label,
   Select,
+  Table,
   TableBody,
   TableHead,
   TableRow,
@@ -133,7 +135,7 @@ export function ImportRaceClient({ events, venues }: Props) {
   return (
     <div className="space-y-6">
       <Card className="space-y-4 p-6">
-        <h2 className="text-text-main text-lg font-semibold">Step 1 — Netkeiba URL を入力</h2>
+        <CardTitle as="h2">Step 1 — Netkeiba URL を入力</CardTitle>
         <div className="flex gap-2">
           <Input
             aria-label="Netkeiba の出馬表 URL"
@@ -159,7 +161,7 @@ export function ImportRaceClient({ events, venues }: Props) {
       {preview && (
         <>
           <Card className="space-y-4 p-6">
-            <h2 className="text-text-main text-lg font-semibold">Step 2 — レース情報確認・編集</h2>
+            <CardTitle as="h2">Step 2 — レース情報確認・編集</CardTitle>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -214,7 +216,7 @@ export function ImportRaceClient({ events, venues }: Props) {
           </Card>
 
           <Card className="space-y-4 p-6">
-            <h2 className="text-text-main text-lg font-semibold">
+            <CardTitle as="h2">
               出走馬一覧
               <span className="text-text-sub ml-2 text-sm font-normal">
                 {preview.horses.filter((h) => !h.scratched).length}頭
@@ -224,9 +226,9 @@ export function ImportRaceClient({ events, venues }: Props) {
                   取消・除外 {preview.horses.filter((h) => h.scratched).length}頭
                 </span>
               )}
-            </h2>
+            </CardTitle>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-max border-collapse">
+              <Table className="min-w-max">
                 <TableHead>
                   <Th>枠</Th>
                   <Th>馬番</Th>
@@ -262,7 +264,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                     </TableRow>
                   ))}
                 </TableBody>
-              </table>
+              </Table>
             </div>
 
             <div className="flex justify-end">

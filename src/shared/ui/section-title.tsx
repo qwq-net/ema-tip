@@ -1,26 +1,15 @@
-import { Card } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-/** 管理画面ページ最上部の見出しブロック。description には文字列のほか補足要素も渡せる。 */
-export function AdminPageHeader({ title, description }: { title: string; description?: ReactNode }) {
-  return (
-    <div>
-      <h1 className="text-text-main text-2xl font-semibold">{title}</h1>
-      {description ? <div className="text-text-sub mt-1 text-sm">{description}</div> : null}
-    </div>
-  );
-}
-
 /**
- * 管理画面のセクション見出し。ページ内の大区分は h2、その内側の小区分は as="h3" を使う。
+ * セクション見出し。ページ内の大区分は h2、その内側の小区分は as="h3" を使う。
  * 文字サイズは h2=text-xl / h3=text-lg で固定し、利用側でサイズ指定しないこと。
- * 見出し階層は AdminPageHeader の h1 の下に置かれる前提。
+ * 見出し階層はページの h1 の下に置かれる前提。h1 は PageHeader か AdminPageHeader が持つ。
  * actions を渡すと見出しの右端に操作を並べ、収まらない幅では操作が次の行の右端へ折り返す。
  * その場合 className は見出しではなく行全体に付く。
  */
-export function AdminSectionTitle({
+export function SectionTitle({
   as: Tag = 'h2',
   icon: Icon,
   actions,
@@ -52,9 +41,4 @@ export function AdminSectionTitle({
       <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div>
     </div>
   );
-}
-
-/** Suspense フォールバック用の読み込み中カード。 */
-export function AdminLoadingCard() {
-  return <Card className="text-text-sub py-12 text-center">読み込み中...</Card>;
 }

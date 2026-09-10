@@ -1,7 +1,6 @@
 'use client';
 
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
-import { Badge, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
+import { Badge, SectionTitle, TableBody, TableEmptyRow, TableHead, TableRow, TableShell, Td, Th } from '@/shared/ui';
 import { formatYen } from '@/shared/utils/format-yen';
 
 interface Bet5Ticket {
@@ -58,7 +57,7 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
 
   return (
     <div className="space-y-4">
-      <AdminSectionTitle>購入されたBET5一覧 ({tickets.length}件)</AdminSectionTitle>
+      <SectionTitle>購入されたBET5一覧 ({tickets.length}件)</SectionTitle>
       <TableShell>
         <TableHead>
           <Th>購入日時</Th>

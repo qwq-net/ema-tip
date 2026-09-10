@@ -1,7 +1,6 @@
 'use client';
 
 import type { HorseTagType } from '@/entities/horse';
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import { toast } from '@/shared/lib/toast';
 import {
@@ -15,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  SectionTitle,
 } from '@/shared/ui';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -53,12 +53,12 @@ export function HorseTagList({ tags }: HorseTagListProps) {
 
   return (
     <div className="space-y-6">
-      <AdminSectionTitle
+      <SectionTitle
         actions={
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus />
                 タグを追加
               </Button>
             </DialogTrigger>
@@ -72,7 +72,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
         }
       >
         登録済みのタグ
-      </AdminSectionTitle>
+      </SectionTitle>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {(['LEG_TYPE', 'CHARACTERISTIC', 'BIOGRAPHY', 'OTHER'] as const).map((type) => {
@@ -80,7 +80,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
           return (
             <Card key={type}>
               <CardHeader className="pb-3">
-                <AdminSectionTitle as="h3">{HORSE_TAG_CATEGORIES[type]}</AdminSectionTitle>
+                <SectionTitle as="h3">{HORSE_TAG_CATEGORIES[type]}</SectionTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">

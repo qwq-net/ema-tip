@@ -17,13 +17,11 @@ export default async function AdminRankingPage({ params }: AdminRankingPageProps
   }
 
   return (
-    <div className="max-w-5xl">
-      <AdminRankingManager
-        eventId={event.id}
-        initialRanking={rankingData.ranking}
-        initialDisplayMode={rankingData.displayMode}
-        distributeAmount={rankingData.distributeAmount}
-      />
-    </div>
+    <AdminRankingManager
+      eventId={event.id}
+      initialRanking={rankingData.ranking}
+      initialDisplayMode={rankingData.displayMode}
+      distributeAmount={rankingData.distributeAmount}
+    />
   );
 }

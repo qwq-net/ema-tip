@@ -3,7 +3,7 @@
 import { BetSummaryFooter, placeBet5BetAction } from '@/features/betting';
 import { Bet5RaceList } from '@/features/betting/ui/bet5-race-list';
 import { toast } from '@/shared/lib/toast';
-import { Checkbox, ConfirmDialog } from '@/shared/ui';
+import { Checkbox, ConfirmDialog, SectionTitle, TableShell } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
@@ -164,69 +164,67 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
 
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <SectionTitle>
               {activeRace.raceNumber}R {activeRace.name}
-            </h2>
+            </SectionTitle>
           </div>
 
-          <div className="rounded-surface overflow-x-auto border border-gray-200 bg-white">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50/50">
-                <tr className="border-b border-gray-100">
-                  <th className="text-text-sub px-4 py-2 text-center">枠</th>
-                  <th className="text-text-sub px-4 py-2 text-center">番</th>
-                  <th className="text-text-sub px-4 py-2">馬名</th>
-                  <th className="text-text-sub px-4 py-2 text-center">選択</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {activeRace.entries.map((entry) => {
-                  const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
-                  const isSelected = !isScratched && activeRaceSelections.includes(entry.horse.id);
-                  const selectedClass = isSelected ? 'bg-turf-50/70 hover:bg-turf-100/70' : '';
-                  const rowClass = isScratched
-                    ? 'text-text-sub bg-red-50/50 line-through'
-                    : `cursor-pointer transition-colors hover:bg-gray-50 ${selectedClass}`;
-                  return (
-                    <tr
-                      key={entry.id}
-                      className={rowClass}
-                      onClick={() => !isScratched && toggleSelection(activeRace.id, entry.horse.id)}
-                    >
-                      <td className="px-4 py-3 text-center">
-                        <span
-                          className={`rounded-chip inline-flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber ?? 0)}`}
-                        >
-                          {entry.bracketNumber ?? '-'}
+          <TableShell className="text-left text-sm">
+            <thead className="bg-gray-50/50">
+              <tr className="border-b border-gray-100">
+                <th className="text-text-sub px-4 py-2 text-center">枠</th>
+                <th className="text-text-sub px-4 py-2 text-center">番</th>
+                <th className="text-text-sub px-4 py-2">馬名</th>
+                <th className="text-text-sub px-4 py-2 text-center">選択</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {activeRace.entries.map((entry) => {
+                const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
+                const isSelected = !isScratched && activeRaceSelections.includes(entry.horse.id);
+                const selectedClass = isSelected ? 'bg-turf-50/70 hover:bg-turf-100/70' : '';
+                const rowClass = isScratched
+                  ? 'text-text-sub bg-red-50/50 line-through'
+                  : `cursor-pointer transition-colors hover:bg-gray-50 ${selectedClass}`;
+                return (
+                  <tr
+                    key={entry.id}
+                    className={rowClass}
+                    onClick={() => !isScratched && toggleSelection(activeRace.id, entry.horse.id)}
+                  >
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`rounded-chip inline-flex h-6 w-6 items-center justify-center text-sm font-semibold ${getBracketColor(entry.bracketNumber ?? 0)}`}
+                      >
+                        {entry.bracketNumber ?? '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center font-mono font-semibold">{entry.horseNumber ?? '-'}</td>
+                    <td className="px-4 py-3 font-semibold">
+                      {entry.horse.name}
+                      {isScratched && (
+                        <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                          取消
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-center font-mono font-semibold">{entry.horseNumber ?? '-'}</td>
-                      <td className="px-4 py-3 font-semibold">
-                        {entry.horse.name}
-                        {isScratched && (
-                          <span className="rounded-chip ml-1.5 inline-flex items-center bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
-                            取消
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex justify-center">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => toggleSelection(activeRace.id, entry.horse.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            disabled={isScratched}
-                            aria-label={`${entry.horseNumber ?? '-'}番 ${entry.horse.name}を選択`}
-                            className="data-[state=checked]:border-turf-600 data-[state=checked]:bg-turf-600 h-5 w-5 border-gray-300"
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelection(activeRace.id, entry.horse.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          disabled={isScratched}
+                          aria-label={`${entry.horseNumber ?? '-'}番 ${entry.horse.name}を選択`}
+                          className="data-[state=checked]:border-turf-600 data-[state=checked]:bg-turf-600 h-5 w-5 border-gray-300"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </TableShell>
         </div>
 
         <div

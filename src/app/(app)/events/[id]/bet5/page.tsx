@@ -1,18 +1,14 @@
-import { Bet5MyTicketsDialog } from '@/features/betting/ui/bet5-my-tickets-dialog';
-import { Bet5RaceList } from '@/features/betting/ui/bet5-race-list';
-import { Bet5VotingForm } from '@/features/betting/ui/bet5-voting-form';
-import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, raceInstances } from '@/shared/db/schema';
-import { Alert, Badge, Card } from '@/shared/ui';
+import { EmptyState } from '@/shared/ui';
 import { type BreadcrumbItem, Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { PageContainer } from '@/shared/ui/layout/page-container';
+import { PageHeader } from '@/shared/ui/layout/page-header';
 import { firstRow } from '@/shared/utils/first-row';
-import { formatYen } from '@/shared/utils/format-yen';
+import { Bet5Voting } from '@/widgets/bet5-voting/ui/bet5-voting';
 import { and, desc, eq, inArray, sum } from 'drizzle-orm';
-import { AlertCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 
 // 表側にイベントのページはないため、イベント名はリンクを持たない階層として置く
@@ -48,8 +44,8 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
     return (
       <PageContainer>
         <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-        <h1 className="text-text-main text-3xl font-semibold">BET5</h1>
-        <p className="text-text-sub">このイベントではBET5は開催されていません。</p>
+        <PageHeader title="BET5" />
+        <EmptyState title="このイベントではBET5は開催されていません。" />
       </PageContainer>
     );
   }
@@ -109,43 +105,23 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
   const pot = bet5Event.initialPot + totalSales + carryoverAmount;
 
   return (
-    <PageContainer>
-      <Breadcrumbs items={bet5Breadcrumbs(event.name)} />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-text-main text-3xl font-semibold">BET5 投票</h1>
-          <Badge variant="status" label={isOpen ? '受付中' : '受付終了'} />
-        </div>
-        <Bet5MyTicketsDialog tickets={myTickets} races={orderedRaces} />
-      </div>
-
-      <Card className="bg-turf-950 border-0 p-5 text-white">
-        <p className="text-turf-100 text-sm">配当プール</p>
-        <p className="text-gold text-4xl font-semibold tabular-nums">{formatYen(pot)}</p>
-      </Card>
-
-      <LoanBanner
-        eventId={id}
-        balance={wallet.balance}
-        distributeAmount={event.distributeAmount}
-        loanAmount={event.loanAmount ?? event.distributeAmount}
-        hasLoaned={wallet.totalLoaned > 0}
-        loanEnabled={event.loanEnabled}
-        loanThresholdPercent={event.loanThresholdPercent}
-      />
-
-      {isOpen ? (
-        <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />
-      ) : (
-        <div className="space-y-4">
-          {hasClosedRace && bet5Event.status === 'SCHEDULED' && (
-            <Alert variant="error" icon={AlertCircle}>
-              対象レースが既に締め切られているため、BET5の投票受付は終了しました。
-            </Alert>
-          )}
-          <Bet5RaceList races={orderedRaces} readOnly />
-        </div>
-      )}
-    </PageContainer>
+    <Bet5Voting
+      breadcrumbs={bet5Breadcrumbs(event.name)}
+      eventId={id}
+      bet5EventId={bet5Event.id}
+      isOpen={isOpen}
+      closedByRace={hasClosedRace && bet5Event.status === 'SCHEDULED'}
+      pot={pot}
+      balance={wallet.balance}
+      loan={{
+        distributeAmount: event.distributeAmount,
+        loanAmount: event.loanAmount ?? event.distributeAmount,
+        hasLoaned: wallet.totalLoaned > 0,
+        loanEnabled: event.loanEnabled,
+        loanThresholdPercent: event.loanThresholdPercent,
+      }}
+      races={orderedRaces}
+      tickets={myTickets}
+    />
   );
 }

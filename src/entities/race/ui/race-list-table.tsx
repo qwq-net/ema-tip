@@ -1,4 +1,4 @@
-import { TableBody, TableHead, TableRow, Td, Th } from '@/shared/ui';
+import { Table, TableBody, TableHead, TableRow, Td, Th } from '@/shared/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -49,7 +49,7 @@ export function RaceListTable<T extends RaceListTableRace>({
   const tails = tail === undefined ? [] : [tail].flat();
 
   return (
-    <table className="w-full border-collapse">
+    <Table>
       <TableHead>
         <Th>番号</Th>
         <Th>レース名</Th>
@@ -90,6 +90,6 @@ export function RaceListTable<T extends RaceListTableRace>({
           </TableRow>
         ))}
       </TableBody>
-    </table>
+    </Table>
   );
 }

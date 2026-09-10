@@ -56,7 +56,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
         </p>
       </div>
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        {isPending ? <Loader2 className="animate-spin" /> : null}
         登録
       </Button>
       {state?.error && <p className="text-error text-sm">{state.error}</p>}

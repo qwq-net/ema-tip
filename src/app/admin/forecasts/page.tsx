@@ -1,7 +1,8 @@
 import { getRaces } from '@/features/admin/manage-races/actions/read';
-import { AdminLoadingCard, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
+import { AdminPage } from '@/features/admin/ui/admin-page';
 import { ForecastRaceAccordion } from '@/features/forecasts/components/ForecastRaceAccordion';
-import { CircleHelp } from 'lucide-react';
+import { SectionTitle } from '@/shared/ui';
+import { AdminLoadingCard, AdminPageHeader } from '@/shared/ui/layout/admin-page-header';
 import { Suspense } from 'react';
 
 export default async function ForecastsPage() {
@@ -33,22 +34,15 @@ export default async function ForecastsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <AdminPageHeader title="予想管理" description="レースを選択して予想を入力してください" />
-
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <AdminSectionTitle>開催一覧</AdminSectionTitle>
-          <p className="text-text-sub flex items-center gap-1.5 text-sm">
-            <CircleHelp className="h-4 w-4" />
-            レース名をクリックすると予想入力画面へ移動します。
-          </p>
-        </div>
-
-        <Suspense fallback={<AdminLoadingCard />}>
-          <ForecastRaceAccordion events={sortedEventGroups} />
-        </Suspense>
-      </div>
-    </div>
+    <AdminPage>
+      <AdminPageHeader
+        title="予想管理"
+        description="レースを選択して予想を入力してください。レース名をクリックすると予想入力画面へ移動します。"
+      />
+      <SectionTitle>開催一覧</SectionTitle>
+      <Suspense fallback={<AdminLoadingCard />}>
+        <ForecastRaceAccordion events={sortedEventGroups} />
+      </Suspense>
+    </AdminPage>
   );
 }

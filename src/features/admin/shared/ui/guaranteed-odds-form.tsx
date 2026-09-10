@@ -1,9 +1,8 @@
 'use client';
 
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
-import { Button, Card } from '@/shared/ui';
+import { Button, Card, SectionTitle } from '@/shared/ui';
 import type { ActionResult } from '@/shared/utils/action-result';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { Coins } from 'lucide-react';
@@ -47,7 +46,7 @@ export function GuaranteedOddsForm({
     <Card className="p-6">
       <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit}>
         <div className="mb-4">
-          <AdminSectionTitle icon={Coins}>{title}</AdminSectionTitle>
+          <SectionTitle icon={Coins}>{title}</SectionTitle>
         </div>
 
         <div className="space-y-4">

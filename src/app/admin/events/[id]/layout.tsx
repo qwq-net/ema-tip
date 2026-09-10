@@ -1,8 +1,9 @@
 import { getEvent } from '@/features/admin/manage-events/actions';
 import { EventStatusPanel } from '@/features/admin/manage-events/ui/event-status-control';
-import { AdminPageHeader } from '@/features/admin/ui/admin-page-header';
+import { AdminPage } from '@/features/admin/ui/admin-page';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
+import { AdminPageHeader } from '@/shared/ui/layout/admin-page-header';
 import { Crown, Medal, Settings2, Trophy } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -24,21 +25,22 @@ export default async function EventDetailLayout({
   const base = `/admin/events/${id}`;
 
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <Breadcrumbs items={[{ label: 'イベント管理', href: '/admin/events' }, { label: event.name }]} />
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <AdminPageHeader title={event.name} description={event.date} />
-        <EventStatusPanel eventId={id} status={event.status} className="md:min-w-96" />
-      </div>
+      <AdminPageHeader
+        title={event.name}
+        description={event.date}
+        actions={<EventStatusPanel eventId={id} status={event.status} />}
+      />
       <AdminTabs
         items={[
-          { href: base, label: 'レース', icon: <Trophy className="h-4 w-4" /> },
-          { href: `${base}/settings`, label: 'イベント設定', icon: <Settings2 className="h-4 w-4" /> },
-          { href: `${base}/bet5`, label: 'BET5', icon: <Crown className="h-4 w-4" /> },
-          { href: `${base}/ranking`, label: 'ランキング', icon: <Medal className="h-4 w-4" /> },
+          { href: base, label: 'レース', icon: <Trophy /> },
+          { href: `${base}/settings`, label: 'イベント設定', icon: <Settings2 /> },
+          { href: `${base}/bet5`, label: 'BET5', icon: <Crown /> },
+          { href: `${base}/ranking`, label: 'ランキング', icon: <Medal /> },
         ]}
       />
       {children}
-    </div>
+    </AdminPage>
   );
 }

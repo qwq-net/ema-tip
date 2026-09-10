@@ -8,7 +8,10 @@ import type { ReactNode } from 'react';
 interface AdminTabItem {
   href: string;
   label: string;
-  /** ラベルの左に添えるアイコン。描画済みの要素で受けるのでサーバーコンポーネントから渡せる。 */
+  /**
+   * ラベルの左に添えるアイコン。`<Trophy />` のように素の要素で渡し、大きさは部品側で 16px に揃える。
+   * 描画済みの要素で受けるのでサーバーコンポーネントから渡せる。
+   */
   icon?: ReactNode;
 }
 
@@ -37,7 +40,7 @@ export function AdminTabs({ items }: { items: AdminTabItem[] }) {
                     : 'text-text-sub hover:text-text-main border-transparent hover:border-gray-300'
                 )}
               >
-                {item.icon}
+                {item.icon ? <span className="[&>svg]:h-4 [&>svg]:w-4">{item.icon}</span> : null}
                 {item.label}
               </Link>
             </li>

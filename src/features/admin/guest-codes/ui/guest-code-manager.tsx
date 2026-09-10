@@ -1,6 +1,5 @@
 'use client';
 
-import { AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
 import { toast } from '@/shared/lib/toast';
 import {
   Badge,
@@ -9,6 +8,7 @@ import {
   ConfirmDialog,
   Input,
   Label,
+  SectionTitle,
   TableBody,
   TableEmptyRow,
   TableHead,
@@ -80,7 +80,7 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
   return (
     <div className="space-y-6">
       <Card className="space-y-4 p-6">
-        <AdminSectionTitle>新規ゲストコード発行</AdminSectionTitle>
+        <SectionTitle>新規ゲストコード発行</SectionTitle>
         <div className="flex flex-wrap gap-3">
           <Label className="min-w-0 flex-1 basis-full sm:basis-auto">
             用途

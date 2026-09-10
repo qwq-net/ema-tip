@@ -1,7 +1,8 @@
 import { HorseList } from '@/features/admin/manage-horses';
 import { getHorses } from '@/features/admin/manage-horses/actions';
-import { AdminLoadingCard, AdminPageHeader, AdminSectionTitle } from '@/features/admin/ui/admin-page-header';
-import { Button } from '@/shared/ui';
+import { AdminPage } from '@/features/admin/ui/admin-page';
+import { Button, SectionTitle } from '@/shared/ui';
+import { AdminLoadingCard, AdminPageHeader } from '@/shared/ui/layout/admin-page-header';
 import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   title: '馬マスタ管理',
 };
 
-// 一覧の絞り込みはクライアント側で行うため、データ取得だけをサーバー側で担う
+/** 一覧の絞り込みはクライアント側で行うため、データ取得だけをサーバー側で担う。 */
 async function HorseListSection() {
   const horses = await getHorses();
   return <HorseList horses={horses} />;
@@ -19,27 +20,23 @@ async function HorseListSection() {
 
 export default function HorsesPage() {
   return (
-    <div className="space-y-6">
+    <AdminPage>
       <AdminPageHeader title="馬マスタ管理" description="競走馬の新規登録と情報の管理を行います" />
-
-      <div className="space-y-4">
-        <AdminSectionTitle
-          actions={
-            <Button asChild className="gap-2">
-              <Link href="/admin/horses/new">
-                <Plus className="h-4 w-4" />
-                馬を追加
-              </Link>
-            </Button>
-          }
-        >
-          登録済みの馬
-        </AdminSectionTitle>
-
-        <Suspense fallback={<AdminLoadingCard />}>
-          <HorseListSection />
-        </Suspense>
-      </div>
-    </div>
+      <SectionTitle
+        actions={
+          <Button asChild>
+            <Link href="/admin/horses/new">
+              <Plus />
+              馬を追加
+            </Link>
+          </Button>
+        }
+      >
+        登録済みの馬
+      </SectionTitle>
+      <Suspense fallback={<AdminLoadingCard />}>
+        <HorseListSection />
+      </Suspense>
+    </AdminPage>
   );
 }

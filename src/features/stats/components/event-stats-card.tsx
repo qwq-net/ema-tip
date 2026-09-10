@@ -4,7 +4,8 @@ import { formatSignedYen, resultDiffClass } from '@/entities/ranking';
 import { TransactionList } from '@/entities/wallet/ui/transaction-list';
 import { AssetChart } from '@/features/stats/components/asset-chart';
 import { Badge } from '@/shared/ui/badge';
-import { Card } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Card, CardTitle } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
 import { formatYen } from '@/shared/utils/format-yen';
 import { ChevronDown } from 'lucide-react';
@@ -18,9 +19,13 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
   return (
     <Collapsible className="group">
       <Card>
-        <h3>
+        <CardTitle as="h3">
           <CollapsibleTrigger asChild>
-            <button type="button" className="flex w-full items-center p-4 text-left hover:bg-gray-50/50">
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-auto w-full justify-start p-4 text-left font-normal hover:bg-gray-50/50"
+            >
               <span className="flex flex-1 flex-col gap-1">
                 <span className="flex items-center gap-2">
                   <span className="font-semibold">{event.name}</span>
@@ -36,11 +41,11 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
                 </span>
               </span>
               <span className="text-text-sub inline-flex h-10 w-10 shrink-0 items-center justify-center">
-                <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                <ChevronDown className="transition-transform group-data-[state=open]:rotate-180" />
               </span>
-            </button>
+            </Button>
           </CollapsibleTrigger>
-        </h3>
+        </CardTitle>
 
         <CollapsibleContent>
           <div className="space-y-4 border-t border-gray-100 px-4 py-4">

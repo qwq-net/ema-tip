@@ -11,5 +11,7 @@ export * from './forms';
 export { LiveConnectionStatus, LiveStatusPill } from './live-connection-status';
 export { LogoMark } from './logo';
 export { NumericInput } from './numeric-input';
+export { Prose } from './prose';
+export { SectionTitle } from './section-title';
 export * from './submit-button';
 export * from './table';

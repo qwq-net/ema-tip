@@ -61,7 +61,7 @@ export function Bet5MyTicketsDialog({ tickets, races }: Bet5MyTicketsDialogProps
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full sm:w-auto">
-          <Ticket className="mr-2 h-4 w-4" />
+          <Ticket />
           購入済みの投票を確認
           <span className="bg-turf-100 text-turf-800 ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-sm font-semibold">
             {tickets.length}
