@@ -5,6 +5,8 @@ vars:
   TTY: '{{if .CI}}-T{{else}}{{end}}'
   # 本番は override を読ませず prod 差分を明示指定する
   PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml
+  # CI 相当の本番イメージ確認用。別プロジェクト名にして dev のコンテナとボリュームに触れない
+  CI_PROD: docker compose -p ematip-ci -f docker-compose.yml -f docker-compose.prod.yml
 
 tasks:
   default:
@@ -176,6 +178,43 @@ tasks:
     desc: E2Eテストを実行します。app/db/redis が起動済みでシード投入済みであることが前提です
     cmds:
       - docker compose run --rm e2e
+
+  # ── CI 相当 ───────────────────────────────────────────────────
+  # .github/workflows/ci.yml の 4 ジョブをローカルで直列に回す。速く落ちるものを先に置く。
+  # E2E は dev の DB に対して回るため、CI の空 DB と master-only シードとコールドスタートは再現しない
+  ci:
+    desc: CI と同じ検査を直列に実行します。lint・型・format → 全テスト → E2E → 本番イメージの起動確認
+    cmds:
+      - task: check
+      - task: test:full
+      - task: test:e2e
+      - task: ci:image
+
+  # ci.yml の image ジョブと同じ手順。本番 compose を build して起動し、drizzle-kit push を本番イメージで実行し、
+  # scale 2 の app それぞれが /login を 200 で返すまで待つ。終了時は成否に関わらずボリュームごと片付ける
+  ci:image:
+    desc: 本番イメージを build して 2 コンテナが /login を返すまで確認します。ci.yml の image ジョブ相当
+    cmds:
+      - defer: '{{.CI_PROD}} down -v'
+      - '{{.CI_PROD}} up -d --build app db redis'
+      - '{{.CI_PROD}} run --rm --no-deps app pnpm drizzle-kit push'
+      - |
+        for index in 1 2; do
+          ok=0
+          for i in $(seq 1 20); do
+            if {{.CI_PROD}} exec -T --index "$index" app node -e "fetch('http://localhost:3000/login',{redirect:'manual'}).then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"; then
+              ok=1
+              break
+            fi
+            sleep 3
+          done
+          if [ "$ok" != 1 ]; then
+            echo "app-$index did not become ready" >&2
+            {{.CI_PROD}} logs app | tail -50
+            exit 1
+          fi
+          echo "app-$index ok"
+        done
 
   # ── 本番環境: VM上で実行 ──────────────────────────────────────
   prod:up:
