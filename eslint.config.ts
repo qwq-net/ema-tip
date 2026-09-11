@@ -73,7 +73,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   // tools は vendored の anti-slop 本体なので上流の形のまま置く。.claude はエージェント設定で成果物ではない
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'tools/**', '.claude/**']),
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'tools/**', '.claude/**', 'tmp/**']),
   {
     linterOptions: { reportUnusedDisableDirectives: 'error' },
   },

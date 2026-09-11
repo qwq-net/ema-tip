@@ -28,7 +28,7 @@ export async function createVenue(formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   await db.insert(venues).values({
@@ -54,7 +54,7 @@ export async function updateVenue(id: string, formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   await db

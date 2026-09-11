@@ -34,7 +34,7 @@ export async function createRaceDefinition(formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   await db.insert(raceDefinitions).values({
@@ -67,7 +67,7 @@ export async function updateRaceDefinition(id: string, formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error:', parse.error.issues);
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   await db

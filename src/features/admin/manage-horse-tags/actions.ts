@@ -3,7 +3,7 @@
 import { isHorseTagType } from '@/shared/constants/horse-tags';
 import { db } from '@/shared/db';
 import { horseTagMaster } from '@/shared/db/schema';
-import { requireAdmin } from '@/shared/utils/admin';
+import { ActionError, requireAdmin } from '@/shared/utils/admin';
 import { formString } from '@/shared/utils/form';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -23,7 +23,7 @@ export async function createHorseTag(formData: FormData) {
   const content = formString(formData, 'content');
 
   if (!isHorseTagType(type) || !content) {
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   await db.insert(horseTagMaster).values({
@@ -41,7 +41,7 @@ export async function updateHorseTag(id: string, formData: FormData) {
   const content = formString(formData, 'content');
 
   if (!isHorseTagType(type) || !content) {
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   await db

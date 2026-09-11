@@ -56,17 +56,23 @@ export async function invalidateUsersByCode(code: string) {
   const session = await requireAdmin();
 
   // 1 コードに紐づく全員をまとめて凍結する破壊的な操作。
-  // 誰が何人を止めたのかを残さないと、後から範囲を確かめる手段がない
-  const frozen = await db
-    .update(users)
-    .set({ disabledAt: new Date() })
-    .where(eq(users.guestCodeId, code))
-    .returning({ id: users.id });
+  // 誰が何人を止めたのかを残さないと、後から範囲を確かめる手段がない。
+  // 凍結と記録は同一トランザクションにする。分けると全員止まったのに記録だけ欠ける経路ができる
+  await db.transaction(async (tx) => {
+    const frozen = await tx
+      .update(users)
+      .set({ disabledAt: new Date() })
+      .where(eq(users.guestCodeId, code))
+      .returning({ id: users.id });
 
-  await logAdminAction(db, session.user, {
-    action: 'guest_code.disable_users',
-    targetId: code,
-    detail: { userCount: frozen.length, userIds: frozen.map((u) => u.id) },
+    // 対象が居なければ状態は変わらないので記録しない。監査ログは状態遷移だけを残す
+    if (frozen.length === 0) return;
+
+    await logAdminAction(tx, session.user, {
+      action: 'guest_code.disable_users',
+      targetId: code,
+      detail: { userCount: frozen.length, userIds: frozen.map((u) => u.id) },
+    });
   });
 
   revalidatePath('/admin/users');

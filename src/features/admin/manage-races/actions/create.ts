@@ -2,7 +2,7 @@
 
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
-import { ADMIN_ERRORS, requireAdmin } from '@/shared/utils/admin';
+import { ActionError, ADMIN_ERRORS, requireAdmin } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -30,7 +30,7 @@ export async function createRace(formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error Details:', parse.error.issues);
-    throw new Error(ADMIN_ERRORS.INVALID_INPUT);
+    throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
   }
 
   let raceNumber = parse.data.raceNumber;

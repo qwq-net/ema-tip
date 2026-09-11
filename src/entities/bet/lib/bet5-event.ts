@@ -109,11 +109,11 @@ export async function closeBet5Event(bet5EventId: string) {
   });
 
   if (!current) {
-    throw new Error('BET5 event not found');
+    throw new ActionError('BET5 event not found');
   }
 
   if (current.status !== 'SCHEDULED') {
-    throw new Error('SCHEDULED 状態の BET5 イベントのみ締切できます');
+    throw new ActionError('SCHEDULED 状態の BET5 イベントのみ締切できます');
   }
 
   const [updated] = await db
@@ -136,11 +136,11 @@ export async function updateBet5InitialPot(bet5EventId: string, initialPot: numb
   });
 
   if (!current) {
-    throw new Error('BET5 event not found');
+    throw new ActionError('BET5 event not found');
   }
 
   if (current.status === 'FINALIZED') {
-    throw new Error('BET5 event already finalized');
+    throw new ActionError('BET5 event already finalized');
   }
 
   const [updated] = await db
@@ -310,7 +310,7 @@ export async function calculateBet5Payout(bet5EventId: string) {
       },
     });
 
-    if (!bet5Event) throw new Error('Event not found');
+    if (!bet5Event) throw new ActionError('Event not found');
     if (bet5Event.status === 'FINALIZED') return { success: false, message: '既に払戻確定済みです' };
     // 精算中の購入混入を防ぐため、締切済みのイベントのみ精算できる
     if (bet5Event.status !== 'CLOSED') {

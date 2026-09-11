@@ -95,6 +95,20 @@ describe('notifyError', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('Redis の応答が返らなくても短時間で諦めて送信する', async () => {
+    // ioredis は接続断のときコマンドを待たせる。実測で 19 秒かかり、
+    // Redis 断を知らせる通知がその分遅れていた
+    (redis.incr as unknown as Mock).mockReturnValue(new Promise(() => undefined));
+    const fetchMock = mockFetchOk();
+
+    const started = Date.now();
+    await notifyError({ kind: 'infra', title: 'Redis 接続断' });
+    const elapsed = Date.now() - started;
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(elapsed).toBeLessThan(3000);
+  });
+
   it('Redis が落ちている間も同じ内容は抑制する', async () => {
     (redis.incr as unknown as Mock).mockRejectedValue(new Error('redis down'));
     const fetchMock = mockFetchOk();

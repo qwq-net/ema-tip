@@ -17,31 +17,38 @@ vi.mock('@/shared/utils/admin-audit', () => ({ logAdminAction: vi.fn().mockResol
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 vi.mock('@/shared/db', () => ({
-  db: {
+  db: { transaction: vi.fn() },
+}));
+
+// 3 つの操作はいずれも本体とログを同一トランザクションで行うため、tx をまとめて用意する
+function createTx() {
+  return {
     update: vi.fn(),
     delete: vi.fn(),
     select: vi.fn(),
-    transaction: vi.fn(),
     query: { users: { findFirst: vi.fn() } },
-  },
-}));
+  };
+}
 
 describe('updateUserRole', () => {
   const setWhere = vi.fn().mockResolvedValue(undefined);
   const set = vi.fn().mockReturnValue({ where: setWhere });
+  let tx = createTx();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    tx = createTx();
     set.mockReturnValue({ where: setWhere });
-    (db.update as unknown as Mock).mockReturnValue({ set });
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({ name: 'ルメール', role: 'USER' });
+    tx.update.mockReturnValue({ set });
+    tx.query.users.findFirst.mockResolvedValue({ name: 'ルメール', role: 'USER' });
+    (db.transaction as unknown as Mock).mockImplementation((fn: (t: typeof tx) => Promise<void>) => fn(tx));
   });
 
   it('自分自身の管理者権限は変更せず、理由をエラーとして返す', async () => {
     const result = await updateUserRole('admin-1', 'USER');
 
     expect(result).toEqual({ success: false, error: '自身の管理者権限は変更できません' });
-    expect(db.update).not.toHaveBeenCalled();
+    expect(db.transaction).not.toHaveBeenCalled();
   });
 
   it('他のユーザーの役割は更新して成功を返す', async () => {
@@ -55,7 +62,7 @@ describe('updateUserRole', () => {
     await updateUserRole('user-2', 'ADMIN');
 
     expect(logAdminAction).toHaveBeenCalledWith(
-      db,
+      tx,
       expect.objectContaining({ id: 'admin-1' }),
       expect.objectContaining({
         action: 'user.change_role',
@@ -66,12 +73,12 @@ describe('updateUserRole', () => {
   });
 
   it('同じ役割への変更は何もせず監査ログも残さない', async () => {
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({ name: 'ルメール', role: 'ADMIN' });
+    tx.query.users.findFirst.mockResolvedValue({ name: 'ルメール', role: 'ADMIN' });
 
     const result = await updateUserRole('user-2', 'ADMIN');
 
     expect(result.success).toBe(true);
-    expect(db.update).not.toHaveBeenCalled();
+    expect(tx.update).not.toHaveBeenCalled();
     expect(logAdminAction).not.toHaveBeenCalled();
   });
 });
@@ -79,62 +86,65 @@ describe('updateUserRole', () => {
 describe('toggleUserStatus', () => {
   const setWhere = vi.fn().mockResolvedValue(undefined);
   const set = vi.fn();
+  let tx = createTx();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    tx = createTx();
     set.mockReturnValue({ where: setWhere });
-    (db.update as unknown as Mock).mockReturnValue({ set });
+    tx.update.mockReturnValue({ set });
+    (db.transaction as unknown as Mock).mockImplementation((fn: (t: typeof tx) => Promise<void>) => fn(tx));
   });
 
   it('自身のアカウントは無効化せず、理由をエラーとして返す', async () => {
     const result = await toggleUserStatus('admin-1');
 
     expect(result).toEqual({ success: false, error: '自身のアカウントは無効化できません' });
-    expect(db.update).not.toHaveBeenCalled();
+    expect(db.transaction).not.toHaveBeenCalled();
   });
 
   it('ユーザーが無ければ理由をエラーとして返す', async () => {
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue(undefined);
+    tx.query.users.findFirst.mockResolvedValue(undefined);
 
     const result = await toggleUserStatus('missing');
 
     expect(result).toEqual({ success: false, error: 'ユーザーが見つかりません' });
-    expect(db.update).not.toHaveBeenCalled();
+    expect(tx.update).not.toHaveBeenCalled();
   });
 
   it('有効なユーザーは無効化し、無効なユーザーは有効化して成功を返す', async () => {
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({ id: 'user-2', disabledAt: null });
+    tx.query.users.findFirst.mockResolvedValue({ id: 'user-2', disabledAt: null });
     const enabled = await toggleUserStatus('user-2');
     expect(enabled.success).toBe(true);
     expect(set).toHaveBeenCalledWith({ disabledAt: expect.any(Date) });
 
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({ id: 'user-2', disabledAt: new Date() });
+    tx.query.users.findFirst.mockResolvedValue({ id: 'user-2', disabledAt: new Date() });
     const disabled = await toggleUserStatus('user-2');
     expect(disabled.success).toBe(true);
     expect(set).toHaveBeenLastCalledWith({ disabledAt: null });
   });
 
   it('凍結と解除を区別して監査ログに残す', async () => {
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({
+    tx.query.users.findFirst.mockResolvedValue({
       id: 'user-2',
       name: 'ルメール',
       disabledAt: null,
     });
     await toggleUserStatus('user-2');
     expect(logAdminAction).toHaveBeenLastCalledWith(
-      db,
+      tx,
       expect.anything(),
       expect.objectContaining({ action: 'user.disable', targetId: 'user-2' })
     );
 
-    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({
+    tx.query.users.findFirst.mockResolvedValue({
       id: 'user-2',
       name: 'ルメール',
       disabledAt: new Date(),
     });
     await toggleUserStatus('user-2');
     expect(logAdminAction).toHaveBeenLastCalledWith(
-      db,
+      tx,
       expect.anything(),
       expect.objectContaining({ action: 'user.enable', targetId: 'user-2' })
     );
@@ -154,11 +164,13 @@ describe('deleteUser', () => {
     tx.delete.mockReturnValue({ where: deleteWhere });
     tx.query.users.findFirst.mockResolvedValue({ name: 'ルメール', role: 'USER' });
     // 1 回目の select がウォレット、2 回目がベット
+    // 1 回目がウォレット、2 回目がベット、3 回目が発行したゲストコード
     tx.select
       .mockReturnValueOnce({
         from: () => ({ where: () => Promise.resolve([{ eventId: 'ev-1', balance: 12000, totalLoaned: 5000 }]) }),
       })
-      .mockReturnValueOnce({ from: () => ({ where: () => Promise.resolve([{ id: 'bet-1' }, { id: 'bet-2' }]) }) });
+      .mockReturnValueOnce({ from: () => ({ where: () => Promise.resolve([{ id: 'bet-1' }, { id: 'bet-2' }]) }) })
+      .mockReturnValueOnce({ from: () => ({ where: () => Promise.resolve([{ code: 'WELCOME1' }]) }) });
     (db.transaction as unknown as Mock).mockImplementation((fn: (t: typeof tx) => Promise<void>) => fn(tx));
   });
 
@@ -192,6 +204,7 @@ describe('deleteUser', () => {
           totalLoaned: 5000,
           betCount: 2,
           wallets: ['ev-1:12000:5000'],
+          issuedGuestCodes: ['WELCOME1'],
         }),
       })
     );

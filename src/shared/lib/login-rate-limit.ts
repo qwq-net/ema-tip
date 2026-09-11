@@ -19,7 +19,9 @@ const BURST_KEY = 'login-failure-burst';
  */
 async function checkFailureBurst(): Promise<void> {
   const burst = await redis.incr(BURST_KEY);
-  if (burst === 1) await redis.expire(BURST_KEY, BURST_WINDOW_SECONDS);
+  // NX 付きで毎回発行する。1 件目だけに絞ると EXPIRE が一度落ちただけで期限の無いキーが残り、
+  // 閾値を超えた後は等値比較が二度と成立せず、急増検知が静かに死ぬ。NX なので窓は延びない
+  await redis.expire(BURST_KEY, BURST_WINDOW_SECONDS, 'NX');
   if (burst !== BURST_THRESHOLD) return;
 
   void notifyError({

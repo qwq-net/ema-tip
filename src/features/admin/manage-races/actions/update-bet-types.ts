@@ -4,7 +4,7 @@ import { BET_TYPE_ORDER, type BetType } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { raceAllowedBetTypes } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { ActionError, ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq } from 'drizzle-orm';
 
@@ -19,7 +19,7 @@ export async function updateRaceAllowedBetTypes(raceId: string, allowedTypes: Be
   const session = await requireAdmin();
 
   if (allowedTypes !== null && (allowedTypes.length === 0 || allowedTypes.some((t) => !VALID_BET_TYPES.has(t)))) {
-    throw new Error(ADMIN_ERRORS.INVALID_INPUT);
+    throw new ActionError(ADMIN_ERRORS.INVALID_INPUT);
   }
 
   // 表示順へ正規化しつつ重複を除去する

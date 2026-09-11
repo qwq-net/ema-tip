@@ -54,7 +54,7 @@ export async function createHorse(formData: FormData) {
 
   if (!parse.success) {
     console.error(parse.error);
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   const genderInput = parse.data.gender;
@@ -103,7 +103,7 @@ export async function updateHorse(id: string, formData: FormData) {
 
   if (!parse.success) {
     console.error(parse.error);
-    throw new Error('入力内容が無効です');
+    throw new ActionError('入力内容が無効です');
   }
 
   const genderInput = parse.data.gender;

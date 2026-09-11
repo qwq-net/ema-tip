@@ -3,6 +3,7 @@
 import { db } from '@/shared/db';
 import { adminDiscordIds } from '@/shared/db/schema';
 import { ActionError, requireAdmin, runAction } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -39,10 +40,18 @@ export async function addAdminDiscordId(discordId: string, label: string) {
       throw new ActionError('この Discord ID は既に登録されています');
     }
 
-    await db.insert(adminDiscordIds).values({
-      discordId,
-      label: trimmedLabel,
-      createdBy: adminUserId,
+    // 一覧への追加は将来の管理者を生む操作で、役割変更と同じ重みがある。記録と同一トランザクションにする
+    await db.transaction(async (tx) => {
+      await tx.insert(adminDiscordIds).values({
+        discordId,
+        label: trimmedLabel,
+        createdBy: adminUserId,
+      });
+      await logAdminAction(tx, session.user, {
+        action: 'admin_discord_id.add',
+        targetId: discordId,
+        detail: { label: trimmedLabel },
+      });
     });
 
     revalidatePath('/admin/users/admins');
@@ -55,9 +64,23 @@ export async function addAdminDiscordId(discordId: string, label: string) {
  */
 export async function removeAdminDiscordId(discordId: string) {
   return runAction(async () => {
-    await requireAdmin();
+    const session = await requireAdmin();
 
-    await db.delete(adminDiscordIds).where(eq(adminDiscordIds.discordId, discordId));
+    await db.transaction(async (tx) => {
+      const removed = await tx
+        .delete(adminDiscordIds)
+        .where(eq(adminDiscordIds.discordId, discordId))
+        .returning({ label: adminDiscordIds.label });
+
+      // 該当が無ければ状態は変わらないので記録しない
+      if (removed.length === 0) return;
+
+      await logAdminAction(tx, session.user, {
+        action: 'admin_discord_id.remove',
+        targetId: discordId,
+        detail: { label: removed[0]?.label ?? null },
+      });
+    });
 
     revalidatePath('/admin/users/admins');
   });
