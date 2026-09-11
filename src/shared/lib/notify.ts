@@ -112,24 +112,41 @@ function shouldSend(count: number): boolean {
   return /^10*$/.test(String(count));
 }
 
+// 通知を読むのは日本にいる運営なので、表示は日本時間に固定する。日本は夏時間を持たないため定数でよい
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** 日本時間の `YYYY-MM-DD HH:MM:SS.mmm` を返す。秒より細かい桁は、連続した事象の間隔を読むために残す。 */
+function formatTimestamp(at: Date): string {
+  const jst = new Date(at.getTime() + JST_OFFSET_MS);
+  const pad = (value: number, width = 2) => String(value).padStart(width, '0');
+  const date = `${jst.getUTCFullYear()}-${pad(jst.getUTCMonth() + 1)}-${pad(jst.getUTCDate())}`;
+  const time = `${pad(jst.getUTCHours())}:${pad(jst.getUTCMinutes())}:${pad(jst.getUTCSeconds())}`;
+  return `${date} ${time}.${pad(jst.getUTCMilliseconds(), 3)}`;
+}
+
+/**
+ * 日時・要約・詳細の 3 段で組み立てる。
+ * 要約は引用にして視線が最初に落ちる位置を作り、機械的な文字列はコードブロックへ隔離する。
+ * 件数と文脈は要約と同じ引用へ続け、読む対象を 2 箇所に散らさない。
+ */
 function buildMessage(input: NotifyInput, count: number): string {
-  const lines = [`**${KIND_LABELS[input.kind]}** ${input.title}`];
-
-  if (count > 1) lines.push(`${count} 件目。直近 ${WINDOW_SECONDS / 60} 分で同じ事象が続いています`);
-  if (input.detail) lines.push(`\`\`\`${input.detail.slice(0, 500)}\`\`\``);
-
+  const quoted = [`${KIND_LABELS[input.kind]} ${input.title}`];
+  if (count > 1) quoted.push(`${count} 件目。直近 ${WINDOW_SECONDS / 60} 分で同じ事象が続いています`);
   if (input.context) {
-    const pairs = Object.entries(input.context).map(([k, v]) => `${k}=${v}`);
-    if (pairs.length > 0) lines.push(pairs.join(' '));
+    const pairs = Object.entries(input.context).map(([key, value]) => `${key}=${value}`);
+    if (pairs.length > 0) quoted.push(pairs.join(' '));
   }
 
+  const blocks = [formatTimestamp(new Date()), '', quoted.map((line) => `> ${line}`).join('\n')];
+
+  const details: string[] = [];
+  if (input.detail) details.push(input.detail.slice(0, 500));
   const stack = input.cause instanceof Error ? input.cause.stack : undefined;
-  if (stack) {
-    const frames = stack.split('\n').slice(0, 6).join('\n');
-    lines.push(`\`\`\`${frames.slice(0, 800)}\`\`\``);
-  }
+  if (stack) details.push(stack.split('\n').slice(0, 6).join('\n').slice(0, 800));
 
-  return lines.join('\n');
+  if (details.length > 0) blocks.push('', `\`\`\`\n${details.join('\n\n')}\n\`\`\``);
+
+  return blocks.join('\n');
 }
 
 /**

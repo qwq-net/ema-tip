@@ -29,6 +29,59 @@ describe('notifyError', () => {
     vi.unstubAllGlobals();
   });
 
+  it('日時と引用とコードブロックの順で組み立てる', async () => {
+    const fetchMock = mockFetchOk();
+
+    await notifyError({
+      kind: 'infra',
+      title: 'Redis へ接続できません',
+      detail: 'connect ECONNREFUSED 172.18.0.3:6379',
+    });
+
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as { content: string };
+    const lines = body.content.split('\n');
+
+    expect(lines[0]).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/);
+    expect(lines[1]).toBe('');
+    expect(lines[2]).toBe('> 基盤の異常 Redis へ接続できません');
+    expect(body.content).toContain('```\nconnect ECONNREFUSED 172.18.0.3:6379\n```');
+  });
+
+  it('件数と文脈は引用の中へ続けて出す', async () => {
+    (redis.incr as unknown as Mock).mockResolvedValue(10);
+    const fetchMock = mockFetchOk();
+
+    await notifyError({
+      kind: 'money',
+      title: '購入後のオッズ再計算に失敗しました',
+      context: { raceId: 'race-1' },
+    });
+
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as { content: string };
+    expect(body.content).toContain('> 10 件目');
+    expect(body.content).toContain('> raceId=race-1');
+  });
+
+  it('1 件目は件数の行を出さない', async () => {
+    const fetchMock = mockFetchOk();
+
+    await notifyError({ kind: 'infra', title: 'Redis へ接続できません' });
+
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as { content: string };
+    expect(body.content).not.toContain('件目');
+  });
+
+  it('スタックは詳細と同じコードブロックへ続ける', async () => {
+    const fetchMock = mockFetchOk();
+    const cause = new Error('boom');
+
+    await notifyError({ kind: 'action', title: '失敗しました', detail: 'boom', cause });
+
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as { content: string };
+    expect(body.content.match(/```/g)).toHaveLength(2);
+    expect(body.content).toContain('Error: boom');
+  });
+
   it('webhook が未設定なら送信しない', async () => {
     vi.stubEnv('DISCORD_WEBHOOK_URL', '');
     const fetchMock = mockFetchOk();
