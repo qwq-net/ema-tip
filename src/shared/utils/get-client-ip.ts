@@ -1,3 +1,4 @@
+import { notifyError } from '@/shared/lib/notify';
 import { headers } from 'next/headers';
 
 /**
@@ -12,6 +13,16 @@ export async function getClientIp(): Promise<string> {
 
   const cfIp = headersList.get('cf-connecting-ip');
   if (cfIp) return cfIp.trim();
+
+  // 本番でこのヘッダが無いのは、Cloudflare を経由していないか経路の設定が壊れている状態。
+  // 全員が同じキーへ集約されるため、誰か 1 人の失敗で全員がロックされる。症状から原因を辿れないので通知する
+  if (process.env.NODE_ENV === 'production') {
+    void notifyError({
+      kind: 'config',
+      title: 'cf-connecting-ip が届いていません',
+      detail: 'レート制限が全利用者で共有され、誰か 1 人の失敗で全員がロックされます',
+    });
+  }
 
   return '127.0.0.1';
 }

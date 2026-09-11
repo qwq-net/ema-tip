@@ -306,7 +306,8 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ['src/app/layout.tsx'],
+    // global-error は root layout を置き換えるため、Next.js の仕様として html と body を自前で持つ
+    files: ['src/app/layout.tsx', 'src/app/global-error.tsx'],
     rules: {
       'no-restricted-syntax': [
         'error',

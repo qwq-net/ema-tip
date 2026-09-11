@@ -1,7 +1,33 @@
+import { notifyError } from '@/shared/lib/notify';
 import { redis } from '@/shared/lib/redis';
 import { z } from 'zod';
 
 const TTL_SECONDS = 24 * 60 * 60;
+
+// 全 IP を合算した失敗の急増を見る窓と件数。
+// 単独 IP の総当たりは段階ロックが既に止めるので通知しない。危ないのは多数の IP から同時に来る場合で、
+// これはロックを掛けても素通りする。想定利用者は最大 30 人で、通常は 1 日に数件しか失敗しない。
+// 1 分で 10 件はその規模では明確に異常と判断できる下限として置いた。
+const BURST_WINDOW_SECONDS = 60;
+export const BURST_THRESHOLD = 10;
+const BURST_KEY = 'login-failure-burst';
+
+/**
+ * 全体の失敗件数を数え、窓のなかで閾値へ達した瞬間に一度だけ通知する。
+ * 超えた後は通知しない。続いている間ずっと鳴らすと読まれなくなるため。
+ * 窓が切れれば再び 1 件目から数え直すので、続く攻撃は 1 分ごとに 1 回だけ知らせる。
+ */
+async function checkFailureBurst(): Promise<void> {
+  const burst = await redis.incr(BURST_KEY);
+  if (burst === 1) await redis.expire(BURST_KEY, BURST_WINDOW_SECONDS);
+  if (burst !== BURST_THRESHOLD) return;
+
+  void notifyError({
+    kind: 'security',
+    title: 'ログイン失敗が急増しています',
+    detail: `${BURST_WINDOW_SECONDS} 秒のあいだに ${BURST_THRESHOLD} 件の失敗が起きました`,
+  });
+}
 
 // ロック状態の記録。失敗回数は別キーのカウンタで数え、ここには持たない
 const loginAttemptRecordSchema = z.object({
@@ -70,6 +96,8 @@ export async function recordLoginFailure(
   isStrict = false
 ): Promise<void> {
   const currentBlockLevel = record?.blockLevel ?? 0;
+
+  await checkFailureBurst();
 
   const currentAttempts = await redis.incr(attemptsKeyFor(ip));
   if (currentAttempts === 1) {

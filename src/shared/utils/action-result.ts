@@ -1,3 +1,5 @@
+import { notifyError } from '@/shared/lib/notify';
+
 /**
  * ユーザーに見せてよい想定内の業務エラー。
  * runAction がこのクラスだけを { success: false, error } へ変換し、
@@ -21,6 +23,13 @@ export async function runAction<T>(fn: () => Promise<T>): Promise<ActionResult<T
       return { success: false, error: error.message };
     }
     console.error('Unexpected action error:', error);
+    // ActionError 以外がここへ来るのは想定外の異常。業務エラーは上の分岐で返るため通知しない
+    void notifyError({
+      kind: 'action',
+      title: 'Server Action が想定外の例外で失敗しました',
+      detail: error instanceof Error ? error.message : String(error),
+      cause: error,
+    });
     return { success: false, error: 'エラーが発生しました' };
   }
 }

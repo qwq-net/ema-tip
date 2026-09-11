@@ -15,6 +15,7 @@ import {
   transactions,
   wallets,
 } from '@/shared/db/schema';
+import { notifyError } from '@/shared/lib/notify';
 import { ActionError, ADMIN_ERRORS, requireUser, runAction } from '@/shared/utils/admin';
 import { firstRow } from '@/shared/utils/first-row';
 import { eq, sql } from 'drizzle-orm';
@@ -214,6 +215,15 @@ async function placeBetsInner(args: PlaceBetsArgs) {
   // オッズ再計算は応答を待たないファイア・アンド・フォーゲット
   void calculateOdds(raceId).catch((cause: unknown) => {
     console.error('Failed to calculate odds:', cause);
+    // 購入は成立済みでオッズだけが古いまま残る。利用者は誤ったオッズを見て次を買うため、
+    // 台帳の突合でも検出できない。運営が手で再計算を促す必要があるので通知する
+    void notifyError({
+      kind: 'money',
+      title: '購入後のオッズ再計算に失敗しました',
+      detail: cause instanceof Error ? cause.message : String(cause),
+      context: { raceId },
+      cause,
+    });
   });
 }
 

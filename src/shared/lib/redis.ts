@@ -1,3 +1,4 @@
+import { notifyError } from '@/shared/lib/notify';
 import Redis from 'ioredis';
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -19,6 +20,13 @@ function createRedis() {
 
   client.on('error', (err) => {
     console.error('Redis connection error:', err);
+    // Redis が落ちると SSE の配信が全て止まり、レート制限の読み書きが例外を投げてログインも不能になる。
+    // 影響が広いので通知する。再接続の試行ごとに発火するため、notify 側の抑制に頼る
+    void notifyError({
+      kind: 'infra',
+      title: 'Redis へ接続できません',
+      detail: err.message,
+    });
   });
 
   client.on('connect', () => {

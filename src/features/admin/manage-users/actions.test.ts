@@ -1,4 +1,5 @@
 import { db } from '@/shared/db';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { deleteUser, toggleUserStatus, updateUserRole } from './actions';
@@ -7,9 +8,11 @@ vi.mock('@/shared/utils/admin', async () => {
   const actual = await vi.importActual('@/shared/utils/admin');
   return {
     ...actual,
-    requireAdmin: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } }),
+    requireAdmin: vi.fn().mockResolvedValue({ user: { id: 'admin-1', name: '管理者', role: 'ADMIN' } }),
   };
 });
+
+vi.mock('@/shared/utils/admin-audit', () => ({ logAdminAction: vi.fn().mockResolvedValue(undefined) }));
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
@@ -17,6 +20,8 @@ vi.mock('@/shared/db', () => ({
   db: {
     update: vi.fn(),
     delete: vi.fn(),
+    select: vi.fn(),
+    transaction: vi.fn(),
     query: { users: { findFirst: vi.fn() } },
   },
 }));
@@ -29,6 +34,7 @@ describe('updateUserRole', () => {
     vi.clearAllMocks();
     set.mockReturnValue({ where: setWhere });
     (db.update as unknown as Mock).mockReturnValue({ set });
+    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({ name: 'ルメール', role: 'USER' });
   });
 
   it('自分自身の管理者権限は変更せず、理由をエラーとして返す', async () => {
@@ -43,6 +49,30 @@ describe('updateUserRole', () => {
 
     expect(result.success).toBe(true);
     expect(set).toHaveBeenCalledWith({ role: 'ADMIN' });
+  });
+
+  it('役割の変更を誰が何から何へ変えたかまで監査ログに残す', async () => {
+    await updateUserRole('user-2', 'ADMIN');
+
+    expect(logAdminAction).toHaveBeenCalledWith(
+      db,
+      expect.objectContaining({ id: 'admin-1' }),
+      expect.objectContaining({
+        action: 'user.change_role',
+        targetId: 'user-2',
+        detail: expect.objectContaining({ from: 'USER', to: 'ADMIN' }),
+      })
+    );
+  });
+
+  it('同じ役割への変更は何もせず監査ログも残さない', async () => {
+    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({ name: 'ルメール', role: 'ADMIN' });
+
+    const result = await updateUserRole('user-2', 'ADMIN');
+
+    expect(result.success).toBe(true);
+    expect(db.update).not.toHaveBeenCalled();
+    expect(logAdminAction).not.toHaveBeenCalled();
   });
 });
 
@@ -83,27 +113,96 @@ describe('toggleUserStatus', () => {
     expect(disabled.success).toBe(true);
     expect(set).toHaveBeenLastCalledWith({ disabledAt: null });
   });
+
+  it('凍結と解除を区別して監査ログに残す', async () => {
+    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'user-2',
+      name: 'ルメール',
+      disabledAt: null,
+    });
+    await toggleUserStatus('user-2');
+    expect(logAdminAction).toHaveBeenLastCalledWith(
+      db,
+      expect.anything(),
+      expect.objectContaining({ action: 'user.disable', targetId: 'user-2' })
+    );
+
+    (db.query.users.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'user-2',
+      name: 'ルメール',
+      disabledAt: new Date(),
+    });
+    await toggleUserStatus('user-2');
+    expect(logAdminAction).toHaveBeenLastCalledWith(
+      db,
+      expect.anything(),
+      expect.objectContaining({ action: 'user.enable', targetId: 'user-2' })
+    );
+  });
 });
 
 describe('deleteUser', () => {
   const deleteWhere = vi.fn().mockResolvedValue(undefined);
+  const tx = {
+    delete: vi.fn(),
+    select: vi.fn(),
+    query: { users: { findFirst: vi.fn() } },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (db.delete as unknown as Mock).mockReturnValue({ where: deleteWhere });
+    tx.delete.mockReturnValue({ where: deleteWhere });
+    tx.query.users.findFirst.mockResolvedValue({ name: 'ルメール', role: 'USER' });
+    // 1 回目の select がウォレット、2 回目がベット
+    tx.select
+      .mockReturnValueOnce({
+        from: () => ({ where: () => Promise.resolve([{ eventId: 'ev-1', balance: 12000, totalLoaned: 5000 }]) }),
+      })
+      .mockReturnValueOnce({ from: () => ({ where: () => Promise.resolve([{ id: 'bet-1' }, { id: 'bet-2' }]) }) });
+    (db.transaction as unknown as Mock).mockImplementation((fn: (t: typeof tx) => Promise<void>) => fn(tx));
   });
 
   it('自身のアカウントは削除せず、理由をエラーとして返す', async () => {
     const result = await deleteUser('admin-1');
 
     expect(result).toEqual({ success: false, error: '自身のアカウントは削除できません' });
-    expect(db.delete).not.toHaveBeenCalled();
+    expect(db.transaction).not.toHaveBeenCalled();
   });
 
   it('他のユーザーは削除して成功を返す', async () => {
     const result = await deleteUser('user-2');
 
     expect(result.success).toBe(true);
-    expect(db.delete).toHaveBeenCalledTimes(1);
+    expect(tx.delete).toHaveBeenCalledTimes(1);
+  });
+
+  it('連鎖削除で消える残高とベット件数を、削除前に監査ログへ焼き付ける', async () => {
+    await deleteUser('user-2');
+
+    expect(logAdminAction).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({ id: 'admin-1' }),
+      expect.objectContaining({
+        action: 'user.delete',
+        targetId: 'user-2',
+        detail: expect.objectContaining({
+          userName: 'ルメール',
+          walletCount: 1,
+          totalBalance: 12000,
+          totalLoaned: 5000,
+          betCount: 2,
+          wallets: ['ev-1:12000:5000'],
+        }),
+      })
+    );
+  });
+
+  it('存在しないユーザーは削除せず理由をエラーとして返す', async () => {
+    tx.query.users.findFirst.mockResolvedValue(undefined);
+
+    const result = await deleteUser('missing');
+
+    expect(result).toEqual({ success: false, error: 'ユーザーが見つかりません' });
+    expect(tx.delete).not.toHaveBeenCalled();
   });
 });

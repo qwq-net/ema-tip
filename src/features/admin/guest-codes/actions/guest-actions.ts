@@ -3,6 +3,7 @@
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
+import { logAdminAction } from '@/shared/utils/admin-audit';
 import crypto from 'crypto';
 import { desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -43,17 +44,30 @@ export async function getGuestCodes() {
 }
 
 export async function invalidateGuestCode(code: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   await db.update(guestCodes).set({ disabledAt: new Date() }).where(eq(guestCodes.code, code));
+  await logAdminAction(db, session.user, { action: 'guest_code.invalidate', targetId: code });
 
   revalidatePath('/admin/users');
 }
 
 export async function invalidateUsersByCode(code: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await db.update(users).set({ disabledAt: new Date() }).where(eq(users.guestCodeId, code));
+  // 1 コードに紐づく全員をまとめて凍結する破壊的な操作。
+  // 誰が何人を止めたのかを残さないと、後から範囲を確かめる手段がない
+  const frozen = await db
+    .update(users)
+    .set({ disabledAt: new Date() })
+    .where(eq(users.guestCodeId, code))
+    .returning({ id: users.id });
+
+  await logAdminAction(db, session.user, {
+    action: 'guest_code.disable_users',
+    targetId: code,
+    detail: { userCount: frozen.length, userIds: frozen.map((u) => u.id) },
+  });
 
   revalidatePath('/admin/users');
 }

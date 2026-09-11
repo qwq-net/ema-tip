@@ -1,11 +1,15 @@
+import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/shared/lib/redis', () => ({
   redis: { get: vi.fn(), set: vi.fn(), del: vi.fn(), incr: vi.fn(), expire: vi.fn() },
 }));
 
+vi.mock('@/shared/lib/notify', () => ({ notifyError: vi.fn() }));
+
+import { notifyError } from '@/shared/lib/notify';
 import { redis } from '@/shared/lib/redis';
-import { clearLoginFailures, recordLoginFailure } from './login-rate-limit';
+import { BURST_THRESHOLD, clearLoginFailures, recordLoginFailure } from './login-rate-limit';
 
 const ip = '203.0.113.5';
 const counterKey = `ratelimit:ip:${ip}:attempts`;
@@ -54,5 +58,42 @@ describe('clearLoginFailures', () => {
     await clearLoginFailures(ip);
 
     expect(redis.del).toHaveBeenCalledWith(recordKey, counterKey);
+  });
+});
+
+describe('ログイン失敗の急増検知', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('窓のなかで閾値に達した瞬間に一度だけ通知する', async () => {
+    (redis.incr as unknown as Mock).mockImplementation((key: string) =>
+      Promise.resolve(key === 'login-failure-burst' ? BURST_THRESHOLD : 1)
+    );
+
+    await recordLoginFailure('203.0.113.10', null);
+
+    expect(notifyError).toHaveBeenCalledTimes(1);
+    expect((notifyError as unknown as Mock).mock.calls[0]?.[0]).toMatchObject({ kind: 'security' });
+  });
+
+  it('閾値の手前では通知しない', async () => {
+    (redis.incr as unknown as Mock).mockImplementation((key: string) =>
+      Promise.resolve(key === 'login-failure-burst' ? BURST_THRESHOLD - 1 : 1)
+    );
+
+    await recordLoginFailure('203.0.113.10', null);
+
+    expect(notifyError).not.toHaveBeenCalled();
+  });
+
+  it('閾値を超えた後は通知を繰り返さない', async () => {
+    (redis.incr as unknown as Mock).mockImplementation((key: string) =>
+      Promise.resolve(key === 'login-failure-burst' ? BURST_THRESHOLD + 5 : 1)
+    );
+
+    await recordLoginFailure('203.0.113.10', null);
+
+    expect(notifyError).not.toHaveBeenCalled();
   });
 });
