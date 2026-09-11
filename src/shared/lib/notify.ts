@@ -115,6 +115,12 @@ function shouldSend(count: number): boolean {
 // 通知を読むのは日本にいる運営なので、表示は日本時間に固定する。日本は夏時間を持たないため定数でよい
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
+// 末尾の区切り。Discord は連続した投稿を詰めて並べるため、無いと直前のログと地続きに見える
+const SEPARATOR = '-----';
+
+// Discord の 1 投稿の上限は 2000 文字。区切りを必ず残すため、本文はその手前で切る
+const CONTENT_LIMIT = 2000;
+
 /** 日本時間の `YYYY-MM-DD HH:MM:SS.mmm` を返す。秒より細かい桁は、連続した事象の間隔を読むために残す。 */
 function formatTimestamp(at: Date): string {
   const jst = new Date(at.getTime() + JST_OFFSET_MS);
@@ -146,7 +152,9 @@ function buildMessage(input: NotifyInput, count: number): string {
 
   if (details.length > 0) blocks.push('', `\`\`\`\n${details.join('\n\n')}\n\`\`\``);
 
-  return blocks.join('\n');
+  // 切り詰めは区切りを足す前に行う。後から足すと、長い本文のときだけ区切りが消える
+  const body = blocks.join('\n').slice(0, CONTENT_LIMIT - SEPARATOR.length - 1);
+  return `${body}\n${SEPARATOR}`;
 }
 
 /**
@@ -166,7 +174,7 @@ export async function notifyError(input: NotifyInput): Promise<void> {
     await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ content: buildMessage(input, count).slice(0, 1900) }),
+      body: JSON.stringify({ content: buildMessage(input, count) }),
     });
   } catch (cause) {
     // 通知の失敗でリクエストを壊さない。ここで throw すると障害が二重になる

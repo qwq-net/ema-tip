@@ -82,6 +82,25 @@ describe('notifyError', () => {
     expect(body.content).toContain('Error: boom');
   });
 
+  it('末尾に区切りを置いて直前のログと分ける', async () => {
+    const fetchMock = mockFetchOk();
+
+    await notifyError({ kind: 'infra', title: 'Redis へ接続できません', detail: '接続できません' });
+
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as { content: string };
+    expect(body.content.endsWith('\n-----')).toBe(true);
+  });
+
+  it('本文が長く切り詰められても区切りは残る', async () => {
+    const fetchMock = mockFetchOk();
+
+    await notifyError({ kind: 'action', title: '失敗しました', detail: 'あ'.repeat(5000) });
+
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as { content: string };
+    expect(body.content.endsWith('\n-----')).toBe(true);
+    expect(body.content.length).toBeLessThanOrEqual(2000);
+  });
+
   it('webhook が未設定なら送信しない', async () => {
     vi.stubEnv('DISCORD_WEBHOOK_URL', '');
     const fetchMock = mockFetchOk();
