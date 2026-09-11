@@ -17,6 +17,7 @@ import {
   type LucideIcon,
   MapPin,
   Menu,
+  ShieldCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -75,6 +76,7 @@ const NAV_GROUPS: { label?: string; role: string[]; items: NavItem[] }[] = [
     items: [
       { label: 'ユーザー管理', href: '/admin/users', icon: Users },
       { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
+      { label: 'Discord管理者ID', href: '/admin/users/admins', icon: ShieldCheck },
       { label: '保証オッズ設定', href: '/admin/settings/odds', icon: Coins },
     ],
   },

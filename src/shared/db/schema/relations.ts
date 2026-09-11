@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { accounts, guestCodes, users } from './auth';
+import { accounts, adminDiscordIds, guestCodes, users } from './auth';
 import { bet5Events, bet5Tickets, betGroups, bets } from './bets';
 import { events } from './events';
 import { forecasts } from './forecasts';
@@ -30,6 +30,14 @@ export const guestCodeRelations = relations(guestCodes, ({ one }) => ({
     fields: [guestCodes.createdBy],
     references: [users.id],
     relationName: 'creator',
+  }),
+}));
+
+export const adminDiscordIdRelations = relations(adminDiscordIds, ({ one }) => ({
+  creator: one(users, {
+    fields: [adminDiscordIds.createdBy],
+    references: [users.id],
+    relationName: 'adminDiscordIdCreator',
   }),
 }));
 

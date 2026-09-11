@@ -53,6 +53,8 @@ Cloudflare Zero Trust でトンネルを作成し、`.env` に `TUNNEL_TOKEN` �
 
 ユーザーロールの変更は `task db:role -- --user=<username>` で行います。
 
+管理者は Discord の固有 ID から自動で付与できます。管理画面の Discord管理者ID に登録した ID で初めてログインした人が管理者になります。登録済みの利用者の役割は変わらないため、その場合はユーザー管理から変更します。初期値は `src/shared/db/seed.ts` にあり、マスタのみのシードでも投入されます。
+
 ## 本番環境での実行
 
 本番は Proxmox VM 上の Docker で運用し、Cloudflare Tunnel 経由で公開します。`.env` に `TUNNEL_TOKEN` を設定した上で、VM上で以下を実行します。

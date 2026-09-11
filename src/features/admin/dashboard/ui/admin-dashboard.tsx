@@ -13,6 +13,7 @@ import {
   Key,
   MapPin,
   Plus,
+  ShieldCheck,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -94,6 +95,12 @@ const SYSTEM_ACTIONS = [
     icon: Key,
     label: 'ゲストコード管理',
     description: 'ログインコードの管理',
+  },
+  {
+    href: '/admin/users/admins',
+    icon: ShieldCheck,
+    label: 'Discord管理者ID',
+    description: '管理者になる ID の管理',
   },
   {
     href: '/admin/settings/odds',

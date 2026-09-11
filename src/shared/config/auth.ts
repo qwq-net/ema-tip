@@ -1,6 +1,7 @@
 import { isValidUserName } from '@/entities/user/constants';
 import { db } from '@/shared/db';
 import * as schema from '@/shared/db/schema';
+import { resolveRoleForDiscordId } from '@/shared/lib/admin-discord-ids';
 import {
   clearLoginFailures,
   getLoginAttemptRecord,
@@ -206,10 +207,11 @@ const {
   providers: [
     Discord({
       authorization: 'https://discord.com/api/oauth2/authorize?scope=identify',
-      // Discord \u30D7\u30ED\u30D5\u30A3\u30FC\u30EB\u3092\u30A2\u30D7\u30EA\u306E\u30E6\u30FC\u30B6\u30FC\u3078\u5199\u3059\u3002\u30A2\u30D0\u30BF\u30FC\u672A\u8A2D\u5B9A\u306A\u3089 discriminator \u304B\u3089
-      // \u65E2\u5B9A\u30A2\u30D0\u30BF\u30FC\u3092\u9078\u3073\u3001\u8A2D\u5B9A\u6E08\u307F\u306A\u3089\u30CF\u30C3\u30B7\u30E5\u304B\u3089 CDN \u306E URL \u3092\u7D44\u307F\u7ACB\u3066\u308B\u3002
-      // \u8868\u793A\u540D\u306F\u82F1\u6570\u5B57\u3068\u304B\u306A\u30AB\u30CA\u6F22\u5B57\u3060\u3051\u306B\u7D5E\u308A\u3001\u8A18\u53F7\u3084\u7D75\u6587\u5B57\u3092\u843D\u3068\u3059
-      profile(profile: DiscordProfile) {
+      // Discord プロフィールをアプリのユーザーへ写す。アバター未設定なら discriminator から
+      // 既定アバターを選び、設定済みならハッシュから CDN の URL を組み立てる。
+      // 表示名は英数字とかなカナ漢字だけに絞り、記号や絵文字を落とす
+      // 役割は admin_discord_id の一覧で決まる。効くのは初回サインインの登録時だけ
+      async profile(profile: DiscordProfile) {
         let imageUrl: string;
         if (profile.avatar === null) {
           const defaultAvatarNumber = parseInt(profile.discriminator) % 5;
@@ -225,7 +227,7 @@ const {
             ''
           ),
           image: imageUrl,
-          role: 'USER',
+          role: await resolveRoleForDiscordId(profile.id),
           isOnboardingCompleted: false,
         };
       },

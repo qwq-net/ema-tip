@@ -88,13 +88,18 @@ function generateDummyPlaceOdds(entryCount: number) {
   return odds;
 }
 
-// 全シードユーザー共通のログインパスワード。絵文字キーパッドで入力できる3文字
-const SEED_PASSWORD = '🐶🐶🐶';
+// 全シードユーザー共通のログインパスワード。キーパッドで入力できる最長の6文字にする。
+// ダミー利用者は開発と E2E のためのもので、本番は --master-only で投入しないため秘密ではない
+const SEED_PASSWORD = '🍣🐰🍇🐮🍎🐱';
 // 新規登録の動作確認に使うゲストコード
 const SEED_GUEST_CODE = 'WELCOME1';
 
+// Discord で初めてログインしたとき管理者になる固有 ID。
+// Discord の開発者モードで誰でも取得できる公開値なので、リポジトリに置いても秘密は漏れない
+const adminDiscordIdsToCreate = [{ discordId: '988442447187165254', label: 'INTERNET' }];
+
 const usersToCreate = [
-  { name: '武豊', role: ROLES.ADMIN, email: 'admin@example.com' },
+  { name: '武豊', role: ROLES.USER, email: 'admin@example.com' },
   { name: 'ルメール', role: ROLES.USER, email: 'user@example.com' },
   { name: '川田将雅', role: ROLES.GUEST, email: 'guest@example.com' },
   { name: '横山武史', role: ROLES.TIPSTER, email: 'tipster@example.com' },
@@ -442,8 +447,8 @@ async function seedUsers(tx: Tx): Promise<SeededUser[]> {
   return allUsers;
 }
 
-/** 新規登録の動作確認に使うゲストコードを、無ければ 1 件作る。発行者は引数の管理者になる。 */
-async function seedGuestCode(tx: Tx, adminUserId: string): Promise<void> {
+/** 新規登録の動作確認に使うゲストコードを、無ければ 1 件作る。発行者は引数の利用者になる。 */
+async function seedGuestCode(tx: Tx, issuerUserId: string): Promise<void> {
   const existingCode = await tx.query.guestCodes.findFirst({
     where: (c, { eq }) => eq(c.code, SEED_GUEST_CODE),
   });
@@ -451,9 +456,26 @@ async function seedGuestCode(tx: Tx, adminUserId: string): Promise<void> {
     await tx.insert(schema.guestCodes).values({
       code: SEED_GUEST_CODE,
       title: '動作確認用コード',
-      createdBy: adminUserId,
+      createdBy: issuerUserId,
     });
     console.log(`Guest code created: ${SEED_GUEST_CODE}`);
+  }
+}
+
+/**
+ * Discord の初回ログインで管理者になる固有 ID を、無ければ投入する。
+ * 使われ方: ダミー利用者を作らない本番でも管理者を作る唯一の経路なので、--master-only でも実行する。
+ * 既にある行は触らない。管理画面から足した分をシードの再実行で消さないため。
+ */
+async function seedAdminDiscordIds(tx: Tx): Promise<void> {
+  for (const entry of adminDiscordIdsToCreate) {
+    const existing = await tx.query.adminDiscordIds.findFirst({
+      where: (a, { eq }) => eq(a.discordId, entry.discordId),
+    });
+    if (existing) continue;
+
+    await tx.insert(schema.adminDiscordIds).values(entry);
+    console.log(`Admin Discord ID registered: ${entry.label}`);
   }
 }
 
@@ -856,6 +878,7 @@ async function main() {
     const raceDefinitionMap = await seedRaceDefinitions(tx, venueMap);
     await seedHorseTagMaster(tx);
     const allHorses = await seedHorses(tx);
+    await seedAdminDiscordIds(tx);
 
     if (isMasterOnly) {
       console.log('Skipping dummy data seeding (--master-only)');
@@ -864,8 +887,9 @@ async function main() {
 
     const allUsers = await seedUsers(tx);
 
-    const adminUser = allUsers.find((u) => u.role === ROLES.ADMIN);
-    if (adminUser) await seedGuestCode(tx, adminUser.id);
+    // 発行者は表示用でしかないので先頭の利用者を使う。シードは管理者を作らない
+    const issuer = allUsers[0];
+    if (issuer) await seedGuestCode(tx, issuer.id);
 
     const seededEvents: SeededEvent[] = [];
     // 開催中イベントの受付中レース。あとで購入済み馬券のシードに使う

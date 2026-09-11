@@ -57,6 +57,11 @@ const OTHER_ITEMS: Step[] = [
   },
   { title: 'ユーザー管理', description: '権限の変更とユーザー情報の編集を行います。', href: '/admin/users' },
   { title: 'ゲストコード管理', description: '招待コードの発行と整理を行います。', href: '/admin/users/guests' },
+  {
+    title: 'Discord管理者ID',
+    description: '登録した Discord ID で初めてログインした人を管理者にします。',
+    href: '/admin/users/admins',
+  },
 ];
 
 // マーカー色はダッシュボードと同じセクション単位の2段ルール。運用フローは brand、それ以外は neutral

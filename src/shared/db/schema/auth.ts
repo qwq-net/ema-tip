@@ -85,3 +85,16 @@ export const guestCodes = pgTable('guest_code', {
   disabledAt: timestamp('disabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Discord で初めてログインした人を管理者として登録するための一覧。
+// 役割の決定は登録時の一度きりで、以降のログインでは既存の利用者レコードが優先される。
+// 登録済みの人の役割を変えるときは利用者一覧から操作する。
+export const adminDiscordIds = pgTable('admin_discord_id', {
+  discordId: text('discord_id').primaryKey(),
+  // 18 桁の数値だけでは誰のものか分からないため、管理画面で表示する名前を必須にする
+  label: text('label').notNull(),
+  // 追加した管理者。シードが入れる初期行は発行者を持たないため null を許す。
+  // 発行者を削除しても一覧は残す。消えると管理者を作る経路そのものが失われる
+  createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
