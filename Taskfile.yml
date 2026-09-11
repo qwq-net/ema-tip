@@ -153,6 +153,9 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx tools/perf/setup.ts
 
+  # シナリオの順番に制約がある。sse は締切イベントの到達を見るためレースを締め切り、payout はそこから
+  # 確定まで進める。購入を伴う bets と peak をこの 2 つより後ろに置くと、全ての購入が締切エラーになる。
+  # peak を含めるときは bets sse pages payout とは別の実行に分け、直前に perf:setup を回してレースを作り直す
   perf:load:
     desc: '負荷シナリオを実行します。例: task perf:load -- bets sse pages payout'
     cmds:
@@ -169,6 +172,9 @@ tasks:
     cmds:
       - '{{.PROD}} run --rm -v ./tools:/app/tools -e PERF_HISTORY app pnpm tsx tools/perf/setup.ts'
 
+  # シナリオの順番に制約がある。sse は締切イベントの到達を見るためレースを締め切り、payout はそこから
+  # 確定まで進める。購入を伴う bets と peak をこの 2 つより後ろに置くと、全ての購入が締切エラーになる。
+  # peak を含めるときは bets sse pages payout とは別の実行に分け、直前に perf:setup を回してレースを作り直す
   perf:load:prod:
     desc: 'VM上の本番構成で負荷シナリオを実行します。例: task perf:load:prod -- bets sse pages payout'
     cmds:
