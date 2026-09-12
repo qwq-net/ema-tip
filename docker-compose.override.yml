@@ -20,7 +20,7 @@ services:
       - '127.0.0.1:6379:6379'
 
   tunnel:
-    image: cloudflare/cloudflared:2026.8.3
+    image: cloudflare/cloudflared:2026.9.1
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
