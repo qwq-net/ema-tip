@@ -28,13 +28,17 @@ async function typeEmojiPassword(page: Page) {
   }
 }
 
-// ゲストコードで登録して mypage へ到達するまで
-async function signupGuest(page: Page, name: string) {
+// ゲストコードで登録し、続く表示名の設定を済ませて mypage へ到達するまで。
+// 登録直後はオンボーディング未完了なので、名前を決めるまで mypage には入れない
+async function signupGuest(page: Page, loginId: string, name: string) {
   await page.goto('/signup/guest');
   await page.locator('#code').fill(E2E.guestCode);
-  await page.locator('#username').fill(name);
+  await page.locator('#loginId').fill(loginId);
   await typeEmojiPassword(page);
   await page.getByRole('button', { name: '登録して参加' }).click();
+  await page.waitForURL('**/onboarding/name-change', { timeout: 30_000 });
+  await page.locator('#name').fill(name);
+  await page.getByRole('button', { name: '登録', exact: true }).click();
   await page.waitForURL('**/mypage', { timeout: 30_000 });
 }
 
@@ -80,7 +84,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
   const loserPage = await loserContext.newPage();
 
   await test.step('太郎がゲストコードで新規登録してイベントに参加', async () => {
-    await signupGuest(userPage, E2E.guestName);
+    await signupGuest(userPage, E2E.guestLoginId, E2E.guestName);
     await joinEvent(userPage);
   });
 
@@ -91,7 +95,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
   });
 
   await test.step('次郎が同じコードで登録して参加し、馬番2の単勝を100円購入', async () => {
-    await signupGuest(loserPage, E2E.loserName);
+    await signupGuest(loserPage, E2E.loserLoginId, E2E.loserName);
     await joinEvent(loserPage);
     await buyWin(loserPage, 2, fx.horse2Name, E2E.distributeAmount);
   });
@@ -101,7 +105,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
 
   await test.step('管理者でログイン', async () => {
     await adminPage.goto('/login/guest');
-    await adminPage.locator('#username').fill(E2E.adminName);
+    await adminPage.locator('#loginId').fill(E2E.adminLoginId);
     await typeEmojiPassword(adminPage);
     await adminPage.getByRole('button', { name: 'ログイン', exact: true }).click();
     await adminPage.waitForURL('**/mypage', { timeout: 30_000 });
@@ -168,7 +172,7 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
     await expect(userPage.getByText('資金が少し不足していませんか？')).toBeHidden();
 
     // 借入後残高 = 配布 - 購入 + 融資(配布と同額)
-    const state = await fetchSettlementState(fx.eventId, fx.raceId, E2E.guestName);
+    const state = await fetchSettlementState(fx.eventId, fx.raceId, E2E.guestLoginId);
     expect(state.balance).toBe(E2E.distributeAmount - E2E.betAmount + E2E.distributeAmount);
   });
 
@@ -208,12 +212,12 @@ test('2 人のゲスト登録から払戻確定までの一本道', async ({ bro
   });
 
   await test.step('DB で的中と不的中の金額を検証', async () => {
-    const winner = await fetchSettlementState(fx.eventId, fx.raceId, E2E.guestName);
+    const winner = await fetchSettlementState(fx.eventId, fx.raceId, E2E.guestLoginId);
     expect(winner.bets).toEqual([{ status: 'HIT', payout: E2E.expectedPayout }]);
     // 最終残高 = 配布 - 購入 + 払戻 + 途中で借りた融資(配布と同額)
     expect(winner.balance).toBe(E2E.distributeAmount - E2E.betAmount + E2E.expectedPayout + E2E.distributeAmount);
 
-    const loser = await fetchSettlementState(fx.eventId, fx.raceId, E2E.loserName);
+    const loser = await fetchSettlementState(fx.eventId, fx.raceId, E2E.loserLoginId);
     expect(loser.bets).toEqual([{ status: 'LOST', payout: 0 }]);
     expect(loser.balance).toBe(E2E.distributeAmount - E2E.betAmount);
   });

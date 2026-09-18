@@ -1,4 +1,4 @@
-const WRONG_CREDENTIALS = 'ユーザー名またはパスワードが間違っています。';
+const WRONG_CREDENTIALS = 'ログインIDまたはパスワードが間違っています。';
 
 const COMMON_ERROR_MESSAGES = {
   RateLimitExceeded: '試行回数制限を超えました。しばらく待ってから再度お試しください。',
@@ -17,8 +17,8 @@ export const LOGIN_ERROR_MESSAGES = {
 export const SIGNUP_ERROR_MESSAGES = {
   ...COMMON_ERROR_MESSAGES,
   InvalidGuestCode: '無効な招待コードです。',
-  InvalidUsername: '名前は20文字以内の英数字、ひらがな、カタカナ、漢字のみ使用できます。',
-  UsernameTaken: 'このユーザー名は既に使用されています。',
+  InvalidLoginId: 'ログインIDは3文字以上20文字以内の半角英数字のみ使用できます。',
+  LoginIdTaken: 'このログインIDは既に使用されています。',
   CredentialsSignin: '登録に失敗しました。入力内容を確認してください。',
 } satisfies Record<string, string>;
 

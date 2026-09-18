@@ -13,7 +13,10 @@ dotenv.config();
 
 const PERF = {
   adminName: 'PERF管理者',
+  adminLoginId: 'perfadmin',
   userPrefix: 'PERF利用者',
+  // 資格情報ログインの識別子。表示名と違い半角英数字だけで作る
+  userLoginIdPrefix: 'perfuser',
   userCount: Number(process.env.PERF_USERS ?? 30),
   eventName: 'PERF検証イベント',
   raceName: 'PERF検証レース',
@@ -37,20 +40,20 @@ async function main() {
     const passwordHash = bcrypt.hashSync(PERF.password, 10);
 
     const [admin] = await sql`
-      INSERT INTO "user" (id, name, role, password, is_onboarding_completed)
-      VALUES (${crypto.randomUUID()}, ${PERF.adminName}, 'ADMIN', ${passwordHash}, true)
+      INSERT INTO "user" (id, name, login_id, role, password, is_onboarding_completed)
+      VALUES (${crypto.randomUUID()}, ${PERF.adminName}, ${PERF.adminLoginId}, 'ADMIN', ${passwordHash}, true)
       RETURNING id
     `;
 
-    const userNames = Array.from(
-      { length: PERF.userCount },
-      (_, i) => `${PERF.userPrefix}${String(i + 1).padStart(2, '0')}`
-    );
+    const suffixes = Array.from({ length: PERF.userCount }, (_, i) => String(i + 1).padStart(2, '0'));
     const userIds: string[] = [];
-    for (const name of userNames) {
+    for (const suffix of suffixes) {
       const [user] = await sql`
-        INSERT INTO "user" (id, name, role, password, is_onboarding_completed)
-        VALUES (${crypto.randomUUID()}, ${name}, 'USER', ${passwordHash}, true)
+        INSERT INTO "user" (id, name, login_id, role, password, is_onboarding_completed)
+        VALUES (
+          ${crypto.randomUUID()}, ${PERF.userPrefix + suffix}, ${PERF.userLoginIdPrefix + suffix},
+          'USER', ${passwordHash}, true
+        )
         RETURNING id
       `;
       userIds.push(user.id);
@@ -154,7 +157,7 @@ async function main() {
       `;
     }
 
-    console.log(JSON.stringify({ raceId: race.id, eventId: event.id, users: userNames.length, historyRaces }));
+    console.log(JSON.stringify({ raceId: race.id, eventId: event.id, users: suffixes.length, historyRaces }));
   } finally {
     await sql.end();
   }

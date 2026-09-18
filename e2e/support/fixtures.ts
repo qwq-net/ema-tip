@@ -9,9 +9,12 @@ import postgres from 'postgres';
 
 export const E2E = {
   adminName: 'E2E管理者',
+  adminLoginId: 'e2eadmin',
   guestName: 'E2Eゲスト太郎',
+  guestLoginId: 'e2etaro',
   // 馬番2を買って外れる2人目。的中者と同じコードで登録し、LOST と残高不変を検証する
   loserName: 'E2Eゲスト次郎',
+  loserLoginId: 'e2ejiro',
   guestCode: 'E2ECODE',
   eventName: 'E2E検証イベント',
   raceName: 'E2E検証レース',
@@ -44,8 +47,8 @@ export async function setupFixtures(): Promise<Fixtures> {
 
     const passwordHash = bcrypt.hashSync(E2E.password, 10);
     const [admin] = await sql`
-      INSERT INTO "user" (id, name, role, password, is_onboarding_completed)
-      VALUES (${crypto.randomUUID()}, ${E2E.adminName}, 'ADMIN', ${passwordHash}, true)
+      INSERT INTO "user" (id, name, login_id, role, password, is_onboarding_completed)
+      VALUES (${crypto.randomUUID()}, ${E2E.adminName}, ${E2E.adminLoginId}, 'ADMIN', ${passwordHash}, true)
       RETURNING id
     `;
 
@@ -90,12 +93,13 @@ export async function setupFixtures(): Promise<Fixtures> {
 async function cleanupWith(sql: postgres.Sql) {
   await sql`
     DELETE FROM admin_action_log
-    WHERE actor_id IN (SELECT id FROM "user" WHERE name = ${E2E.adminName})
+    WHERE actor_id IN (SELECT id FROM "user" WHERE login_id = ${E2E.adminLoginId})
   `;
   await sql`DELETE FROM event WHERE name = ${E2E.eventName}`;
   // user.guest_code_id が guest_code を参照するため、参照元のユーザーを先に消す。
-  // 管理者の削除カスケードで guest_code も消えるが、単体で残るケースに備えて明示的にも消す
-  await sql`DELETE FROM "user" WHERE name IN (${E2E.adminName}, ${E2E.guestName}, ${E2E.loserName})`;
+  // 管理者の削除カスケードで guest_code も消えるが、単体で残るケースに備えて明示的にも消す。
+  // 表示名は重複しうるので、消す対象はログインIDで特定する
+  await sql`DELETE FROM "user" WHERE login_id IN (${E2E.adminLoginId}, ${E2E.guestLoginId}, ${E2E.loserLoginId})`;
   await sql`DELETE FROM guest_code WHERE code = ${E2E.guestCode}`;
 }
 
@@ -110,19 +114,20 @@ export async function cleanupFixtures() {
 
 // 指定利用者のウォレット残高と、対象レースのベット一覧を DB で直接検証する。
 // UI の表示揺れに依存せず、金額の正しさはここで担保する。
+// 表示名は重複しうるため利用者はログインIDで特定する。
 // ベットは全件返し、件数の検証は呼び手が行う。1 行だけ拾うと別のベットを誤って検証しうる
-export async function fetchSettlementState(eventId: string, raceId: string, userName: string) {
+export async function fetchSettlementState(eventId: string, raceId: string, loginId: string) {
   const sql = createSql();
   try {
     const [wallet] = await sql`
       SELECT w.balance FROM wallet w
       JOIN "user" u ON u.id = w.user_id
-      WHERE u.name = ${userName} AND w.event_id = ${eventId}
+      WHERE u.login_id = ${loginId} AND w.event_id = ${eventId}
     `;
     const bets = await sql`
       SELECT b.status, b.payout FROM bet b
       JOIN "user" u ON u.id = b.user_id
-      WHERE u.name = ${userName} AND b.race_id = ${raceId}
+      WHERE u.login_id = ${loginId} AND b.race_id = ${raceId}
       ORDER BY b.created_at
     `;
     return {

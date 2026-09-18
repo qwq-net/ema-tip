@@ -83,6 +83,13 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-role.ts {{.CLI_ARGS}}
 
+  db:fill-login-id:
+    desc: ログインID未設定の既存利用者に、表示名を小文字化したログインIDを入れます。login_id 追加時の一度きりの移行用です
+    cmds:
+      - >-
+        docker compose exec -T db psql -U postgres -d webapp -v ON_ERROR_STOP=1
+        -c "UPDATE \"user\" SET login_id = lower(name) WHERE login_id IS NULL AND password IS NOT NULL AND name IS NOT NULL"
+
   db:reconcile:
     desc: 残高と取引台帳の整合性を読み取りのみで突合します
     cmds:

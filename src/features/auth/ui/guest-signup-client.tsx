@@ -19,7 +19,7 @@ import { useState } from 'react';
 
 export function GuestSignupClient() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [code, setCode] = useState('');
   const { password, setPassword, handleEmojiClick, handleBackspace, handleClear } = useEmojiPassword();
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export function GuestSignupClient() {
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!username || !code || !password) {
+    if (!loginId || !code || !password) {
       setError('すべての項目を入力してください');
       return;
     }
@@ -47,7 +47,7 @@ export function GuestSignupClient() {
       return;
     }
 
-    const validationResult = await validateGuestRegistration(code, username);
+    const validationResult = await validateGuestRegistration(code, loginId);
     if (validationResult.error) {
       setIsLoading(false);
       if (validationResult.error === 'RateLimitExceeded') {
@@ -59,7 +59,7 @@ export function GuestSignupClient() {
     }
 
     const result = await signIn('credentials', {
-      username,
+      loginId,
       code,
       password,
       redirect: false,
@@ -72,7 +72,7 @@ export function GuestSignupClient() {
         const postIpLockStatus = await checkIpLockStatus();
         if (postIpLockStatus.isLocked) {
           setError(
-            `試行回数制限を超えました。一定時間アクセスを制限します。（解除まであと約${postIpLockStatus.remainingMinutes}分）`
+            `試行回数制限を超えました。一定時間アクセスを制限します。解除まであと約${postIpLockStatus.remainingMinutes}分です。`
           );
           return;
         }
@@ -101,7 +101,7 @@ export function GuestSignupClient() {
         <div className="rounded-surface space-y-6 border border-gray-200 bg-white p-6">
           <GuestAuthTabs activeTab="signup" />
 
-          <PageHeader title="招待コード新規登録" description="招待コードと絵文字パスワードを入力" />
+          <PageHeader title="招待コード新規登録" description="招待コードとログインIDと絵文字パスワードを入力" />
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -124,29 +124,30 @@ export function GuestSignupClient() {
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm text-gray-700">
-                ユーザー名
-                <span className="text-text-sub ml-2 text-sm font-normal">（英数字、ひらがな、カタカナ、漢字）</span>
+              <label htmlFor="loginId" className="block text-sm text-gray-700">
+                ログインID
+                <span className="text-text-sub ml-2 text-sm font-normal">半角英数字 3〜20文字</span>
               </label>
               <div className="mt-1">
                 <Input
-                  id="username"
-                  name="username"
+                  id="loginId"
+                  name="loginId"
                   type="text"
                   required
                   autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="表示名を入力"
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value.toLowerCase().trim())}
+                  placeholder="ログイン時に入力するID"
                   ignorePasswordManager={false}
                 />
               </div>
+              <p className="text-text-sub mt-1 text-sm">表示名は登録後の画面で設定します。</p>
             </div>
 
             <div>
               <p className="mb-2 block text-sm text-gray-700">
                 絵文字パスワード
-                <span className="text-text-sub ml-2 text-sm font-normal">（3〜6文字）</span>
+                <span className="text-text-sub ml-2 text-sm font-normal">3〜6文字</span>
               </p>
 
               <input

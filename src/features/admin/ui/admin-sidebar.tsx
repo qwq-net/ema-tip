@@ -1,6 +1,7 @@
 'use client';
 
 import { LogoutButton, ROLES, ROLE_LABELS } from '@/entities/user';
+import { resolveActiveNavHref } from '@/features/admin/shared/lib/active-nav';
 import { Button } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
 import { lookup } from '@/shared/utils/lookup';
@@ -82,11 +83,6 @@ const NAV_GROUPS: { label?: string; role: string[]; items: NavItem[] }[] = [
   },
 ];
 
-/** パスが root そのものか、その配下かを返す。 */
-function isUnder(pathname: string, root: string): boolean {
-  return pathname === root || pathname.startsWith(`${root}/`);
-}
-
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -110,6 +106,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   }, [isOpen]);
 
   const filteredGroups = NAV_GROUPS.filter((group) => group.role.some((role) => role === user.role));
+  const activeHref = resolveActiveNavHref(
+    pathname,
+    filteredGroups.flatMap((group) => group.items)
+  );
 
   return (
     <>
@@ -163,15 +163,13 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               )}
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive =
-                  item.href === '/admin'
-                    ? pathname === '/admin'
-                    : [item.href, ...(item.alsoActiveUnder ?? [])].some((root) => isUnder(pathname, root));
+                const isActive = item.href === activeHref;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
+                    aria-current={isActive ? 'page' : undefined}
                     className={cn(
                       'rounded-control flex items-center gap-3 px-4 py-2 text-sm font-semibold transition-colors',
                       isActive ? 'bg-white/15 text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white'

@@ -1,6 +1,6 @@
 'use server';
 
-import { isValidUserName } from '@/entities/user';
+import { isValidLoginId } from '@/entities/user';
 import { signIn } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
@@ -28,9 +28,12 @@ export async function checkIpLockStatus() {
   return { isLocked: false };
 }
 
-// ゲスト登録の事前検証。authorize と同じく失敗を記録しないと、
-// この action 経由でコードとユーザー名を無制限に試せてしまう。
-export async function validateGuestRegistration(code: string, username: string) {
+/**
+ * ゲスト登録の事前検証。招待コードの有効性とログインIDの形式と重複を確かめる。
+ * loginId は小文字へ正規化してから照合するため、大文字小文字だけが違うIDは重複として弾く。
+ * authorize と同じく失敗を記録しないと、この action 経由でコードとログインIDを無制限に試せてしまう。
+ */
+export async function validateGuestRegistration(code: string, loginId: string) {
   const ip = await getClientIp();
   const attemptRecord = await getLoginAttemptRecord(ip);
 
@@ -41,9 +44,10 @@ export async function validateGuestRegistration(code: string, username: string) 
 
   // コピペ由来の前後空白・改行で有効なコードが不一致になり、共有IPのロックを誘発するため正規化する
   const normalizedCode = code.trim();
+  const normalizedLoginId = loginId.trim().toLowerCase();
 
-  if (!isValidUserName(username)) {
-    return { error: 'InvalidUsername' };
+  if (!isValidLoginId(normalizedLoginId)) {
+    return { error: 'InvalidLoginId' };
   }
 
   const guestCode = await db.query.guestCodes.findFirst({
@@ -56,12 +60,12 @@ export async function validateGuestRegistration(code: string, username: string) 
   }
 
   const existingUser = await db.query.users.findFirst({
-    where: eq(users.name, username),
+    where: eq(users.loginId, normalizedLoginId),
   });
 
   if (existingUser) {
     await recordLoginFailure(ip, attemptRecord);
-    return { error: 'UsernameTaken' };
+    return { error: 'LoginIdTaken' };
   }
 
   return { success: true };

@@ -19,14 +19,14 @@ import { useState } from 'react';
 
 export function GuestLoginClient() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [loginId, setLoginId] = useState('');
   const { password, setPassword, handleEmojiClick, handleBackspace, handleClear } = useEmojiPassword();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!loginId || !password) {
       setError('すべての項目を入力してください');
       return;
     }
@@ -47,7 +47,7 @@ export function GuestLoginClient() {
     }
 
     const result = await signIn('credentials', {
-      username,
+      loginId,
       password,
       redirect: false,
     });
@@ -58,7 +58,7 @@ export function GuestLoginClient() {
       setIsLoading(false);
       if (postIpLockStatus.isLocked) {
         setError(
-          `試行回数制限を超えました。一定時間アクセスを制限します。（解除まであと約${postIpLockStatus.remainingMinutes}分）`
+          `試行回数制限を超えました。一定時間アクセスを制限します。解除まであと約${postIpLockStatus.remainingMinutes}分です。`
         );
       } else {
         setError(
@@ -87,7 +87,7 @@ export function GuestLoginClient() {
         <div className="rounded-surface space-y-6 border border-gray-200 bg-white p-6">
           <GuestAuthTabs activeTab="login" />
 
-          <PageHeader title="招待コードログイン" description="ユーザー名と絵文字パスワードを入力" />
+          <PageHeader title="招待コードログイン" description="ログインIDと絵文字パスワードを入力" />
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="hidden">
@@ -95,20 +95,20 @@ export function GuestLoginClient() {
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm text-gray-700">
-                ユーザー名
-                <span className="text-text-sub ml-2 text-sm font-normal">（英数字、ひらがな、カタカナ、漢字）</span>
+              <label htmlFor="loginId" className="block text-sm text-gray-700">
+                ログインID
+                <span className="text-text-sub ml-2 text-sm font-normal">半角英数字</span>
               </label>
               <div className="mt-1">
                 <Input
-                  id="username"
-                  name="username"
+                  id="loginId"
+                  name="loginId"
                   type="text"
                   required
                   autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="表示名を入力"
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value.toLowerCase().trim())}
+                  placeholder="登録したIDを入力"
                   ignorePasswordManager={false}
                 />
               </div>
@@ -117,7 +117,7 @@ export function GuestLoginClient() {
             <div>
               <p className="mb-2 block text-sm text-gray-700">
                 絵文字パスワード
-                <span className="text-text-sub ml-2 text-sm font-normal">（3〜6文字）</span>
+                <span className="text-text-sub ml-2 text-sm font-normal">3〜6文字</span>
               </p>
 
               <input

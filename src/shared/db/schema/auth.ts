@@ -29,6 +29,9 @@ export const users = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     name: text('name'),
+    // 資格情報ログインの識別子。小文字へ正規化して入れ、照合も小文字で行うため大文字小文字は区別されない。
+    // Discord だけで入る利用者は持たないため null を許す
+    loginId: text('login_id'),
     email: text('email').unique(),
     emailVerified: timestamp('email_verified', { mode: 'date', withTimezone: true }),
     image: text('image'),
@@ -46,8 +49,8 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    // 名前はゲストログインの識別子。重複すると findFirst の解決先が不定になりログイン不能に陥る
-    uniqueIndex('user_name_idx').on(table.name),
+    // ログインIDが重複すると findFirst の解決先が不定になりログイン不能に陥る。表示名は重複してよい
+    uniqueIndex('user_login_id_idx').on(table.loginId),
     index('user_guest_code_idx').on(table.guestCodeId),
   ]
 );

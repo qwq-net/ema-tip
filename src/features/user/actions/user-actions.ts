@@ -21,14 +21,6 @@ export async function updateUserOnboarding(formData: FormData) {
     return { error: `無効な名前です。${MAX_NAME_LENGTH}文字以内の英数字、ひらがな、カタカナ、漢字のみ使用可能です。` };
   }
 
-  // 既存ユーザーと同名にすると、名前でログインするゲストがどちらの行に解決されるか不定になる
-  const existingUser = await db.query.users.findFirst({
-    where: eq(users.name, name),
-  });
-  if (existingUser && existingUser.id !== session.user.id) {
-    return { error: 'この名前は既に使用されています。' };
-  }
-
   try {
     await db
       .update(users)
@@ -56,14 +48,6 @@ export async function updateUserName(formData: FormData) {
 
   if (!isValidUserName(name)) {
     return { error: `無効な名前です。${MAX_NAME_LENGTH}文字以内の英数字、ひらがな、カタカナ、漢字のみ使用可能です。` };
-  }
-
-  const existingUser = await db.query.users.findFirst({
-    where: eq(users.name, name),
-  });
-
-  if (existingUser && existingUser.id !== session.user.id) {
-    return { error: 'この名前は既に使用されています。' };
   }
 
   try {

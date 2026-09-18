@@ -13,6 +13,7 @@ export async function getUsers() {
     columns: {
       id: true,
       name: true,
+      loginId: true,
       image: true,
       role: true,
       disabledAt: true,

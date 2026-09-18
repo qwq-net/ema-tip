@@ -41,7 +41,7 @@ type WalletBaseline = { balance: number; betCount: number; payout: number };
 type Fixture = {
   raceId: string;
   eventId: string;
-  users: { name: string; walletId: string }[];
+  users: { loginId: string; walletId: string }[];
   entryIds: string[];
   baseline: Map<string, WalletBaseline>;
 };
@@ -92,7 +92,7 @@ function loadActionId(filename: string, exportedName: string): string {
 
 // credentials ログインを行い、以後のリクエストに付ける Cookie ヘッダ値を返す。
 // 認証失敗時はセッション Cookie が発行されないため throw する
-async function login(username: string): Promise<string> {
+async function login(loginId: string): Promise<string> {
   const csrfRes = await fetch(`${BASE}/api/auth/csrf`, { headers: PROTO_HEADER });
   const { csrfToken }: { csrfToken: string } = await csrfRes.json();
   const csrfCookies = csrfRes.headers.getSetCookie().map((c) => c.split(';')[0]);
@@ -106,19 +106,19 @@ async function login(username: string): Promise<string> {
       Origin: BASE,
       ...PROTO_HEADER,
     },
-    body: new URLSearchParams({ csrfToken, username, password: PASSWORD }),
+    body: new URLSearchParams({ csrfToken, loginId, password: PASSWORD }),
   });
   const setCookies = res.headers.getSetCookie().map((c) => c.split(';')[0]);
   const session = setCookies.find((c) => c.includes('session-token'));
-  if (!session) throw new Error(`ログイン失敗: ${username} status=${res.status}`);
+  if (!session) throw new Error(`ログイン失敗: ${loginId} status=${res.status}`);
   return [...csrfCookies, ...setCookies].join('; ');
 }
 
 // bcrypt 照合の負荷を計測対象のバーストへ混ぜないよう、ログインは直列で済ませておく
-async function loginAll(names: string[]): Promise<Map<string, string>> {
+async function loginAll(loginIds: string[]): Promise<Map<string, string>> {
   const cookies = new Map<string, string>();
-  for (const name of names) {
-    cookies.set(name, await login(name));
+  for (const loginId of loginIds) {
+    cookies.set(loginId, await login(loginId));
   }
   return cookies;
 }
@@ -170,9 +170,9 @@ async function loadFixture(): Promise<Fixture> {
     const [race] = await sql`SELECT id, event_id FROM race_instance WHERE name = 'PERF検証レース' LIMIT 1`;
     if (!race) throw new Error('フィクスチャがありません。task perf:setup を先に実行してください');
     const users = await sql`
-      SELECT u.name, w.id AS wallet_id
+      SELECT u.login_id, w.id AS wallet_id
       FROM "user" u JOIN wallet w ON w.user_id = u.id AND w.event_id = ${race.event_id}
-      WHERE u.name LIKE 'PERF利用者%' ORDER BY u.name
+      WHERE u.login_id LIKE 'perfuser%' ORDER BY u.login_id
     `;
     const entries = await sql`SELECT id FROM race_entry WHERE race_id = ${race.id} ORDER BY horse_number`;
     const walletIds = users.map((u) => u.wallet_id);
@@ -183,7 +183,7 @@ async function loadFixture(): Promise<Fixture> {
     return {
       raceId: race.id,
       eventId: race.event_id,
-      users: users.map((u) => ({ name: u.name, walletId: u.wallet_id })),
+      users: users.map((u) => ({ loginId: u.login_id, walletId: u.wallet_id })),
       entryIds: entries.map((e) => e.id),
       baseline,
     };
@@ -291,7 +291,7 @@ async function timedGet(cookie: string, path: string): Promise<{ ms: number; ok:
 // 単独実行との差で直列化による伸びを見る
 async function scenarioLogin(fx: Fixture) {
   const solo = performance.now();
-  await login(fx.users[0].name);
+  await login(fx.users[0].loginId);
   console.log(`  単独ログイン: ${(performance.now() - solo).toFixed(0)}ms`);
 
   let errors = 0;
@@ -299,7 +299,7 @@ async function scenarioLogin(fx: Fixture) {
     fx.users.map(async (u) => {
       const start = performance.now();
       try {
-        await login(u.name);
+        await login(u.loginId);
       } catch {
         errors++;
       }
@@ -312,9 +312,9 @@ async function scenarioLogin(fx: Fixture) {
 // 開催ピークの複合負荷。全員が SSE を張り、レースページを見てはベットする流れを同時に行う。
 // 単独シナリオでは見えない相互干渉込みの応答時間と、オッズ更新イベントの到達を確認する
 async function scenarioPeak(fx: Fixture, ids: ActionIds) {
-  const cookies = await loginAll(fx.users.map((u) => u.name));
+  const cookies = await loginAll(fx.users.map((u) => u.loginId));
   const ac = new AbortController();
-  const subs = fx.users.map((u) => subscribe(cookies.get(u.name) ?? '', 'RACE_ODDS_UPDATED', ac.signal));
+  const subs = fx.users.map((u) => subscribe(cookies.get(u.loginId) ?? '', 'RACE_ODDS_UPDATED', ac.signal));
   await Promise.all(subs.map((s) => s.ready));
   console.log(`  ${subs.length} 接続確立`);
 
@@ -327,7 +327,7 @@ async function scenarioPeak(fx: Fixture, ids: ActionIds) {
   for (let round = 1; round <= ROUNDS; round++) {
     await Promise.all(
       fx.users.map(async (u) => {
-        const cookie = cookies.get(u.name) ?? '';
+        const cookie = cookies.get(u.loginId) ?? '';
         const before = await timedGet(cookie, `/races/${fx.raceId}`);
         const bet = await callAction(cookie, `/races/${fx.raceId}`, ids.placeBets, [
           { raceId: fx.raceId, walletId: u.walletId, betType: 'win', combinations, amountPerBet: 100 },
@@ -363,7 +363,7 @@ async function scenarioPeak(fx: Fixture, ids: ActionIds) {
 
 // 締切直前の一斉購入を再現する。全ユーザーが単勝8点を同時に投げるラウンドを ROUNDS 回実施
 async function scenarioBets(fx: Fixture, ids: ActionIds) {
-  const cookies = await loginAll(fx.users.map((u) => u.name));
+  const cookies = await loginAll(fx.users.map((u) => u.loginId));
   const combinations = Array.from({ length: 8 }, (_, i) => [i + 1]);
   const durations: number[] = [];
   let errors = 0;
@@ -372,7 +372,7 @@ async function scenarioBets(fx: Fixture, ids: ActionIds) {
     const wall = performance.now();
     const results = await Promise.all(
       fx.users.map((u) =>
-        callAction(cookies.get(u.name) ?? '', `/races/${fx.raceId}`, ids.placeBets, [
+        callAction(cookies.get(u.loginId) ?? '', `/races/${fx.raceId}`, ids.placeBets, [
           { raceId: fx.raceId, walletId: u.walletId, betType: 'win', combinations, amountPerBet: 100 },
         ])
       )
@@ -398,7 +398,7 @@ async function scenarioBets(fx: Fixture, ids: ActionIds) {
 async function scenarioBulk(fx: Fixture, ids: ActionIds) {
   const user = fx.users.at(-1);
   if (!user) throw new Error('ユーザーがいません');
-  const cookie = await login(user.name);
+  const cookie = await login(user.loginId);
 
   const combinations: number[][] = [];
   const n = fx.entryIds.length;
@@ -496,11 +496,11 @@ async function reportSubscriberProcesses() {
 // 全ユーザーが SSE 接続中に管理者が締切を発火し、全接続への到達遅延を測る。
 // 終了後は reopenRace で SCHEDULED へ戻すため後続シナリオへ影響しない
 async function scenarioSse(fx: Fixture, ids: ActionIds) {
-  const cookies = await loginAll(fx.users.map((u) => u.name));
+  const cookies = await loginAll(fx.users.map((u) => u.loginId));
   const adminCookie = await login(ADMIN_NAME);
   const ac = new AbortController();
 
-  const subs = fx.users.map((u) => subscribe(cookies.get(u.name) ?? '', 'RACE_CLOSED', ac.signal));
+  const subs = fx.users.map((u) => subscribe(cookies.get(u.loginId) ?? '', 'RACE_CLOSED', ac.signal));
   await Promise.all(subs.map((s) => s.ready));
   console.log(`  ${subs.length} 接続確立`);
   await reportSubscriberProcesses();
@@ -525,7 +525,7 @@ async function scenarioSse(fx: Fixture, ids: ActionIds) {
 // 主要ページの応答時間を1ユーザーで直列計測する。各ページ初回はウォームアップとして捨てる。
 // リダイレクトは実際の閲覧と同じく追従し、最終応答までを1回の所要時間とする
 async function scenarioPages(fx: Fixture) {
-  const cookie = await login(fx.users[0].name);
+  const cookie = await login(fx.users[0].loginId);
   // / はログイン済みなら /mypage へリダイレクトするだけなので対象にせず、即BET と戦績を測る
   const paths = ['/mypage/sokubet', `/races/${fx.raceId}`, `/ranking/${fx.eventId}`, '/mypage/stats', '/mypage'];
 
@@ -590,7 +590,7 @@ async function scenarioBot() {
           Origin: BASE,
           ...PROTO_HEADER,
         },
-        body: new URLSearchParams({ csrfToken, username: 'PERF利用者01', password: '🐴🐴🐴' }),
+        body: new URLSearchParams({ csrfToken, loginId: 'perfuser01', password: '🐴🐴🐴' }),
       });
       await res.text();
       track('POST ログイン失敗', performance.now() - start, res.status, [302]);
@@ -657,7 +657,7 @@ async function scenarioPayout(fx: Fixture, ids: ActionIds) {
 // Redis キャッシュのミスが同時に重なると走査が人数分走るため、ここが最も重い瞬間になりうる。
 // payout と同じくレースを FINALIZED にするので最後に実行する
 async function scenarioStandby(fx: Fixture, ids: ActionIds) {
-  const cookies = await loginAll(fx.users.map((u) => u.name));
+  const cookies = await loginAll(fx.users.map((u) => u.loginId));
   const adminCookie = await login(ADMIN_NAME);
   const adminPath = `/admin/races/${fx.raceId}`;
   const standbyPath = `/races/${fx.raceId}/standby`;
@@ -670,7 +670,7 @@ async function scenarioStandby(fx: Fixture, ids: ActionIds) {
     return;
   }
 
-  const firstViews = await Promise.all(fx.users.map((u) => timedGet(cookies.get(u.name) ?? '', standbyPath)));
+  const firstViews = await Promise.all(fx.users.map((u) => timedGet(cookies.get(u.loginId) ?? '', standbyPath)));
   summarize(
     'standby 締切直後の一斉表示',
     firstViews.map((v) => v.ms),
@@ -687,13 +687,13 @@ async function scenarioStandby(fx: Fixture, ids: ActionIds) {
   }
 
   const ac = new AbortController();
-  const subs = fx.users.map((u) => subscribe(cookies.get(u.name) ?? '', 'RACE_BROADCAST', ac.signal));
+  const subs = fx.users.map((u) => subscribe(cookies.get(u.loginId) ?? '', 'RACE_BROADCAST', ac.signal));
   await Promise.all(subs.map((s) => s.ready));
   console.log(`  ${subs.length} 接続確立`);
 
   // 到達した瞬間にブラウザと同じ 2 要求を投げる。getPayoutResults は配列を返すため成功判定は本文の形で行う
   const reactions = subs.map((s, i) => {
-    const cookie = cookies.get(fx.users[i]?.name ?? '') ?? '';
+    const cookie = cookies.get(fx.users[i]?.loginId ?? '') ?? '';
     return withTimeout(s.arrival).then(async (arrival) => {
       if (!arrival) return null;
       const [page, action] = await Promise.all([
@@ -754,7 +754,7 @@ async function main() {
 
   // dev サーバーはページ初回アクセス時にコンパイルし、その時点で manifest のアクション ID が
   // 確定する。ID 解決より先に対象ページを踏んで manifest を最新化する
-  const warmCookie = await login(fx.users[0].name);
+  const warmCookie = await login(fx.users[0].loginId);
   const adminWarmCookie = await login(ADMIN_NAME);
   await fetch(`${BASE}/races/${fx.raceId}`, { headers: { Cookie: warmCookie, ...PROTO_HEADER } }).then((r) => r.text());
   await fetch(`${BASE}/admin/races/${fx.raceId}`, { headers: { Cookie: adminWarmCookie, ...PROTO_HEADER } }).then((r) =>

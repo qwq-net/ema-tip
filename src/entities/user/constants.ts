@@ -33,7 +33,23 @@ export const VALID_NAME_REGEX = /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9
 /** 表示名の最大文字数。ランキング等のレイアウト崩れ防止。 */
 export const MAX_NAME_LENGTH = 20;
 
-/** 表示名として妥当か。ゲスト登録・オンボーディング・名前変更で共通に使う。 */
+/** 表示名として妥当か。オンボーディング・名前変更で共通に使う。表示名は重複してよく、一意性は問わない。 */
 export function isValidUserName(name: string): boolean {
   return name.length > 0 && name.length <= MAX_NAME_LENGTH && VALID_NAME_REGEX.test(name);
+}
+
+/** ログインIDに許可する文字。読み上げと打ち間違いを避けるため英数字だけに絞る。 */
+export const VALID_LOGIN_ID_REGEX = /^[a-zA-Z0-9]+$/;
+
+export const MIN_LOGIN_ID_LENGTH = 3;
+export const MAX_LOGIN_ID_LENGTH = 20;
+
+/**
+ * ログインIDとして妥当か。ゲスト登録の入力検証に使う。
+ * 大文字小文字はどちらも通すが、照合時は区別しないため Taro と taro は同一IDとして扱われる。
+ */
+export function isValidLoginId(loginId: string): boolean {
+  return (
+    loginId.length >= MIN_LOGIN_ID_LENGTH && loginId.length <= MAX_LOGIN_ID_LENGTH && VALID_LOGIN_ID_REGEX.test(loginId)
+  );
 }

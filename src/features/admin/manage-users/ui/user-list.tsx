@@ -14,6 +14,7 @@ import { UserRoleSelect } from './user-role-select';
 interface User {
   id: string;
   name: string | null;
+  loginId: string | null;
   image: string | null;
   role: Role;
   disabledAt: Date | null;
@@ -100,6 +101,7 @@ export function UserList({ users, currentUserId }: UserListProps) {
                       </div>
                       <div className="text-text-sub text-sm">
                         {lookup(PROVIDER_LABELS, user.accounts[0]?.provider ?? '') ?? PROVIDER_FALLBACK}
+                        {user.loginId && <span className="ml-2">ID: {user.loginId}</span>}
                       </div>
                     </div>
                   </div>

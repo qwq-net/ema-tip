@@ -16,7 +16,7 @@ interface UserRoleSelectProps {
   isCurrentUser: boolean;
 }
 
-/** 役割を変更する select。自分と AI とゲストの行は変更できないので Badge で役割名だけを出す。 */
+/** 役割を変更する select。自分と AI の行は変更できないので Badge で役割名だけを出す。 */
 export function UserRoleSelect({ userId, userName, currentRole, isCurrentUser }: UserRoleSelectProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -32,7 +32,7 @@ export function UserRoleSelect({ userId, userName, currentRole, isCurrentUser }:
     });
   };
 
-  const isFixedRole = currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST;
+  const isFixedRole = currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER;
 
   if (isCurrentUser || isFixedRole) return <Badge label={ROLE_LABELS[currentRole]} />;
 
@@ -45,7 +45,7 @@ export function UserRoleSelect({ userId, userName, currentRole, isCurrentUser }:
       className="rounded-chip w-32 border border-gray-300 bg-white px-2 py-1 text-sm"
     >
       {Object.values(ROLES)
-        .filter((role) => role !== ROLES.AI_USER && role !== ROLES.AI_TIPSTER && role !== ROLES.GUEST)
+        .filter((role) => role !== ROLES.AI_USER && role !== ROLES.AI_TIPSTER)
         .map((role) => (
           <option key={role} value={role}>
             {ROLE_LABELS[role]}

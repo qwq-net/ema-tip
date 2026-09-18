@@ -98,13 +98,14 @@ const SEED_GUEST_CODE = 'WELCOME1';
 // Discord の開発者モードで誰でも取得できる公開値なので、リポジトリに置いても秘密は漏れない
 const adminDiscordIdsToCreate = [{ discordId: '988442447187165254', label: 'INTERNET' }];
 
+// loginId は資格情報ログインの識別子。小文字の英数字だけで作る
 const usersToCreate = [
-  { name: '武豊', role: ROLES.USER, email: 'admin@example.com' },
-  { name: 'ルメール', role: ROLES.USER, email: 'user@example.com' },
-  { name: '川田将雅', role: ROLES.GUEST, email: 'guest@example.com' },
-  { name: '横山武史', role: ROLES.TIPSTER, email: 'tipster@example.com' },
-  { name: '[AI] 戸崎圭太', role: ROLES.AI_TIPSTER, email: 'ai_tipster@example.com' },
-  { name: '[AI] 福永祐一', role: ROLES.AI_USER, email: 'ai_user@example.com' },
+  { name: '武豊', loginId: 'yutaka', role: ROLES.USER, email: 'admin@example.com' },
+  { name: 'ルメール', loginId: 'lemaire', role: ROLES.USER, email: 'user@example.com' },
+  { name: '川田将雅', loginId: 'kawada', role: ROLES.GUEST, email: 'guest@example.com' },
+  { name: '横山武史', loginId: 'yokoyama', role: ROLES.TIPSTER, email: 'tipster@example.com' },
+  { name: '[AI] 戸崎圭太', loginId: 'aitosaki', role: ROLES.AI_TIPSTER, email: 'ai_tipster@example.com' },
+  { name: '[AI] 福永祐一', loginId: 'aifukunaga', role: ROLES.AI_USER, email: 'ai_user@example.com' },
 ];
 
 interface EventTemplate {
@@ -420,9 +421,13 @@ async function seedUsers(tx: Tx): Promise<SeededUser[]> {
     });
 
     if (existing) {
-      // 旧シードで作られたパスワード無しユーザーもログインできるよう補完する
+      // 旧シードで作られたパスワード無しのユーザーもログインできるよう補完する
       if (!existing.password) {
         await tx.update(schema.users).set({ password: passwordHash }).where(eq(schema.users.id, existing.id));
+      }
+      // ログインIDはシードが正本。表示名から複写された移行時の値が残っていても揃え直す
+      if (existing.loginId !== userData.loginId) {
+        await tx.update(schema.users).set({ loginId: userData.loginId }).where(eq(schema.users.id, existing.id));
       }
       allUsers.push(existing);
     } else {
@@ -430,6 +435,7 @@ async function seedUsers(tx: Tx): Promise<SeededUser[]> {
         .insert(schema.users)
         .values({
           name: userData.name,
+          loginId: userData.loginId,
           email: userData.email,
           role: userData.role,
           password: passwordHash,
@@ -438,11 +444,12 @@ async function seedUsers(tx: Tx): Promise<SeededUser[]> {
         .returning();
       allUsers.push(firstRow(insertedUsers, 'ユーザー'));
       createdUserCount++;
-      console.log(`User created: ${userData.name} (${userData.role})`);
+      console.log(`User created: ${userData.name} / ${userData.loginId} / ${userData.role}`);
     }
   }
   if (createdUserCount === 0) console.log('Users: all exist, skipped');
   console.log(`Login password for all seeded users: ${SEED_PASSWORD}`);
+  console.log(`Login IDs: ${usersToCreate.map((u) => u.loginId).join(', ')}`);
 
   return allUsers;
 }

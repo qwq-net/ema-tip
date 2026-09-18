@@ -1,4 +1,4 @@
-import { isValidUserName } from '@/entities/user/constants';
+import { isValidLoginId } from '@/entities/user/constants';
 import { db } from '@/shared/db';
 import * as schema from '@/shared/db/schema';
 import { resolveRoleForDiscordId } from '@/shared/lib/admin-discord-ids';
@@ -36,12 +36,12 @@ class InvalidGuestCodeError extends CredentialsSignin {
   override code = 'InvalidGuestCode';
 }
 
-class UsernameTakenError extends CredentialsSignin {
-  override code = 'UsernameTaken';
+class LoginIdTakenError extends CredentialsSignin {
+  override code = 'LoginIdTaken';
 }
 
 // ユーザー不存在とパスワード不一致は同一コードで返す。
-// 分けるとレスポンスからユーザー名の存在有無を列挙できてしまう
+// 分けるとレスポンスからログインIDの存在有無を列挙できてしまう
 class InvalidCredentialsError extends CredentialsSignin {
   override code = 'InvalidCredentials';
 }
@@ -54,20 +54,20 @@ class AccountDisabledError extends CredentialsSignin {
   override code = 'AccountDisabled';
 }
 
-class InvalidUsernameError extends CredentialsSignin {
-  override code = 'InvalidUsername';
+class InvalidLoginIdError extends CredentialsSignin {
+  override code = 'InvalidLoginId';
 }
 
 interface GuestSignUpInput {
   code: string;
-  username: string;
+  loginId: string;
   password: string;
   ip: string;
   attemptRecord: LoginAttemptRecord | null;
 }
 
 interface PasswordSignInInput {
-  username: string;
+  loginId: string;
   password: string;
   ip: string;
   attemptRecord: LoginAttemptRecord | null;
@@ -75,13 +75,15 @@ interface PasswordSignInInput {
 
 /**
  * ゲストコードで新規ユーザーを登録し、作成したユーザーを返す。
- * コード無効・名前不正・重複名はいずれも失敗を記録してから CredentialsSignin 系のエラーを投げる。
+ * loginId は小文字へ正規化済みの前提で受け取る。表示名は loginId と同じ値で作り、
+ * オンボーディング未完了として返すため、登録直後の利用者はニックネーム設定画面へ回される。
+ * コード無効・ID不正・ID重複はいずれも失敗を記録してから CredentialsSignin 系のエラーを投げる。
  * コード誤りだけは総当たりを疑う失敗として厳格に記録する。
  * 失敗回数の消去は登録が成立したときだけ行う。呼び出し側でロック判定を済ませてある前提。
  */
 async function signUpGuest({
   code,
-  username,
+  loginId,
   password,
   ip,
   attemptRecord,
@@ -96,19 +98,19 @@ async function signUpGuest({
     throw new InvalidGuestCodeError();
   }
 
-  if (!isValidUserName(username)) {
+  if (!isValidLoginId(loginId)) {
     await recordLoginFailure(ip, attemptRecord);
-    throw new InvalidUsernameError();
+    throw new InvalidLoginIdError();
   }
 
   const existingUser = await db.query.users.findFirst({
-    where: eq(schema.users.name, username),
+    where: eq(schema.users.loginId, loginId),
   });
 
   if (existingUser) {
-    console.warn(`Username taken during signup: ${username}`);
+    console.warn(`Login ID taken during signup: ${loginId}`);
     await recordLoginFailure(ip, attemptRecord);
-    throw new UsernameTakenError();
+    throw new LoginIdTakenError();
   }
 
   const hashedPassword = await hash(password, 10);
@@ -117,19 +119,20 @@ async function signUpGuest({
     const insertedUsers = await db
       .insert(schema.users)
       .values({
-        name: username,
+        name: loginId,
+        loginId,
         role: 'GUEST',
         guestCodeId: code,
         password: hashedPassword,
-        isOnboardingCompleted: true,
+        isOnboardingCompleted: false,
       })
       .returning();
     newUser = firstRow(insertedUsers, 'ユーザー');
   } catch (error) {
-    // 同時登録の競合は user_name_idx の一意制約で片方が落ちる
+    // 同時登録の競合は user_login_id_idx の一意制約で片方が落ちる
     if (error instanceof Error && 'code' in error && error.code === '23505') {
       await recordLoginFailure(ip, attemptRecord);
-      throw new UsernameTakenError();
+      throw new LoginIdTakenError();
     }
     throw error;
   }
@@ -141,24 +144,24 @@ async function signUpGuest({
 }
 
 /**
- * ユーザー名とパスワードで認証し、該当ユーザーを返す。
+ * ログインIDとパスワードで認証し、該当ユーザーを返す。loginId は小文字へ正規化済みの前提で受け取る。
  * ユーザーが存在しない場合もダミーハッシュとの照合を行い、応答時間から存在有無が漏れないようにする。
  * 不存在・パスワード未設定・不一致は失敗を記録してから CredentialsSignin 系のエラーを投げる。
  * 失敗回数の消去は認証が成立したときだけ行う。呼び出し側でロック判定を済ませてある前提。
  */
 async function signInWithPassword({
-  username,
+  loginId,
   password,
   ip,
   attemptRecord,
 }: PasswordSignInInput): Promise<typeof schema.users.$inferSelect> {
   const existingUser = await db.query.users.findFirst({
-    where: eq(schema.users.name, username),
+    where: eq(schema.users.loginId, loginId),
   });
 
   if (!existingUser) {
-    console.warn(`Login failed: user not found ${username}`);
-    // 応答時間の差からユーザー名の存在有無を判別されないよう、不存在でもダミー照合を行う
+    console.warn(`Login failed: user not found ${loginId}`);
+    // 応答時間の差からログインIDの存在有無を判別されないよう、不存在でもダミー照合を行う
     await compare(password, DUMMY_PASSWORD_HASH);
     await recordLoginFailure(ip, attemptRecord);
     throw new InvalidCredentialsError();
@@ -235,7 +238,7 @@ const {
     Credentials({
       credentials: {
         code: { label: 'Code', type: 'text' },
-        username: { label: 'Username', type: 'text' },
+        loginId: { label: 'LoginId', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       authorize: async (credentials) => {
@@ -243,7 +246,11 @@ const {
           const parsed = z
             .object({
               code: z.string().trim().optional(),
-              username: z.string().min(1),
+              // 打ち間違いと大文字小文字の揺れでログインできなくなるのを避けるため、ここで正規化する
+              loginId: z
+                .string()
+                .min(1)
+                .transform((val) => val.trim().toLowerCase()),
               password: z.string().refine((val) => {
                 const length = splitGraphemes(val).length;
                 return length >= 3 && length <= 6;
@@ -252,7 +259,7 @@ const {
             .safeParse(credentials);
 
           if (!parsed.success) return null;
-          const { code, username, password } = parsed.data;
+          const { code, loginId, password } = parsed.data;
 
           const ip = await getClientIp();
           const attemptRecord = await getLoginAttemptRecord(ip);
@@ -264,9 +271,9 @@ const {
 
           // await してから返す。await を外すと分岐先の失敗を下の catch が受けられない
           if (code) {
-            return await signUpGuest({ code, username, password, ip, attemptRecord });
+            return await signUpGuest({ code, loginId, password, ip, attemptRecord });
           }
-          return await signInWithPassword({ username, password, ip, attemptRecord });
+          return await signInWithPassword({ loginId, password, ip, attemptRecord });
         } catch (error) {
           if (error instanceof CredentialsSignin) {
             throw error;

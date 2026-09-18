@@ -1,18 +1,27 @@
-import { LogoutButton } from '@/entities/user';
+import { LogoutButton, ROLES } from '@/entities/user';
 import { EditableUserProfile } from '@/features/user/ui/editable-user-profile';
+import { TIPSTER_DEFAULT_ROUTE } from '@/shared/config/admin-permissions';
 import { Button, Card, CardContent, CardTitle } from '@/shared/ui';
 import { PageHeader } from '@/shared/ui/layout/page-header';
 import type { AuthedSession } from '@/shared/utils/admin';
+import { lookup } from '@/shared/utils/lookup';
 import type { LucideIcon } from 'lucide-react';
 import { Coins, History, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
+
+// 管理画面の入口。役割ごとに入れる範囲が違うため、遷移先と文言をここで分ける。
+// ここに載らない役割は管理画面へ入れないのでボタンも出さない
+const ADMIN_ENTRIES = {
+  [ROLES.ADMIN]: { href: '/admin', label: '管理者パネル' },
+  [ROLES.TIPSTER]: { href: TIPSTER_DEFAULT_ROUTE, label: '予想入力パネル' },
+} satisfies Record<string, { href: string; label: string }>;
 
 /** マイページの入口タイル。href ごとに 1 枚のカードを描き、並び順はこの配列が持つ。 */
 const NAV_ITEMS: { href: string; title: string; description: string; icon: LucideIcon }[] = [
   {
     href: '/mypage/sokubet',
     title: '即BET',
-    description: '開催中のレースへ投票（馬券購入）',
+    description: '開催中のレースへ投票して馬券を購入',
     icon: Zap,
   },
   {
@@ -37,9 +46,11 @@ const NAV_ITEMS: { href: string; title: string; description: string; icon: Lucid
 
 /**
  * マイページの本体。プロフィールの編集とログアウト、各機能への入口タイルを並べる。
- * 管理者にだけ管理者パネルへのリンクを足す。オンボーディング未完了の振り分けはページ側が済ませている前提。
+ * 管理者と予想屋にだけ管理画面へのリンクを足す。オンボーディング未完了の振り分けはページ側が済ませている前提。
  */
 export function MypageHome({ user }: { user: AuthedSession['user'] }) {
+  const adminEntry = lookup(ADMIN_ENTRIES, user.role);
+
   return (
     <>
       <PageHeader title="マイページ" />
@@ -48,9 +59,9 @@ export function MypageHome({ user }: { user: AuthedSession['user'] }) {
         <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
           <EditableUserProfile user={user} />
           <div className="flex shrink-0 items-center gap-4">
-            {user.role === 'ADMIN' && (
+            {adminEntry && (
               <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/5">
-                <Link href="/admin">管理者パネル</Link>
+                <Link href={adminEntry.href}>{adminEntry.label}</Link>
               </Button>
             )}
             <LogoutButton />
