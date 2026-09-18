@@ -14,6 +14,7 @@ export async function getUsers() {
       id: true,
       name: true,
       loginId: true,
+      guestCodeId: true,
       image: true,
       role: true,
       disabledAt: true,

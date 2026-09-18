@@ -15,6 +15,7 @@ interface User {
   id: string;
   name: string | null;
   loginId: string | null;
+  guestCodeId: string | null;
   image: string | null;
   role: Role;
   disabledAt: Date | null;
@@ -44,13 +45,23 @@ const PROVIDER_LABELS = {
 
 const PROVIDER_FALLBACK = 'ゲストコード';
 
+// 登録に使ったゲストコードを持つ利用者。役割を変えても登録経路は変わらないため、予想屋にしたゲストもゲストタブに残る。
+// 発行者を削除するとコードごと消えて参照が外れるので、そのときだけユーザータブへ移る
+function isGuestSignup(user: User): boolean {
+  return user.guestCodeId !== null;
+}
+
+function isAiAccount(user: User): boolean {
+  return user.role === 'AI_USER' || user.role === 'AI_TIPSTER';
+}
+
 export function UserList({ users, currentUserId }: UserListProps) {
   const [activeTab, setActiveTab] = useState<TabType>('ALL_USERS');
 
   const filteredUsers = users.filter((user) => {
-    if (activeTab === 'GUEST') return user.role === 'GUEST';
-    if (activeTab === 'AI') return user.role === 'AI_USER' || user.role === 'AI_TIPSTER';
-    return !['GUEST', 'AI_USER', 'AI_TIPSTER'].includes(user.role);
+    if (activeTab === 'AI') return isAiAccount(user);
+    if (activeTab === 'GUEST') return !isAiAccount(user) && isGuestSignup(user);
+    return !isAiAccount(user) && !isGuestSignup(user);
   });
 
   return (
