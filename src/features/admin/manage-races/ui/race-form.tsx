@@ -6,7 +6,6 @@ import { Input, Label, Select, SubmitButton } from '@/shared/ui';
 import { todayJST } from '@/shared/utils/date';
 import { preventEnterSubmit } from '@/shared/utils/form';
 import { lookup, narrowToOption } from '@/shared/utils/lookup';
-import { Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { createRace, updateRace } from '../actions';
@@ -195,22 +194,14 @@ export function RaceForm({
           <Label htmlFor="race-date" className="mb-1.5">
             開催日
           </Label>
-          <div className="relative">
-            <div className="focus-within:ring-primary/40 focus-within:border-primary rounded-control flex w-full items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm transition focus-within:ring-2 focus-within:outline-none">
-              <Calendar className="text-text-sub h-4 w-4" />
-              <span className="text-text-main">{date.replace(/-/g, '/')}</span>
-            </div>
-            <input
-              id="race-date"
-              name="date"
-              type="date"
-              aria-label="開催日"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            />
-          </div>
+          <Input
+            id="race-date"
+            name="date"
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
 
         <Label>
