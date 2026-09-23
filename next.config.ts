@@ -79,6 +79,14 @@ const nextConfig = (phase: string): NextConfig => {
           source: '/(.*)',
           headers: securityHeaders,
         },
+        // 事前生成したページに Next が付ける s-maxage=31536000 を打ち消す。
+        // Cloudflare がこれを効かせると、入れ替えた後も古い HTML が 1 年配られ続け、
+        // 新しいサーバーと噛み合わない画面が残る。実際に 2026-09-19 の反映でログイン画面が古いまま残った。
+        // 内容ごとに名前が変わるビルド成果物と画像最適化は、積極的にキャッシュさせたいので除く
+        {
+          source: '/:path((?!_next/).*)',
+          headers: [{ key: 'Cache-Control', value: 'no-store' }],
+        },
       ]);
     },
   };
