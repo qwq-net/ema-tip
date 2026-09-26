@@ -135,7 +135,9 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           <>
             <RankingButton eventId={race.eventId} size="md" />
             <Button variant="outline" asChild>
-              <Link href={`/races/${id}/standby`}>購入馬券確認・結果待機</Link>
+              <Link href={`/races/${id}/standby`} title="締切後はこのページで結果をお待ちください">
+                購入馬券確認・結果待機
+              </Link>
             </Button>
           </>
         }

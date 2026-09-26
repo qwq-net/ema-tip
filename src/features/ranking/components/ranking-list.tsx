@@ -19,7 +19,7 @@ interface RankingListProps {
   initialPublished: boolean;
   initialDisplayMode: RankingDisplayMode;
   distributeAmount: number;
-  /** 画面右上に結果待機と同じ LIVE ピルを固定表示する。モーダル内では親画面が持つため出さない。 */
+  /** 画面右上に結果待機と同じ接続状態のピルを固定表示する。モーダル内では親画面が持つため出さない。 */
   showLiveStatus?: boolean;
 }
 

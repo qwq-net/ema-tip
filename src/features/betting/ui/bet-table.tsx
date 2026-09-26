@@ -19,6 +19,7 @@ import { FormattedDate } from '@/shared/ui/formatted-date';
 import { cn } from '@/shared/utils/cn';
 import { getGenderAge } from '@/shared/utils/gender';
 import { AlertCircle, CircleHelp, Clock, Info, Lock } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useTransition } from 'react';
 
@@ -392,6 +393,9 @@ export function BetTable({
       {isClosed && (
         <Alert variant="error" icon={AlertCircle}>
           このレースは受付を終了しました。現在、馬券を購入することはできません。
+          <Link href={`/races/${raceId}/standby`} className="ml-2 font-semibold underline underline-offset-2">
+            購入馬券確認・結果待機で結果を待つ
+          </Link>
         </Alert>
       )}
       {!isClosed && remainingMs !== null && (

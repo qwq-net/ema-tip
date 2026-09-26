@@ -153,7 +153,7 @@ interface StandbyClientProps {
 
 /**
  * 結果待機画面の本体。SSE でレース状態と確定結果を受け取り、購入馬券の一覧と払戻結果のモーダルを描く。
- * 見出しと LIVE 状態のピルと通知音の切り替えを持ち、外枠と操作の行は widgets/race-standby が組む。
+ * 見出しと 接続状態のピルと通知音の切り替えを持ち、外枠と操作の行は widgets/race-standby が組む。
  */
 export function StandbyClient({
   race,
