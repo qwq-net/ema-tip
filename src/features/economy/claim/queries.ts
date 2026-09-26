@@ -1,10 +1,10 @@
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 export async function getEventsWithJoinStatus(userId: string) {
   const availableEvents = await db.query.events.findMany({
-    where: eq(events.status, 'ACTIVE'),
+    where: inArray(events.status, ['ACTIVE', 'COMPLETED']),
     orderBy: [desc(events.date), desc(events.createdAt)],
   });
 

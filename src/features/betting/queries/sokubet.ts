@@ -1,26 +1,26 @@
 import { db } from '@/shared/db';
-import { bet5Events, bet5Tickets, raceInstances, wallets } from '@/shared/db/schema';
+import { bet5Events, bet5Tickets, events, raceInstances, wallets } from '@/shared/db/schema';
 import { and, desc, eq, inArray, sum } from 'drizzle-orm';
 
 export async function getSokubetDashboardData(userId: string) {
-  const [activeEvents, userWallets] = await Promise.all([
+  const [listedEvents, userWallets] = await Promise.all([
     db.query.events.findMany({
-      where: (events, { eq }) => eq(events.status, 'ACTIVE'),
-      columns: { id: true },
+      where: inArray(events.status, ['ACTIVE', 'COMPLETED']),
+      orderBy: [desc(events.date), desc(events.createdAt)],
     }),
     db.query.wallets.findMany({
       where: eq(wallets.userId, userId),
     }),
   ]);
 
-  if (activeEvents.length === 0) {
+  if (listedEvents.length === 0) {
     return [];
   }
 
-  const activeEventIds = activeEvents.map((event) => event.id);
-  const [activeRaces, bet5EventsList, bet5SalesRows] = await Promise.all([
+  const listedEventIds = listedEvents.map((event) => event.id);
+  const [listedRaces, bet5EventsList, bet5SalesRows] = await Promise.all([
     db.query.raceInstances.findMany({
-      where: inArray(raceInstances.eventId, activeEventIds),
+      where: inArray(raceInstances.eventId, listedEventIds),
       orderBy: [desc(raceInstances.date)],
       with: {
         event: true,
@@ -30,7 +30,7 @@ export async function getSokubetDashboardData(userId: string) {
       },
     }),
     db.query.bet5Events.findMany({
-      where: inArray(bet5Events.eventId, activeEventIds),
+      where: inArray(bet5Events.eventId, listedEventIds),
       columns: {
         id: true,
         eventId: true,
@@ -48,15 +48,15 @@ export async function getSokubetDashboardData(userId: string) {
       .select({ bet5EventId: bet5Tickets.bet5EventId, total: sum(bet5Tickets.amount) })
       .from(bet5Tickets)
       .innerJoin(bet5Events, eq(bet5Tickets.bet5EventId, bet5Events.id))
-      .where(inArray(bet5Events.eventId, activeEventIds))
+      .where(inArray(bet5Events.eventId, listedEventIds))
       .groupBy(bet5Tickets.bet5EventId),
   ]);
 
-  const activeBet5EventIds = bet5EventsList.map((event) => event.id);
+  const listedBet5EventIds = bet5EventsList.map((event) => event.id);
   const userBet5Tickets =
-    activeBet5EventIds.length > 0
+    listedBet5EventIds.length > 0
       ? await db.query.bet5Tickets.findMany({
-          where: and(eq(bet5Tickets.userId, userId), inArray(bet5Tickets.bet5EventId, activeBet5EventIds)),
+          where: and(eq(bet5Tickets.userId, userId), inArray(bet5Tickets.bet5EventId, listedBet5EventIds)),
           columns: {
             bet5EventId: true,
           },
@@ -76,12 +76,12 @@ export async function getSokubetDashboardData(userId: string) {
     bet5TicketCountByEventId.set(eventId, current + 1);
   });
 
-  const eventGroups = activeRaces.reduce<
+  const eventGroups = listedEvents.reduce<
     Record<
       string,
       {
-        event: (typeof activeRaces)[0]['event'];
-        races: typeof activeRaces;
+        event: (typeof listedRaces)[0]['event'];
+        races: typeof listedRaces;
         balance: number;
         totalLoaned: number;
         bet5Id?: string | undefined;
@@ -91,14 +91,14 @@ export async function getSokubetDashboardData(userId: string) {
         hasWallet: boolean;
       }
     >
-  >((acc, race) => {
-    const eventId = race.event.id;
+  >((acc, event) => {
+    const eventId = event.id;
     if (!acc[eventId]) {
       const wallet = walletByEventId.get(eventId);
       const bet5 = bet5ByEventId.get(eventId);
       const bet5TicketCount = bet5TicketCountByEventId.get(eventId) ?? 0;
       acc[eventId] = {
-        event: race.event,
+        event,
         races: [],
         balance: wallet?.balance ?? 0,
         totalLoaned: wallet?.totalLoaned ?? 0,
@@ -109,12 +109,18 @@ export async function getSokubetDashboardData(userId: string) {
         hasWallet: Boolean(wallet),
       };
     }
-    acc[eventId].races.push(race);
     return acc;
   }, {});
 
+  for (const race of listedRaces) {
+    eventGroups[race.eventId]?.races.push(race);
+  }
+
   return Object.values(eventGroups)
-    .sort((a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime())
+    .sort((a, b) => {
+      if (a.event.status !== b.event.status) return a.event.status === 'ACTIVE' ? -1 : 1;
+      return new Date(b.event.date).getTime() - new Date(a.event.date).getTime();
+    })
     .map((group) => {
       // BET5 対象レースの並びと締切有無。対象レースが1つでも締め切られていたら実質購入不可として扱う
       const bet5 = bet5ByEventId.get(group.event.id);

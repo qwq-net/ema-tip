@@ -2,7 +2,7 @@
 
 import { type EventStatus } from '@/shared/constants/status';
 import { toast } from '@/shared/lib/toast';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState, SectionTitle } from '@/shared/ui';
 import { formatYen } from '@/shared/utils/format-yen';
 import { useTransition } from 'react';
 import { claimEvent } from '../actions';
@@ -24,6 +24,7 @@ interface JoinButtonAppearance {
 
 /** 参加ボタンの見た目とラベルを返す。参加済みが最優先で、次に受付中、それ以外は開始前として扱う。 */
 function joinButtonAppearance(isJoined: boolean, status: EventStatus): JoinButtonAppearance {
+  if (status === 'COMPLETED') return { variant: 'secondary', label: '終了済み' };
   if (isJoined) return { variant: 'outline', label: '参加済み' };
   if (status === 'ACTIVE') return { variant: 'primary', label: '参加する' };
   return { variant: 'secondary', label: '開始前' };
@@ -57,36 +58,46 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {events.map((event) => {
-        const joinButton = joinButtonAppearance(event.isJoined ?? false, event.status);
+    <div className="space-y-8">
+      {(['ACTIVE', 'COMPLETED'] as const).map((status) => {
+        const group = events.filter((event) => event.status === status);
+        if (group.length === 0) return null;
         return (
-          <Card key={event.id} className="flex flex-col transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <CardTitle as="h2">{event.name}</CardTitle>
-                <Badge
-                  label={event.isJoined ? '参加済み' : event.status}
-                  variant={event.isJoined ? 'outline' : 'status'}
-                />
-              </div>
-              <p className="text-text-sub mt-1 text-sm">開催日: {event.date}</p>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col">
-              <p className="text-text-sub mb-4 flex-1 text-sm">{event.description || '説明はありません'}</p>
-              <div className="mt-auto flex items-center justify-between pt-4">
-                <span className="text-primary font-semibold">配布: {formatYen(event.distributeAmount)}</span>
-                <Button
-                  onClick={() => handleClaim(event.id)}
-                  disabled={isPending || event.status !== 'ACTIVE' || event.isJoined}
-                  size="sm"
-                  variant={joinButton.variant}
-                >
-                  {joinButton.label}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <section key={status} className="space-y-4">
+            <SectionTitle>{status === 'ACTIVE' ? '開催中' : '開催済み'}</SectionTitle>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {group.map((event) => {
+                const joinButton = joinButtonAppearance(event.isJoined ?? false, event.status);
+                const completed = event.status === 'COMPLETED';
+                const badgeLabel = event.isJoined && !completed ? '参加済み' : event.status;
+                return (
+                  <Card key={event.id} className="flex flex-col transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <CardTitle as="h3">{event.name}</CardTitle>
+                        <Badge label={badgeLabel} variant={event.isJoined && !completed ? 'outline' : 'status'} />
+                      </div>
+                      <p className="text-text-sub mt-1 text-sm">開催日: {event.date}</p>
+                    </CardHeader>
+                    <CardContent className="flex flex-1 flex-col">
+                      <p className="text-text-sub mb-4 flex-1 text-sm">{event.description || '説明はありません'}</p>
+                      <div className="mt-auto flex items-center justify-between pt-4">
+                        <span className="text-primary font-semibold">配布: {formatYen(event.distributeAmount)}</span>
+                        <Button
+                          onClick={() => handleClaim(event.id)}
+                          disabled={isPending || event.status !== 'ACTIVE' || event.isJoined}
+                          size="sm"
+                          variant={joinButton.variant}
+                        >
+                          {joinButton.label}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
         );
       })}
     </div>
