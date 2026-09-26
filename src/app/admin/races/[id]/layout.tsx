@@ -2,6 +2,8 @@ import { formatRaceLabel } from '@/entities/race/lib/label';
 import { RacePageHeader } from '@/entities/race/ui/race-page-header';
 import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-entries/actions';
+import { deleteRace } from '@/features/admin/manage-races/actions';
+import { ConfirmDeleteButton } from '@/features/admin/shared/ui/confirm-delete-button';
 import { AdminPage } from '@/features/admin/ui/admin-page';
 import { AdminTabs } from '@/features/admin/ui/admin-tabs';
 import { db } from '@/shared/db';
@@ -57,7 +59,18 @@ export default async function RaceDetailLayout({
         surface={race.surface}
         distance={race.distance}
         entrantCount={entrantRows[0]?.value ?? 0}
-        actions={race.netkeibaUrl ? <UpdateNetkeibaOddsButton raceId={race.id} /> : undefined}
+        actions={
+          <>
+            {race.netkeibaUrl && <UpdateNetkeibaOddsButton raceId={race.id} />}
+            <ConfirmDeleteButton
+              title="レースの削除"
+              itemName={race.name}
+              onDelete={deleteRace.bind(null, race.id)}
+              redirectTo={`/admin/events/${race.eventId}`}
+              description={`「${race.name}」と出走馬・予想を削除します。馬券の購入がある場合、またはBET5の対象レースの場合は削除できません。`}
+            />
+          </>
+        }
       />
       <AdminTabs
         items={[

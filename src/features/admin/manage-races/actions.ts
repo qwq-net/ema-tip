@@ -1,4 +1,5 @@
 export { createRace } from './actions/create';
+export { deleteRace } from './actions/delete';
 export { finalizeRace } from './actions/finalize';
 export { finalizePayout } from './actions/payout';
 export { getEvents, getRaces } from './actions/read';

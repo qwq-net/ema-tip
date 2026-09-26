@@ -165,6 +165,7 @@ export function Bet5AdminView({ eventId, event, races, bet5Event, horseMap, tick
       <Bet5ManageCard
         bet5Event={bet5Event}
         eventId={eventId}
+        hasTickets={tickets.length > 0}
         distributeAmount={event.distributeAmount}
         targetRaces={targetRaces}
         raceLiveStats={buildRaceLiveStats(targetRaces, tickets, winnerByRaceId)}

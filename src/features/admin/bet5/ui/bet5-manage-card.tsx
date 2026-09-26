@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { calculateBet5PayoutAction, closeBet5EventAction, updateBet5InitialPotAction } from '../actions';
+import { cancelBet5EventAction } from '../cancel';
 
 interface Bet5Event {
   id: string;
@@ -31,6 +32,7 @@ interface Bet5Event {
 interface Bet5ManageCardProps {
   bet5Event: Bet5Event;
   eventId: string;
+  hasTickets: boolean;
   distributeAmount: number;
   targetRaces: {
     id: string;
@@ -121,6 +123,7 @@ function Bet5ActionRow({ status, isPending, canCalculatePayout, onClose, onCalcu
 export function Bet5ManageCard({
   bet5Event,
   eventId,
+  hasTickets,
   distributeAmount,
   targetRaces,
   raceLiveStats,
@@ -159,6 +162,16 @@ export function Bet5ManageCard({
       throw new Error(result.error);
     }
     toast.success('締め切りました');
+    router.refresh();
+  };
+
+  const handleCancel = async () => {
+    const result = await cancelBet5EventAction(bet5Event.id, eventId);
+    if (!result.success) {
+      toast.error(result.error);
+      throw new Error(result.error);
+    }
+    toast.success('BET5の設定を取り消しました');
     router.refresh();
   };
 
@@ -265,6 +278,19 @@ export function Bet5ManageCard({
           onClose={handleClose}
           onCalculate={handleCalculate}
         />
+        {bet5Event.status !== 'FINALIZED' && !hasTickets && (
+          <ConfirmDialog
+            trigger={
+              <Button variant="destructive-outline" disabled={isPending}>
+                BET5の設定を取り消す
+              </Button>
+            }
+            title="BET5の設定を取り消しますか？"
+            description="対象レースとプール金額の設定を削除します。取り消し後はBET5を設定し直せます。"
+            confirmLabel="設定を取り消す"
+            onConfirm={handleCancel}
+          />
+        )}
         {isPending && (
           <div className="text-text-sub flex items-center text-sm">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
