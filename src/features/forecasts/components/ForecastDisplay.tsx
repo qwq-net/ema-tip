@@ -1,3 +1,4 @@
+import { FORECAST_SYMBOLS, FORECAST_SYMBOL_MEANINGS } from '@/features/forecasts/constants';
 import type { ForecastWithUser } from '@/features/forecasts/types';
 import { CardTitle, Table } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
@@ -54,6 +55,15 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
         予想・見解
       </CardTitle>
 
+      <p className="text-text-sub flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <span className="font-semibold">印の見方</span>
+        {FORECAST_SYMBOLS.map((symbol) => (
+          <span key={symbol}>
+            <span className="text-text-main font-semibold">{symbol}</span> {FORECAST_SYMBOL_MEANINGS[symbol]}
+          </span>
+        ))}
+      </p>
+
       <div className="overflow-x-auto">
         <Table className="min-w-full divide-y divide-gray-200">
           <thead>
@@ -80,7 +90,7 @@ export function ForecastDisplay({ forecasts, entries }: ForecastDisplayProps) {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {entries.map((entry) => (
-              <tr key={entry.horseId}>
+              <tr key={entry.horseId} className="transition-colors hover:bg-gray-50">
                 <td className="text-text-sub px-3 py-2 text-center text-sm">
                   <BracketBadge bracketNumber={entry.bracketNumber} />
                 </td>

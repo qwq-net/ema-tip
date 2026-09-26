@@ -84,6 +84,11 @@ export interface SSEBetRestrictionUpdatedMessage {
   raceId: string;
 }
 
+export interface SSEForecastUpdatedMessage {
+  type: 'FORECAST_UPDATED';
+  raceId: string;
+}
+
 export type RaceStatusSSEMessage =
   | SSEConnectedMessage
   | SSERaceFinalizedMessage
@@ -94,4 +99,5 @@ export type RaceStatusSSEMessage =
   | SSERaceOddsUpdatedMessage
   | SSERankingUpdatedMessage
   | SSERaceResultUpdatedMessage
-  | SSEBetRestrictionUpdatedMessage;
+  | SSEBetRestrictionUpdatedMessage
+  | SSEForecastUpdatedMessage;

@@ -3,6 +3,7 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { forecasts } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireUser } from '@/shared/utils/admin';
 import { canManageForecasts } from '@/shared/utils/auth-helpers';
 import { and, eq } from 'drizzle-orm';
@@ -31,6 +32,7 @@ export async function upsertForecast(raceId: string, selections: ForecastSelecti
 
   revalidatePath(`/admin/forecasts`);
   revalidatePath(`/races/${raceId}`);
+  raceEventEmitter.emit(RACE_EVENTS.FORECAST_UPDATED, { raceId, timestamp: Date.now() });
 }
 
 export async function getForecastsByRaceId(raceId: string) {

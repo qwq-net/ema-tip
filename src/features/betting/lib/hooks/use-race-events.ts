@@ -60,6 +60,9 @@ function dispatchRaceMessage(data: SSEMessage, handlers: RaceMessageHandlers): v
       toast.info('購入できる馬券種別が変更されました');
       handlers.refresh();
       break;
+    case 'FORECAST_UPDATED':
+      handlers.refresh();
+      break;
     case 'RACE_FINALIZED':
     case 'RANKING_UPDATED':
     case 'connected':
