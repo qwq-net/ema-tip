@@ -209,6 +209,8 @@ const {
   trustHost: true,
   providers: [
     Discord({
+      // Discordが返すissを照合する。省略するとAuth.jsの既定値と一致せず認証に失敗する。
+      issuer: 'https://discord.com',
       authorization: 'https://discord.com/api/oauth2/authorize?scope=identify',
       // Discord プロフィールをアプリのユーザーへ写す。アバター未設定なら discriminator から
       // 既定アバターを選び、設定済みならハッシュから CDN の URL を組み立てる。
