@@ -2,6 +2,7 @@ import { isValidLoginId } from '@/entities/user/constants';
 import { db } from '@/shared/db';
 import * as schema from '@/shared/db/schema';
 import { resolveRoleForDiscordId } from '@/shared/lib/admin-discord-ids';
+import { getDiscordAvatarUrl, syncDiscordProfile } from '@/shared/lib/discord-profile';
 import {
   clearLoginFailures,
   getLoginAttemptRecord,
@@ -212,26 +213,17 @@ const {
       // Discordが返すissを照合する。省略するとAuth.jsの既定値と一致せず認証に失敗する。
       issuer: 'https://discord.com',
       authorization: 'https://discord.com/api/oauth2/authorize?scope=identify',
-      // Discord プロフィールをアプリのユーザーへ写す。アバター未設定なら discriminator から
-      // 既定アバターを選び、設定済みならハッシュから CDN の URL を組み立てる。
+      // Discord プロフィールをアプリのユーザーへ写す。
       // 表示名は英数字とかなカナ漢字だけに絞り、記号や絵文字を落とす
       // 役割は admin_discord_id の一覧で決まる。効くのは初回サインインの登録時だけ
       async profile(profile: DiscordProfile) {
-        let imageUrl: string;
-        if (profile.avatar === null) {
-          const defaultAvatarNumber = parseInt(profile.discriminator) % 5;
-          imageUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNumber}.png`;
-        } else {
-          const format = profile.avatar.startsWith('a_') ? 'gif' : 'png';
-          imageUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.${format}`;
-        }
         return {
           id: profile.id,
           name: (profile.global_name ?? profile.username).replace(
             /[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g,
             ''
           ),
-          image: imageUrl,
+          image: getDiscordAvatarUrl(profile),
           role: await resolveRoleForDiscordId(profile.id),
           isOnboardingCompleted: false,
         };
@@ -286,6 +278,7 @@ const {
       },
     }),
   ],
+  events: { signIn: syncDiscordProfile },
   callbacks: {
     // next-auth の型は user を必須として配るが、実際に渡るのはサインイン直後の 1 回だけで、
     // 以降のトークン更新では渡ってこない。実態に合わせて省略可能として受ける
