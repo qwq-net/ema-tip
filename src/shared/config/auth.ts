@@ -290,34 +290,35 @@ const {
       }
       return token;
     },
-    // 毎回 users を照会して失効・権限変更を即時反映する。頻度は下の cache ラップで抑える
+    // 毎回usersを照会して失効・権限変更を反映する。本人や現在の権限を確認できなければ操作を拒否する。
+    // 頻度は下のcacheラップで抑える。
     async session({ session, token }) {
-      if (token.sub) {
-        try {
-          const freshUser = await db.query.users.findFirst({
-            where: eq(schema.users.id, token.sub),
-            columns: {
-              id: true,
-              role: true,
-              disabledAt: true,
-              isOnboardingCompleted: true,
-              name: true,
-              image: true,
-            },
-          });
+      if (!token.sub) return { ...session, user: null };
+      try {
+        const freshUser = await db.query.users.findFirst({
+          where: eq(schema.users.id, token.sub),
+          columns: {
+            id: true,
+            role: true,
+            disabledAt: true,
+            isOnboardingCompleted: true,
+            name: true,
+            image: true,
+          },
+        });
 
-          if (!freshUser || freshUser.disabledAt) {
-            return { ...session, user: null };
-          }
-
-          session.user.role = freshUser.role;
-          session.user.id = freshUser.id;
-          session.user.isOnboardingCompleted = freshUser.isOnboardingCompleted;
-          session.user.name = freshUser.name;
-          session.user.image = freshUser.image;
-        } catch (e) {
-          console.error('Session refresh failed', e);
+        if (!freshUser || freshUser.disabledAt) {
+          return { ...session, user: null };
         }
+
+        session.user.role = freshUser.role;
+        session.user.id = freshUser.id;
+        session.user.isOnboardingCompleted = freshUser.isOnboardingCompleted;
+        session.user.name = freshUser.name;
+        session.user.image = freshUser.image;
+      } catch (e) {
+        console.error('Session refresh failed', e);
+        return { ...session, user: null };
       }
       return session;
     },

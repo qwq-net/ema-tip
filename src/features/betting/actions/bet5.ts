@@ -2,10 +2,9 @@
 
 import type { Bet5Selection } from '@/entities/bet/lib/bet5-event';
 import { Bet5SelectionSchema, placeBet5Bet } from '@/entities/bet/lib/bet5-event';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Tickets } from '@/shared/db/schema';
-import { ActionError, runAction } from '@/shared/utils/admin';
+import { ActionError, requireAdmin, requireUser, runAction } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -30,10 +29,7 @@ export async function placeBet5BetAction({
   selections: Bet5Selection;
 }) {
   return runAction(async () => {
-    const session = await auth();
-    if (!session?.user) {
-      throw new Error('Unauthorized');
-    }
+    const session = await requireUser();
 
     const validation = Bet5SelectionSchema.safeParse(selections);
     if (!validation.success) {
@@ -58,10 +54,7 @@ export async function placeBet5BetAction({
 }
 
 export async function getBet5TicketsAction(bet5EventId: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
-  }
+  await requireAdmin();
 
   const tickets = await db.query.bet5Tickets.findMany({
     where: eq(bet5Tickets.bet5EventId, bet5EventId),

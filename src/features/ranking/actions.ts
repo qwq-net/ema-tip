@@ -1,10 +1,9 @@
 'use server';
 
 import { calculateNetBalance } from '@/entities/wallet';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
-import { requireUser } from '@/shared/utils/admin';
+import { requireAdmin, requireUser } from '@/shared/utils/admin';
 import { asc, eq } from 'drizzle-orm';
 
 import { type RankingData, type RankingDisplayMode, rankByBasis } from '@/entities/ranking';
@@ -98,10 +97,7 @@ export async function getAdminEventRanking(eventId: string): Promise<{
   displayMode: RankingDisplayMode;
   distributeAmount: number;
 } | null> {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
-  }
+  const session = await requireAdmin();
 
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),
@@ -120,7 +116,7 @@ export async function getAdminEventRanking(eventId: string): Promise<{
     userId: wallet.userId,
     name: wallet.user.name || 'Unknown',
     balance: wallet.balance,
-    isCurrentUser: wallet.userId === session.user?.id,
+    isCurrentUser: wallet.userId === session.user.id,
     totalLoaned: wallet.totalLoaned > 0 ? wallet.totalLoaned : undefined,
   }));
 

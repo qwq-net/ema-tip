@@ -10,7 +10,7 @@ import { desc } from 'drizzle-orm';
 // 予想管理ページで使うため TIPSTER も許可する
 export async function getRaces() {
   const session = await auth();
-  if (!canManageForecasts(session?.user)) {
+  if (!session?.user?.id || !canManageForecasts(session.user)) {
     throw new ActionError(ADMIN_ERRORS.UNAUTHORIZED);
   }
 

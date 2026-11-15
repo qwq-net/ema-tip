@@ -23,10 +23,10 @@ export { ActionError, runAction, type ActionResult } from '@/shared/utils/action
 /** user が確実に存在するセッション。requireUser と requireAdmin と requireLoginPage が返す */
 export type AuthedSession = Session & { user: NonNullable<Session['user']> };
 
-/** 管理者ガード。ADMIN ロールでなければ ActionError を投げる。 */
+/** 管理者ガード。本人のIDが確認できないか、ADMINロールでなければActionErrorを投げる。 */
 export async function requireAdmin(): Promise<AuthedSession> {
   const session = await auth();
-  if (session?.user?.role !== ROLES.ADMIN) {
+  if (!session?.user?.id || session.user.role !== ROLES.ADMIN) {
     throw new ActionError(ADMIN_ERRORS.UNAUTHORIZED);
   }
   return { ...session, user: session.user };
